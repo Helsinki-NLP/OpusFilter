@@ -1,0 +1,14 @@
+__pycache__
+dist
+dl
+build
+*.pyc
+*~
+*.egg-info
+test_files
+filter_files
+.coverage
+htmlcov
+*.xml
+*.zip
+*.gz
