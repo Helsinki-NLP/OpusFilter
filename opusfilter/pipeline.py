@@ -1,6 +1,7 @@
 """Filter pipeline"""
 
 import collections
+import importlib
 import itertools
 import logging
 
@@ -34,9 +35,14 @@ class FilterPipeline:
         """Initilize filter pipeline from configuration dictionary"""
         pipeline = cls()
         for filt in config:
+            custom_module = filt.pop('module') if 'module' in filt else None
             name = next(iter(filt.keys()))
             attributes = filt[name]
-            filter_cls = getattr(filtermodule, name)
+            if custom_module:
+                mod = importlib.import_module(custom_module)
+                filter_cls = getattr(mod, name)
+            else:
+                filter_cls = getattr(filtermodule, name)
             pipeline.filters.append(filter_cls(**attributes))
         return pipeline
 
