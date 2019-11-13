@@ -6,7 +6,7 @@ import os
 import shutil
 import tempfile
 
-from opustools_pkg import OpusGet
+from opustools import OpusGet
 from opusfilter.opusfilter import OpusFilter
 
 
@@ -154,7 +154,7 @@ class TestOpusFilter(unittest.TestCase):
                         )
                 self.assertEqual(sents_sv[0], 'REGERINGSFÖRKLARING .\n')
 
-    @mock.patch('opustools_pkg.opus_get.input', create=True)
+    @mock.patch('opustools.opus_get.input', create=True)
     def test_write_to_current_dir_if_common_not_specified(self, mocked_input):
         mocked_input.side_effect = ['y']
         step = self.configuration['steps'][0]
@@ -169,7 +169,7 @@ class TestOpusFilter(unittest.TestCase):
         os.remove('RF_latest_xml_sv.zip')
         os.remove('RF_latest_xml_en-sv.xml.gz')
 
-    @mock.patch('opustools_pkg.opus_get.input', create=True)
+    @mock.patch('opustools.opus_get.input', create=True)
     def test_write_to_current_dir_if_output_dir_not_specified(self, mocked_input):
         mocked_input.side_effect = ['y']
         common = {'test': 'test'}
@@ -185,7 +185,7 @@ class TestOpusFilter(unittest.TestCase):
         os.remove('RF_latest_xml_sv.zip')
         os.remove('RF_latest_xml_en-sv.xml.gz')
 
-    @mock.patch('opustools_pkg.opus_get.input', create=True)
+    @mock.patch('opustools.opus_get.input', create=True)
     def test_create_output_dir_if_it_does_not_exist(self, mocked_input):
         mocked_input.side_effect = ['y']
         common = {'output_directory': 'test_creating_dir'}

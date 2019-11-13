@@ -8,8 +8,8 @@ import random
 import json
 from tqdm import tqdm
 
-from opustools_pkg import OpusRead
-from opustools_pkg.util import file_open
+from opustools import OpusRead
+from opustools.util import file_open
 
 from . import pipeline
 from . import lm
