@@ -13,14 +13,14 @@ logging.getLogger('mosestokenizer.tokenizer.MosesTokenizer').setLevel(logging.WA
 parser = argparse.ArgumentParser(prog='opus_filter',
     description='Filter OPUS bitexts')
 
-parser.add_argument('-f', help='yaml configuration file', required=True)
+parser.add_argument('config', help='YAML configuration file')
 parser.add_argument('--overwrite', '-o', help='overwrite existing output files', action='store_true')
 parser.add_argument('--last', type=int, default=None, help='Last step to run')
 parser.add_argument('--single', type=int, default=None, help='Run only the nth step')
 
 args = parser.parse_args()
 
-configuration = load(open(args.f), Loader=Loader)
+configuration = load(open(args.config), Loader=Loader)
 
 of = OpusFilter(configuration)
 if args.single is None:
