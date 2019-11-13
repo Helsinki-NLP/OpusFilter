@@ -66,7 +66,7 @@ A very simple configuration file that downloads a parallel corpus
 (here Finnish-English ParaCrawl v4) from OPUS and stores its segments
 to the files `paracrawl.fi.gz` and `paracrawl.en.gz` looks like this:
 
-```
+```yaml
 steps:
   - type: opus_read
     parameters:
@@ -89,7 +89,7 @@ that only the segment pairs for which both languages have segment
 length of 1-100 words and the ratio of the lengths is at most 3
 remain:
 
-```
+```yaml
 steps:
   - type: opus_read
     parameters:
@@ -274,3 +274,82 @@ Note that the format and boundary marking should match the parameters used in mo
 #### Alignment model filters
 
 ##### `WordAlignFilter`
+
+
+### Custom filters
+
+You can also import your own filters by defining the `module` key in
+the filter configuration entries.
+
+The custom filters should inherit the abstract base class `FilterABC`
+from the `opusfilter` package. They should implement two abstract
+methods: `score` and `accept`.
+
+The `score` method is a generator that takes an iterator over tuples
+of parallel sentences, and yields a score object for each pair. The
+score may either be a single number, or if multiple score values need
+to be yielded, a dictionary that has the numbers as values.
+
+The `accept` method takes a single output yielded by the `score`
+method, and returns whether the sentence pair should be accepted based
+on the score.
+
+If the filter requires any parameters (e.g. score thresholds for the
+`accept` method), the class should implement also the `__init__`
+method.  Arbitrary keyword arguments should be accepted (with
+`**kwargs`), and the `__init__` method of the base class (`FilterABC`)
+should be called in the end with the remaining keyword arguments. The
+keyword argument `name` is reserved for giving names to the filters.
+
+The base class defines the methods `decisions`, `filter`, and
+`filterfalse` based on the `score` and `accept` methods; they should
+not be redefined except for a good reason.
+
+The example below shows code for simple filter that calculates the
+proportion of uppercase letters in the sentences, and accepts the pair
+only if both sentences have less than 50% (or given threshold) of
+uppercase characters:
+
+```python
+import opusfilter
+
+class UppercaseFilter(opusfilter.FilterABC):
+
+    def __init__(self, threshold=0.5, **kwargs):
+        self.threshold = threshold
+        super().__init__(**kwargs)
+
+    def score(self, pairs):
+        for sent1, sent2 in pairs:
+            length1 = len(sent1)
+            length2 = len(sent2)
+            up1 = sum(1 for c in sent1 if c.isupper()) / length1 if length1 > 0 else 0
+            up2 = sum(1 for c in sent2 if c.isupper()) / length2 if length2 > 0 else 0
+            yield {'src': up1, 'tgt': up2}
+
+    def accept(self, score):
+        up1, up2 = score['src'], score['tgt']
+        return up1 < self.threshold and up2 < self.threshold
+```
+
+Assuming that the above code is in a module named `customfilter` in
+the Python evironment (e.g. save the code as `customfilter.py` and add
+the directory that contains it to `PYTHONPATH` environment variable),
+it can be selected in the filter configurations as follows:
+
+```yaml
+steps:
+
+  ...
+
+  - type: filter
+    parameters:
+
+      ...
+
+      filters:
+
+        - UppercaseFilter:
+            threshold: 0.5
+          module: customfilter
+```
