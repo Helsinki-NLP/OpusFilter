@@ -86,8 +86,33 @@ class TestFilterClassifier(unittest.TestCase):
         LR = self.fc.train_logreg()
         self.assertEqual(self.fc.get_roc_auc(LR), 1)
 
-    def test_find_best_roc_auc(self):
-        LR, roc_auc, value = self.fc.find_best_roc_auc(
-                [0.1, 0.2, 0.3, 0.4, 0.5])
-        self.assertEqual(roc_auc, 1)
+    def test_get_aic(self):
+        cutoffs = {key: None for key in self.fc.training_data.keys()}
+        new_cutoffs = self.fc.set_cutoffs(0.26, cutoffs)
+        self.fc.add_labels(new_cutoffs)
+        LR = self.fc.train_logreg()
+        aic = self.fc.get_aic(LR)
+        self.assertEqual(aic, 13.980099338293664)
 
+    def test_get_bic(self):
+        cutoffs = {key: None for key in self.fc.training_data.keys()}
+        new_cutoffs = self.fc.set_cutoffs(0.26, cutoffs)
+        self.fc.add_labels(new_cutoffs)
+        LR = self.fc.train_logreg()
+        bic = self.fc.get_bic(LR)
+        self.assertEqual(bic, 3.2686274791340413)
+
+    def test_find_best_roc_auc_model(self):
+        LR, roc_auc, value = self.fc.find_best_model(
+                [0.1, 0.2, 0.3, 0.4, 0.5], 'roc_auc')
+        self.assertEqual(roc_auc, 0)
+
+    def test_find_best_aic_model(self):
+        LR, aic, value = self.fc.find_best_model(
+                [0.1, 0.2, 0.3, 0.4, 0.5], 'AIC')
+        self.assertEqual(aic, 13.980099338293664)
+
+    def test_find_best_bic_model(self):
+        LR, bic, value = self.fc.find_best_model(
+                [0.1, 0.2, 0.3, 0.4, 0.5], 'BIC')
+        self.assertEqual(bic, 3.2686274791340413)

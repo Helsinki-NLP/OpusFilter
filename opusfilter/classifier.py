@@ -3,6 +3,7 @@
 import json
 import logging
 import collections
+import math
 
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
@@ -84,7 +85,7 @@ class FilterClassifier:
         return LR
 
     def get_roc_auc(self, model):
-        """Calculate ROC AUC for a given model"""
+        """Calculate ROC AUC for a given model (requires dev_data)"""
         pred = model.predict(self.dev_data)
         probs = model.predict_proba(self.dev_data)
         score = model.score(self.dev_data, self.dev_labels)
@@ -92,16 +93,46 @@ class FilterClassifier:
         auc2 = roc_auc_score(self.dev_labels, probs[:,1])
         return max(auc1, auc2)
 
-    def find_best_roc_auc(self, discard_thresholds):
-        """Find the model with the best ROC AUC based on discard thresholds"""
+    def get_sse(self, model):
+        """Calculate the residual sum of squares"""
+        y_hat = model.predict(self.training_data)
+        resid = self.labels_train - y_hat
+        sse = sum(resid**2)+0.01
+        return sse
+
+    def get_aic(self, model):
+        """Calculate AIC for a given model"""
+        sse = self.get_sse(model)
+        k = self.training_data.shape[1] # number of variables
+        AIC = 2*k - 2*math.log(sse)
+        return AIC
+
+    def get_bic(self, model):
+        """Calculate BIC for a given model"""
+        sse = self.get_sse(model)
+        k = self.training_data.shape[1] # number of variables
+        n = self.training_data.shape[0] # number of observations
+        BIC = n*math.log(sse/n) + k*math.log(n)
+        return BIC
+
+    def find_best_model(self, discard_thresholds, criterion):
+        """Find the model with the best ROC AUC / AIC / BIC"""
         cutoffs = {key: None for key in self.training_data.keys()}
         best = None
-        for value in discard_thresholds:
-            cutoffs = self.set_cutoffs(value, cutoffs)
+        for discard_threshold in discard_thresholds:
+            cutoffs = self.set_cutoffs(discard_threshold, cutoffs)
             self.add_labels(cutoffs)
             LR = self.train_logreg()
-            roc_auc = self.get_roc_auc(LR)
-            if best == None or roc_auc > best[1]:
-                best = (LR, roc_auc, value)
+
+            if criterion == 'roc_auc':
+                crit_value = 1 - self.get_roc_auc(LR) # smaller is better
+            elif criterion == 'AIC':
+                crit_value = self.get_aic(LR)
+            elif criterion == 'BIC':
+                crit_value = self.get_bic(LR)
+
+            if best == None or crit_value < best[1]:
+                best = (LR, crit_value, discard_threshold)
+
         return best
 
