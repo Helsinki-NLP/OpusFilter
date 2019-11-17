@@ -27,7 +27,11 @@ class TestFilterClassifier(unittest.TestCase):
             f.write(devdata)
             self.jsonl_dev = os.path.join(self.tempdir, 'dev.jsonl')
 
-        self.fc = FilterClassifier(self.jsonl_train, dev_scores=self.jsonl_dev)
+        self.fc = FilterClassifier(
+                training_scores=self.jsonl_train,
+                to_be_classified=self.jsonl_train,
+                output_file=os.path.join(self.tempdir, 'output.txt'),
+                dev_scores=self.jsonl_dev)
 
     @classmethod
     def tearDownClass(self):
@@ -116,3 +120,12 @@ class TestFilterClassifier(unittest.TestCase):
         LR, bic, value = self.fc.find_best_model(
                 [0.1, 0.2, 0.3, 0.4, 0.5], 'BIC')
         self.assertEqual(bic, 3.2686274791340413)
+
+    def test_assign_scores(self):
+        LR, roc_auc, value = self.fc.find_best_model(
+                [0.1, 0.2, 0.3, 0.4, 0.5], 'roc_auc')
+        probas = self.fc.assign_probabilities(LR)
+        with open(self.fc.output_file) as output:
+            lines = output.readlines()
+        self.assertEqual(lines[0], '0.6444675902763973\n')
+        self.assertEqual(lines[-1], '0.9873019540450083\n')

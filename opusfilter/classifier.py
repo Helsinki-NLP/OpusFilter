@@ -15,10 +15,21 @@ logger = logging.getLogger(__name__)
 class FilterClassifier:
     """Classify clean and noisy sentence pairs"""
 
-    def __init__(self, training_scores, dev_scores=None):
-        nested_data = self.load_data(training_scores)
-        training_data = self.unpack_data(nested_data)
+    def __init__(self, training_scores=None, to_be_classified=None,
+            output_file=None, dev_scores=None):
+        nested_train_data = self.load_data(training_scores)
+        training_data = self.unpack_data(nested_train_data)
         self.training_data = pd.DataFrame(training_data)
+
+        nested_tbc_data = self.load_data(to_be_classified)
+        tbc_data = self.unpack_data(nested_tbc_data)
+        self.tbc_data = pd.DataFrame(tbc_data)
+
+        if output_file:
+            self.output_file = output_file
+        else:
+            self.output_file = to_be_classified+'.probabilities.txt'
+
         if dev_scores:
             nested_dev_data = self.load_data(dev_scores)
             dev_data = self.unpack_data(nested_dev_data)
@@ -136,3 +147,9 @@ class FilterClassifier:
 
         return best
 
+    def assign_probabilities(self, model):
+        """Assign probabilities to the to_be_classified data"""
+        probas = model.predict_proba(self.tbc_data)
+        with open(self.output_file, 'w') as output:
+            for proba in probas[:,1]:
+                output.write(str(proba)+'\n')
