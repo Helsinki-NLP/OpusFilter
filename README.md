@@ -5,6 +5,40 @@ uses the OpusTool library to download data from the
 [OPUS](http://opus.nlpl.eu/) corpus collection, but can be used with
 any corpora in raw text format.
 
+## Table of contents
+
+* [Installing](#installing)
+   * [Required libraries](#required-libraries)
+   * [Optional libraries and tools](#optional-libraries-and-tools)
+* [Usage](#usage)
+   * [Available functions](#available-functions)
+      * [Downloading and selecting data](#downloading-and-selecting-data)
+         * [opus_read](#opus_read)
+         * [concatenate](#concatenate)
+         * [subset](#subset)
+      * [Filtering and scoring](#filtering-and-scoring)
+         * [filter](#filter)
+         * [score](#score)
+      * [Training models](#training-models)
+         * [train_ngram](#train_ngram)
+         * [train_aligment](#train_aligment)
+   * [Available filters](#available-filters)
+      * [Length filters](#length-filters)
+         * [LengthFilter](#lengthfilter)
+         * [LengthRatioFilter](#lengthratiofilter)
+      * [Script and language identification filters](#script-and-language-identification-filters)
+         * [CharacterScoreFilter](#characterscorefilter)
+         * [LanguageIDFilter](#languageidfilter)
+      * [Special character filters](#special-character-filters)
+         * [HtmlTagFilter](#htmltagfilter)
+         * [TerminalPunctuationFilter](#terminalpunctuationfilter)
+         * [NonZeroNumeralsFilter](#nonzeronumeralsfilter)
+      * [Language model filters](#language-model-filters)
+         * [CrossEntropyFilter](#crossentropyfilter)
+      * [Alignment model filters](#alignment-model-filters)
+         * [WordAlignFilter](#wordalignfilter)
+   * [Custom filters](#custom-filters)
+
 ## Installing
 
 `pip install .` or `python setup.py install`
@@ -284,6 +318,11 @@ given key "1", the second "2", and so on. (Note: Make sure to give a
 name to either all or none of the filters, or at least do not manually
 give integers as names.)
 
+The output can be used e.g. for analyzing the distribution of the
+scores or training a classifier for filtering. The JSON Lines data
+is easy to load as a [pandas](https://pandas.pydata.org/) DataFrame using the [`json_normalize`](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.io.json.json_normalize.html)
+method.
+
 #### Training models
 
 ##### `train_ngram`
@@ -318,7 +357,30 @@ Train word alignment priors for eflomal. Can be used in `WordAlignFilter`.
 
 ##### `LengthFilter`
 
+Filtering based on absolute segment lengths.
+
+Parameters:
+
+* `min_length`: Minimum segment length (default 1)
+* `max_length`: Maximum segment length (default 100)
+* `unit`: Type of unit for calculating the lengths: `word` for words (or any whitespace-separated units) and `character` or `char` for characters. The default is `word`.
+
+Returned scores are lengths for the source and target segment. In
+filtering, both segments have to be between the minimum and maximum
+length thresholds.
+
 ##### `LengthRatioFilter`
+
+Filtering based on ratio of the segment lengths.
+
+Parameters:
+
+* `threshold`: Threshold for the length ratio
+* `unit`: Type of unit for calculating the lengths: `word` for words (or any whitespace-separated units) and `character` or `char` for characters. The default is `word`.
+
+Returned score is the higher length divided by the lower length, or
+infinity of either of the lengths are zero. In filtering, segment
+pairs is accepted of the ratio is below the given threshold.
 
 #### Script and language identification filters
 
@@ -337,6 +399,8 @@ Train word alignment priors for eflomal. Can be used in `WordAlignFilter`.
 #### Language model filters
 
 ##### `CrossEntropyFilter`
+
+Filter segments by n-gram language model probabilities.
 
 Parameters:
 
@@ -359,7 +423,13 @@ Language model paramters for `src_lm_params` and `tgt_lm_params`:
 * `init_hist`: Ignore n first tokens after `</s>` in perplexity calculations (default: 2)
 * `interpolate`: List of language models (in ARPA format) and interpolation weights (default: none)
 
-Note that the format and boundary marking should match the parameters used in model training.
+Note that the format and boundary marking should match the parameters
+used in model training.
+
+Separate scores (entropy, perplexity, or negative log-probability) are
+returned for the source and target segment. In filtering, the segment
+pair is accepted if both values are below the respective thresholds,
+and their absolute difference is below the difference threshold.
 
 #### Alignment model filters
 
