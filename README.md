@@ -23,9 +23,9 @@ any corpora in raw text format.
 ### Optional libraries and tools
 
 For using n-gram language model filters, you need to install VariKN
-(https://github.com/vsiivola/variKN) and its Python wrapper. The
-library files compiled to `build/lib/python` should be added to your
-`PYTHONPATH` environment variable.
+(https://github.com/vsiivola/variKN) and its Python wrapper. Include
+the library files compiled to `build/lib/python` to your Python
+library path (e.g. by setting the `PYTHONPATH` environment variable).
 
 For using word alignment filters, you need to install elfomal
 (https://github.com/robertostling/eflomal) and set environment
@@ -142,6 +142,37 @@ steps:
             threshold: 3
 ```
 
+YAML node anchors (`&name`) and references (`*name`) can be used. They
+are especially useful when defining a set of filters you want to use
+for different data sets. For example, if in the previous example you
+wanted to use the same filters separately for the ParaCrawl and
+WMT-News data, you can have:
+
+```yaml
+  - type: filter
+    parameters:
+      src_input: paracrawl.fi.gz
+      tgt_input: paracrawl.en.gz
+      src_output: paracrawl_filtered.fi.gz
+      tgt_output: paracrawl_filtered.en.gz
+      filters: &myfilters
+        - LengthFilter:
+            unit: word
+            min_length: 1
+            max_length: 100
+
+        - LengthRatioFilter:
+            unit: word
+            threshold: 3
+
+  - type: filter
+    parameters:
+      src_input: wmt.fi.gz
+      tgt_input: wmt.en.gz
+      src_output: wmt_filtered.fi.gz
+      tgt_output: wmt_filtered.en.gz
+      filters: *myfilters
+```
 
 ### Available functions
 
@@ -176,9 +207,9 @@ Take a random subset from parallel corpus files.
 
 Parameters:
 
-* `src_input`: input file for source language 
+* `src_input`: input file for source language
 * `tgt_input`: input file for target language
-* `src_output`: output file for source language 
+* `src_output`: output file for source language
 * `tgt_output`: output file for target language
 * `seed`: seed for the random generator; set to ensure that two runs select the same lines (default null)
 * `size`: number of lines to select to the subset
@@ -190,9 +221,68 @@ Parameters:
 
 Filter parallel data with a combination of filters.
 
+Parameters:
+
+* `src_input`: input file for source language
+* `tgt_input`: input file for target language
+* `src_output`: output file for source language
+* `tgt_output`: output file for target language
+* `filters`: a list of filters to apply; see below
+* `filterfalse`: Instead of keeping segment pairs that match all the filters, keep those that match none of the filters (default false)
+
+The filters parameter is a list of dictionaries, each representing one
+filter. The top level should typically include a single key that
+defines the class name for the filter (e.g. `LenghtFilter`).
+Additionally it can include a special key `module` for defining module
+name for custom filters (see the end of the document for details).
+
+Under the class name there is a dictionary the defines the parameters
+of the filters. The are mostly specific to the filter class; see the
+section Available filters for ready-made filters. An exception is a
+parameter `name` that is available for all filters. It has no effect
+for the filter function, but is useful for the score function below.
+
+The output of the step is only those segment pairs that are accepted
+by all the filters (unless `filterfalse` is set true, in which case
+the output is those segment pairs that are rejected by all the
+filters; note that this is not the opposite result of the default
+behaviour).
+
 ##### `score`
 
 Calculate filtering scores for the lines of parallel data.
+
+Parameters:
+
+* `src_input`: input file for source language
+* `tgt_input`: input file for target language
+* `output`: output file for the scores
+* `filters`: a list of filters to apply; see below
+
+The filters are defined in the same manner as in the `filter`
+function. The possible accept threshold parameters of the filters do
+not have an effect in scoring; each filter simply outputs one or more
+numerical values.
+
+The scores are written in the JSON Lines format: each line contains a
+single JSON object. The top level of the object contains class names
+for the filters. If there is only of filter of the specific class, and
+its score is a single number, the value of the score is simply below
+the class name. The the filter outputs more scores, they are
+represented in a dictionary. Typically there is a key `src` for source
+segment score and `tgt` for target segment score, but the number of
+scores and their keys are not restricted.
+
+The filters may contain the same filter class multiple times so that
+the same filter can be used with different parameters (e.g. both words
+and characters as units for length-based filters). In this case, under
+the top-level filter class key there is another dictionary that
+separates the filter instances. The keys for the instances can be
+defined by using the `name` parameter that is available for all
+filters. If the name is not defined, the first filter of the class is
+given key "1", the second "2", and so on. (Note: Make sure to give a
+name to either all or none of the filters, or at least do not manually
+give integers as names.)
 
 #### Training models
 
