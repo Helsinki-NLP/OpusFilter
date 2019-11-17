@@ -75,6 +75,22 @@ class TestFilterPipeline(unittest.TestCase):
         self.assertEqual(filtered, [('This sentence is written in English.',
                     'Denna mening är skriven på svenska.')])
 
+    def test_filterfalse(self):
+        fp = FilterPipeline.from_config(self.config)
+        pairs = [('test', ''),
+                (' '.join(['w' for i in range(101)]), 'test'),
+                (''.join(['c' for i in range(41)]), 'test'),
+                ('<s>test', 'test'),
+                ('test', 'Φtest'),
+                ('Tämä lause on kirjoitettu suomeksi.',
+                    'This sentence is written in English.'),
+                ('test', 'test...............'),
+                ('1', '99999999999'),
+                ('This sentence is written in English.',
+                    'Denna mening är skriven på svenska.')]
+        filtered = list(fp.filterfalse(pairs))
+        self.assertEqual(filtered, pairs[:-1])
+
 
 class TestFilterPipelineScoreNames(unittest.TestCase):
 

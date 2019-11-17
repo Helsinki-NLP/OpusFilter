@@ -93,12 +93,27 @@ class FilterPipeline:
         return pairs
 
     def filterfalse(self, pairs):
-        """Yield sentence pairs accepted by none of the filters
+        """Yield sentence pairs rejected by any of the filters
 
-        Note that this is not the opposite result of filter(), but a
-        pair is yielded only if all of the filters reject it.
+        This is the opposite result of pipeline's filter(), and not a
+        combination of filterfalse of the filters, which would yield a
+        pair only if all of the filters reject it.
 
         """
-        for filt in self.filters:
-            pairs = filt.filterfalse(pairs)
-        return pairs
+        fnames = self.get_score_tuples()
+        for num, chunk in enumerate(grouper(pairs, self._chunksize)):
+            current = chunk
+            remaining = []
+            for namet, filt in zip(fnames, self.filters):
+                logger.info("Processing chunk %s with %s (%s to check)",
+                            num, '.'.join(namet), len(current))
+                for pair, dec in zip(current, filt.decisions(current)):
+                    if not dec:
+                        yield pair
+                    else:
+                        remaining.append(pair)
+                if not len(remaining):
+                    # All yielded for this chunk
+                    break
+                current = remaining
+                remaining = []
