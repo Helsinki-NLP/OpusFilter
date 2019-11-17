@@ -1,9 +1,17 @@
 # OpusFilter
 
 OpusFilter is a tool for filtering and combining parallel corpora. It
-uses the OpusTool library to download data from the
-[OPUS](http://opus.nlpl.eu/) corpus collection, but can be used with
-any corpora in raw text format.
+uses the OpusTool library to download data from the OPUS corpus
+collection, but can be used with any corpora in raw text format.
+
+Features:
+
+* Preprocessing pipelines configured with [YAML](https://yaml.org/)
+* Simple downloading of parallel corpora from [OPUS](http://opus.nlpl.eu/)
+* Memory-efficient processing of large files
+* Implemented filters based e.g. on language identification, word
+  aligment, and n-gram language models
+* Extendable with your own filters written in Python
 
 ## Table of contents
 
