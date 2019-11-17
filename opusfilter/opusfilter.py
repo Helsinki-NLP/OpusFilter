@@ -39,7 +39,7 @@ class OpusFilter:
 
         self.step_functions = {
             'opus_read': self.read_from_opus,
-            'filter': self.clean_data,
+            'filter': self.filter_data,
             'concatenate': self.concatenate,
             'subset': self.get_subset,
             'train_ngram': self.train_ngram,
@@ -107,7 +107,7 @@ class OpusFilter:
             result_dir=self.output_dir, tgt_filename=tgt_filename)
         return self.pair_generator(source_file_name, target_file_name)
 
-    def clean_data(self, parameters, overwrite=False):
+    def filter_data(self, parameters, overwrite=False):
         """Write sentences to file if they pass given filters"""
         src_out = os.path.join(self.output_dir, parameters['src_output'])
         tgt_out = os.path.join(self.output_dir, parameters['tgt_output'])
