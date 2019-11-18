@@ -270,7 +270,7 @@ Parameters:
 * `src_output`: output file for source language
 * `tgt_output`: output file for target language
 * `filters`: a list of filters to apply; see below
-* `filterfalse`: Instead of keeping segment pairs that match all the filters, keep those that match none of the filters (default false)
+* `filterfalse`: Yield segment pairs that do not pass at least one of the filters (default false)
 
 The filters parameter is a list of dictionaries, each representing one
 filter. The top level should typically include a single key that
@@ -286,9 +286,8 @@ for the filter function, but is useful for the score function below.
 
 The output of the step is only those segment pairs that are accepted
 by all the filters (unless `filterfalse` is set true, in which case
-the output is those segment pairs that are rejected by all the
-filters; note that this is not the opposite result of the default
-behaviour).
+the output is opposite, i.e., those segment pairs that are rejected by
+at least one filter).
 
 ##### `score`
 
@@ -469,9 +468,15 @@ method.  Arbitrary keyword arguments should be accepted (with
 should be called in the end with the remaining keyword arguments. The
 keyword argument `name` is reserved for giving names to the filters.
 
-The base class defines the methods `decisions`, `filter`, and
-`filterfalse` based on the `score` and `accept` methods; they should
-not be redefined except for a good reason.
+Based on the `score` and `accept` methods, the abstract class
+`FilterABC` implements the following three generators that take
+iterator over segment pairs as input:
+
+* `decisions` yields results of the `accept` method
+* `filter` yields only accepted segment pairs
+* `filterfalse` yields only rejected segment pairs
+
+These should not be redefined except for a good reason.
 
 The example below shows code for simple filter that calculates the
 proportion of uppercase letters in the sentences, and accepts the pair
