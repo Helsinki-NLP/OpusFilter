@@ -196,3 +196,26 @@ class TestOpusFilter(unittest.TestCase):
         self.assertTrue(os.path.isfile('test_creating_dir/RF1_sents.en'))
         self.assertTrue(os.path.isfile('test_creating_dir/RF1_sents.sv'))
         shutil.rmtree('test_creating_dir')
+
+    def test_order_by_rank(self):
+        parameters = {
+                'input_src': os.path.join(self.tempdir, 'rank_input_src'),
+                'input_tgt': os.path.join(self.tempdir, 'rank_input_tgt'),
+                'input_ranks': os.path.join(self.tempdir, 'ranks_input'),
+                'output_src': os.path.join(self.tempdir, 'rank_output_src'),
+                'output_tgt': os.path.join(self.tempdir, 'rank_output_tgt'),
+                'output_ranks': os.path.join(self.tempdir, 'ranks_output')}
+        with open(os.path.join(self.tempdir, 'rank_input_src'), 'w') as f:
+            f.write('Sentence2\nSentence3\nSentence1')
+        with open(os.path.join(self.tempdir, 'rank_input_tgt'), 'w') as f:
+            f.write('Sentence2\nSentence3\nSentence1')
+        with open(os.path.join(self.tempdir, 'ranks_input'), 'w') as f:
+            f.write('0.5\n0\n1')
+        self.opus_filter.order_by_rank(parameters)
+        with open(os.path.join(self.tempdir, 'rank_output_src')) as f:
+            self.assertEqual(f.read(), 'Sentence1\nSentence2\nSentence3\n')
+        with open(os.path.join(self.tempdir, 'rank_output_tgt')) as f:
+            self.assertEqual(f.read(), 'Sentence1\nSentence2\nSentence3\n')
+        with open(os.path.join(self.tempdir, 'ranks_output')) as f:
+            self.assertEqual(f.read(), '1\n0.5\n0\n')
+

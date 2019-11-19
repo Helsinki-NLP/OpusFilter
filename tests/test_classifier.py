@@ -30,6 +30,7 @@ class TestFilterClassifier(unittest.TestCase):
         self.fc = FilterClassifier(
                 training_scores=self.jsonl_train,
                 to_be_classified=self.jsonl_train,
+                discard_thresholds=[0.1, 0.2, 0.3, 0.4, 0.5],
                 output_file=os.path.join(self.tempdir, 'output.txt'),
                 dev_scores=self.jsonl_dev)
 
@@ -107,23 +108,19 @@ class TestFilterClassifier(unittest.TestCase):
         self.assertEqual(bic, 3.2686274791340413)
 
     def test_find_best_roc_auc_model(self):
-        LR, roc_auc, value = self.fc.find_best_model(
-                [0.1, 0.2, 0.3, 0.4, 0.5], 'roc_auc')
+        LR, roc_auc, value = self.fc.find_best_model('roc_auc')
         self.assertEqual(roc_auc, 0)
 
     def test_find_best_aic_model(self):
-        LR, aic, value = self.fc.find_best_model(
-                [0.1, 0.2, 0.3, 0.4, 0.5], 'AIC')
+        LR, aic, value = self.fc.find_best_model('AIC')
         self.assertEqual(aic, 13.980099338293664)
 
     def test_find_best_bic_model(self):
-        LR, bic, value = self.fc.find_best_model(
-                [0.1, 0.2, 0.3, 0.4, 0.5], 'BIC')
+        LR, bic, value = self.fc.find_best_model('BIC')
         self.assertEqual(bic, 3.2686274791340413)
 
     def test_assign_scores(self):
-        LR, roc_auc, value = self.fc.find_best_model(
-                [0.1, 0.2, 0.3, 0.4, 0.5], 'roc_auc')
+        LR, roc_auc, value = self.fc.find_best_model('roc_auc')
         probas = self.fc.assign_probabilities(LR)
         with open(self.fc.output_file) as output:
             lines = output.readlines()

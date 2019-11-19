@@ -15,6 +15,7 @@ from . import pipeline
 from . import lm
 from . import word_alignment
 from . import tokenization
+from . import classifier
 
 
 logger = logging.getLogger(__name__)
@@ -44,7 +45,9 @@ class OpusFilter:
             'subset': self.get_subset,
             'train_ngram': self.train_ngram,
             'train_alignment': self.train_alignment,
-            'score': self.score_data
+            'score': self.score_data,
+            'classify': self.classify,
+            'order_by_rank': self.order_by_rank
         }
 
     def execute_steps(self, overwrite=False, last=None):
@@ -281,3 +284,37 @@ class OpusFilter:
         with file_open(score_out, 'w') as score_file:
             for score in scores_gen:
                 score_file.write(json.dumps(score, sort_keys=True)+'\n')
+
+    def classify(self, parameters, overwrite=False):
+        """Assign cleanness probabilities to scored sentence pairs"""
+        cls = classifier.FilterClassifier(**parameters)
+        model, value, discard_threshold = cls.find_best_model(
+                parameters['criterion'])
+        cls.assign_probabilities(model)
+
+    def order_by_rank(self, parameters, overwrite=False):
+        """Order sentences by probability ranks"""
+        input_src = open(parameters['input_src'])
+        input_tgt = open(parameters['input_tgt'])
+        input_ranks = open(parameters['input_ranks'])
+        output_src = open(parameters['output_src'], 'w')
+        output_tgt = open(parameters['output_tgt'], 'w')
+        output_ranks = open(parameters['output_ranks'], 'w')
+
+        zipped = zip(input_src.read().splitlines(),
+            input_tgt.read().splitlines(), input_ranks.read().splitlines())
+
+        zipped = sorted(zipped, key=lambda t: t[2], reverse=True)
+
+        for src, tgt, rank in zipped:
+            output_src.write(src+'\n')
+            output_tgt.write(tgt+'\n')
+            output_ranks.write(rank+'\n')
+
+        input_src.close()
+        input_tgt.close()
+        input_ranks.close()
+        output_src.close()
+        output_tgt.close()
+        output_ranks.close()
+
