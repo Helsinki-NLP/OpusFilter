@@ -82,14 +82,14 @@ class TestFilterClassifier(unittest.TestCase):
         new_cutoffs = self.fc.set_cutoffs(0.26, cutoffs)
         self.fc.add_labels(new_cutoffs)
         LR = self.fc.train_logreg()
-        self.assertEqual(round(LR.intercept_[0], 8), -0.62285208)
+        self.assertAlmostEqual(round(LR.intercept_[0], 8), -0.62285208)
 
     def test_get_roc_auc(self):
         cutoffs = {key: None for key in self.fc.training_data.keys()}
         new_cutoffs = self.fc.set_cutoffs(0.26, cutoffs)
         self.fc.add_labels(new_cutoffs)
         LR = self.fc.train_logreg()
-        self.assertEqual(self.fc.get_roc_auc(LR), 1)
+        self.assertAlmostEqual(self.fc.get_roc_auc(LR), 1)
 
     def test_get_aic(self):
         cutoffs = {key: None for key in self.fc.training_data.keys()}
@@ -97,7 +97,7 @@ class TestFilterClassifier(unittest.TestCase):
         self.fc.add_labels(new_cutoffs)
         LR = self.fc.train_logreg()
         aic = self.fc.get_aic(LR)
-        self.assertEqual(aic, 13.980099338293664)
+        self.assertAlmostEqual(aic, 13.980099338293664)
 
     def test_get_bic(self):
         cutoffs = {key: None for key in self.fc.training_data.keys()}
@@ -105,24 +105,24 @@ class TestFilterClassifier(unittest.TestCase):
         self.fc.add_labels(new_cutoffs)
         LR = self.fc.train_logreg()
         bic = self.fc.get_bic(LR)
-        self.assertEqual(bic, 3.2686274791340413)
+        self.assertAlmostEqual(bic, 11.246164725332367)
 
     def test_find_best_roc_auc_model(self):
         LR, roc_auc, value = self.fc.find_best_model('roc_auc')
-        self.assertEqual(roc_auc, 0)
+        self.assertAlmostEqual(roc_auc, 1)
 
     def test_find_best_aic_model(self):
         LR, aic, value = self.fc.find_best_model('AIC')
-        self.assertEqual(aic, 13.980099338293664)
+        self.assertAlmostEqual(aic, 13.980099338293664)
 
     def test_find_best_bic_model(self):
         LR, bic, value = self.fc.find_best_model('BIC')
-        self.assertEqual(bic, 3.2686274791340413)
+        self.assertAlmostEqual(bic, 11.246164725332367)
 
     def test_assign_scores(self):
         LR, roc_auc, value = self.fc.find_best_model('roc_auc')
         probas = self.fc.assign_probabilities(LR)
         with open(self.fc.output_file) as output:
             lines = output.readlines()
-        self.assertEqual(lines[0], '0.6444675902763973\n')
-        self.assertEqual(lines[-1], '0.9873019540450083\n')
+        self.assertAlmostEqual(float(lines[0]), 0.6444675902763973)
+        self.assertAlmostEqual(float(lines[-1]), 0.9873019540450083)
