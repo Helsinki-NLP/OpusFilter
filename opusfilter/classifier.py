@@ -6,6 +6,7 @@ import collections
 import math
 
 import pandas as pd
+from pandas.io.json import json_normalize
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import roc_auc_score
 
@@ -16,17 +17,18 @@ class FilterClassifier:
     """Classify clean and noisy sentence pairs"""
 
     def __init__(self, training_scores=None, to_be_classified=None,
-            discard_thresholds=[0.01 * i for i in range(5,21)],
-            output_file=None, dev_scores=None, **kwargs):
+                 discard_thresholds=None, output_file=None,
+                 dev_scores=None, **kwargs):
         nested_train_data = self.load_data(training_scores)
-        self.training_data = self.unpack_data(nested_train_data)
+        self.training_data = json_normalize(nested_train_data)
         self.df_training_data = pd.DataFrame(self.training_data)
 
         nested_tbc_data = self.load_data(to_be_classified)
-        tbc_data = self.unpack_data(nested_tbc_data)
+        tbc_data = json_normalize(nested_tbc_data)
         self.tbc_data = pd.DataFrame(tbc_data)
 
-        self.discard_thresholds=discard_thresholds
+        self.discard_thresholds = [0.01 * i for i in range(5,21)] \
+            if discard_thresholds is None else discard_thresholds
 
         if output_file:
             self.output_file = output_file
@@ -35,7 +37,7 @@ class FilterClassifier:
 
         if dev_scores:
             nested_dev_data = self.load_data(dev_scores)
-            dev_data = self.unpack_data(nested_dev_data)
+            dev_data = json_normalize(nested_dev_data)
             self.dev_data = pd.DataFrame(dev_data)
             self.dev_labels = self.dev_data.pop('label')
 
@@ -46,25 +48,6 @@ class FilterClassifier:
             for line in dfile:
                 data.append(json.loads(line))
         return data
-
-    def unpack_item(self, item, prev_keys, new_data):
-        """Unpack a nested dictionary item into a single item"""
-        for key in item.keys():
-            if type(item[key]) == dict:
-                self.unpack_item(item[key], prev_keys + [key], new_data)
-            else:
-                new_key = '_'.join(prev_keys+[key])
-                if new_key not in new_data:
-                    new_data[new_key] = []
-                new_data[new_key].append(item[key])
-        return new_data
-
-    def unpack_data(self, data):
-        """Unpack all items in data"""
-        new_data = {}
-        for item in data:
-            new_data = self.unpack_item(item, [], new_data)
-        return new_data
 
     def set_cutoffs(self, discard, cutoffs):
         """Set cutoff values based on discard percentage"""

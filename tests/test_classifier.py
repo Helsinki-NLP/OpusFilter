@@ -43,28 +43,14 @@ class TestFilterClassifier(unittest.TestCase):
         self.assertEqual(len(data), 5)
         self.assertEqual(type(data[0]), dict)
 
-    def test_unpack_item(self):
-        item = {"CharacterScoreFilter": {"src": 1, "tgt": 1},
-                "LanguageIDFilter": {"cld2": {"src": 1, "tgt": 1},
-                    "langid": {"src": 1, "tgt": 1}},
-                "LongWordFilter": 1}
-        new_data = {}
-        self.fc.unpack_item(item, [], new_data)
-        for item in new_data.items():
-            self.assertEqual(len(item[1]), 1)
-
-    def test_unpack_data(self):
-        for item in self.fc.training_data.items():
-            self.assertEqual(len(item[1]), 5)
-
     def test_set_cutoffs(self):
         cutoffs = {key: None for key in self.fc.training_data.keys()}
         new_cutoffs = self.fc.set_cutoffs(0.5, cutoffs)
         self.assertEqual(new_cutoffs['LongWordFilter'], 3)
         new_cutoffs = self.fc.set_cutoffs(0.25, cutoffs)
-        self.assertEqual(new_cutoffs['LanguageIDFilter_cld2_src'], 2)
+        self.assertEqual(new_cutoffs['LanguageIDFilter.cld2.src'], 2)
         new_cutoffs = self.fc.set_cutoffs(0.75, cutoffs)
-        self.assertEqual(new_cutoffs['CharacterScoreFilter_src'], 4)
+        self.assertEqual(new_cutoffs['CharacterScoreFilter.src'], 4)
 
     def test_add_labels(self):
         cutoffs = {key: None for key in self.fc.training_data.keys()}
