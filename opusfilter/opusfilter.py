@@ -246,7 +246,7 @@ class OpusFilter:
             src_tokenizer=parameters['parameters'].get('src_tokenizer', None),
             tgt_tokenizer=parameters['parameters'].get('tgt_tokenizer', None)))
         word_alignment.make_priors(
-            pair_gen, model_out, model=parameters['parameters']['model'])
+            pair_gen, model_out, model=parameters['parameters'].get('model', 3))
 
     def score_data(self, parameters, overwrite=False):
         """Score language data based on given filters"""

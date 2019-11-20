@@ -338,25 +338,38 @@ Train a character-based varigram language model with VariKN. Can be used for `Cr
 
 Parameters:
 
-* `data`: Input file name for training data
-* `model`: Output file name for the model
-* `parameters`: Training options for VariKN and tokenization
-   * `optdata`: Filename for optimization data (default empty = use leave-one-out estimation instead)
-   * `norder`: Limit model order (default 0 = no limit)
-   * `dscale`: Model size scale factor (smaller value gives a larger model; default 0.001)
-   * `dscale2`: Model size scaling during pruning step (default 0 = no pruning)
-   * `arpa`: Output ARPA instead of binary LM (default true)
-   * `use_3nzer`: Use 3 discounts per order instead of one (default false)
-   * `absolute`: Use absolute discounting instead of Kneser-Ney smoothing (default false)
-   * `cutoffs`: Use the specified cutoffs (default "0 0 1"). The last value is used for all higher order n-grams.
-   * `mb`: Word-internal boundary marking (default `''`)
-   * `wb`: Word boundary tag (default `'<w>'`)
+* `data`: input file name for training data
+* `model`: output file name for the model
+* `parameters`: training options for VariKN and tokenization
+   * `optdata`: filename for optimization data (default empty = use leave-one-out estimation instead)
+   * `norder`: limit model order (default 0 = no limit)
+   * `dscale`: model size scale factor (smaller value gives a larger model; default 0.001)
+   * `dscale2`: model size scaling during pruning step (default 0 = no pruning)
+   * `arpa`: output ARPA instead of binary LM (default true)
+   * `use_3nzer`: use 3 discounts per order instead of one (default false)
+   * `absolute`: use absolute discounting instead of Kneser-Ney smoothing (default false)
+   * `cutoffs`: use the specified cutoffs (default "0 0 1"). The last value is used for all higher order n-grams.
+   * `mb`: word-internal boundary marking (default `''`)
+   * `wb`: word boundary tag (default `'<w>'`)
 
 See [VariKN](https://github.com/vsiivola/variKN) documentation for details.
 
 ##### `train_aligment`
 
 Train word alignment priors for eflomal. Can be used in `WordAlignFilter`.
+
+Parameters:
+
+* `src_data`: input file for the source language
+* `tgt_data`: input file for the target language
+* `parameters`: training options for the aligment and tokenization
+   * `src_tokenizer`: tokenizer for source language (default none)
+   * `tgt_tokenizer`: tokenizer for target language (default none)
+   * `model`: eflomal model type (default 3)
+* `output`: output file name for the priors
+
+See [WordAlignFilter](#wordalignfilter) for details of the training
+parameters.
 
 ### Available filters
 
@@ -368,9 +381,9 @@ Filtering based on absolute segment lengths.
 
 Parameters:
 
-* `min_length`: Minimum segment length (default 1)
-* `max_length`: Maximum segment length (default 100)
-* `unit`: Type of unit for calculating the lengths: `word` for words (or any whitespace-separated units) and `character` or `char` for characters. The default is `word`.
+* `min_length`: minimum segment length (default 1)
+* `max_length`: maximum segment length (default 100)
+* `unit`: type of unit for calculating the lengths: `word` for words (or any whitespace-separated units) and `character` or `char` for characters; the default is `word`
 
 Returned scores are lengths for the source and target segment. In
 filtering, both segments have to be between the minimum and maximum
@@ -382,8 +395,8 @@ Filtering based on ratio of the segment lengths.
 
 Parameters:
 
-* `threshold`: Threshold for the length ratio
-* `unit`: Type of unit for calculating the lengths: `word` for words (or any whitespace-separated units) and `character` or `char` for characters. The default is `word`.
+* `threshold`: threshold for the length ratio
+* `unit`: type of unit for calculating the lengths: `word` for words (or any whitespace-separated units) and `character` or `char` for characters; the default is `word`
 
 Returned score is the higher length divided by the lower length, or
 infinity of either of the lengths are zero. In filtering, segment
@@ -420,18 +433,19 @@ Parameters:
 
 Language model paramters for `src_lm_params` and `tgt_lm_params`:
 
-* `filename`: Filename for the language model to use
+* `filename`: filename for the language model to use
 * `arpa`: LM is in ARPA format instead of binary LM (default: true)
-* `unk`: Unk symbol (default: `<UNK>`, case sensitive)
-* `include_unks`: Include unknown tokens in perplexity calculations (default: false)
-* `ccs`: List of context cues ignored in perplexity calculations (default: none)
-* `mb`: Morph boundary marking (default `''`)
-* `wb`: Word boundary tag (default `'<w>'`)
-* `init_hist`: Ignore n first tokens after `</s>` in perplexity calculations (default: 2)
-* `interpolate`: List of language models (in ARPA format) and interpolation weights (default: none)
+* `unk`: unknown token symbol (default: `<UNK>`, case sensitive)
+* `include_unks`: include unknown tokens in perplexity calculations (default: false)
+* `ccs`: list of context cues ignored in perplexity calculations (default: none)
+* `mb`: morph boundary marking (default `''`)
+* `wb`: word boundary tag (default `'<w>'`)
+* `init_hist`: ignore n first tokens after `</s>` in perplexity calculations (default: 2)
+* `interpolate`: list of language models (in ARPA format) and interpolation weights (default: none)
 
-Note that the format and boundary marking should match the parameters
-used in model training.
+See [train_ngram](#train_ngram) for training the models. Note that the
+format and boundary marking should match the parameters used in model
+training.
 
 Separate scores (entropy, perplexity, or negative log-probability) are
 returned for the source and target segment. In filtering, the segment
@@ -442,6 +456,26 @@ and their absolute difference is below the difference threshold.
 
 ##### `WordAlignFilter`
 
+Filter segments by word aligment scores.
+
+Parameters:
+* `src_tokenizer`: tokenizer for source language (default none)
+* `tgt_tokenizer`: tokenizer for target language (default none)
+* `model`: eflomal model type (default 3)
+* `priors`: priors for the aligment (default none)
+
+The only tokenizer supported at the moment is the
+[mosestokenizer](https://github.com/luismsgomes/mosestokenizer) that
+wraps the tokenizer script from the Moses toolkit. To enable it,
+provide a tuple containing `moses` and an appropriate two-letter
+language code, e.g. `[moses, en]` for English.
+
+The eflomal model types are 1 for IBM1, 2 for IBM1 + HMM, and 3 for
+IBM1 + HMM + fertility. See https://github.com/robertostling/eflomal
+for details.
+
+See [train_aligment](#train_aligment) for training priors. Compatible
+tokenizer and model parameters should be used.
 
 ### Custom filters
 
