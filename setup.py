@@ -14,7 +14,7 @@ setuptools.setup(
     url="https://github.com/Helsinki-NLP/OpusFilter",
     packages=setuptools.find_packages(),
     scripts=["bin/opus_filter"],
-    install_requires=["opustools", "beautifulsoup4", "langid", "mosestokenizer", "pycld2", "PyYAML", "regex", "tqdm"],
+    install_requires=["opustools", "beautifulsoup4", "langid", "mosestokenizer", "pandas", "pycld2", "PyYAML", "regex", "scikit-learn", "tqdm"],
     classifiers=(
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",

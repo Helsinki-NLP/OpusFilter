@@ -27,9 +27,12 @@ Features:
       * [Filtering and scoring](#filtering-and-scoring)
          * [filter](#filter)
          * [score](#score)
-      * [Training models](#training-models)
+      * [Training language and alignment models](#training-language-and-alignment-models)
          * [train_ngram](#train_ngram)
          * [train_aligment](#train_aligment)
+      * [Training and using classifiers](#training-and-using-classifiers)
+         * [classify](#classify)
+         * [order_by_rank](#order_by_rank)
    * [Available filters](#available-filters)
       * [Length filters](#length-filters)
          * [LengthFilter](#lengthfilter)
@@ -57,9 +60,11 @@ Features:
 * langid
 * mosestokenizer
 * OpusTools
+* pandas
 * pycld2
 * PyYAML
 * regex
+* scikit-learn
 * tqdm
 
 ### Optional libraries and tools
@@ -330,7 +335,7 @@ scores or training a classifier for filtering. The JSON Lines data
 is easy to load as a [pandas](https://pandas.pydata.org/) DataFrame using the [`json_normalize`](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.io.json.json_normalize.html)
 method.
 
-#### Training models
+#### Training language and alignment models
 
 ##### `train_ngram`
 
@@ -370,6 +375,12 @@ Parameters:
 
 See [WordAlignFilter](#wordalignfilter) for details of the training
 parameters.
+
+#### Training and using classifiers
+
+##### `classify`
+
+##### `order_by_rank`
 
 ### Available filters
 
