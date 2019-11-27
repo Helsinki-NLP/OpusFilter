@@ -18,37 +18,39 @@ Features:
 * [Installing](#installing)
    * [Required libraries](#required-libraries)
    * [Optional libraries and tools](#optional-libraries-and-tools)
-* [Usage](#usage)
-   * [Available functions](#available-functions)
-      * [Downloading and selecting data](#downloading-and-selecting-data)
-         * [opus_read](#opus_read)
-         * [concatenate](#concatenate)
-         * [subset](#subset)
-      * [Filtering and scoring](#filtering-and-scoring)
-         * [filter](#filter)
-         * [score](#score)
-      * [Training language and alignment models](#training-language-and-alignment-models)
-         * [train_ngram](#train_ngram)
-         * [train_aligment](#train_aligment)
-      * [Training and using classifiers](#training-and-using-classifiers)
-         * [classify](#classify)
-         * [order_by_rank](#order_by_rank)
-   * [Available filters](#available-filters)
-      * [Length filters](#length-filters)
-         * [LengthFilter](#lengthfilter)
-         * [LengthRatioFilter](#lengthratiofilter)
-      * [Script and language identification filters](#script-and-language-identification-filters)
-         * [CharacterScoreFilter](#characterscorefilter)
-         * [LanguageIDFilter](#languageidfilter)
-      * [Special character filters](#special-character-filters)
-         * [HtmlTagFilter](#htmltagfilter)
-         * [TerminalPunctuationFilter](#terminalpunctuationfilter)
-         * [NonZeroNumeralsFilter](#nonzeronumeralsfilter)
-      * [Language model filters](#language-model-filters)
-         * [CrossEntropyFilter](#crossentropyfilter)
-      * [Alignment model filters](#alignment-model-filters)
-         * [WordAlignFilter](#wordalignfilter)
-   * [Custom filters](#custom-filters)
+* [Overview](#overview)
+   * [Examples](#examples)
+* [Available functions](#available-functions)
+   * [Downloading and selecting data](#downloading-and-selecting-data)
+      * [opus_read](#opus_read)
+      * [concatenate](#concatenate)
+      * [subset](#subset)
+   * [Filtering and scoring](#filtering-and-scoring)
+      * [filter](#filter)
+      * [score](#score)
+   * [Training language and alignment models](#training-language-and-alignment-models)
+      * [train_ngram](#train_ngram)
+      * [train_aligment](#train_aligment)
+   * [Training and using classifiers](#training-and-using-classifiers)
+      * [classify](#classify)
+      * [order_by_rank](#order_by_rank)
+* [Available filters](#available-filters)
+   * [Length filters](#length-filters)
+      * [LengthFilter](#lengthfilter)
+      * [LengthRatioFilter](#lengthratiofilter)
+   * [Script and language identification filters](#script-and-language-identification-filters)
+      * [CharacterScoreFilter](#characterscorefilter)
+      * [LanguageIDFilter](#languageidfilter)
+   * [Special character filters](#special-character-filters)
+      * [HtmlTagFilter](#htmltagfilter)
+      * [TerminalPunctuationFilter](#terminalpunctuationfilter)
+      * [NonZeroNumeralsFilter](#nonzeronumeralsfilter)
+   * [Language model filters](#language-model-filters)
+      * [CrossEntropyFilter](#crossentropyfilter)
+   * [Alignment model filters](#alignment-model-filters)
+      * [WordAlignFilter](#wordalignfilter)
+* [Custom filters](#custom-filters)
+* [Other tools](#other-tools)
 
 ## Installing
 
@@ -79,9 +81,9 @@ For using word alignment filters, you need to install elfomal
 variable `EFLOMAL_PATH` to eflomal's root directory, which contains
 the Python scripts `align.py` and `makepriors.py`.
 
-## Usage
+## Overview
 
-The package provides a single script, `opus_filter`, that takes a
+The package provides the script `opusfilter` that takes a
 configuration file as an input. The configuration files are in
 [YAML](https://yaml.org/) format. At the top level, they have
 to sections:
@@ -108,6 +110,8 @@ Each step in `steps` is a dictionary (mapping) with two keys: `type`
 and `parameters`. Type is a string that defines the function that
 should be run, and parameters is a dictionary with keys that depend on
 the function; at minimum the output files are defined there.
+
+### Examples
 
 A very simple configuration file that downloads a parallel corpus
 (here Finnish-English ParaCrawl v4) from OPUS and stores its segments
@@ -221,11 +225,11 @@ WMT-News data, you can have:
       filters: *myfilters
 ```
 
-### Available functions
+## Available functions
 
-#### Downloading and selecting data
+### Downloading and selecting data
 
-##### `opus_read`
+#### `opus_read`
 
 Read a corpus from OPUS collection.
 
@@ -239,7 +243,7 @@ Parameters:
 * `src_output`: output file for source language
 * `tgt_output`: output file for target language
 
-##### `concatenate`
+#### `concatenate`
 
 Concatenate two text files.
 
@@ -248,7 +252,7 @@ Parameters:
 * `inputs`: a list of input files
 * `output`: output file
 
-##### `subset`
+#### `subset`
 
 Take a random subset from parallel corpus files.
 
@@ -262,9 +266,9 @@ Parameters:
 * `size`: number of lines to select to the subset
 * `shuffle_target`: take different random lines from the target language; can be used to produce noisy examples for training a corpus filtering model (default false)
 
-#### Filtering and scoring
+### Filtering and scoring
 
-##### `filter`
+#### `filter`
 
 Filter parallel data with a combination of filters.
 
@@ -294,7 +298,7 @@ by all the filters (unless `filterfalse` is set true, in which case
 the output is opposite, i.e., those segment pairs that are rejected by
 at least one filter).
 
-##### `score`
+#### `score`
 
 Calculate filtering scores for the lines of parallel data.
 
@@ -335,9 +339,9 @@ scores or training a classifier for filtering. The JSON Lines data
 is easy to load as a [pandas](https://pandas.pydata.org/) DataFrame using the [`json_normalize`](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.io.json.json_normalize.html)
 method.
 
-#### Training language and alignment models
+### Training language and alignment models
 
-##### `train_ngram`
+#### `train_ngram`
 
 Train a character-based varigram language model with VariKN. Can be used for `CrossEntropyFilter`.
 
@@ -359,7 +363,7 @@ Parameters:
 
 See [VariKN](https://github.com/vsiivola/variKN) documentation for details.
 
-##### `train_aligment`
+#### `train_aligment`
 
 Train word alignment priors for eflomal. Can be used in `WordAlignFilter`.
 
@@ -376,17 +380,17 @@ Parameters:
 See [WordAlignFilter](#wordalignfilter) for details of the training
 parameters.
 
-#### Training and using classifiers
+### Training and using classifiers
 
-##### `classify`
+#### `classify`
 
-##### `order_by_rank`
+#### `order_by_rank`
 
-### Available filters
+## Available filters
 
-#### Length filters
+### Length filters
 
-##### `LengthFilter`
+#### `LengthFilter`
 
 Filtering based on absolute segment lengths.
 
@@ -400,7 +404,7 @@ Returned scores are lengths for the source and target segment. In
 filtering, both segments have to be between the minimum and maximum
 length thresholds.
 
-##### `LengthRatioFilter`
+#### `LengthRatioFilter`
 
 Filtering based on ratio of the segment lengths.
 
@@ -413,23 +417,23 @@ Returned score is the higher length divided by the lower length, or
 infinity of either of the lengths are zero. In filtering, segment
 pairs is accepted of the ratio is below the given threshold.
 
-#### Script and language identification filters
+### Script and language identification filters
 
-##### `CharacterScoreFilter`
+#### `CharacterScoreFilter`
 
-##### `LanguageIDFilter`
+#### `LanguageIDFilter`
 
-#### Special character filters
+### Special character filters
 
-##### `HtmlTagFilter`
+#### `HtmlTagFilter`
 
-##### `TerminalPunctuationFilter`
+#### `TerminalPunctuationFilter`
 
-##### `NonZeroNumeralsFilter`
+#### `NonZeroNumeralsFilter`
 
-#### Language model filters
+### Language model filters
 
-##### `CrossEntropyFilter`
+#### `CrossEntropyFilter`
 
 Filter segments by n-gram language model probabilities.
 
@@ -463,9 +467,9 @@ returned for the source and target segment. In filtering, the segment
 pair is accepted if both values are below the respective thresholds,
 and their absolute difference is below the difference threshold.
 
-#### Alignment model filters
+### Alignment model filters
 
-##### `WordAlignFilter`
+#### `WordAlignFilter`
 
 Filter segments by word aligment scores.
 
@@ -488,7 +492,7 @@ for details.
 See [train_aligment](#train_aligment) for training priors. Compatible
 tokenizer and model parameters should be used.
 
-### Custom filters
+## Custom filters
 
 You can also import your own filters by defining the `module` key in
 the filter configuration entries.
@@ -571,3 +575,19 @@ steps:
             threshold: 0.5
           module: customfilter
 ```
+
+## Other tools
+
+Apart from the main `opusfilter` script, the packages also provides
+the `opusfilter-scores` script. It is a tool that can be used to
+calculate and plot statistics from scores produced by the
+[`score`](#score) function. The tool has several subcommands, that all
+take the JSON Lines score file as the input, and either print or plot
+the output:
+
+* `list`: Print score column names
+* `describe`: Print basic score statistics
+* `corr`: Plot score correlation matrix
+* `hist`: Plot score histograms
+* `scatter-matrix`: Plot scatter matrix for scores
+* `values`: Plot score values by line number
