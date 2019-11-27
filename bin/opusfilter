@@ -10,7 +10,7 @@ from opusfilter.opusfilter import OpusFilter
 logging.basicConfig(level=logging.INFO)
 logging.getLogger('mosestokenizer.tokenizer.MosesTokenizer').setLevel(logging.WARNING)
 
-parser = argparse.ArgumentParser(prog='opus_filter',
+parser = argparse.ArgumentParser(prog='opusfilter',
     description='Filter OPUS bitexts')
 
 parser.add_argument('config', help='YAML configuration file')
