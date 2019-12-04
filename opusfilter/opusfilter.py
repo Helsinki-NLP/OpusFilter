@@ -347,8 +347,10 @@ class OpusFilter:
         cls = classifier.FilterClassifier(**parameters)
         model, value, discard_threshold, weight_labels = cls.find_best_model(
                 parameters['criterion'])
-        import ipdb; ipdb.set_trace()
-        cls.assign_probabilities(model)
+        print('Intercept', model.intercept_[0])
+        for feature, weight in zip(weight_labels, model.coef_[0]):
+            print(feature, weight)
+        #cls.assign_probabilities(model)
 
     @staticmethod
     def _read_values(fobj, key=None, conv=None):

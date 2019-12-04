@@ -126,8 +126,8 @@ class FilterClassifier:
         i = 0
         for key in discards.keys():
             discard = discards[key]
-            best_value = 0
-            best_discard = 0.1
+            best_value = None
+            best_discard = discard
             for j in range(11):
                 logger.info('Training logistic regression model with discards {}'.format(discards.values()))
                 zero = False
@@ -151,16 +151,27 @@ class FilterClassifier:
 
                 logger.info('Model {crit}: {value}'.format( crit=criterion, value=crit_value))
 
-                if best_model == None or crit_value > best_model[1]:
-                    best_model = (LR, crit_value, discards, self.df_training_data.keys().copy())
+                if criterion == 'roc_auc':
+                    if best_model == None or crit_value > best_model[1]:
+                        best_model = (LR, crit_value, discards, self.df_training_data.keys().copy())
+                    if best_value == None or crit_value > best_value:
+                        best_value = crit_value
+                        best_discard = round(discard, 2)
+                    elif zero:
+                        self.df_training_data[rem_train.name] = rem_train
+                        self.dev_data[rem_train.name] = rem_dev
+                        cutoffs[rem_train.name] = rem_cutoff
+                elif criterion in ['AIC', 'BIC']:
+                    if best_model == None or crit_value < best_model[1]:
+                        best_model = (LR, crit_value, discards, self.df_training_data.keys().copy())
+                    if best_value == None or crit_value < best_value:
+                        best_value = crit_value
+                        best_discard = round(discard, 2)
+                    elif zero:
+                        self.df_training_data[rem_train.name] = rem_train
+                        self.dev_data[rem_train.name] = rem_dev
+                        cutoffs[rem_train.name] = rem_cutoff
 
-                if crit_value > best_value:
-                    best_value = crit_value
-                    best_discard = round(discard, 2)
-                elif zero:
-                    self.df_training_data[rem_train.name] = rem_train
-                    self.dev_data[rem_train.name] = rem_dev
-                    cutoffs[rem_train.name] = rem_cutoff
 
                 discard -= 0.01
                 discards[key] = round(discard, 2)
