@@ -64,17 +64,17 @@ class Classifier:
 class TrainClassifier:
     """Classify clean and noisy sentence pairs"""
 
-    def __init__(self, training_scores=None, dev_scores=None,
-            discard_estimate=None, **kwargs):
+    def __init__(self, training_scores=None, features=None, dev_scores=None,
+            **kwargs):
         self.df_training_data = load_dataframe(training_scores)
+        self.df_training_data = self.df_training_data[features.keys()]
 
-        num_filters = len(self.df_training_data.keys())
-        self.discard_estimate = 0.1 if discard_estimate is None \
-                else discard_estimate
+        self.features = features
 
         if dev_scores:
             self.dev_data = load_dataframe(dev_scores)
             self.dev_labels = self.dev_data.pop('label')
+            self.dev_data = self.dev_data[features.keys()]
 
     def train_logreg(self, training_data, labels):
         """Train logistic regression with training_data"""
@@ -123,7 +123,7 @@ class TrainClassifier:
         for i in range(len(training_data.index)):
             label = 1
             for key in cutoffs.keys():
-                if 'CrossEntropyFilter' in key or 'WordAlign' in key:
+                if self.features[key]['clean-direction'] == 'low':
                     if training_data[key][i] > cutoffs[key]:
                         label = 0
                 else:
@@ -136,7 +136,7 @@ class TrainClassifier:
     def set_cutoffs(self, training_data, discards, cutoffs):
         """Set cutoff values based on discard percentage"""
         for key in cutoffs.keys():
-            if 'CrossEntropyFilter' in key or 'WordAlign' in key:
+            if self.features[key]['clean-direction'] == 'low':
                 cutoffs[key] = training_data[key].quantile(1-discards[key])
             else:
                 cutoffs[key] = training_data[key].quantile(discards[key])
@@ -144,32 +144,35 @@ class TrainClassifier:
 
     def find_best_model(self, criterion):
         """Find the model with the best ROC AUC / AIC / BIC"""
-        cutoffs = {key: None for key in self.df_training_data.keys()}
-        discards = {key: self.discard_estimate for key in self.df_training_data.keys()}
+        cutoffs = {key: None for key in self.features.keys()}
+        discards = {key: self.features[key]['quantiles'] for key in
+                self.features.keys()}
+        best_discards = {key: discards[key][0] for key in self.features.keys()}
 
         best_model = None
 
-        i = 0
         for key in discards.keys():
-            discard = discards[key]
-            best_discard = discard
+            quantiles = discards[key]
+            best_discard = quantiles[0]
             remove_column = False
-            for j in range(11):
+            for quantile in quantiles:
+                best_discards[key] = quantile
                 df_train_copy = self.df_training_data.copy()
                 df_dev_copy = self.dev_data.copy()
                 cutoffs_copy = cutoffs.copy()
 
                 logger.info('Training logistic regression model with discards'
-                    ' {}'.format(discards.values()))
+                    ' {}'.format(best_discards.values()))
                 zero = False
-                if discards[key] == 0:
+
+                if quantile == 0:
                     zero = True
                     df_train_copy.pop(key)
                     df_dev_copy.pop(key)
                     cutoffs_copy.pop(key)
                 else:
-                    cutoffs_copy = self.set_cutoffs(df_train_copy, discards,
-                            cutoffs_copy)
+                    cutoffs_copy = self.set_cutoffs(df_train_copy,
+                            best_discards, cutoffs_copy)
                     labels = self.add_labels(df_train_copy, cutoffs_copy)
 
                 LR = self.train_logreg(df_train_copy, labels)
@@ -186,27 +189,23 @@ class TrainClassifier:
 
                 if criterion == 'roc_auc':
                     if best_model == None or crit_value > best_model[1]:
-                        best_model = (LR, crit_value, discards)
-                        best_discard = round(discard, 2)
+                        best_model = (LR, crit_value, best_discards)
+                        best_discard = quantile
                         if zero:
                             remove_column = True
                 elif criterion in ['AIC', 'BIC']:
                     if best_model == None or crit_value < best_model[1]:
-                        best_model = (LR, crit_value, discards)
-                        best_discard = round(discard, 2)
+                        best_model = (LR, crit_value, best_discards)
+                        best_discard = quantile
                         if zero:
                             remove_column = True
-
-                discard -= 0.01
-                discards[key] = round(discard, 2)
 
             if remove_column:
                 self.df_training_data.pop(key)
                 self.dev_data.pop(key)
                 cutoffs.pop(key)
 
-            discards[key] = best_discard
-            i += 1
+            best_discards[key] = best_discard
 
         return best_model
 

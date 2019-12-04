@@ -353,7 +353,7 @@ class OpusFilter:
         training_scores = os.path.join(self.output_dir, parameters['training_scores'])
         dev_scores = os.path.join(self.output_dir, parameters['dev_scores'])
         cls = classifier.TrainClassifier(training_scores=training_scores,
-                dev_scores=dev_scores)
+                dev_scores=dev_scores, features=parameters['features'])
         model, value, features = cls.find_best_model(
                 parameters['criterion'])
 
