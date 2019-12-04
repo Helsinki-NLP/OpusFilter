@@ -27,7 +27,8 @@ class FilterClassifier:
         tbc_data = json_normalize(nested_tbc_data)
         self.tbc_data = pd.DataFrame(tbc_data)
 
-        self.discard_thresholds = [0.01 * i for i in range(5,21)] \
+        num_filters = len(self.df_training_data.keys())
+        self.discard_thresholds = [0.1 for i in range(num_filters)] \
             if discard_thresholds is None else discard_thresholds
 
         if output_file:
@@ -41,6 +42,8 @@ class FilterClassifier:
             self.dev_data = pd.DataFrame(dev_data)
             self.dev_labels = self.dev_data.pop('label')
 
+        #import ipdb; ipdb.set_trace()
+
     def load_data(self, data_file):
         """Load data from a jsonlines file"""
         data = []
@@ -48,30 +51,6 @@ class FilterClassifier:
             for line in dfile:
                 data.append(json.loads(line))
         return data
-
-    def set_cutoffs(self, discard, cutoffs):
-        """Set cutoff values based on discard percentage"""
-        for key in cutoffs.keys():
-            if 'CrossEntropyFilter' in key:
-                cutoffs[key] = self.df_training_data[key].quantile(1-discard)
-            else:
-                cutoffs[key] = self.df_training_data[key].quantile(discard)
-        return cutoffs
-
-    def add_labels(self, cutoffs):
-        """Add labels to training data based on cutoffs"""
-        labels = []
-        for i in range(len(self.df_training_data.index)):
-            label = 1
-            for key in cutoffs.keys():
-                if 'CrossEntropyFilter' in key:
-                    if self.training_data[key][i] > cutoffs[key]:
-                        label = 0
-                else:
-                    if self.training_data[key][i] < cutoffs[key]:
-                        label = 0
-            labels.append(label)
-        self.labels_train = labels
 
     def train_logreg(self):
         """Train logistic regression with training_data"""
@@ -113,38 +92,86 @@ class FilterClassifier:
         BIC = math.log(n)*k - 2*math.log(sse)
         return BIC
 
+    def add_labels(self, cutoffs):
+        """Add labels to training data based on cutoffs"""
+        labels = []
+        for i in range(len(self.df_training_data.index)):
+            label = 1
+            for key in cutoffs.keys():
+                if 'CrossEntropyFilter' in key or 'WordAlign' in key:
+                    if self.df_training_data[key][i] > cutoffs[key]:
+                        label = 0
+                else:
+                    if self.df_training_data[key][i] < cutoffs[key]:
+                        label = 0
+            labels.append(label)
+        self.labels_train = labels
+
+    def set_cutoffs(self, discards, cutoffs):
+        """Set cutoff values based on discard percentage"""
+        for key in cutoffs.keys():
+            if 'CrossEntropyFilter' in key or 'WordAlign' in key:
+                cutoffs[key] = self.df_training_data[key].quantile(1-discards[key])
+            else:
+                cutoffs[key] = self.df_training_data[key].quantile(discards[key])
+        return cutoffs
+
     def find_best_model(self, criterion):
         """Find the model with the best ROC AUC / AIC / BIC"""
         cutoffs = {key: None for key in self.df_training_data.keys()}
-        best = None
-        for discard_threshold in self.discard_thresholds:
-            logger.info('Training logistic regression model with discard '
-                'threshold {}'.format(discard_threshold))
-            cutoffs = self.set_cutoffs(discard_threshold, cutoffs)
-            self.add_labels(cutoffs)
-            LR = self.train_logreg()
+        discards = {key: 0.1 for key in self.df_training_data.keys()}
 
-            if criterion == 'roc_auc':
-                crit_value = self.get_roc_auc(LR)
-            elif criterion == 'AIC':
-                crit_value = self.get_aic(LR)
-            elif criterion == 'BIC':
-                crit_value = self.get_bic(LR)
+        best_model = None
 
-            if criterion == 'roc_auc':
-                if best == None or crit_value > best[1]:
-                    best = (LR, crit_value, discard_threshold)
-            else:
-                if best == None or crit_value < best[1]:
-                    best = (LR, crit_value, discard_threshold)
+        i = 0
+        for key in discards.keys():
+            discard = discards[key]
+            best_value = 0
+            best_discard = 0.1
+            for j in range(11):
+                logger.info('Training logistic regression model with discards {}'.format(discards.values()))
+                zero = False
+                if discards[key] == 0:
+                    zero = True
+                    rem_train = self.df_training_data.pop(key)
+                    rem_dev = self.dev_data.pop(key)
+                    rem_cutoff = cutoffs.pop(rem_train.name)
+                else:
+                    cutoffs = self.set_cutoffs(discards, cutoffs)
+                    self.add_labels(cutoffs)
 
-            logger.info('Model {crit}: {value}'.format(
-                crit=criterion, value=crit_value))
+                LR = self.train_logreg()
 
-        logger.info('Best model has discard_threshold: {discard} and '
-            '{crit}: {value}'.format(
-                discard=best[2], crit=criterion, value=best[1]))
-        return best
+                if criterion == 'roc_auc':
+                    crit_value = self.get_roc_auc(LR)
+                elif criterion == 'AIC':
+                    crit_value = self.get_aic(LR)
+                elif criterion == 'BIC':
+                    crit_value = self.get_bic(LR)
+
+                logger.info('Model {crit}: {value}'.format( crit=criterion, value=crit_value))
+
+                if best_model == None or crit_value > best_model[1]:
+                    best_model = (LR, crit_value, discards, self.df_training_data.keys().copy())
+
+                if crit_value > best_value:
+                    best_value = crit_value
+                    best_discard = round(discard, 2)
+                elif zero:
+                    self.df_training_data[rem_train.name] = rem_train
+                    self.dev_data[rem_train.name] = rem_dev
+                    cutoffs[rem_train.name] = rem_cutoff
+
+                discard -= 0.01
+                discards[key] = round(discard, 2)
+            discards[key] = best_discard
+            i += 1
+
+        print(best_model[1])
+        for item in best_model[2].items():
+            print(item)
+
+        return best_model
 
     def assign_probabilities(self, model):
         """Assign probabilities to the to_be_classified data"""

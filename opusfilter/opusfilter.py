@@ -345,8 +345,9 @@ class OpusFilter:
     def classify(self, parameters, overwrite=False):
         """Assign cleanness probabilities to scored sentence pairs"""
         cls = classifier.FilterClassifier(**parameters)
-        model, value, discard_threshold = cls.find_best_model(
+        model, value, discard_threshold, weight_labels = cls.find_best_model(
                 parameters['criterion'])
+        import ipdb; ipdb.set_trace()
         cls.assign_probabilities(model)
 
     @staticmethod
