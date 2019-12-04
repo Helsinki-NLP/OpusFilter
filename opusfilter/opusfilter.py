@@ -350,24 +350,45 @@ class OpusFilter:
         if not overwrite and os.path.isfile(model_out):
             logger.info("Output file exists, skipping step")
             return
-        cls = classifier.FilterClassifier(**parameters)
-        model, value, features, weight_labels = cls.find_best_model(
+        training_scores = os.path.join(self.output_dir, parameters['training_scores'])
+        dev_scores = os.path.join(self.output_dir, parameters['dev_scores'])
+        cls = classifier.TrainClassifier(training_scores=training_scores,
+                dev_scores=dev_scores)
+        model, value, features = cls.find_best_model(
                 parameters['criterion'])
-        print('Intercept', model.intercept_[0])
-        for feature, weight in zip(weight_labels, model.coef_[0]):
-            print(feature, weight)
-        #cls.assign_probabilities(model)
-        with file_open(model_out, 'wb') as model_file:
+
+        logger.info('Best model has {criterion}: {value}'.format(
+            criterion=parameters['criterion'], value=value))
+
+        feature_cutoffs = ''
+        for item in features.items():
+            feature_cutoffs += '\n\t'+str(item)
+        logger.info('And feature cutoffs: {}'.format(feature_cutoffs))
+
+        feature_weights = ''
+        for item in model.weights():
+            feature_weights += '\n\t'+str(item)
+        logger.info('And weights: {}'.format(feature_weights))
+
+        logger.info('Saving best model to {}'.format(model_out))
+
+        #with file_open(model_out, 'wb') as model_file:
+        #TODO: ValueError: binary mode doesn't take an encoding argument
+        with open(model_out, 'wb') as model_file:
             pickle.dump(model, model_file)
 
     def classify(self, parameters, overwrite=False):
         """Assign cleanness probabilities to scored sentence pairs"""
-        score_out = os.path.join(self.output_dir, parameters['output'])
+        print(parameters)
+        scores_out = os.path.join(self.output_dir, parameters['output'])
         if not overwrite and os.path.isfile(score_out):
             logger.info("Output file exists, skipping step")
             return
         model_in = os.path.join(self.output_dir, parameters['model'])
-        with file_open(model_in, 'rb') as model_file:
+
+        #with file_open(model_in, 'rb') as model_file:
+        #TODO: ValueError: binary mode doesn't take an encoding argument
+        with open(model_in, 'rb') as model_file:
             model = pickle.load(model_file)
         scores_in = os.path.join(self.output_dir, parameters['scores'])
         model.write_probs(scores_in, scores_out)
