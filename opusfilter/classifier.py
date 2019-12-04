@@ -90,8 +90,6 @@ class FilterClassifier:
             self.dev_data = pd.DataFrame(dev_data)
             self.dev_labels = self.dev_data.pop('label')
 
-        #import ipdb; ipdb.set_trace()
-
     def load_data(self, data_file):
         """Load data from a jsonlines file"""
         data = []
@@ -100,68 +98,69 @@ class FilterClassifier:
                 data.append(json.loads(line))
         return data
 
-    def train_logreg(self):
+    def train_logreg(self, training_data, labels):
         """Train logistic regression with training_data"""
-        x_train = self.df_training_data.to_numpy()
-        y_train = self.labels_train
+        x_train = training_data.to_numpy()
+        y_train = labels
         LR = LogisticRegression(solver='liblinear')
         LR.fit(x_train, y_train)
         return LR
 
-    def get_roc_auc(self, model):
+    def get_roc_auc(self, model, dev_data):
         """Calculate ROC AUC for a given model (requires dev_data)"""
-        pred = model.predict(self.dev_data)
-        probs = model.predict_proba(self.dev_data)
-        score = model.score(self.dev_data, self.dev_labels)
+        pred = model.predict(dev_data)
+        probs = model.predict_proba(dev_data)
+        score = model.score(dev_data, self.dev_labels)
         auc1 = roc_auc_score(self.dev_labels, probs[:,0])
         auc2 = roc_auc_score(self.dev_labels, probs[:,1])
         return max(auc1, auc2)
 
-    def get_sse(self, model):
+    def get_sse(self, model, training_data, labels):
         """Calculate the residual sum of squares"""
-        y_hat = model.predict(self.df_training_data)
+        y_hat = model.predict(training_data)
         resid = self.labels_train - y_hat
         sse = sum(resid**2)+0.01
         return sse
 
-    def get_aic(self, model):
+    def get_aic(self, model, training_data, labels):
         """Calculate AIC for a given model"""
-        sse = self.get_sse(model)
-        k = self.df_training_data.shape[1] # number of variables
+        sse = self.get_sse(model, training_data, labels)
+        k = training_data.shape[1] # number of variables
         AIC = 2*k - 2*math.log(sse)
         return AIC
 
-    def get_bic(self, model):
+    def get_bic(self, model, training_data, labels):
         """Calculate BIC for a given model"""
-        sse = self.get_sse(model)
-        k = self.df_training_data.shape[1] # number of variables
-        n = self.df_training_data.shape[0] # number of observations
+        sse = self.get_sse(model, training_data, labels)
+        k = training_data.shape[1] # number of variables
+        n = training_data.shape[0] # number of observations
         #BIC = n*math.log(sse/n) + k*math.log(n)
         BIC = math.log(n)*k - 2*math.log(sse)
         return BIC
 
-    def add_labels(self, cutoffs):
+    def add_labels(self, training_data, cutoffs):
         """Add labels to training data based on cutoffs"""
         labels = []
-        for i in range(len(self.df_training_data.index)):
+        for i in range(len(training_data.index)):
             label = 1
             for key in cutoffs.keys():
                 if 'CrossEntropyFilter' in key or 'WordAlign' in key:
-                    if self.df_training_data[key][i] > cutoffs[key]:
+                    if training_data[key][i] > cutoffs[key]:
                         label = 0
                 else:
-                    if self.df_training_data[key][i] < cutoffs[key]:
+                    if training_data[key][i] < cutoffs[key]:
                         label = 0
             labels.append(label)
         self.labels_train = labels
+        return labels
 
-    def set_cutoffs(self, discards, cutoffs):
+    def set_cutoffs(self, training_data, discards, cutoffs):
         """Set cutoff values based on discard percentage"""
         for key in cutoffs.keys():
             if 'CrossEntropyFilter' in key or 'WordAlign' in key:
-                cutoffs[key] = self.df_training_data[key].quantile(1-discards[key])
+                cutoffs[key] = training_data[key].quantile(1-discards[key])
             else:
-                cutoffs[key] = self.df_training_data[key].quantile(discards[key])
+                cutoffs[key] = training_data[key].quantile(discards[key])
         return cutoffs
 
     def find_best_model(self, criterion):
@@ -174,55 +173,61 @@ class FilterClassifier:
         i = 0
         for key in discards.keys():
             discard = discards[key]
-            best_value = None
             best_discard = discard
+            remove_column = False
             for j in range(11):
-                logger.info('Training logistic regression model with discards {}'.format(discards.values()))
+                df_train_copy = self.df_training_data.copy()
+                df_dev_copy = self.dev_data.copy()
+                cutoffs_copy = cutoffs.copy()
+
+                logger.info('Training logistic regression model with discards'
+                    ' {}'.format(discards.values()))
                 zero = False
                 if discards[key] == 0:
                     zero = True
-                    rem_train = self.df_training_data.pop(key)
-                    rem_dev = self.dev_data.pop(key)
-                    rem_cutoff = cutoffs.pop(rem_train.name)
+                    df_train_copy.pop(key)
+                    df_dev_copy.pop(key)
+                    cutoffs_copy.pop(key)
                 else:
-                    cutoffs = self.set_cutoffs(discards, cutoffs)
-                    self.add_labels(cutoffs)
+                    cutoffs_copy = self.set_cutoffs(df_train_copy, discards,
+                            cutoffs_copy)
+                    labels = self.add_labels(df_train_copy, cutoffs_copy)
 
-                LR = self.train_logreg()
+                LR = self.train_logreg(df_train_copy, labels)
 
                 if criterion == 'roc_auc':
-                    crit_value = self.get_roc_auc(LR)
+                    crit_value = self.get_roc_auc(LR, df_dev_copy)
                 elif criterion == 'AIC':
-                    crit_value = self.get_aic(LR)
+                    crit_value = self.get_aic(LR, df_train_copy, labels)
                 elif criterion == 'BIC':
-                    crit_value = self.get_bic(LR)
+                    crit_value = self.get_bic(LR, df_train_copy, labels)
 
-                logger.info('Model {crit}: {value}'.format( crit=criterion, value=crit_value))
+                logger.info('Model {crit}: {value}'.format(
+                    crit=criterion, value=crit_value))
 
                 if criterion == 'roc_auc':
                     if best_model == None or crit_value > best_model[1]:
-                        best_model = (LR, crit_value, discards, self.df_training_data.keys().copy())
-                    if best_value == None or crit_value > best_value:
-                        best_value = crit_value
+                        best_model = (LR, crit_value, discards,
+                                df_train_copy.keys().copy())
                         best_discard = round(discard, 2)
-                    elif zero:
-                        self.df_training_data[rem_train.name] = rem_train
-                        self.dev_data[rem_train.name] = rem_dev
-                        cutoffs[rem_train.name] = rem_cutoff
+                        if zero:
+                            remove_column = True
                 elif criterion in ['AIC', 'BIC']:
                     if best_model == None or crit_value < best_model[1]:
-                        best_model = (LR, crit_value, discards, self.df_training_data.keys().copy())
-                    if best_value == None or crit_value < best_value:
-                        best_value = crit_value
+                        best_model = (LR, crit_value, discards,
+                                df_train_copy.keys().copy())
                         best_discard = round(discard, 2)
-                    elif zero:
-                        self.df_training_data[rem_train.name] = rem_train
-                        self.dev_data[rem_train.name] = rem_dev
-                        cutoffs[rem_train.name] = rem_cutoff
-
+                        if zero:
+                            remove_column = True
 
                 discard -= 0.01
                 discards[key] = round(discard, 2)
+
+            if remove_column:
+                self.df_training_data.pop(key)
+                self.dev_data.pop(key)
+                cutoffs.pop(key)
+
             discards[key] = best_discard
             i += 1
 
