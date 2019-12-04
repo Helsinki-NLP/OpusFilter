@@ -5,6 +5,7 @@ import copy
 import itertools
 import logging
 import os
+import pickle
 import random
 
 import json
@@ -87,6 +88,7 @@ class OpusFilter:
             'train_ngram': self.train_ngram,
             'train_alignment': self.train_alignment,
             'score': self.score_data,
+            'train_classifier': self.train_classifier,
             'classify': self.classify,
             'join': self.join_scores,
             'sort': self.sort_files,
@@ -342,15 +344,33 @@ class OpusFilter:
         scores_gen = filter_pipe.score(pairs_gen)
         self._write_jsonl(scores_gen, score_out)
 
-    def classify(self, parameters, overwrite=False):
-        """Assign cleanness probabilities to scored sentence pairs"""
+    def train_classifier(self, parameters, overwrite=False):
+        """Train classifier for scored sentence pairs"""
+        model_out = os.path.join(self.output_dir, parameters['model'])
+        if not overwrite and os.path.isfile(model_out):
+            logger.info("Output file exists, skipping step")
+            return
         cls = classifier.FilterClassifier(**parameters)
-        model, value, discard_threshold, weight_labels = cls.find_best_model(
+        model, value, features, weight_labels = cls.find_best_model(
                 parameters['criterion'])
         print('Intercept', model.intercept_[0])
         for feature, weight in zip(weight_labels, model.coef_[0]):
             print(feature, weight)
         #cls.assign_probabilities(model)
+        with file_open(model_out, 'wb') as model_file:
+            pickle.dump(model, model_file)
+
+    def classify(self, parameters, overwrite=False):
+        """Assign cleanness probabilities to scored sentence pairs"""
+        score_out = os.path.join(self.output_dir, parameters['output'])
+        if not overwrite and os.path.isfile(score_out):
+            logger.info("Output file exists, skipping step")
+            return
+        model_in = os.path.join(self.output_dir, parameters['model'])
+        with file_open(model_in, 'rb') as model_file:
+            model = pickle.load(model_file)
+        scores_in = os.path.join(self.output_dir, parameters['scores'])
+        model.write_probs(scores_in, scores_out)
 
     @staticmethod
     def _read_values(fobj, key=None, conv=None):

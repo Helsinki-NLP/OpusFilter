@@ -7,10 +7,58 @@ import math
 
 import pandas as pd
 from pandas.io.json import json_normalize
-from sklearn.linear_model import LogisticRegression
+import sklearn.linear_model
 from sklearn.metrics import roc_auc_score
 
 logger = logging.getLogger(__name__)
+
+
+def load_dataframe(self, data_file):
+    """Load normalized scores dataframe from a jsonlines file"""
+    data = []
+    with open(data_file) as dfile:
+        for line in dfile:
+            data.append(json.loads(line))
+    return pd.DataFrame(json_normalize(data))
+
+
+class Classifier:
+
+    def __init__(self, classname, params, features):
+        self.classname = classname
+        cls = getattr(sklearn.linear_model, self.classname)
+        self.classifier = cls(**params)
+        self.features = features
+
+    def train(self, df, labels):
+        """Train logistic regression with training_data"""
+        self.classifier.fit(df[self.features], labels)
+
+    def write_preds(self, input_fname, output_fname):
+        """Write predicted class labels to output file"""
+        df_tbc = load_dataframe(input_fname)
+        labels = model.predict(df_tbc[self.features])
+        with open(self.output_fname, 'w') as output:
+            for label in labels:
+                output.write('{}\n'.format(label))
+
+    def write_probs(self, input_fname, output_fname):
+        """Write classification probabilities to output file"""
+        df_tbc = load_dataframe(input_fname)
+        probas = model.predict_proba(df_tbc[self.features])
+        with open(self.output_fname, 'w') as output:
+            for proba in probas[:,1]:
+                output.write('{0:.10f}\n'.format(proba))
+
+    def weights(self):
+        """Yield classifier weights"""
+        if self.classname == "LogisticRegression":
+            yield '(intercept)', self.classifier.intercept_
+            for name, value in zip(self.features, self.classifier.coef_):
+                yield name, value
+        else:
+            logger.warning("Method weights unsupported for %s", self.classname)
+            return
 
 
 class FilterClassifier:
