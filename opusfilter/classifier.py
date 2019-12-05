@@ -67,14 +67,19 @@ class TrainClassifier:
     def __init__(self, training_scores=None, features=None, dev_scores=None,
             **kwargs):
         self.df_training_data = load_dataframe(training_scores)
-        self.df_training_data = self.df_training_data[features.keys()]
 
-        self.features = features
+        self.features = {}
+        for t_key in self.df_training_data.keys():
+            for f_key in features.keys():
+                if t_key.startswith(f_key):
+                    self.features[t_key] = features[f_key]
+
+        self.df_training_data = self.df_training_data[self.features.keys()]
 
         if dev_scores:
             self.dev_data = load_dataframe(dev_scores)
             self.dev_labels = self.dev_data.pop('label')
-            self.dev_data = self.dev_data[features.keys()]
+            self.dev_data = self.dev_data[self.features.keys()]
 
     def train_logreg(self, training_data, labels):
         """Train logistic regression with training_data"""

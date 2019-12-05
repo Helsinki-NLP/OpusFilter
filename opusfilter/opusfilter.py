@@ -381,7 +381,7 @@ class OpusFilter:
         """Assign cleanness probabilities to scored sentence pairs"""
         print(parameters)
         scores_out = os.path.join(self.output_dir, parameters['output'])
-        if not overwrite and os.path.isfile(score_out):
+        if not overwrite and os.path.isfile(scores_out):
             logger.info("Output file exists, skipping step")
             return
         model_in = os.path.join(self.output_dir, parameters['model'])

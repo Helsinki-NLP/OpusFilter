@@ -27,10 +27,24 @@ class TestTrainClassifier(unittest.TestCase):
             f.write(devdata)
             self.jsonl_dev = os.path.join(self.tempdir, 'dev.jsonl')
 
+
+        features = {'CharacterScoreFilter':
+                    {'clean-direction': 'high',
+                        'quantiles': [0.1, 0.09, 0.08, 0.07, 0.06, 0.05,
+                            0.04, 0.03, 0.02, 0.01, 0.0]},
+                'LanguageIDFilter':
+                    {'clean-direction': 'high',
+                        'quantiles': [0.1, 0.09, 0.08, 0.07, 0.06, 0.05,
+                            0.04, 0.03, 0.02, 0.01, 0.0]},
+                'LongWordFilter':
+                    {'clean-direction': 'high',
+                        'quantiles': [0.1, 0.09, 0.08, 0.07, 0.06, 0.05,
+                            0.04, 0.03, 0.02, 0.01, 0.0]}
+                }
+
         self.fc = TrainClassifier(
                 training_scores=self.jsonl_train,
-                discard_thresholds=[0.1, 0.2, 0.3, 0.4, 0.5],
-                output_file=os.path.join(self.tempdir, 'output.txt'),
+                features = features,
                 dev_scores=self.jsonl_dev)
 
     @classmethod
