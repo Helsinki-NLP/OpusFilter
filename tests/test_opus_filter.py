@@ -361,7 +361,7 @@ class TestJoin(unittest.TestCase):
                                        {'OtherScore': 5, 'rank': 2}])
 
 
-class TestHeadTail(unittest.TestCase):
+class TestHeadTailSlice(unittest.TestCase):
 
     def setUp(self):
         self.tempdir = tempfile.mkdtemp()
@@ -399,3 +399,29 @@ class TestHeadTail(unittest.TestCase):
             self.assertEqual(f.read(), 'Sentence2\nSentence1\n')
         with open(os.path.join(self.tempdir, 'output_tgt')) as f:
             self.assertEqual(f.read(), 'sentence2\nsentence1\n')
+
+    def test_slice_head(self):
+        parameters = {
+            'inputs': [os.path.join(self.tempdir, 'input_src'),
+                       os.path.join(self.tempdir, 'input_tgt')],
+            'outputs': [os.path.join(self.tempdir, 'output_src'),
+                        os.path.join(self.tempdir, 'output_tgt')],
+            'stop': 2}
+        self.opus_filter.slice(parameters)
+        with open(os.path.join(self.tempdir, 'output_src')) as f:
+            self.assertEqual(f.read(), 'Sentence3\nSentence4\n')
+        with open(os.path.join(self.tempdir, 'output_tgt')) as f:
+            self.assertEqual(f.read(), 'sentence3\nsentence4\n')
+
+    def test_slice(self):
+        parameters = {
+            'inputs': [os.path.join(self.tempdir, 'input_src'),
+                       os.path.join(self.tempdir, 'input_tgt')],
+            'outputs': [os.path.join(self.tempdir, 'output_src'),
+                        os.path.join(self.tempdir, 'output_tgt')],
+            'start': 1, 'stop': None, 'step': 2}
+        self.opus_filter.slice(parameters)
+        with open(os.path.join(self.tempdir, 'output_src')) as f:
+            self.assertEqual(f.read(), 'Sentence4\nSentence1\n')
+        with open(os.path.join(self.tempdir, 'output_tgt')) as f:
+            self.assertEqual(f.read(), 'sentence4\nsentence1\n')

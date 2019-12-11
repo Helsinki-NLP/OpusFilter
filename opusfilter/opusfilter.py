@@ -403,6 +403,24 @@ class OpusFilter:
         inputs = [self._read_jsonl(fname) for fname in infiles]
         self._write_jsonl(_gen(inputs, keys), outfile)
 
+    def slice(self, parameters, overwrite=False):
+        """Take slice from file(s)"""
+        outfiles = [os.path.join(self.output_dir, fname) for fname in parameters['outputs']]
+        infiles = [os.path.join(self.output_dir, fname) for fname in parameters['inputs']]
+        if len(outfiles) != len(infiles):
+            raise ConfigurationError("Number of input and output files should match in head")
+        if not overwrite and all(os.path.isfile(outfile) for outfile in outfiles):
+            logger.info("Output files exists, skipping step")
+            return
+        start = parameters.get('start', 0)
+        stop = parameters.get('stop')
+        step = parameters.get('step', 1)
+        for infile, outfile in zip(infiles, outfiles):
+            logger.info("Processing file %s", infile)
+            with file_open(infile, 'r') as inf, file_open(outfile, 'w') as outf:
+                for line in tqdm(itertools.islice(inf, start, stop, step)):
+                    outf.write(line)
+
     def head(self, parameters, overwrite=False):
         """Take the first n lines from file(s)"""
         outfiles = [os.path.join(self.output_dir, fname) for fname in parameters['outputs']]

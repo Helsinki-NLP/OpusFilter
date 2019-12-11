@@ -26,6 +26,7 @@ Features:
       * [concatenate](#concatenate)
       * [head](#head)
       * [tail](#tail)
+      * [slice](#slice)
       * [subset](#subset)
    * [Filtering and scoring](#filtering-and-scoring)
       * [filter](#filter)
@@ -275,6 +276,23 @@ Parameters:
 * `inputs`: a list of input files
 * `outputs`: a list of output files
 * `n`: number of output lines
+
+Note: The memory requirement of `tail` is proportional to n. Use
+`slice` if you need all except the first n lines.
+
+#### `slice`
+
+Take slice of lines from files.
+
+Parameters:
+
+* `inputs`: a list of input files
+* `outputs`: a list of output files
+* `start`: start index (default 0)
+* `stop`: stop index (default none)
+* `step`: step size (default 1)
+
+If `stop` is not given, reads until the end of the file.
 
 #### `subset`
 
