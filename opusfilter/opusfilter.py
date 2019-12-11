@@ -328,13 +328,19 @@ class OpusFilter:
     def _read_values(fobj, key=None, conv=None):
         """Return a generator for values in score file
 
-        The file should either contain one JSON object per line (if
-        key is not None), or single value per line. If conv is not
-        None, conv(value) is yielded instead of plain value.
+        The file should contain one JSON object per line. If the line
+        cannot be interpreted as a JSON object, it is taken as a
+        string. If conv is not None, conv(value) is yielded instead of
+        the plain value.
 
         """
         for line in fobj:
-            val = line.rstrip() if key is None else dict_get(key, json.loads(line))
+            try:
+                val = json.loads(line)
+            except json.decoder.JSONDecodeError:
+                val = line
+            if key is not None:
+                val = dict_get(key, val)
             yield val if conv is None else conv(val)
 
     def sort_files(self, parameters, overwrite=False):
@@ -349,7 +355,7 @@ class OpusFilter:
         valuefile = parameters['values']
         reverse = parameters.get('reverse', False)
         key = parameters.get('key')
-        typeconv = parameters.get('type', 'float' if key is None else None)
+        typeconv = parameters.get('type')
         if typeconv is not None:
             typeconv = {'float': float, 'int': int, 'str': str}[typeconv]
         with file_open(valuefile, 'r') as fobj:
