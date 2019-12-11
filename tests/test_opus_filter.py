@@ -197,25 +197,99 @@ class TestOpusFilter(unittest.TestCase):
         self.assertTrue(os.path.isfile('test_creating_dir/RF1_sents.sv'))
         shutil.rmtree('test_creating_dir')
 
+
+class TestOrderByRank(unittest.TestCase):
+
+    def setUp(self):
+        self.tempdir = tempfile.mkdtemp()
+        self.opus_filter = OpusFilter({'common': {'output_directory': self.tempdir}, 'steps': []})
+        with open(os.path.join(self.tempdir, 'rank_input_src'), 'w') as f:
+            f.write('Sentence3\nSentence4\nSentence2\nSentence1')
+        with open(os.path.join(self.tempdir, 'rank_input_tgt'), 'w') as f:
+            f.write('Sentence3\nSentence4\nSentence2\nSentence1')
+        with open(os.path.join(self.tempdir, 'ranks_input'), 'w') as f:
+            f.write('0.5\n0\n2\n10')
+        with open(os.path.join(self.tempdir, 'scores_input'), 'w') as f:
+            for item in [{'MyScore': {'src': 1, 'tgt': 0.5}},
+                         {'MyScore': {'src': 0.8, 'tgt': 0}},
+                         {'MyScore': {'src': 0.5, 'tgt': 2}},
+                         {'MyScore': {'src': 1, 'tgt': 10}}]:
+                f.write(json.dumps(item) + '\n')
+
+    def tearDown(self):
+        shutil.rmtree(self.tempdir)
+
     def test_order_by_rank(self):
         parameters = {
-                'input_src': os.path.join(self.tempdir, 'rank_input_src'),
-                'input_tgt': os.path.join(self.tempdir, 'rank_input_tgt'),
-                'input_ranks': os.path.join(self.tempdir, 'ranks_input'),
-                'output_src': os.path.join(self.tempdir, 'rank_output_src'),
-                'output_tgt': os.path.join(self.tempdir, 'rank_output_tgt'),
-                'output_ranks': os.path.join(self.tempdir, 'ranks_output')}
-        with open(os.path.join(self.tempdir, 'rank_input_src'), 'w') as f:
-            f.write('Sentence2\nSentence3\nSentence1')
-        with open(os.path.join(self.tempdir, 'rank_input_tgt'), 'w') as f:
-            f.write('Sentence2\nSentence3\nSentence1')
-        with open(os.path.join(self.tempdir, 'ranks_input'), 'w') as f:
-            f.write('0.5\n0\n1')
-        self.opus_filter.order_by_rank(parameters)
+            'inputs': [os.path.join(self.tempdir, 'rank_input_src'),
+                       os.path.join(self.tempdir, 'rank_input_tgt'),
+                       os.path.join(self.tempdir, 'ranks_input')],
+            'values': os.path.join(self.tempdir, 'ranks_input'),
+            'outputs': [os.path.join(self.tempdir, 'rank_output_src'),
+                        os.path.join(self.tempdir, 'rank_output_tgt'),
+                        os.path.join(self.tempdir, 'ranks_output')],
+            'reverse': False}
+        self.opus_filter.sort_files(parameters)
         with open(os.path.join(self.tempdir, 'rank_output_src')) as f:
-            self.assertEqual(f.read(), 'Sentence1\nSentence2\nSentence3\n')
+            self.assertEqual(f.read(), 'Sentence4\nSentence3\nSentence2\nSentence1\n')
         with open(os.path.join(self.tempdir, 'rank_output_tgt')) as f:
-            self.assertEqual(f.read(), 'Sentence1\nSentence2\nSentence3\n')
+            self.assertEqual(f.read(), 'Sentence4\nSentence3\nSentence2\nSentence1\n')
         with open(os.path.join(self.tempdir, 'ranks_output')) as f:
-            self.assertEqual(f.read(), '1\n0.5\n0\n')
+            self.assertEqual(f.read(), '0\n0.5\n2\n10\n')
 
+    def test_sort_files_reverse(self):
+        parameters = {
+            'inputs': [os.path.join(self.tempdir, 'rank_input_src'),
+                       os.path.join(self.tempdir, 'rank_input_tgt'),
+                       os.path.join(self.tempdir, 'ranks_input')],
+            'values': os.path.join(self.tempdir, 'ranks_input'),
+            'outputs': [os.path.join(self.tempdir, 'rank_output_src'),
+                        os.path.join(self.tempdir, 'rank_output_tgt'),
+                        os.path.join(self.tempdir, 'ranks_output')],
+            'reverse': True}
+        self.opus_filter.sort_files(parameters)
+        with open(os.path.join(self.tempdir, 'rank_output_src')) as f:
+            self.assertEqual(f.read(), 'Sentence1\nSentence2\nSentence3\nSentence4\n')
+        with open(os.path.join(self.tempdir, 'rank_output_tgt')) as f:
+            self.assertEqual(f.read(), 'Sentence1\nSentence2\nSentence3\nSentence4\n')
+        with open(os.path.join(self.tempdir, 'ranks_output')) as f:
+            self.assertEqual(f.read(), '10\n2\n0.5\n0\n')
+
+    def test_sort_by_score(self):
+        parameters = {
+            'inputs': [os.path.join(self.tempdir, 'rank_input_src'),
+                       os.path.join(self.tempdir, 'rank_input_tgt'),
+                       os.path.join(self.tempdir, 'ranks_input')],
+            'values': os.path.join(self.tempdir, 'scores_input'),
+            'outputs': [os.path.join(self.tempdir, 'rank_output_src'),
+                        os.path.join(self.tempdir, 'rank_output_tgt'),
+                        os.path.join(self.tempdir, 'ranks_output')],
+            'reverse': False,
+            'key': 'MyScore.tgt'}
+        self.opus_filter.sort_files(parameters)
+        with open(os.path.join(self.tempdir, 'rank_output_src')) as f:
+            self.assertEqual(f.read(), 'Sentence4\nSentence3\nSentence2\nSentence1\n')
+        with open(os.path.join(self.tempdir, 'rank_output_tgt')) as f:
+            self.assertEqual(f.read(), 'Sentence4\nSentence3\nSentence2\nSentence1\n')
+        with open(os.path.join(self.tempdir, 'ranks_output')) as f:
+            self.assertEqual(f.read(), '0\n0.5\n2\n10\n')
+
+    def test_sort_by_str(self):
+        parameters = {
+            'inputs': [os.path.join(self.tempdir, 'rank_input_src'),
+                       os.path.join(self.tempdir, 'rank_input_tgt'),
+                       os.path.join(self.tempdir, 'ranks_input')],
+            'values': os.path.join(self.tempdir, 'rank_input_src'),
+            'outputs': [os.path.join(self.tempdir, 'rank_output_src'),
+                        os.path.join(self.tempdir, 'rank_output_tgt'),
+                        os.path.join(self.tempdir, 'ranks_output')],
+            'reverse': False,
+            'type': 'str'
+        }
+        self.opus_filter.sort_files(parameters)
+        with open(os.path.join(self.tempdir, 'rank_output_src')) as f:
+            self.assertEqual(f.read(), 'Sentence1\nSentence2\nSentence3\nSentence4\n')
+        with open(os.path.join(self.tempdir, 'rank_output_tgt')) as f:
+            self.assertEqual(f.read(), 'Sentence1\nSentence2\nSentence3\nSentence4\n')
+        with open(os.path.join(self.tempdir, 'ranks_output')) as f:
+            self.assertEqual(f.read(), '10\n2\n0.5\n0\n')

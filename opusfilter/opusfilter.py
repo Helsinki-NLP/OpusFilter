@@ -6,11 +6,13 @@ import os
 import random
 
 import json
+import numpy as np
 from tqdm import tqdm
 
 from opustools import OpusRead
 from opustools.util import file_open
 
+from . import ConfigurationError
 from . import pipeline
 from . import lm
 from . import word_alignment
@@ -19,6 +21,21 @@ from . import classifier
 
 
 logger = logging.getLogger(__name__)
+
+
+def dict_get(key, dictionary):
+    """Recursive get for multi-part key with dot (.) as separator
+
+    Example:
+    dict_get("foo.bar", {"foo": {"bar": 5}}) -> 5
+
+    Raises KeyError for missing keys.
+
+    """
+    parts = key.split('.')
+    first = parts.pop(0)
+    value = dictionary[first]
+    return value if not len(parts) else dict_get('.'.join(parts), value)
 
 
 class OpusFilter:
@@ -47,7 +64,7 @@ class OpusFilter:
             'train_alignment': self.train_alignment,
             'score': self.score_data,
             'classify': self.classify,
-            'order_by_rank': self.order_by_rank
+            'sort': self.sort_files
         }
 
     def execute_steps(self, overwrite=False, last=None):
@@ -292,29 +309,43 @@ class OpusFilter:
                 parameters['criterion'])
         cls.assign_probabilities(model)
 
-    def order_by_rank(self, parameters, overwrite=False):
-        """Order sentences by probability ranks"""
-        input_src = open(parameters['input_src'])
-        input_tgt = open(parameters['input_tgt'])
-        input_ranks = open(parameters['input_ranks'])
-        output_src = open(parameters['output_src'], 'w')
-        output_tgt = open(parameters['output_tgt'], 'w')
-        output_ranks = open(parameters['output_ranks'], 'w')
+    def read_values(self, fobj, key=None, conv=None):
+        """Return a generator for values in score file
 
-        zipped = zip(input_src.read().splitlines(),
-            input_tgt.read().splitlines(), input_ranks.read().splitlines())
+        The file should either contain one JSON object per line (if
+        key is not None), or single value per line. If conv is not
+        None, conv(value) is yielded instead of plain value.
 
-        zipped = sorted(zipped, key=lambda t: t[2], reverse=True)
+        """
+        for line in fobj:
+            val = line.rstrip() if key is None else dict_get(key, json.loads(line))
+            yield val if conv is None else conv(val)
 
-        for src, tgt, rank in zipped:
-            output_src.write(src+'\n')
-            output_tgt.write(tgt+'\n')
-            output_ranks.write(rank+'\n')
-
-        input_src.close()
-        input_tgt.close()
-        input_ranks.close()
-        output_src.close()
-        output_tgt.close()
-        output_ranks.close()
-
+    def sort_files(self, parameters, overwrite=False):
+        """Sort file(s) by values read from other file"""
+        outfiles = [os.path.join(self.output_dir, fname) for fname in parameters['outputs']]
+        infiles = [os.path.join(self.output_dir, fname) for fname in parameters['inputs']]
+        if len(outfiles) != len(infiles):
+            raise ConfigurationError("Number of input and output files should match in sort")
+        if not overwrite and all(os.path.isfile(outfile) for outfile in outfiles):
+            logger.info("Output files exists, skipping step")
+            return
+        valuefile = parameters['values']
+        reverse = parameters.get('reverse', False)
+        key = parameters.get('key')
+        typeconv = parameters.get('type', 'float' if key is None else None)
+        if typeconv is not None:
+            typeconv = {'float': float, 'int': int, 'str': str}[typeconv]
+        with file_open(valuefile, 'r') as fobj:
+            logger.info("Reading values from %s", valuefile)
+            values = [x for x in tqdm(self.read_values(fobj, key=key, conv=typeconv))]
+            order = list(np.argsort(values))
+            if reverse:
+                order.reverse()
+        for infile, outfile in zip(infiles, outfiles):
+            logger.info("Sorting file %s", infile)
+            with file_open(infile, 'r') as fobj:
+                lines = [line.rstrip() for line in tqdm(fobj)]
+            with file_open(outfile, 'w') as fobj:
+                for idx in tqdm(order):
+                    fobj.write(lines[idx] + '\n')
