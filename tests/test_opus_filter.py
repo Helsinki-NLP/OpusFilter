@@ -359,3 +359,43 @@ class TestJoin(unittest.TestCase):
         self.assertSequenceEqual(out, [{'OtherScore': 2, 'rank': 0.5},
                                        {'OtherScore': 8, 'rank': 0},
                                        {'OtherScore': 5, 'rank': 2}])
+
+
+class TestHeadTail(unittest.TestCase):
+
+    def setUp(self):
+        self.tempdir = tempfile.mkdtemp()
+        self.opus_filter = OpusFilter({'common': {'output_directory': self.tempdir}, 'steps': []})
+        with open(os.path.join(self.tempdir, 'input_src'), 'w') as f:
+            f.write('Sentence3\nSentence4\nSentence2\nSentence1\n')
+        with open(os.path.join(self.tempdir, 'input_tgt'), 'w') as f:
+            f.write('sentence3\nsentence4\nsentence2\nsentence1\n')
+
+    def tearDown(self):
+        shutil.rmtree(self.tempdir)
+
+    def test_head(self):
+        parameters = {
+            'inputs': [os.path.join(self.tempdir, 'input_src'),
+                       os.path.join(self.tempdir, 'input_tgt')],
+            'outputs': [os.path.join(self.tempdir, 'output_src'),
+                        os.path.join(self.tempdir, 'output_tgt')],
+            'n': 2}
+        self.opus_filter.head(parameters)
+        with open(os.path.join(self.tempdir, 'output_src')) as f:
+            self.assertEqual(f.read(), 'Sentence3\nSentence4\n')
+        with open(os.path.join(self.tempdir, 'output_tgt')) as f:
+            self.assertEqual(f.read(), 'sentence3\nsentence4\n')
+
+    def test_tail(self):
+        parameters = {
+            'inputs': [os.path.join(self.tempdir, 'input_src'),
+                       os.path.join(self.tempdir, 'input_tgt')],
+            'outputs': [os.path.join(self.tempdir, 'output_src'),
+                        os.path.join(self.tempdir, 'output_tgt')],
+            'n': 2}
+        self.opus_filter.tail(parameters)
+        with open(os.path.join(self.tempdir, 'output_src')) as f:
+            self.assertEqual(f.read(), 'Sentence2\nSentence1\n')
+        with open(os.path.join(self.tempdir, 'output_tgt')) as f:
+            self.assertEqual(f.read(), 'sentence2\nsentence1\n')

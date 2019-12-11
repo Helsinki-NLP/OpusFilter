@@ -1,6 +1,7 @@
 """Processor for filter configurations"""
 
 import copy
+import itertools
 import logging
 import os
 import random
@@ -65,7 +66,9 @@ class OpusFilter:
             'score': self.score_data,
             'classify': self.classify,
             'join': self.join_scores,
-            'sort': self.sort_files
+            'sort': self.sort_files,
+            'head': self.head,
+            'tail': self.tail
         }
 
     def execute_steps(self, overwrite=False, last=None):
@@ -274,10 +277,11 @@ class OpusFilter:
                 fobj.write(json.dumps(obj, sort_keys=True)+'\n')
 
     @staticmethod
-    def _read_jsonl(fobj):
+    def _read_jsonl(fname):
         """Return a generator for items in JSON lines file"""
-        for line in fobj:
-            yield json.loads(line)
+        with file_open(fname, 'r') as fobj:
+            for line in fobj:
+                yield json.loads(line)
 
     def score_data(self, parameters, overwrite=False):
         """Score language data based on given filters"""
@@ -390,5 +394,42 @@ class OpusFilter:
         keys = parameters.get('keys')
         if keys and len(keys) != len(infiles):
             raise ConfigurationError("Number of keys and input files should match in join")
-        inputs = [self._read_jsonl(file_open(fname)) for fname in infiles]
+        inputs = [self._read_jsonl(fname) for fname in infiles]
         self._write_jsonl(_gen(inputs, keys), outfile)
+
+    def head(self, parameters, overwrite=False):
+        """Take the first n lines from file(s)"""
+        outfiles = [os.path.join(self.output_dir, fname) for fname in parameters['outputs']]
+        infiles = [os.path.join(self.output_dir, fname) for fname in parameters['inputs']]
+        if len(outfiles) != len(infiles):
+            raise ConfigurationError("Number of input and output files should match in head")
+        if not overwrite and all(os.path.isfile(outfile) for outfile in outfiles):
+            logger.info("Output files exists, skipping step")
+            return
+        n = parameters['n']
+        for infile, outfile in zip(infiles, outfiles):
+            logger.info("Processing file %s", infile)
+            with file_open(infile, 'r') as inf, file_open(outfile, 'w') as outf:
+                for line in tqdm(itertools.islice(inf, n)):
+                    outf.write(line)
+
+    def tail(self, parameters, overwrite=False):
+        """Take the last n lines from file(s)"""
+        outfiles = [os.path.join(self.output_dir, fname) for fname in parameters['outputs']]
+        infiles = [os.path.join(self.output_dir, fname) for fname in parameters['inputs']]
+        if len(outfiles) != len(infiles):
+            raise ConfigurationError("Number of input and output files should match in head")
+        if not overwrite and all(os.path.isfile(outfile) for outfile in outfiles):
+            logger.info("Output files exists, skipping step")
+            return
+        n = parameters['n']
+        for infile, outfile in zip(infiles, outfiles):
+            logger.info("Processing file %s", infile)
+            with file_open(infile, 'r') as inf, file_open(outfile, 'w') as outf:
+                tmp = []
+                for line in tqdm(inf):
+                    tmp.append(line)
+                    if len(tmp) > n:
+                        tmp.pop(0)
+                for line in tmp:
+                    outf.write(line)
