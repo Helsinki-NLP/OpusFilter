@@ -24,16 +24,20 @@ Features:
    * [Downloading and selecting data](#downloading-and-selecting-data)
       * [opus_read](#opus_read)
       * [concatenate](#concatenate)
+      * [head](#head)
+      * [tail](#tail)
       * [subset](#subset)
    * [Filtering and scoring](#filtering-and-scoring)
       * [filter](#filter)
       * [score](#score)
+   * [Using score files](#using-score-files)
+      * [join](#join)
+      * [sort](#sort)
    * [Training language and alignment models](#training-language-and-alignment-models)
       * [train_ngram](#train_ngram)
       * [train_aligment](#train_aligment)
    * [Training and using classifiers](#training-and-using-classifiers)
       * [classify](#classify)
-      * [order_by_rank](#order_by_rank)
 * [Available filters](#available-filters)
    * [Length filters](#length-filters)
       * [LengthFilter](#lengthfilter)
@@ -252,6 +256,26 @@ Parameters:
 * `inputs`: a list of input files
 * `output`: output file
 
+#### `head`
+
+Take the first n lines from files.
+
+Parameters:
+
+* `inputs`: a list of input files
+* `outputs`: a list of output files
+* `n`: number of output lines
+
+#### `tail`
+
+Take the last n lines from files.
+
+Parameters:
+
+* `inputs`: a list of input files
+* `outputs`: a list of output files
+* `n`: number of output lines
+
 #### `subset`
 
 Take a random subset from parallel corpus files.
@@ -262,7 +286,7 @@ Parameters:
 * `tgt_input`: input file for target language
 * `src_output`: output file for source language
 * `tgt_output`: output file for target language
-* `seed`: seed for the random generator; set to ensure that two runs select the same lines (default null)
+* `seed`: seed for the random generator; set to ensure that two runs select the same lines (default none)
 * `size`: number of lines to select to the subset
 * `shuffle_target`: take different random lines from the target language; can be used to produce noisy examples for training a corpus filtering model (default false)
 
@@ -339,6 +363,43 @@ scores or training a classifier for filtering. The JSON Lines data
 is easy to load as a [pandas](https://pandas.pydata.org/) DataFrame using the [`json_normalize`](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.io.json.json_normalize.html)
 method.
 
+### Using score files
+
+#### `join`
+
+Join two or more score files.
+
+Parameters:
+
+* `inputs`: input files containing scores in JSON Lines format
+* `output`: output file for joined scores
+* `keys`: a list of top-level keys for each input file (default none)
+
+If a list of keys is provided, the input objects are inserted under
+the corresponding key. If the keys are not provided, or corresponding
+key is null, output object will be updated with the input object and
+existing keys will be overwritten.
+
+#### `sort`
+
+Sort files based on score values.
+
+Parameters:
+
+* `inputs`: input files to sort
+* `outputs`: sorted output files
+* `values`: input file for values used in sorting
+* `reverse`: true for descending sort (default false)
+* `key`: if values file contain JSON objects, use the key to select field (default none)
+* `type`: force type conversion for the value (`float`, `int`, or `str`; default none)
+
+The values file should contain one JSON object per line. If the line
+cannot be interpreted as a JSON object, it is read as a plain unicode
+string. Dots (.) in the key are interpreted as multiple get operations
+(e.g. `x.y` expects that there is key `x` under the key `y`). The type
+conversion can be used for example to force that the values are
+compared as strings.
+
 ### Training language and alignment models
 
 #### `train_ngram`
@@ -383,8 +444,6 @@ parameters.
 ### Training and using classifiers
 
 #### `classify`
-
-#### `order_by_rank`
 
 ## Available filters
 
