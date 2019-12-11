@@ -198,7 +198,7 @@ class TestOpusFilter(unittest.TestCase):
         shutil.rmtree('test_creating_dir')
 
 
-class TestOrderByRank(unittest.TestCase):
+class TestSort(unittest.TestCase):
 
     def setUp(self):
         self.tempdir = tempfile.mkdtemp()
@@ -293,3 +293,69 @@ class TestOrderByRank(unittest.TestCase):
             self.assertEqual(f.read(), 'Sentence1\nSentence2\nSentence3\nSentence4\n')
         with open(os.path.join(self.tempdir, 'ranks_output')) as f:
             self.assertEqual(f.read(), '10\n2\n0.5\n0\n')
+
+
+class TestJoin(unittest.TestCase):
+
+    def setUp(self):
+        self.tempdir = tempfile.mkdtemp()
+        self.opus_filter = OpusFilter({'common': {'output_directory': self.tempdir}, 'steps': []})
+        with open(os.path.join(self.tempdir, 'scores_input'), 'w') as f:
+            for item in [{'MyScore': {'src': 1, 'tgt': 0.5}, 'OtherScore': 0},
+                         {'MyScore': {'src': 0.8, 'tgt': 0}, 'OtherScore': 0},
+                         {'MyScore': {'src': 0.5, 'tgt': 2}, 'OtherScore': 0}]:
+                f.write(json.dumps(item) + '\n')
+        with open(os.path.join(self.tempdir, 'scores_input_2'), 'w') as f:
+            for item in [{'OtherScore': 2}, {'OtherScore': 8}, {'OtherScore': 5}]:
+                f.write(json.dumps(item) + '\n')
+        with open(os.path.join(self.tempdir, 'ranks_input'), 'w') as f:
+            f.write('0.5\n0\n2')
+
+    def tearDown(self):
+        shutil.rmtree(self.tempdir)
+
+    def test_join_scores_flat(self):
+        parameters = {
+            'inputs': [os.path.join(self.tempdir, 'scores_input'),
+                       os.path.join(self.tempdir, 'scores_input_2')],
+            'output': os.path.join(self.tempdir, 'scores_output')}
+        self.opus_filter.join_scores(parameters)
+        with open(os.path.join(self.tempdir, 'scores_output')) as f:
+            out = []
+            for line in f:
+                out.append(json.loads(line))
+        self.assertSequenceEqual(out, [{'MyScore': {'src': 1, 'tgt': 0.5}, 'OtherScore': 2},
+                                       {'MyScore': {'src': 0.8, 'tgt': 0}, 'OtherScore': 8},
+                                       {'MyScore': {'src': 0.5, 'tgt': 2}, 'OtherScore': 5}])
+
+    def test_join_scores_keys(self):
+        parameters = {
+            'inputs': [os.path.join(self.tempdir, 'scores_input'),
+                       os.path.join(self.tempdir, 'scores_input_2')],
+            'output': os.path.join(self.tempdir, 'scores_output'),
+            'keys': [None, 'others']}
+        self.opus_filter.join_scores(parameters)
+        with open(os.path.join(self.tempdir, 'scores_output')) as f:
+            out = []
+            for line in f:
+                out.append(json.loads(line))
+        self.assertSequenceEqual(out, [
+            {'MyScore': {'src': 1, 'tgt': 0.5}, 'OtherScore': 0, 'others': {'OtherScore': 2}},
+            {'MyScore': {'src': 0.8, 'tgt': 0}, 'OtherScore': 0, 'others': {'OtherScore': 8}},
+            {'MyScore': {'src': 0.5, 'tgt': 2}, 'OtherScore': 0, 'others': {'OtherScore': 5}}
+        ])
+
+    def test_join_scores_plain(self):
+        parameters = {
+            'inputs': [os.path.join(self.tempdir, 'scores_input_2'),
+                       os.path.join(self.tempdir, 'ranks_input')],
+            'output': os.path.join(self.tempdir, 'scores_output'),
+            'keys': [None, 'rank']}
+        self.opus_filter.join_scores(parameters)
+        with open(os.path.join(self.tempdir, 'scores_output')) as f:
+            out = []
+            for line in f:
+                out.append(json.loads(line))
+        self.assertSequenceEqual(out, [{'OtherScore': 2, 'rank': 0.5},
+                                       {'OtherScore': 8, 'rank': 0},
+                                       {'OtherScore': 5, 'rank': 2}])

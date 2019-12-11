@@ -64,6 +64,7 @@ class OpusFilter:
             'train_alignment': self.train_alignment,
             'score': self.score_data,
             'classify': self.classify,
+            'join': self.join_scores,
             'sort': self.sort_files
         }
 
@@ -265,6 +266,19 @@ class OpusFilter:
         word_alignment.make_priors(
             pair_gen, model_out, model=parameters['parameters'].get('model', 3))
 
+    @staticmethod
+    def _write_jsonl(objects, fname):
+        """Write objects to file as JSON lines"""
+        with file_open(fname, 'w') as fobj:
+            for obj in objects:
+                fobj.write(json.dumps(obj, sort_keys=True)+'\n')
+
+    @staticmethod
+    def _read_jsonl(fobj):
+        """Return a generator for items in JSON lines file"""
+        for line in fobj:
+            yield json.loads(line)
+
     def score_data(self, parameters, overwrite=False):
         """Score language data based on given filters"""
         score_out = os.path.join(self.output_dir, parameters['output'])
@@ -297,10 +311,7 @@ class OpusFilter:
         pairs_gen = self.get_pairs(parameters['src_input'], parameters['tgt_input'])
         filter_pipe = pipeline.FilterPipeline.from_config(filter_params)
         scores_gen = filter_pipe.score(pairs_gen)
-
-        with file_open(score_out, 'w') as score_file:
-            for score in scores_gen:
-                score_file.write(json.dumps(score, sort_keys=True)+'\n')
+        self._write_jsonl(scores_gen, score_out)
 
     def classify(self, parameters, overwrite=False):
         """Assign cleanness probabilities to scored sentence pairs"""
@@ -309,7 +320,8 @@ class OpusFilter:
                 parameters['criterion'])
         cls.assign_probabilities(model)
 
-    def read_values(self, fobj, key=None, conv=None):
+    @staticmethod
+    def _read_values(fobj, key=None, conv=None):
         """Return a generator for values in score file
 
         The file should either contain one JSON object per line (if
@@ -338,7 +350,7 @@ class OpusFilter:
             typeconv = {'float': float, 'int': int, 'str': str}[typeconv]
         with file_open(valuefile, 'r') as fobj:
             logger.info("Reading values from %s", valuefile)
-            values = [x for x in tqdm(self.read_values(fobj, key=key, conv=typeconv))]
+            values = [x for x in tqdm(self._read_values(fobj, key=key, conv=typeconv))]
             order = list(np.argsort(values))
             if reverse:
                 order.reverse()
@@ -349,3 +361,34 @@ class OpusFilter:
             with file_open(outfile, 'w') as fobj:
                 for idx in tqdm(order):
                     fobj.write(lines[idx] + '\n')
+
+    def join_scores(self, parameters, overwrite=False):
+        """Join score files
+
+        If a list of keys is provided, the input objects are inserted
+        under the corresponding key. If the keys are not provided, or
+        corresponding key is None, output object will be updated with
+        the input object and existing keys will be overwritten.
+
+        """
+        def _gen(inputs, keys):
+            """Generator for output objects"""
+            for objects in zip(*inputs):
+                new = {}
+                for idx, obj in enumerate(objects):
+                    if keys and keys[idx] is not None:
+                        new[keys[idx]] = obj
+                    else:
+                        new.update(obj)
+                yield new
+
+        outfile = os.path.join(self.output_dir, parameters['output'])
+        if not overwrite and os.path.isfile(outfile):
+            logger.info("Output file exists, skipping step")
+            return
+        infiles = [os.path.join(self.output_dir, fname) for fname in parameters['inputs']]
+        keys = parameters.get('keys')
+        if keys and len(keys) != len(infiles):
+            raise ConfigurationError("Number of keys and input files should match in join")
+        inputs = [self._read_jsonl(file_open(fname)) for fname in infiles]
+        self._write_jsonl(_gen(inputs, keys), outfile)
