@@ -3,7 +3,10 @@ import os
 import tempfile
 import shutil
 
+import pandas as pd
+
 from opusfilter.classifier import TrainClassifier
+from opusfilter.classifier import standardize_dataframe_scores
 
 
 class TestTrainClassifier(unittest.TestCase):
@@ -35,11 +38,11 @@ class TestTrainClassifier(unittest.TestCase):
                 'LanguageIDFilter':
                     {'clean-direction': 'high',
                         'quantiles': [0.1, 0.09, 0.08, 0.07, 0.06, 0.05,
-                            0.04, 0.03, 0.02, 0.01, 0.0]},
+                            0.04, 0.03, 0.02, 0.01]},
                 'LongWordFilter':
                     {'clean-direction': 'high',
                         'quantiles': [0.1, 0.09, 0.08, 0.07, 0.06, 0.05,
-                            0.04, 0.03, 0.02, 0.01, 0.0]}
+                            0.04, 0.03, 0.02, 0.01]}
                 }
 
         self.fc = TrainClassifier(
@@ -56,15 +59,17 @@ class TestTrainClassifier(unittest.TestCase):
         discards = {key: 0.5 for key in self.fc.df_training_data.keys()}
         new_cutoffs = self.fc.set_cutoffs(self.fc.df_training_data, discards,
                 cutoffs)
-        self.assertEqual(new_cutoffs['LongWordFilter'], 3)
+        self.assertEqual(new_cutoffs['LongWordFilter'], 0.0)
         discards = {key: 0.25 for key in self.fc.df_training_data.keys()}
         new_cutoffs = self.fc.set_cutoffs(self.fc.df_training_data, discards,
                 cutoffs)
-        self.assertEqual(new_cutoffs['LanguageIDFilter.cld2.src'], 2)
+        self.assertEqual(new_cutoffs['LanguageIDFilter.cld2.src'],
+                -0.7071067811865475)
         discards = {key: 0.75 for key in self.fc.df_training_data.keys()}
         new_cutoffs = self.fc.set_cutoffs(self.fc.df_training_data, discards,
                 cutoffs)
-        self.assertEqual(new_cutoffs['CharacterScoreFilter.src'], 4)
+        self.assertEqual(new_cutoffs['LanguageIDFilter.cld2.tgt'],
+                0.7071067811865475)
 
     def test_add_labels(self):
         cutoffs = {key: None for key in self.fc.df_training_data.keys()}
@@ -89,7 +94,7 @@ class TestTrainClassifier(unittest.TestCase):
         labels = self.fc.add_labels(self.fc.df_training_data, new_cutoffs)
         LR = self.fc.train_logreg(self.fc.df_training_data, labels)
         self.assertAlmostEqual(round(LR.classifier.intercept_[0], 8),
-                -0.62285208)
+                0.30343394)
 
     def test_get_roc_auc(self):
         cutoffs = {key: None for key in self.fc.df_training_data.keys()}
@@ -108,7 +113,7 @@ class TestTrainClassifier(unittest.TestCase):
         labels = self.fc.add_labels(self.fc.df_training_data, new_cutoffs)
         LR = self.fc.train_logreg(self.fc.df_training_data, labels)
         aic = self.fc.get_aic(LR, self.fc.df_training_data, labels)
-        self.assertAlmostEqual(aic, 13.980099338293664)
+        self.assertAlmostEqual(aic, 19.21034037197618)
 
     def test_get_bic(self):
         cutoffs = {key: None for key in self.fc.df_training_data.keys()}
@@ -118,11 +123,30 @@ class TestTrainClassifier(unittest.TestCase):
         labels = self.fc.add_labels(self.fc.df_training_data, new_cutoffs)
         LR = self.fc.train_logreg(self.fc.df_training_data, labels)
         bic = self.fc.get_bic(LR, self.fc.df_training_data, labels)
-        self.assertAlmostEqual(bic, 11.246164725332367)
+        self.assertAlmostEqual(bic, 17.25752993414668)
 
     def test_find_best_roc_auc_model(self):
         LR, roc_auc, value = self.fc.find_best_model('roc_auc')
         self.assertAlmostEqual(roc_auc, 1)
+
+    def test_standardize_dataframe_scores(self):
+        data = {'column1': [3,4,3,6,3,7,3],
+                'column2': [4,8,6,9,2,-5,4],
+                'column3': [1,11,3,7,4,-1,6],
+                'column4': [0,1,2,3,4,5,6],
+                'column5': [1,1,1,1,1,1,1]}
+        features = {'column1': {'clean-direction': 'high', 'quantiles': [0.1]},
+                'column2': {'clean-direction': 'high', 'quantiles': [0.1]},
+                'column3': {'clean-direction': 'high', 'quantiles': [0.1]},
+                'column4': {'clean-direction': 'high', 'quantiles': [0.1]},
+                'column5': {'clean-direction': 'high', 'quantiles': [0.1]}}
+        df = pd.DataFrame(data)
+        new_df, means_stds = standardize_dataframe_scores(df, features)
+        self.assertEqual(df['column1'][0], 3)
+        self.assertEqual(df['column4'][6], 6)
+        self.assertAlmostEqual(round(new_df['column1'][0], 6), -0.73646)
+        self.assertAlmostEqual(round(new_df['column4'][6], 6), 1.5)
+        self.assertAlmostEqual(new_df['column5'][6], 0)
 
     def test_find_best_aic_model(self):
         pass

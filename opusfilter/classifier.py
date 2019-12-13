@@ -21,6 +21,26 @@ def load_dataframe(data_file):
             data.append(json.loads(line))
     return pd.DataFrame(json_normalize(data))
 
+def standardize_dataframe_scores(df, features, means_stds=None):
+    """Normalize and zero average scores in each column"""
+    new_df = pd.DataFrame()
+    if not means_stds:
+        means_stds = {}
+        for column in df:
+            x = df[column].to_numpy()
+            means_stds[column] = (x.mean(), x.std())
+    for column in df:
+        x = df[column].to_numpy()
+        mean, std = means_stds[column]
+        if std == 0:
+            x = 0
+        else:
+            x = (x-mean)/std
+        if features[column]['clean-direction'] == 'low':
+            x = x*-1
+        new_df[column] = x
+    return new_df, means_stds
+
 
 class Classifier:
 
@@ -75,11 +95,15 @@ class TrainClassifier:
                     self.features[t_key] = features[f_key]
 
         self.df_training_data = self.df_training_data[self.features.keys()]
+        self.df_training_data, self.means_stds = standardize_dataframe_scores(
+                    self.df_training_data, self.features)
 
         if dev_scores:
             self.dev_data = load_dataframe(dev_scores)
             self.dev_labels = self.dev_data.pop('label')
             self.dev_data = self.dev_data[self.features.keys()]
+            self.dev_data = standardize_dataframe_scores(
+                    self.dev_data, self.features)[0]#, self.means_stds)[0]
 
     def train_logreg(self, training_data, labels):
         """Train logistic regression with training_data"""
@@ -125,15 +149,12 @@ class TrainClassifier:
     def add_labels(self, training_data, cutoffs):
         """Add labels to training data based on cutoffs"""
         labels = []
+        training_data_dict = training_data.copy().to_dict()
         for i in range(len(training_data.index)):
             label = 1
             for key in cutoffs.keys():
-                if self.features[key]['clean-direction'] == 'low':
-                    if training_data[key][i] > cutoffs[key]:
-                        label = 0
-                else:
-                    if training_data[key][i] < cutoffs[key]:
-                        label = 0
+                if training_data_dict[key][i] < cutoffs[key]:
+                    label = 0
             labels.append(label)
         self.labels_train = labels
         return labels
@@ -141,10 +162,7 @@ class TrainClassifier:
     def set_cutoffs(self, training_data, discards, cutoffs):
         """Set cutoff values based on discard percentage"""
         for key in cutoffs.keys():
-            if self.features[key]['clean-direction'] == 'low':
-                cutoffs[key] = training_data[key].quantile(1-discards[key])
-            else:
-                cutoffs[key] = training_data[key].quantile(discards[key])
+            cutoffs[key] = training_data[key].quantile(discards[key])
         return cutoffs
 
     def find_best_model(self, criterion):
@@ -193,7 +211,7 @@ class TrainClassifier:
                     crit=criterion, value=crit_value))
 
                 if criterion == 'roc_auc':
-                    if best_model == None or crit_value > best_model[1]:
+                    if best_model == None or crit_value >= best_model[1]:
                         best_model = (LR, crit_value, best_discards)
                         best_discard = quantile
                         if zero:
