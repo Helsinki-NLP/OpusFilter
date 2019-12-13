@@ -94,7 +94,7 @@ class TestTrainClassifier(unittest.TestCase):
         labels = self.fc.add_labels(self.fc.df_training_data, new_cutoffs)
         LR = self.fc.train_logreg(self.fc.df_training_data, labels)
         self.assertAlmostEqual(round(LR.classifier.intercept_[0], 8),
-                0.30343394)
+                0.81342889)
 
     def test_get_roc_auc(self):
         cutoffs = {key: None for key in self.fc.df_training_data.keys()}

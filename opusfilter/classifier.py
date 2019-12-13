@@ -84,8 +84,8 @@ class Classifier:
 class TrainClassifier:
     """Classify clean and noisy sentence pairs"""
 
-    def __init__(self, training_scores=None, features=None, dev_scores=None,
-            **kwargs):
+    def __init__(self, training_scores=None, dev_scores=None, model_type=None,
+            model_parameters=None, features=None, **kwargs):
         self.df_training_data = load_dataframe(training_scores)
 
         self.features = {}
@@ -103,16 +103,25 @@ class TrainClassifier:
             self.dev_labels = self.dev_data.pop('label')
             self.dev_data = self.dev_data[self.features.keys()]
             self.dev_data = standardize_dataframe_scores(
-                    self.dev_data, self.features)[0]#, self.means_stds)[0]
+                    self.dev_data, self.features, self.means_stds)[0]
+
+        if model_type == None:
+            self.model_type = 'LogisticRegression'
+        else:
+            self.model_type = model_type
+        if model_parameters == None:
+            self.model_parameters = {}
+        else:
+            self.model_parameters = model_parameters
 
     def train_logreg(self, training_data, labels):
         """Train logistic regression with training_data"""
         x_train = training_data.to_numpy()
         y_train = labels
-        cls = Classifier('LogisticRegression', {'solver': 'liblinear'},
+        classifier = Classifier(self.model_type, self.model_parameters,
                 training_data.keys())
-        cls.train(training_data, labels)
-        return cls
+        classifier.train(training_data, labels)
+        return classifier
 
     def get_roc_auc(self, model, dev_data):
         """Calculate ROC AUC for a given model (requires dev_data)"""

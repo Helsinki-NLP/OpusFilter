@@ -350,11 +350,14 @@ class OpusFilter:
         if not overwrite and os.path.isfile(model_out):
             logger.info("Output file exists, skipping step")
             return
-        training_scores = os.path.join(self.output_dir, parameters['training_scores'])
+        training_scores = os.path.join(self.output_dir,
+                parameters['training_scores'])
         dev_scores = os.path.join(self.output_dir, parameters['dev_scores'])
-        cls = classifier.TrainClassifier(training_scores=training_scores,
-                dev_scores=dev_scores, features=parameters['features'])
-        model, value, features = cls.find_best_model(
+        trainer = classifier.TrainClassifier(training_scores=training_scores,
+                dev_scores=dev_scores, model_type=parameters['model_type'],
+                model_parameters=parameters['model_parameters'],
+                features=parameters['features'])
+        model, value, features = trainer.find_best_model(
                 parameters['criterion'])
 
         logger.info('Best model has {criterion}: {value}'.format(
