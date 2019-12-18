@@ -71,7 +71,8 @@ class OpusFilter:
             'sort': self.sort_files,
             'head': self.head,
             'tail': self.tail,
-            'remove_duplicates': self.remove_duplicates
+            'remove_duplicates': self.remove_duplicates,
+            'split': self.split
         }
 
     def execute_steps(self, overwrite=False, last=None):
@@ -461,6 +462,59 @@ class OpusFilter:
                 for line in tmp:
                     outf.write(line)
 
+    def split(self, parameters, overwrite=False):
+        """Split parallel files to two subsets"""
+        outfiles = [os.path.join(self.output_dir, fname) for fname in parameters['outputs']]
+        outfiles_2 = [os.path.join(self.output_dir, fname) for fname in parameters['outputs_2']] \
+            if 'outputs_2' in parameters else []
+        infiles = [os.path.join(self.output_dir, fname) for fname in parameters['inputs']]
+        if len(outfiles) != len(infiles) or (outfiles_2 and len(outfiles_2) != len(infiles)):
+            raise ConfigurationError(
+                "Number of input and output files should match in split")
+        if not overwrite and all(os.path.isfile(outfile) for outfile in outfiles + outfiles_2):
+            logger.info("Output files exists, skipping step")
+            return
+        divisor = parameters['divisor']
+        threshold = parameters.get('threshold', 1)
+        hashname = parameters.get('hash', 'xx_64')
+        if not hashname:
+            hashname = 'xx_64'
+        if not hasattr(pyhash, hashname):
+            raise ConfigurationError(
+                "Algorithm '{}' not available from from pyhash".format(hashname))
+        hashfunc = getattr(pyhash, hashname)()
+        key_indices = parameters.get('compare', 'all')
+        key_indices = list(range(len(infiles))) if key_indices == 'all' \
+            else sorted(key_indices)
+        if not isinstance(key_indices, list) or \
+           not all(isinstance(x, int) and 0 <= x < len(infiles) for x in key_indices):
+            raise ConfigurationError(
+                "The compare parameter for split has to be 'all' or "
+                "a list of input file indices")
+        infs = [file_open(infile) for infile in infiles]
+        outfs = [file_open(outfile, 'w') for outfile in outfiles]
+        outfs_2 = [file_open(outfile, 'w') for outfile in outfiles_2]
+        hits = 0
+        total = 0
+        for lines in tqdm(zip(*infs)):
+            total += 1
+            key = hashfunc(''.join(lines[idx] for idx in key_indices))
+            if key % divisor < threshold:
+                hits += 1
+                for idx, line in enumerate(lines):
+                    outfs[idx].write(line)
+            elif outfs_2:
+                for idx, line in enumerate(lines):
+                    outfs_2[idx].write(line)
+        logger.info(
+            "Split {} lines to {} ({:.2f}%) and {} ({:.2f}%) lines".format(
+                total, hits, 100 * hits / total, total - hits, 100 * (total - hits) / total))
+        for idx in range(len(infiles)):
+            infs[idx].close()
+            outfs[idx].close()
+            if outfs_2:
+                outfs_2[idx].close()
+
     def remove_duplicates(self, parameters, overwrite=False):
         """Remove duplicates from parallel lines in files"""
         outfiles = [os.path.join(self.output_dir, fname) for fname in parameters['outputs']]
@@ -491,7 +545,7 @@ class OpusFilter:
         total = 0
         for lines in tqdm(zip(*infs)):
             total += 1
-            key = hashfunc('\n'.join(lines[idx] for idx in key_indices))
+            key = hashfunc(''.join(lines[idx] for idx in key_indices))
             counter[key] += 1
             if counter[key] > 1:
                 removed_entries += 1

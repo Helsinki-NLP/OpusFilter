@@ -27,6 +27,7 @@ Features:
       * [head](#head)
       * [tail](#tail)
       * [slice](#slice)
+      * [split](#split)
       * [subset](#subset)
    * [Filtering and scoring](#filtering-and-scoring)
       * [remove_duplicates](#remove_duplicates)
@@ -296,6 +297,49 @@ Parameters:
 
 If `stop` is not given, reads until the end of the file.
 
+#### `split`
+
+Split files to two parts giving the approximative proportions as
+fractions.
+
+Parameters:
+
+* `inputs`: input file(s)
+* `outputs`: output file(s) for selected lines
+* `outputs_2`: output file(s) for the rest of the lines (optional)
+* `divisor`: divisor for the modulo operation (e.g. 2 for splitting to equal sized parts)
+* `threshold`: threshold for the output of the modulo operation (default 1)
+* `compare`: select files to use for hash operation (`all` or a list of indices; default is `all`)
+* `hash`: select hash algorithm from pyhash (default `xx_64`)
+
+Input files are processed line by line in parallel. If the condition
+`hash(content) % divisor < threshold`, where the content is a
+concatenation of the input lines and the hash function returns an
+integer, holds, the lines are written to the `outputs`. If the
+condition does not hold, and `outputs_2` are defined, the lines are
+written there.
+
+Compared to random splitting or using the modulo operation on the line
+number, the benefit of the hash-based approach is that the decision is
+fully deterministic and based only on the *content* of the lines.
+Consequently, identical content always goes to the the same output
+file(s). For example, if you split a parallel corpus into test and
+training sets, and you can be sure that your test data does not
+contain exactly same samples as the training data even if the original
+data has duplicates.
+
+The downside is that you need to be careful if you use several splits
+for the same data. The divisors used in consecutive splits should not
+themselves have common divisors, or the proportion of the data in the
+output files may be unexpected. Distinct prime numbers are good
+choices.
+
+The `compare` parameter can be used to select which input files are
+used to generate the content for the hash function. For example, if
+you have source and target language files, and you want that the split
+depends only on the source or target sentence, set `compare` to `[0]`
+or `[1]`, respectively.
+
 #### `subset`
 
 Take a random subset from parallel corpus files.
@@ -337,13 +381,13 @@ respectively.
 
 Non-cryptographic hashing is used to reduce memory consumption for the
 case that the files are very large. The lines defined by the `compare`
-option are joined with newline as separator, and the hash algorithm is
-applied on the result to produce the final key for storing the counts.
-You can use any of the hash algorithms implemented in the pyhash
-library. The default 64-bit XXHash algorithm should be fine for any
-practical data sizes, but if do not care about memory use and want to
-be extra sure there are no collisions, you can disable hashing by
-setting the `hash` parameter as empty string or null.
+option are concatenated together, and the hash algorithm is applied on
+the result to produce the final key for storing the counts. You can
+use any of the hash algorithms implemented in the pyhash library. The
+default 64-bit XXHash algorithm should be fine for any practical data
+sizes, but if do not care about memory use and want to be extra sure
+there are no collisions, you can disable hashing by setting the `hash`
+parameter as empty string or null.
 
 #### `filter`
 

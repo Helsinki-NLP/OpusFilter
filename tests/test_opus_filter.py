@@ -428,6 +428,92 @@ class TestHeadTailSlice(unittest.TestCase):
             self.assertEqual(f.read(), 'sentence4\nsentence1\n')
 
 
+class TestSplit(unittest.TestCase):
+
+    def setUp(self):
+        self.tempdir = tempfile.mkdtemp()
+        self.opus_filter = OpusFilter(
+            {'common': {'output_directory': self.tempdir}, 'steps': []})
+        with open(os.path.join(self.tempdir, 'input_src'), 'w') as f:
+            f.write('Sent-1\nSent-2\nSent-3\nSent-4\nSent-5\nSent-6\n')
+        with open(os.path.join(self.tempdir, 'input_tgt'), 'w') as f:
+            f.write('sent-1\nsent-2\nsent-3\nsent-4\nsent-5\nsent-6\n')
+
+    def tearDown(self):
+        shutil.rmtree(self.tempdir)
+
+    def test_split_single_out(self):
+        parameters = {
+            'inputs': [os.path.join(self.tempdir, 'input_src'),
+                       os.path.join(self.tempdir, 'input_tgt')],
+            'outputs': [os.path.join(self.tempdir, 'output_src'),
+                        os.path.join(self.tempdir, 'output_tgt')],
+            'modulo': 2, 'hash': 'xx_64'}
+        self.opus_filter.split(parameters)
+        with open(os.path.join(self.tempdir, 'output_src')) as f:
+            self.assertEqual(f.read(), 'Sent-1\nSent-2\nSent-3\nSent-6\n')
+        with open(os.path.join(self.tempdir, 'output_tgt')) as f:
+            self.assertEqual(f.read(), 'sent-1\nsent-2\nsent-3\nsent-6\n')
+
+    def test_split_two_out(self):
+        parameters = {
+            'inputs': [os.path.join(self.tempdir, 'input_src'),
+                       os.path.join(self.tempdir, 'input_tgt')],
+            'outputs': [os.path.join(self.tempdir, 'output_src'),
+                        os.path.join(self.tempdir, 'output_tgt')],
+            'outputs_2': [os.path.join(self.tempdir, 'output_src_2'),
+                          os.path.join(self.tempdir, 'output_tgt_2')],
+            'modulo': 2, 'hash': 'xx_64'}
+        self.opus_filter.split(parameters)
+        with open(os.path.join(self.tempdir, 'output_src')) as f:
+            self.assertEqual(f.read(), 'Sent-1\nSent-2\nSent-3\nSent-6\n')
+        with open(os.path.join(self.tempdir, 'output_tgt')) as f:
+            self.assertEqual(f.read(), 'sent-1\nsent-2\nsent-3\nsent-6\n')
+        with open(os.path.join(self.tempdir, 'output_src_2')) as f:
+            self.assertEqual(f.read(), 'Sent-4\nSent-5\n')
+        with open(os.path.join(self.tempdir, 'output_tgt_2')) as f:
+            self.assertEqual(f.read(), 'sent-4\nsent-5\n')
+
+    def test_split_src_key(self):
+        parameters = {
+            'inputs': [os.path.join(self.tempdir, 'input_src'),
+                       os.path.join(self.tempdir, 'input_tgt')],
+            'outputs': [os.path.join(self.tempdir, 'output_src'),
+                        os.path.join(self.tempdir, 'output_tgt')],
+            'modulo': 2, 'compare': [0], 'hash': 'xx_64'}
+        self.opus_filter.split(parameters)
+        with open(os.path.join(self.tempdir, 'output_src')) as f:
+            self.assertEqual(f.read(), 'Sent-1\nSent-5\nSent-6\n')
+        with open(os.path.join(self.tempdir, 'output_tgt')) as f:
+            self.assertEqual(f.read(), 'sent-1\nsent-5\nsent-6\n')
+
+    def test_split_tgt_key(self):
+        parameters = {
+            'inputs': [os.path.join(self.tempdir, 'input_src'),
+                       os.path.join(self.tempdir, 'input_tgt')],
+            'outputs': [os.path.join(self.tempdir, 'output_src'),
+                        os.path.join(self.tempdir, 'output_tgt')],
+            'modulo': 2, 'compare': [1], 'hash': 'xx_64'}
+        self.opus_filter.split(parameters)
+        with open(os.path.join(self.tempdir, 'output_src')) as f:
+            self.assertEqual(f.read(), 'Sent-1\nSent-4\nSent-6\n')
+        with open(os.path.join(self.tempdir, 'output_tgt')) as f:
+            self.assertEqual(f.read(), 'sent-1\nsent-4\nsent-6\n')
+
+    def test_split_modulo_threshold(self):
+        parameters = {
+            'inputs': [os.path.join(self.tempdir, 'input_src'),
+                       os.path.join(self.tempdir, 'input_tgt')],
+            'outputs': [os.path.join(self.tempdir, 'output_src'),
+                        os.path.join(self.tempdir, 'output_tgt')],
+            'modulo': 10, 'threshold': 3, 'hash': 'xx_64'}
+        self.opus_filter.split(parameters)
+        with open(os.path.join(self.tempdir, 'output_src')) as f:
+            self.assertEqual(f.read(), 'Sent-2\nSent-6\n')
+        with open(os.path.join(self.tempdir, 'output_tgt')) as f:
+            self.assertEqual(f.read(), 'sent-2\nsent-6\n')
+
+
 class TestRemoveDuplicates(unittest.TestCase):
 
     def setUp(self):
