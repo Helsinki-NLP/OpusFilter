@@ -365,7 +365,8 @@ class TestHeadTailSlice(unittest.TestCase):
 
     def setUp(self):
         self.tempdir = tempfile.mkdtemp()
-        self.opus_filter = OpusFilter({'common': {'output_directory': self.tempdir}, 'steps': []})
+        self.opus_filter = OpusFilter(
+            {'common': {'output_directory': self.tempdir}, 'steps': []})
         with open(os.path.join(self.tempdir, 'input_src'), 'w') as f:
             f.write('Sentence3\nSentence4\nSentence2\nSentence1\n')
         with open(os.path.join(self.tempdir, 'input_tgt'), 'w') as f:
@@ -425,3 +426,78 @@ class TestHeadTailSlice(unittest.TestCase):
             self.assertEqual(f.read(), 'Sentence4\nSentence1\n')
         with open(os.path.join(self.tempdir, 'output_tgt')) as f:
             self.assertEqual(f.read(), 'sentence4\nsentence1\n')
+
+
+class TestRemoveDuplicates(unittest.TestCase):
+
+    def setUp(self):
+        self.tempdir = tempfile.mkdtemp()
+        self.opus_filter = OpusFilter(
+            {'common': {'output_directory': self.tempdir}, 'steps': []})
+        with open(os.path.join(self.tempdir, 'input_src'), 'w') as f:
+            f.write('\n'.join(['a', 'b', 'c', 'd', 'e', 'a', 'b', 'b', 'f']) + '\n')
+        with open(os.path.join(self.tempdir, 'input_tgt'), 'w') as f:
+            f.write('\n'.join(['A', 'B', 'C', 'D', 'E', 'A', 'B', 'F', 'C']) + '\n')
+
+    def tearDown(self):
+        shutil.rmtree(self.tempdir)
+
+    def test_defaults(self):
+        parameters = {
+            'inputs': [os.path.join(self.tempdir, 'input_src'),
+                       os.path.join(self.tempdir, 'input_tgt')],
+            'outputs': [os.path.join(self.tempdir, 'output_src'),
+                        os.path.join(self.tempdir, 'output_tgt')]}
+        self.opus_filter.remove_duplicates(parameters)
+        with open(os.path.join(self.tempdir, 'output_src')) as f:
+            self.assertEqual(f.read(), 'a\nb\nc\nd\ne\nb\nf\n')
+        with open(os.path.join(self.tempdir, 'output_tgt')) as f:
+            self.assertEqual(f.read(), 'A\nB\nC\nD\nE\nF\nC\n')
+
+    def test_nohash(self):
+        parameters = {
+            'inputs': [os.path.join(self.tempdir, 'input_src'),
+                       os.path.join(self.tempdir, 'input_tgt')],
+            'outputs': [os.path.join(self.tempdir, 'output_src'),
+                        os.path.join(self.tempdir, 'output_tgt')],
+            'hash': None}
+        self.opus_filter.remove_duplicates(parameters)
+        with open(os.path.join(self.tempdir, 'output_src')) as f:
+            self.assertEqual(f.read(), 'a\nb\nc\nd\ne\nb\nf\n')
+        with open(os.path.join(self.tempdir, 'output_tgt')) as f:
+            self.assertEqual(f.read(), 'A\nB\nC\nD\nE\nF\nC\n')
+
+    def test_src_key_only(self):
+        parameters = {
+            'inputs': [os.path.join(self.tempdir, 'input_src'),
+                       os.path.join(self.tempdir, 'input_tgt')],
+            'outputs': [os.path.join(self.tempdir, 'output_src'),
+                        os.path.join(self.tempdir, 'output_tgt')],
+            'compare': [0]}
+        self.opus_filter.remove_duplicates(parameters)
+        with open(os.path.join(self.tempdir, 'output_src')) as f:
+            self.assertEqual(f.read(), 'a\nb\nc\nd\ne\nf\n')
+        with open(os.path.join(self.tempdir, 'output_tgt')) as f:
+            self.assertEqual(f.read(), 'A\nB\nC\nD\nE\nC\n')
+
+    def test_tgt_key_only(self):
+        parameters = {
+            'inputs': [os.path.join(self.tempdir, 'input_src'),
+                       os.path.join(self.tempdir, 'input_tgt')],
+            'outputs': [os.path.join(self.tempdir, 'output_src'),
+                        os.path.join(self.tempdir, 'output_tgt')],
+            'compare': [1]}
+        self.opus_filter.remove_duplicates(parameters)
+        with open(os.path.join(self.tempdir, 'output_src')) as f:
+            self.assertEqual(f.read(), 'a\nb\nc\nd\ne\nb\n')
+        with open(os.path.join(self.tempdir, 'output_tgt')) as f:
+            self.assertEqual(f.read(), 'A\nB\nC\nD\nE\nF\n')
+
+    def test_single_file(self):
+        parameters = {
+            'inputs': [os.path.join(self.tempdir, 'input_src')],
+            'outputs': [os.path.join(self.tempdir, 'output_src')]
+        }
+        self.opus_filter.remove_duplicates(parameters)
+        with open(os.path.join(self.tempdir, 'output_src')) as f:
+            self.assertEqual(f.read(), 'a\nb\nc\nd\ne\nf\n')

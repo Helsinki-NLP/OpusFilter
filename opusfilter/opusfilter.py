@@ -1,5 +1,6 @@
 """Processor for filter configurations"""
 
+import collections
 import copy
 import itertools
 import logging
@@ -8,6 +9,7 @@ import random
 
 import json
 import numpy as np
+import pyhash
 from tqdm import tqdm
 
 from opustools import OpusRead
@@ -68,7 +70,8 @@ class OpusFilter:
             'join': self.join_scores,
             'sort': self.sort_files,
             'head': self.head,
-            'tail': self.tail
+            'tail': self.tail,
+            'remove_duplicates': self.remove_duplicates
         }
 
     def execute_steps(self, overwrite=False, last=None):
@@ -457,3 +460,48 @@ class OpusFilter:
                         tmp.pop(0)
                 for line in tmp:
                     outf.write(line)
+
+    def remove_duplicates(self, parameters, overwrite=False):
+        """Remove duplicates from parallel lines in files"""
+        outfiles = [os.path.join(self.output_dir, fname) for fname in parameters['outputs']]
+        infiles = [os.path.join(self.output_dir, fname) for fname in parameters['inputs']]
+        if len(outfiles) != len(infiles):
+            raise ConfigurationError(
+                "Number of input and output files should match in remove_duplicates")
+        if not overwrite and all(os.path.isfile(outfile) for outfile in outfiles):
+            logger.info("Output files exists, skipping step")
+            return
+        hashname = parameters.get('hash', 'xx_64')
+        if hashname and not hasattr(pyhash, hashname):
+            raise ConfigurationError(
+                "Algorithm '{}' not available from from pyhash".format(hashname))
+        hashfunc = getattr(pyhash, hashname)() if hashname else lambda x: x
+        key_indices = parameters.get('compare', 'all')
+        key_indices = list(range(len(infiles))) if key_indices == 'all' \
+            else sorted(key_indices)
+        if not isinstance(key_indices, list) or \
+           not all(isinstance(x, int) and 0 <= x < len(infiles) for x in key_indices):
+            raise ConfigurationError(
+                "The compare parameter for remove_duplicates has to be 'all' or "
+                "a list of input file indices")
+        infs = [file_open(infile) for infile in infiles]
+        outfs = [file_open(outfile, 'w') for outfile in outfiles]
+        counter = collections.Counter()
+        removed_entries = 0
+        total = 0
+        for lines in tqdm(zip(*infs)):
+            total += 1
+            key = hashfunc('\n'.join(lines[idx] for idx in key_indices))
+            counter[key] += 1
+            if counter[key] > 1:
+                removed_entries += 1
+                continue
+            for idx, line in enumerate(lines):
+                outfs[idx].write(line)
+        removed_types = sum(1 for c in counter.values() if c > 1)
+        logger.info(
+            "Removed {} / {} = {:.2f}% duplicate lines (duplicate types: {})".format(
+                removed_entries, total, 100 * removed_entries / total, removed_types))
+        for idx in range(len(infiles)):
+            infs[idx].close()
+            outfs[idx].close()

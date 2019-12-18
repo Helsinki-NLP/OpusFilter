@@ -29,6 +29,7 @@ Features:
       * [slice](#slice)
       * [subset](#subset)
    * [Filtering and scoring](#filtering-and-scoring)
+      * [remove_duplicates](#remove_duplicates)
       * [filter](#filter)
       * [score](#score)
    * [Using score files](#using-score-files)
@@ -69,6 +70,7 @@ Features:
 * OpusTools
 * pandas
 * pycld2
+* pyhash
 * PyYAML
 * regex
 * scikit-learn
@@ -309,6 +311,39 @@ Parameters:
 * `shuffle_target`: take different random lines from the target language; can be used to produce noisy examples for training a corpus filtering model (default false)
 
 ### Filtering and scoring
+
+#### `remove_duplicates`
+
+Filter out duplicate lines from parallel corpus files.
+
+Parameters:
+
+* `inputs`: input file(s)
+* `outputs`: output file(s)
+* `compare`: select files for duplicate comparison (`all` or a list of indices; default is `all`)
+* `hash`: select hash algorithm from pyhash (default `xx_64`)
+
+Duplicate filtering is recommended as a first step especially if you
+combine different corpus collections (e.g. data crawled from web) and
+cannot be sure that the same data sources have not been used in many
+of them.
+
+The `remove_duplicates` function works for any number of files. The
+`compare` parameter can be used to select which input files are used
+to generate the key for duplicate comparison. For example, if you have
+source and target language files, and you want that each source or
+target sentence occurs only once, set `compare` to `[0]` or `[1]`,
+respectively.
+
+Non-cryptographic hashing is used to reduce memory consumption for the
+case that the files are very large. The lines defined by the `compare`
+option are joined with newline as separator, and the hash algorithm is
+applied on the result to produce the final key for storing the counts.
+You can use any of the hash algorithms implemented in the pyhash
+library. The default 64-bit XXHash algorithm should be fine for any
+practical data sizes, but if do not care about memory use and want to
+be extra sure there are no collisions, you can disable hashing by
+setting the `hash` parameter as empty string or null.
 
 #### `filter`
 
