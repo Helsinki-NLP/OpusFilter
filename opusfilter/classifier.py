@@ -8,7 +8,7 @@ import math
 import pandas as pd
 from pandas.io.json import json_normalize
 import sklearn.linear_model
-from sklearn.metrics import roc_auc_score
+from sklearn.metrics import roc_auc_score, log_loss
 
 logger = logging.getLogger(__name__)
 
@@ -114,10 +114,8 @@ class TrainClassifier:
         else:
             self.model_parameters = model_parameters
 
-    def train_logreg(self, training_data, labels):
+    def train_classifier(self, training_data, labels):
         """Train logistic regression with training_data"""
-        x_train = training_data.to_numpy()
-        y_train = labels
         classifier = Classifier(self.model_type, self.model_parameters,
                 training_data.keys())
         classifier.train(training_data, labels)
@@ -132,27 +130,32 @@ class TrainClassifier:
         auc2 = roc_auc_score(self.dev_labels, probs[:,1])
         return max(auc1, auc2)
 
-    def get_sse(self, model, training_data, labels):
+    def get_sse(self, model, training_data):
         """Calculate the residual sum of squares"""
         y_hat = model.classifier.predict(training_data)
         resid = self.labels_train - y_hat
         sse = sum(resid**2)+0.01
         return sse
 
-    def get_aic(self, model, training_data, labels):
+    def get_ce(self, model, training_data):
+        """Calculate cross entropy for a given model"""
+        y_pred = model.classifier.predict_proba(training_data)
+        return log_loss(self.labels_train, y_pred)
+
+    def get_aic(self, model, training_data):
         """Calculate AIC for a given model"""
-        sse = self.get_sse(model, training_data, labels)
+        loss = self.get_ce(model, training_data)
         k = training_data.shape[1] # number of variables
-        AIC = 2*k - 2*math.log(sse)
+        AIC = 2*k - 2*math.log(loss)
         return AIC
 
-    def get_bic(self, model, training_data, labels):
+    def get_bic(self, model, training_data):
         """Calculate BIC for a given model"""
-        sse = self.get_sse(model, training_data, labels)
+        loss = self.get_sse(model, training_data)
         k = training_data.shape[1] # number of variables
         n = training_data.shape[0] # number of observations
-        #BIC = n*math.log(sse/n) + k*math.log(n)
-        BIC = math.log(n)*k - 2*math.log(sse)
+        BIC = n*math.log(loss/n) + k*math.log(n)
+        #BIC = math.log(n)*k - 2*math.log(loss)
         return BIC
 
     def add_labels(self, training_data, cutoffs):
@@ -169,13 +172,29 @@ class TrainClassifier:
         return labels
 
     def set_cutoffs(self, training_data, discards, cutoffs):
-        """Set cutoff values based on discard percentage"""
+        """Set cutoff values based on discard percentages"""
         for key in cutoffs.keys():
             cutoffs[key] = training_data[key].quantile(discards[key])
         return cutoffs
 
-    def find_best_model(self, criterion):
-        """Find the model with the best ROC AUC / AIC / BIC"""
+    def find_best_model(self, criterion_name):
+        """Find the model with the best AIC / BIC / SSE / CE / ROC_AUC"""
+        criteria = {'AIC':
+                    {'func': self.get_aic, 'best': 'low', 'dev': False},
+                'BIC':
+                    {'func': self.get_bic, 'best': 'low', 'dev': False},
+                'SSE':
+                    {'func': self.get_sse, 'best': 'low', 'dev': False},
+                'CE':
+                    {'func': self.get_ce, 'best': 'low', 'dev': False},
+                'ROC_AUC':
+                    {'func': self.get_roc_auc, 'best': 'high', 'dev': True}}
+
+        if criterion_name not in criteria.keys():
+            raise ValueError('Invalid criterion. Expected one of: {}'.format(
+                list(criteria.keys())))
+        criterion = criteria[criterion_name]
+
         cutoffs = {key: None for key in self.features.keys()}
         discards = {key: self.features[key]['quantiles'] for key in
                 self.features.keys()}
@@ -207,30 +226,25 @@ class TrainClassifier:
                             best_discards, cutoffs_copy)
                     labels = self.add_labels(df_train_copy, cutoffs_copy)
 
-                LR = self.train_logreg(df_train_copy, labels)
+                LR = self.train_classifier(df_train_copy, labels)
 
-                if criterion == 'roc_auc':
-                    crit_value = self.get_roc_auc(LR, df_dev_copy)
-                elif criterion == 'AIC':
-                    crit_value = self.get_aic(LR, df_train_copy, labels)
-                elif criterion == 'BIC':
-                    crit_value = self.get_bic(LR, df_train_copy, labels)
+                if criterion['dev']:
+                    crit_value = criterion['func'](LR, df_dev_copy)
+                else:
+                    crit_value = criterion['func'](LR, df_train_copy)
 
                 logger.info('Model {crit}: {value}'.format(
-                    crit=criterion, value=crit_value))
+                    crit=criterion_name, value=crit_value))
 
-                if criterion == 'roc_auc':
-                    if best_model == None or crit_value >= best_model[1]:
-                        best_model = (LR, crit_value, best_discards)
-                        best_discard = quantile
-                        if zero:
-                            remove_column = True
-                elif criterion in ['AIC', 'BIC']:
-                    if best_model == None or crit_value < best_model[1]:
-                        best_model = (LR, crit_value, best_discards)
-                        best_discard = quantile
-                        if zero:
-                            remove_column = True
+                if (best_model == None
+                        or (criterion['best'] == 'high'
+                            and crit_value >= best_model[1])
+                        or (criterion['best'] == 'low'
+                            and crit_value <= best_model[1])):
+                    best_model = (LR, crit_value, best_discards)
+                    best_discard = quantile
+                    if zero:
+                        remove_column = True
 
             if remove_column:
                 self.df_training_data.pop(key)

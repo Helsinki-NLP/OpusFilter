@@ -88,13 +88,13 @@ class TestTrainClassifier(unittest.TestCase):
         ones = sum(self.fc.labels_train)
         self.assertEqual(ones, 4)
 
-    def test_train_logreg(self):
+    def test_train_classifier(self):
         cutoffs = {key: None for key in self.fc.df_training_data.keys()}
         discards = {key: 0.26 for key in self.fc.df_training_data.keys()}
         new_cutoffs = self.fc.set_cutoffs(self.fc.df_training_data, discards,
                 cutoffs)
         labels = self.fc.add_labels(self.fc.df_training_data, new_cutoffs)
-        LR = self.fc.train_logreg(self.fc.df_training_data, labels)
+        LR = self.fc.train_classifier(self.fc.df_training_data, labels)
         self.assertAlmostEqual(round(LR.classifier.intercept_[0], 8),
                 0.30343394)
 
@@ -104,7 +104,7 @@ class TestTrainClassifier(unittest.TestCase):
         new_cutoffs = self.fc.set_cutoffs(self.fc.df_training_data, discards,
                 cutoffs)
         labels = self.fc.add_labels(self.fc.df_training_data, new_cutoffs)
-        LR = self.fc.train_logreg(self.fc.df_training_data, labels)
+        LR = self.fc.train_classifier(self.fc.df_training_data, labels)
         self.assertAlmostEqual(self.fc.get_roc_auc(LR, self.fc.dev_data), 1)
 
     def test_get_aic(self):
@@ -113,9 +113,9 @@ class TestTrainClassifier(unittest.TestCase):
         new_cutoffs = self.fc.set_cutoffs(self.fc.df_training_data, discards,
                 cutoffs)
         labels = self.fc.add_labels(self.fc.df_training_data, new_cutoffs)
-        LR = self.fc.train_logreg(self.fc.df_training_data, labels)
-        aic = self.fc.get_aic(LR, self.fc.df_training_data, labels)
-        self.assertAlmostEqual(aic, 19.21034037197618)
+        LR = self.fc.train_classifier(self.fc.df_training_data, labels)
+        aic = self.fc.get_aic(LR, self.fc.df_training_data)
+        self.assertAlmostEqual(aic, 13.05305257199207)
 
     def test_get_bic(self):
         cutoffs = {key: None for key in self.fc.df_training_data.keys()}
@@ -123,12 +123,12 @@ class TestTrainClassifier(unittest.TestCase):
         new_cutoffs = self.fc.set_cutoffs(self.fc.df_training_data, discards,
                 cutoffs)
         labels = self.fc.add_labels(self.fc.df_training_data, new_cutoffs)
-        LR = self.fc.train_logreg(self.fc.df_training_data, labels)
-        bic = self.fc.get_bic(LR, self.fc.df_training_data, labels)
-        self.assertAlmostEqual(bic, 17.25752993414668)
+        LR = self.fc.train_classifier(self.fc.df_training_data, labels)
+        bic = self.fc.get_bic(LR, self.fc.df_training_data)
+        self.assertAlmostEqual(bic, -23.025850929940454)
 
     def test_find_best_roc_auc_model(self):
-        LR, roc_auc, value = self.fc.find_best_model('roc_auc')
+        LR, roc_auc, value = self.fc.find_best_model('ROC_AUC')
         self.assertAlmostEqual(roc_auc, 1)
 
     def test_standardize_dataframe_scores(self):
