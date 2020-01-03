@@ -41,6 +41,27 @@ def dict_get(key, dictionary):
     return value if not len(parts) else dict_get('.'.join(parts), value)
 
 
+def dict_set(key, value, dictionary):
+    """Recursive set for multi-part key with dot (.) as separator
+
+    Example:
+    dict_set("foo.x", 1, {"foo": {"bar": 5}}) -> {"foo": {"bar": 5, "x": 1}}
+
+    Creates new sub-dictionaries if needed. However, if a key exists
+    with a non-dictionary value, TypeError is raised.
+
+    """
+    parts = key.split('.')
+    while parts:
+        first = parts.pop(0)
+        if not parts:
+            dictionary[first] = value
+            return
+        if first not in dictionary:
+            dictionary[first] = {}
+        dictionary = dictionary[first]
+
+
 class OpusFilter:
     """Apply filters to language data"""
 
@@ -391,7 +412,7 @@ class OpusFilter:
                 new = {}
                 for idx, obj in enumerate(objects):
                     if keys and keys[idx] is not None:
-                        new[keys[idx]] = obj
+                        dict_set(keys[idx], obj, new)
                     else:
                         new.update(obj)
                 yield new
@@ -477,12 +498,13 @@ class OpusFilter:
         divisor = parameters['divisor']
         threshold = parameters.get('threshold', 1)
         hashname = parameters.get('hash', 'xx_64')
+        hashseed = parameters.get('seed', 0)
         if not hashname:
             hashname = 'xx_64'
         if not hasattr(pyhash, hashname):
             raise ConfigurationError(
                 "Algorithm '{}' not available from from pyhash".format(hashname))
-        hashfunc = getattr(pyhash, hashname)()
+        hashfunc = getattr(pyhash, hashname)(seed=hashseed)
         key_indices = parameters.get('compare', 'all')
         key_indices = list(range(len(infiles))) if key_indices == 'all' \
             else sorted(key_indices)

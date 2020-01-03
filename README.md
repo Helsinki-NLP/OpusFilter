@@ -254,7 +254,7 @@ Parameters:
 
 #### `concatenate`
 
-Concatenate two text files.
+Concatenate two or more text files.
 
 Parameters:
 
@@ -313,6 +313,7 @@ Parameters:
 * `threshold`: threshold for the output of the modulo operation (optional; default 1)
 * `compare`: select files to use for hash operation (optional; default `all` or a list of indices)
 * `hash`: select hash algorithm from pyhash (optional; default `xx_64`)
+* `seed`: integer seed for the hash algorithm (optional; default 0)
 
 Input files are processed line by line in parallel. If the condition
 `hash(content) % divisor < threshold`, where the content is a
@@ -324,7 +325,7 @@ written there.
 Compared to random splitting (see [subset](#subset)) or using the
 modulo operation on the line number, the benefit of the hash-based
 approach is that the decision is fully deterministic and based only on
-the *content* of the lines.  Consequently, identical content always
+the *content* of the lines. Consequently, identical content always
 goes to the the same output file(s). For example, if you split a
 parallel corpus into test and training sets, and you can be sure that
 your test data does not contain exactly same samples as the training
@@ -334,7 +335,8 @@ The downside is that you need to be careful if you use several splits
 for the same data. The divisors used in consecutive splits should not
 themselves have common divisors, or the proportion of the data in the
 output files may be unexpected. Distinct prime numbers are good
-choices.
+choices. Also setting a different `seed` value for the hash functions
+prevents the issue.
 
 The `compare` parameter can be used to select which input files are
 used to generate the content for the hash function. For example, if
@@ -352,8 +354,8 @@ Parameters:
 * `tgt_input`: input file for target language
 * `src_output`: output file for source language
 * `tgt_output`: output file for target language
+* `size`: number of lines to select for the subset
 * `seed`: seed for the random generator; set to ensure that two runs select the same lines (optional; default `null`)
-* `size`: number of lines to select to the subset
 * `shuffle_target`: take different random lines from the target language; can be used to produce noisy examples for training a corpus filtering model (optional; default `false`)
 
 ### Filtering and scoring
@@ -472,12 +474,38 @@ Parameters:
 
 * `inputs`: input files containing scores in JSON Lines format
 * `output`: output file for joined scores
-* `keys`: a list containing top-level keys for each input file (optional; default `null`)
+* `keys`: a list containing dictionary keys for each input file (optional; default `null`)
 
 If the list of keys is provided, the input objects are inserted under
-the corresponding key. If the keys are not provided, or the key
-corresponding to the input file is `null`, output object will be
-updated with the input object and existing keys will be overwritten.
+the corresponding key. The objects can also be inserted deeper in a
+hierarchical score dictionary by using a key that has dot-separated
+parts. For example, `x.y` means setting key `y` under the key `x`. If
+the keys are not provided, or the key corresponding to the input file
+is `null`, output object will be updated with the input object and
+existing keys will be overwritten.
+
+For example, if you have scores for the source and target sentences
+created by external tools (`myscores.src` and `myscores.tgt`
+containing one number per line), and you want to join them with an
+existing score file created by OpusFilter (`scores.jsonl.gz`), you can
+do it like this:
+
+```
+  - type: join
+    parameters:
+      inputs:
+      - scores.jsonl.gz
+      - myscores.src
+      - myscores.tgt
+      keys:
+      - null
+      - MyScore.src
+      - MyScore.tgt
+      output: scores-joined.jsonl.gz
+```
+
+Apart from the old scores from `scores.jsonl.gz`, each line should now
+contain `{"MyScore": {"src": ..., "tgt": ...}}`.
 
 #### `sort`
 
