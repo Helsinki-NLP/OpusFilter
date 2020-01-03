@@ -377,7 +377,7 @@ class OpusFilter:
         if not overwrite and all(os.path.isfile(outfile) for outfile in outfiles):
             logger.info("Output files exists, skipping step")
             return
-        valuefile = parameters['values']
+        valuefile = os.path.join(self.output_dir, parameters['values'])
         reverse = parameters.get('reverse', False)
         key = parameters.get('key')
         typeconv = parameters.get('type')
