@@ -8,6 +8,7 @@ Features:
 
 * Preprocessing pipelines configured with [YAML](https://yaml.org/)
 * Simple downloading of parallel corpora from [OPUS](http://opus.nlpl.eu/)
+* Implementations for many common text file operations on parallel files
 * Memory-efficient processing of large files
 * Implemented filters based e.g. on language identification, word
   aligment, and n-gram language models
@@ -291,11 +292,12 @@ Parameters:
 
 * `inputs`: a list of input files
 * `outputs`: a list of output files
-* `start`: start index (default 0)
-* `stop`: stop index (default none)
-* `step`: step size (default 1)
+* `start`: start index (optional; default 0)
+* `stop`: stop index (optional; default `null`)
+* `step`: step size (optional; default 1)
 
-If `stop` is not given, reads until the end of the file.
+Either `start`, `stop`, or both of them should be given. If `stop` is
+not given, reads until the end of the file.
 
 #### `split`
 
@@ -308,9 +310,9 @@ Parameters:
 * `outputs`: output file(s) for selected lines
 * `outputs_2`: output file(s) for the rest of the lines (optional)
 * `divisor`: divisor for the modulo operation (e.g. 2 for splitting to equal sized parts)
-* `threshold`: threshold for the output of the modulo operation (default 1)
-* `compare`: select files to use for hash operation (`all` or a list of indices; default is `all`)
-* `hash`: select hash algorithm from pyhash (default `xx_64`)
+* `threshold`: threshold for the output of the modulo operation (optional; default 1)
+* `compare`: select files to use for hash operation (optional; default `all` or a list of indices)
+* `hash`: select hash algorithm from pyhash (optional; default `xx_64`)
 
 Input files are processed line by line in parallel. If the condition
 `hash(content) % divisor < threshold`, where the content is a
@@ -319,14 +321,14 @@ integer, holds, the lines are written to the `outputs`. If the
 condition does not hold, and `outputs_2` are defined, the lines are
 written there.
 
-Compared to random splitting or using the modulo operation on the line
-number, the benefit of the hash-based approach is that the decision is
-fully deterministic and based only on the *content* of the lines.
-Consequently, identical content always goes to the the same output
-file(s). For example, if you split a parallel corpus into test and
-training sets, and you can be sure that your test data does not
-contain exactly same samples as the training data even if the original
-data has duplicates.
+Compared to random splitting (see [subset](#subset)) or using the
+modulo operation on the line number, the benefit of the hash-based
+approach is that the decision is fully deterministic and based only on
+the *content* of the lines.  Consequently, identical content always
+goes to the the same output file(s). For example, if you split a
+parallel corpus into test and training sets, and you can be sure that
+your test data does not contain exactly same samples as the training
+data even if the original data has duplicates.
 
 The downside is that you need to be careful if you use several splits
 for the same data. The divisors used in consecutive splits should not
@@ -350,9 +352,9 @@ Parameters:
 * `tgt_input`: input file for target language
 * `src_output`: output file for source language
 * `tgt_output`: output file for target language
-* `seed`: seed for the random generator; set to ensure that two runs select the same lines (default none)
+* `seed`: seed for the random generator; set to ensure that two runs select the same lines (optional; default `null`)
 * `size`: number of lines to select to the subset
-* `shuffle_target`: take different random lines from the target language; can be used to produce noisy examples for training a corpus filtering model (default false)
+* `shuffle_target`: take different random lines from the target language; can be used to produce noisy examples for training a corpus filtering model (optional; default `false`)
 
 ### Filtering and scoring
 
@@ -364,8 +366,8 @@ Parameters:
 
 * `inputs`: input file(s)
 * `outputs`: output file(s)
-* `compare`: select files for duplicate comparison (`all` or a list of indices; default is `all`)
-* `hash`: select hash algorithm from pyhash (default `xx_64`)
+* `compare`: select files for duplicate comparison (optional; default `all` or a list of indices)
+* `hash`: select hash algorithm from pyhash (optional; default `xx_64`)
 
 Duplicate filtering is recommended as a first step especially if you
 combine different corpus collections (e.g. data crawled from web) and
@@ -400,7 +402,7 @@ Parameters:
 * `src_output`: output file for source language
 * `tgt_output`: output file for target language
 * `filters`: a list of filters to apply; see below
-* `filterfalse`: Yield segment pairs that do not pass at least one of the filters (default false)
+* `filterfalse`: Yield segment pairs that do not pass at least one of the filters (optional; default `false`)
 
 The filters parameter is a list of dictionaries, each representing one
 filter. The top level should typically include a single key that
@@ -415,9 +417,9 @@ parameter `name` that is available for all filters. It has no effect
 for the filter function, but is useful for the score function below.
 
 The output of the step is only those segment pairs that are accepted
-by all the filters (unless `filterfalse` is set true, in which case
-the output is opposite, i.e., those segment pairs that are rejected by
-at least one filter).
+by all the filters, unless `filterfalse` is set true, in which case
+the output is the opposite (i.e., those segment pairs that are
+rejected by at least one filter).
 
 #### `score`
 
@@ -451,7 +453,7 @@ the top-level filter class key there is another dictionary that
 separates the filter instances. The keys for the instances can be
 defined by using the `name` parameter that is available for all
 filters. If the name is not defined, the first filter of the class is
-given key "1", the second "2", and so on. (Note: Make sure to give a
+given key `"1"`, the second `"2"`, and so on. (Note: make sure to give a
 name to either all or none of the filters, or at least do not manually
 give integers as names.)
 
@@ -470,12 +472,12 @@ Parameters:
 
 * `inputs`: input files containing scores in JSON Lines format
 * `output`: output file for joined scores
-* `keys`: a list of top-level keys for each input file (default none)
+* `keys`: a list containing top-level keys for each input file (optional; default `null`)
 
-If a list of keys is provided, the input objects are inserted under
-the corresponding key. If the keys are not provided, or corresponding
-key is null, output object will be updated with the input object and
-existing keys will be overwritten.
+If the list of keys is provided, the input objects are inserted under
+the corresponding key. If the keys are not provided, or the key
+corresponding to the input file is `null`, output object will be
+updated with the input object and existing keys will be overwritten.
 
 #### `sort`
 
@@ -486,16 +488,16 @@ Parameters:
 * `inputs`: input files to sort
 * `outputs`: sorted output files
 * `values`: input file for values used in sorting
-* `reverse`: true for descending sort (default false)
-* `key`: if values file contain JSON objects, use the key to select field (default none)
-* `type`: force type conversion for the value (`float`, `int`, or `str`; default none)
+* `reverse`: `true` for descending sort (optional; default `false`)
+* `key`: if values file contain JSON objects, use the key to select field (optional; default `null`)
+* `type`: force type conversion for the value (optional; `float`, `int`, `str`, or default `null`)
 
-The values file should contain one JSON object per line. If the line
+The values file should contain one JSON object per line. If a line
 cannot be interpreted as a JSON object, it is read as a plain unicode
-string. Dots (.) in the key are interpreted as multiple get operations
+string. Dots (`.`) in the key are interpreted as multiple get operations
 (e.g. `x.y` expects that there is key `x` under the key `y`). The type
-conversion can be used for example to force that the values are
-compared as strings.
+conversion can be used e.g. for forcing numerical values to be compared
+as strings.
 
 ### Training language and alignment models
 
@@ -508,18 +510,32 @@ Parameters:
 * `data`: input file name for training data
 * `model`: output file name for the model
 * `parameters`: training options for VariKN and tokenization
-   * `optdata`: filename for optimization data (default empty = use leave-one-out estimation instead)
-   * `norder`: limit model order (default 0 = no limit)
-   * `dscale`: model size scale factor (smaller value gives a larger model; default 0.001)
-   * `dscale2`: model size scaling during pruning step (default 0 = no pruning)
-   * `arpa`: output ARPA instead of binary LM (default true)
-   * `use_3nzer`: use 3 discounts per order instead of one (default false)
-   * `absolute`: use absolute discounting instead of Kneser-Ney smoothing (default false)
-   * `cutoffs`: use the specified cutoffs (default "0 0 1"). The last value is used for all higher order n-grams.
-   * `mb`: word-internal boundary marking (default `''`)
-   * `wb`: word boundary tag (default `'<w>'`)
+   * `optdata`: filename for optimization data (optional; default empty string `""` = use leave-one-out estimation instead)
+   * `norder`: limit model order (optional; default 0 = no limit)
+   * `dscale`: model size scale factor (optional; smaller value gives a larger model; default 0.001)
+   * `dscale2`: model size scaling during pruning step (optional; default 0 = no pruning)
+   * `arpa`: output ARPA instead of binary LM (optional; default `true`)
+   * `use_3nzer`: use 3 discounts per order instead of one (optional; default `false`)
+   * `absolute`: use absolute discounting instead of Kneser-Ney smoothing (optional; default `false`)
+   * `cutoffs`: use the specified cutoffs (optional; default `"0 0 1"`). The last value is used for all higher order n-grams.
+   * `mb`: word-internal boundary marking (optional; default `""`)
+   * `wb`: word boundary tag (optional; default `"<w>"`)
 
-See [VariKN](https://github.com/vsiivola/variKN) documentation for details.
+Apart from the scale, cutoff, and order parameters the size of the
+model depends on the size of the training data. Typically you want to
+at least change the `dscale` value to get a model of a reasonable
+size. If unsure, start with high values, look at the number of the
+n-grams in the output file, and divide by 10 if it looks too small.
+The `dscale2` option is useful mostly if you want to optimize the
+balance between the model size and accuracy at the cost of longer
+training time; a suitable rule of thumb is double the value of
+`dscale`.
+
+The default boundary settings are suitable for character-based models
+and are not recommended to edit.
+
+See [VariKN](https://github.com/vsiivola/variKN) documentation for
+details.
 
 #### `train_aligment`
 
@@ -530,9 +546,9 @@ Parameters:
 * `src_data`: input file for the source language
 * `tgt_data`: input file for the target language
 * `parameters`: training options for the aligment and tokenization
-   * `src_tokenizer`: tokenizer for source language (default none)
-   * `tgt_tokenizer`: tokenizer for target language (default none)
-   * `model`: eflomal model type (default 3)
+   * `src_tokenizer`: tokenizer for source language (optional; default `null`)
+   * `tgt_tokenizer`: tokenizer for target language (optional; default `null`)
+   * `model`: eflomal model type (optional; default 3)
 * `output`: output file name for the priors
 
 See [WordAlignFilter](#wordalignfilter) for details of the training
@@ -552,9 +568,9 @@ Filtering based on absolute segment lengths.
 
 Parameters:
 
-* `min_length`: minimum segment length (default 1)
-* `max_length`: maximum segment length (default 100)
-* `unit`: type of unit for calculating the lengths: `word` for words (or any whitespace-separated units) and `character` or `char` for characters; the default is `word`
+* `min_length`: minimum segment length (optional; default 1)
+* `max_length`: maximum segment length (optional; default 100)
+* `unit`: type of unit for calculating the lengths (optional; `word` for words or any whitespace-separated units, and `character` or `char` for characters; the default is `word`)
 
 Returned scores are lengths for the source and target segment. In
 filtering, both segments have to be between the minimum and maximum
@@ -567,7 +583,7 @@ Filtering based on ratio of the segment lengths.
 Parameters:
 
 * `threshold`: threshold for the length ratio
-* `unit`: type of unit for calculating the lengths: `word` for words (or any whitespace-separated units) and `character` or `char` for characters; the default is `word`
+* `unit`: type of unit for calculating the lengths (optional; `word` for words or any whitespace-separated units, and `character` or `char` for characters; the default is `word`)
 
 Returned score is the higher length divided by the lower length, or
 infinity of either of the lengths are zero. In filtering, segment
@@ -598,25 +614,26 @@ Parameters:
 * `src_lm_params`: dictionary for the parameters for the source language model; see below
 * `tgt_lm_params`: dictionary for the parameters for the target language model; see below
 * `score_type`: select whether to calculate cross-entropy (`entropy`; default), perplixty (`perplexity`) or negative log-probability (`logprob`) scores
-* `src_threshold`: upper threshold for source language score when filtering (default 50.0)
-* `tgt_threshold`: upper threshold for target language score when filtering (default 50.0)
-* `diff_threshold`: upper threshold for absolute difference of source and target language scores when filtering (default 10.0)
+* `src_threshold`: upper threshold for source language score when filtering (optional; default 50.0)
+* `tgt_threshold`: upper threshold for target language score when filtering (optional; default 50.0)
+* `diff_threshold`: upper threshold for absolute difference of source and target language scores when filtering (optional; default 10.0)
 
 Language model paramters for `src_lm_params` and `tgt_lm_params`:
 
 * `filename`: filename for the language model to use
-* `arpa`: LM is in ARPA format instead of binary LM (default: true)
-* `unk`: unknown token symbol (default: `<UNK>`, case sensitive)
-* `include_unks`: include unknown tokens in perplexity calculations (default: false)
-* `ccs`: list of context cues ignored in perplexity calculations (default: none)
-* `mb`: morph boundary marking (default `''`)
-* `wb`: word boundary tag (default `'<w>'`)
-* `init_hist`: ignore n first tokens after `</s>` in perplexity calculations (default: 2)
-* `interpolate`: list of language models (in ARPA format) and interpolation weights (default: none)
+* `arpa`: LM is in ARPA format instead of binary LM (optional; default `true`)
+* `unk`: unknown token symbol (optional; default `<UNK>`, case sensitive)
+* `include_unks`: include unknown tokens in perplexity calculations (optional; default `false`)
+* `ccs`: list of context cues ignored in perplexity calculations (optional; default `null`)
+* `mb`: morph boundary marking (optional; default `""`)
+* `wb`: word boundary tag (optional; default `"<w>"`)
+* `init_hist`: ignore n first tokens after the end-of-sentence tag `</s>` in perplexity calculations (optional; default 2)
+* `interpolate`: list of language models (in ARPA format) and interpolation weights (optional; default `null`)
 
 See [train_ngram](#train_ngram) for training the models. Note that the
-format and boundary marking should match the parameters used in model
-training.
+format, perplexity calculation, and boundary marking options should
+match the parameters used in model training; do not change them unless
+you know what you are doing.
 
 Separate scores (entropy, perplexity, or negative log-probability) are
 returned for the source and target segment. In filtering, the segment
@@ -630,10 +647,10 @@ and their absolute difference is below the difference threshold.
 Filter segments by word aligment scores.
 
 Parameters:
-* `src_tokenizer`: tokenizer for source language (default none)
-* `tgt_tokenizer`: tokenizer for target language (default none)
-* `model`: eflomal model type (default 3)
-* `priors`: priors for the aligment (default none)
+* `src_tokenizer`: tokenizer for source language (optional; default `null`)
+* `tgt_tokenizer`: tokenizer for target language (optional; default `null`)
+* `model`: eflomal model type (optional; default 3)
+* `priors`: priors for the aligment (optional; default `null`)
 
 The only tokenizer supported at the moment is the
 [mosestokenizer](https://github.com/luismsgomes/mosestokenizer) that
@@ -737,7 +754,7 @@ steps:
 Apart from the main `opusfilter` script, the packages also provides
 the `opusfilter-scores` script. It is a tool that can be used to
 calculate and plot statistics from scores produced by the
-[`score`](#score) function. The tool has several subcommands, that all
+[`score`](#score) function. The tool has several subcommands that all
 take the JSON Lines score file as the input, and either print or plot
 the output:
 
