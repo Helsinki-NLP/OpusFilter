@@ -193,7 +193,7 @@ class OpusFilter:
             for infile in parameters['inputs']:
                 with file_open(os.path.join(self.output_dir, infile)) as inf:
                     for line in inf:
-                        outf.write(line)
+                        outf.write(line.rstrip() + '\n')
 
     @staticmethod
     def _get_total_lines(fname):
