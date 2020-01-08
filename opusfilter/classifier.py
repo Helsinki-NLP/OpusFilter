@@ -4,11 +4,15 @@ import json
 import logging
 import collections
 import math
+import scipy.optimize
 
+import numpy as np
 import pandas as pd
 from pandas.io.json import json_normalize
 import sklearn.linear_model
 from sklearn.metrics import roc_auc_score, log_loss
+
+from opustools.util import file_open
 
 logger = logging.getLogger(__name__)
 
@@ -16,10 +20,15 @@ logger = logging.getLogger(__name__)
 def load_dataframe(data_file):
     """Load normalized scores dataframe from a jsonlines file"""
     data = []
-    with open(data_file) as dfile:
+    with file_open(data_file) as dfile:
         for line in dfile:
-            data.append(json.loads(line))
+            try:
+                data.append(json.loads(line))
+            except json.decoder.JSONDecodeError as err:
+                logger.error(line)
+                raise err
     return pd.DataFrame(json_normalize(data))
+
 
 def standardize_dataframe_scores(df, features, means_stds=None):
     """Normalize and zero average scores in each column"""
@@ -58,7 +67,7 @@ class Classifier:
         """Write predicted class labels to output file"""
         df_tbc = load_dataframe(input_fname)
         labels = self.classifier.predict(df_tbc[self.features])
-        with open(output_fname, 'w') as output:
+        with file_open(output_fname, 'w') as output:
             for label in labels:
                 output.write('{}\n'.format(label))
 
@@ -66,7 +75,7 @@ class Classifier:
         """Write classification probabilities to output file"""
         df_tbc = load_dataframe(input_fname)
         probas = self.classifier.predict_proba(df_tbc[self.features])
-        with open(output_fname, 'w') as output:
+        with file_open(output_fname, 'w') as output:
             for proba in probas[:,1]:
                 output.write('{0:.10f}\n'.format(proba))
 
@@ -86,6 +95,7 @@ class TrainClassifier:
 
     def __init__(self, training_scores=None, dev_scores=None, model_type=None,
             model_parameters=None, features=None, **kwargs):
+        logger.info("Loading training data")
         self.df_training_data = load_dataframe(training_scores)
 
         self.features = {}
@@ -99,6 +109,7 @@ class TrainClassifier:
                     self.df_training_data, self.features)
 
         if dev_scores:
+            logger.info("Loading development data")
             self.dev_data = load_dataframe(dev_scores)
             self.dev_labels = self.dev_data.pop('label')
             self.dev_data = self.dev_data[self.features.keys()]
@@ -130,36 +141,36 @@ class TrainClassifier:
         auc2 = roc_auc_score(self.dev_labels, probs[:,1])
         return max(auc1, auc2)
 
-    def get_sse(self, model, training_data):
+    def get_sse(self, model, training_data, labels):
         """Calculate the residual sum of squares"""
         y_hat = model.classifier.predict(training_data)
-        resid = self.labels_train - y_hat
+        resid = labels - y_hat
         sse = sum(resid**2)+0.01
         return sse
 
-    def get_ce(self, model, training_data):
+    def get_ce(self, model, training_data, labels):
         """Calculate cross entropy for a given model"""
         y_pred = model.classifier.predict_proba(training_data)
-        return log_loss(self.labels_train, y_pred)
+        return log_loss(labels, y_pred)
 
-    def get_aic(self, model, training_data):
+    def get_aic(self, model, training_data, labels):
         """Calculate AIC for a given model"""
-        loss = self.get_ce(model, training_data)
+        loss = self.get_ce(model, training_data, labels)
         k = training_data.shape[1] # number of variables
         AIC = 2*k - 2*math.log(loss)
         return AIC
 
-    def get_bic(self, model, training_data):
+    def get_bic(self, model, training_data, labels):
         """Calculate BIC for a given model"""
-        loss = self.get_sse(model, training_data)
+        loss = self.get_ce(model, training_data, labels)
         k = training_data.shape[1] # number of variables
         n = training_data.shape[0] # number of observations
         BIC = n*math.log(loss/n) + k*math.log(n)
         #BIC = math.log(n)*k - 2*math.log(loss)
         return BIC
 
-    def add_labels(self, training_data, cutoffs):
-        """Add labels to training data based on cutoffs"""
+    def get_labels(self, training_data, cutoffs):
+        """Get labels for training data based on cutoffs"""
         labels = []
         training_data_dict = training_data.copy().to_dict()
         for i in range(len(training_data.index)):
@@ -168,13 +179,13 @@ class TrainClassifier:
                 if training_data_dict[key][i] < cutoffs[key]:
                     label = 0
             labels.append(label)
-        self.labels_train = labels
         return labels
 
-    def set_cutoffs(self, training_data, discards, cutoffs):
-        """Set cutoff values based on discard percentages"""
-        for key in cutoffs.keys():
-            cutoffs[key] = training_data[key].quantile(discards[key])
+    def get_cutoffs(self, training_data, quantiles, features):
+        """Get cutoff values based on discard percentages"""
+        cutoffs = {}
+        for key in features:
+            cutoffs[key] = training_data[key].quantile(quantiles[key])
         return cutoffs
 
     def find_best_model(self, criterion_name):
@@ -194,64 +205,75 @@ class TrainClassifier:
             raise ValueError('Invalid criterion. Expected one of: {}'.format(
                 list(criteria.keys())))
         criterion = criteria[criterion_name]
+        features = list(self.features.keys())
+        cutoffs = {key: None for key in features}
+        #initial = np.array([0.02]*len(features))
+        #bounds = [[0, 0.1] for _ in features]
+        bounds = [self.features[key]['quantiles'][:2] for key in features]
+        initial = np.array([self.features[key]['quantiles'][2] for key in features])
 
-        cutoffs = {key: None for key in self.features.keys()}
-        discards = {key: self.features[key]['quantiles'] for key in
-                self.features.keys()}
-        best_discards = {key: discards[key][0] for key in self.features.keys()}
-
-        best_model = None
-
-        for key in discards.keys():
-            quantiles = discards[key]
-            best_discard = quantiles[0]
-            remove_column = False
-            for quantile in quantiles:
-                best_discards[key] = quantile
+        def cost(qvector):
+            best_quantiles = {key: value for key, value in zip(features, qvector)}
+            logger.info('Training logistic regression model with quantiles'
+                        ' {}'.format(list(best_quantiles.values())))
+            if any(q == 0 for q in best_quantiles.values()):
+                # Remove unused features
                 df_train_copy = self.df_training_data.copy()
                 df_dev_copy = self.dev_data.copy()
-                cutoffs_copy = cutoffs.copy()
+                active = set(features)
+                for key, value in best_quantiles.items():
+                    if value == 0:
+                        df_train_copy.pop(key)
+                        df_dev_copy.pop(key)
+                        active.remove(key)
+            else:
+                df_train_copy = self.df_training_data
+                df_dev_copy = self.dev_data
+                active = set(features)
 
-                logger.info('Training logistic regression model with discards'
-                    ' {}'.format(best_discards.values()))
-                zero = False
-
-                if quantile == 0:
-                    zero = True
-                    df_train_copy.pop(key)
-                    df_dev_copy.pop(key)
-                    cutoffs_copy.pop(key)
-                else:
-                    cutoffs_copy = self.set_cutoffs(df_train_copy,
-                            best_discards, cutoffs_copy)
-                    labels = self.add_labels(df_train_copy, cutoffs_copy)
-
+            cutoffs = self.get_cutoffs(
+                df_train_copy, best_quantiles, active)
+            labels = self.get_labels(df_train_copy, cutoffs)
+            counts = collections.Counter(labels)
+            logger.info("Label counts in data: %s", counts)
+            if len(counts) > 1:
                 LR = self.train_classifier(df_train_copy, labels)
-
                 if criterion['dev']:
                     crit_value = criterion['func'](LR, df_dev_copy)
                 else:
-                    crit_value = criterion['func'](LR, df_train_copy)
+                    crit_value = criterion['func'](LR, df_train_copy, labels)
+            else:
+                crit_value = np.inf if criterion['best'] == 'low' else -np.inf
 
-                logger.info('Model {crit}: {value}'.format(
-                    crit=criterion_name, value=crit_value))
+            logger.info('Model {crit}: {value}'.format(
+                crit=criterion_name, value=crit_value))
+            return crit_value if criterion['best'] == 'low' else -crit_value
 
-                if (best_model == None
-                        or (criterion['best'] == 'high'
-                            and crit_value >= best_model[1])
-                        or (criterion['best'] == 'low'
-                            and crit_value <= best_model[1])):
-                    best_model = (LR, crit_value, best_discards)
-                    best_discard = quantile
-                    if zero:
-                        remove_column = True
-
-            if remove_column:
-                self.df_training_data.pop(key)
-                self.dev_data.pop(key)
-                cutoffs.pop(key)
-
-            best_discards[key] = best_discard
-
-        return best_model
-
+        #res = scipy.optimize.minimize(fun, initial, bounds=bounds, options={'disp': True})
+        #res = scipy.optimize.minimize(fun, initial, method='L-BFGS-B', bounds=bounds,
+        #                              options={'disp': True, 'eps': 1e-3})
+        #res = scipy.optimize.minimize(fun, initial, method='TNC', bounds=bounds,
+        #                              options={'disp': True, 'eps': 1e-3})
+        res = scipy.optimize.minimize(
+            cost, initial, method='L-BFGS-B', bounds=bounds,
+            options={'disp': True, 'eps': 1e-3, 'gtol': 1e-4, 'ftol': 1e-5,
+                     'maxfun': 5000, 'maxiter': 5000})
+        logger.info(res)
+        best_quantiles = {key: value for key, value in zip(features, res.x)}
+        df_train_copy = self.df_training_data.copy()
+        df_dev_copy = self.dev_data.copy()
+        active = set(features)
+        for key, value in best_quantiles.items():
+            if value == 0:
+                df_train_copy.pop(key)
+                df_dev_copy.pop(key)
+                active.remove(key)
+        cutoffs = self.get_cutoffs(
+            df_train_copy, best_quantiles, active)
+        labels = self.get_labels(df_train_copy, cutoffs)
+        LR = self.train_classifier(df_train_copy, labels)
+        if criterion['dev']:
+            crit_value = criterion['func'](LR, df_dev_copy)
+        else:
+            crit_value = criterion['func'](LR, df_train_copy, labels)
+        return LR, crit_value, best_quantiles
