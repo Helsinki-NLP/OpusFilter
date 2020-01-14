@@ -357,7 +357,7 @@ class OpusFilter:
                 model_parameters=parameters['model_parameters'],
                 features=parameters['features'])
         model, value, features = trainer.find_best_model(
-                parameters['criterion'])
+                parameters['criterion'], **parameters.get('optimization', {}))
 
         logger.info('Best model has {criterion}: {value}'.format(
             criterion=parameters['criterion'], value=value))

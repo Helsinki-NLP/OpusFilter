@@ -208,7 +208,7 @@ class TrainClassifier:
             cutoffs[key] = training_data[key].quantile(quantiles[key])
         return cutoffs
 
-    def find_best_model(self, criterion_name):
+    def find_best_model(self, criterion_name, algorithm='default', options=None):
         """Find the model with the best AIC / BIC / SSE / CE / ROC_AUC"""
         criteria = {'AIC':
                     {'func': self.get_aic, 'best': 'low', 'dev': False},
@@ -227,8 +227,6 @@ class TrainClassifier:
         criterion = criteria[criterion_name]
         features = list(self.features.keys())
         cutoffs = {key: None for key in features}
-        #initial = np.array([0.02]*len(features))
-        #bounds = [[0, 0.1] for _ in features]
         bounds = [self.features[key]['quantiles'][:2] for key in features]
         initial = np.array([self.features[key]['quantiles'][2] for key in features])
 
@@ -269,17 +267,18 @@ class TrainClassifier:
                 crit=criterion_name, value=crit_value))
             return crit_value if criterion['best'] == 'low' else -crit_value
 
-        #res = scipy.optimize.minimize(fun, initial, bounds=bounds, options={'disp': True})
-        #res = scipy.optimize.minimize(fun, initial, method='L-BFGS-B', bounds=bounds,
-        #                              options={'disp': True, 'eps': 1e-3})
-        #res = scipy.optimize.minimize(fun, initial, method='TNC', bounds=bounds,
-        #                              options={'disp': True, 'eps': 1e-3})
-        res = scipy.optimize.minimize(
-            cost, initial, method='L-BFGS-B', bounds=bounds,
-            options={'disp': True, 'eps': 1e-3, 'gtol': 1e-4, 'ftol': 1e-5,
-                     'maxfun': 5000, 'maxiter': 5000})
-        logger.info(res)
-        best_quantiles = {key: value for key, value in zip(features, res.x)}
+        if options is None:
+            options = {}
+        if algorithm == 'default':
+            res = self.default_search(cost, initial, bounds=bounds, **options)
+            logger.info(res)
+            best_quantiles = {key: value for key, value in zip(features, res)}
+        else:
+            res = scipy.optimize.minimize(
+                cost, initial, method=algorithm, bounds=bounds, options=options)
+            logger.info(res)
+            best_quantiles = {key: value for key, value in zip(features, res.x)}
+
         df_train_copy = self.df_training_data.copy()
         df_dev_copy = self.dev_data.copy()
         active = set(features)
@@ -297,3 +296,33 @@ class TrainClassifier:
         else:
             crit_value = criterion['func'](LR, df_train_copy, labels)
         return LR, crit_value, best_quantiles
+
+    @staticmethod
+    def default_search(costfunc, initial, bounds=None, step_coef=1.25):
+        if bounds is None:
+            bounds = [(0, 1) for _ in range(len(initial))]
+        x = initial.copy()
+        cur_x = x
+        cur_cost = costfunc(x)
+        while True:
+            no_change = 0
+            for fidx in range(len(initial)):
+                new_x = cur_x.copy()
+                if new_x[fidx] / step_coef >= bounds[fidx][0]:
+                    new_x[fidx] /= step_coef
+                    cost = costfunc(new_x)
+                    if cost < cur_cost:
+                        cur_cost = cost
+                        cur_x = new_x
+                        continue
+                new_x = cur_x.copy()
+                if new_x[fidx] * step_coef <= bounds[fidx][1]:
+                    new_x[fidx] *= step_coef
+                    cost = costfunc(new_x)
+                    if cost < cur_cost:
+                        cur_cost = cost
+                        cur_x = new_x
+                        continue
+                no_change += 1
+            if no_change == len(initial):
+                return cur_x
