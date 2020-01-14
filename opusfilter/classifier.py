@@ -37,7 +37,7 @@ def standardize_dataframe_scores(df, features, means_stds=None):
         means_stds = {}
         for column in df:
             x = df[column].to_numpy()
-            if features[column]['clean-direction'] == 'low':
+            if features[column].get('clean-direction', 'high') == 'low':
                 direction = -1
             else:
                 direction = 1
@@ -227,8 +227,27 @@ class TrainClassifier:
         criterion = criteria[criterion_name]
         features = list(self.features.keys())
         cutoffs = {key: None for key in features}
-        bounds = [self.features[key]['quantiles'][:2] for key in features]
-        initial = np.array([self.features[key]['quantiles'][2] for key in features])
+        bounds = []
+        initial = []
+        for key, params in self.features.items():
+            if 'quantiles' in params:
+                min_ = params['quantiles'].get('min', 0)
+                max_ = params['quantiles'].get('max', 1)
+            else:
+                min_, max_ = 0, 1
+                logger.warning(
+                    "No quantile bounds defined for %s, setting to [%s, %s]",
+                    key, min_, max_)
+            bounds.append([min_, max_])
+            if 'initial' in params.get('quantiles', {}):
+                init = params['quantiles']['initial']
+            else:
+                init = 0.1
+                logger.warning(
+                    "No initial quantile defined for %s, setting to %s",
+                    key, init)
+            initial.append(init)
+        initial = np.array(initial)
 
         def cost(qvector):
             best_quantiles = {key: value for key, value in zip(features, qvector)}
