@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 from pandas.io.json import json_normalize
 import sklearn.linear_model
-from sklearn.metrics import roc_auc_score, log_loss
+from sklearn.metrics import accuracy_score, confusion_matrix, roc_auc_score, log_loss
 
 from opustools.util import file_open
 
@@ -31,50 +31,71 @@ def load_dataframe(data_file):
 
 
 def standardize_dataframe_scores(df, features, means_stds=None):
-    """Normalize and zero average scores in each column"""
+    """Normalize, zero average, and set direction for scores in each column"""
     new_df = pd.DataFrame()
     if not means_stds:
         means_stds = {}
         for column in df:
             x = df[column].to_numpy()
-            means_stds[column] = (x.mean(), x.std())
-    for column in df:
+            if features[column]['clean-direction'] == 'low':
+                direction = -1
+            else:
+                direction = 1
+            means_stds[column] = (x.mean(), x.std(), direction)
+    for column in features:
         x = df[column].to_numpy()
-        mean, std = means_stds[column]
+        mean, std, direction = means_stds[column]
         if std == 0:
             x = 0
         else:
-            x = (x-mean)/std
-        if features[column]['clean-direction'] == 'low':
-            x = x*-1
+            x = direction * (x - mean) / std
         new_df[column] = x
     return new_df, means_stds
 
 
 class Classifier:
 
-    def __init__(self, classname, params, features):
+    def __init__(self, classname, params, features, standardize_params):
         self.classname = classname
         cls = getattr(sklearn.linear_model, self.classname)
         self.classifier = cls(**params)
         self.features = features
+        self.standardize_params = standardize_params
 
-    def train(self, df, labels):
+    def standardize(self, df):
+        if not self.standardize_params:
+            logger.warning("Feature standardization parameters missing")
+            return df[self.features]
+        return standardize_dataframe_scores(df, self.features, self.standardize_params)[0]
+
+    def train(self, df, labels, standardize=True):
         """Train logistic regression with training_data"""
+        df = self.standardize(df) if standardize else df
         self.classifier.fit(df[self.features], labels)
 
-    def write_preds(self, input_fname, output_fname):
+    def write_preds(self, input_fname, output_fname, true_label=None, standardize=True):
         """Write predicted class labels to output file"""
         df_tbc = load_dataframe(input_fname)
-        labels = self.classifier.predict(df_tbc[self.features])
+        df = self.standardize(df_tbc) if standardize else df_tbc
+        logger.info("Classifier labels: %s", self.classifier.classes_)
+        labels = self.classifier.predict(df[self.features])
+        if true_label:
+            true_labels = df_tbc[true_label]
+            logger.info('accuracy: %s', accuracy_score(true_labels, labels))
+            logger.info('confusion matrix:\n%s', confusion_matrix(true_labels, labels))
         with file_open(output_fname, 'w') as output:
             for label in labels:
                 output.write('{}\n'.format(label))
 
-    def write_probs(self, input_fname, output_fname):
+    def write_probs(self, input_fname, output_fname, true_label=None, standardize=True):
         """Write classification probabilities to output file"""
         df_tbc = load_dataframe(input_fname)
-        probas = self.classifier.predict_proba(df_tbc[self.features])
+        df = self.standardize(df_tbc) if standardize else df_tbc
+        logger.info("Classifier labels: %s", self.classifier.classes_)
+        probas = self.classifier.predict_proba(df[self.features])
+        if true_label:
+            true_labels = df_tbc[true_label]
+            logger.info('roc_auc: %s', roc_auc_score(true_labels, probas[:,1]))
         with file_open(output_fname, 'w') as output:
             for proba in probas[:,1]:
                 output.write('{0:.10f}\n'.format(proba))
@@ -128,18 +149,17 @@ class TrainClassifier:
     def train_classifier(self, training_data, labels):
         """Train logistic regression with training_data"""
         classifier = Classifier(self.model_type, self.model_parameters,
-                training_data.keys())
-        classifier.train(training_data, labels)
+                                training_data.columns, self.means_stds)
+        classifier.train(training_data, labels, standardize=False)
         return classifier
 
     def get_roc_auc(self, model, dev_data):
         """Calculate ROC AUC for a given model (requires dev_data)"""
-        pred = model.classifier.predict(dev_data)
         probs = model.classifier.predict_proba(dev_data)
-        score = model.classifier.score(dev_data, self.dev_labels)
-        auc1 = roc_auc_score(self.dev_labels, probs[:,0])
-        auc2 = roc_auc_score(self.dev_labels, probs[:,1])
-        return max(auc1, auc2)
+        # pred = model.classifier.predict(dev_data)
+        # logger.info("Classifier labels: %s", model.classifier.classes_)
+        # logger.info("Predicted labels: %s", collections.Counter(pred))
+        return roc_auc_score(self.dev_labels, probs[:,1])
 
     def get_sse(self, model, training_data, labels):
         """Calculate the residual sum of squares"""

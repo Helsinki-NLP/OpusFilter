@@ -23,7 +23,6 @@ from . import word_alignment
 from . import tokenization
 from . import classifier
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -381,19 +380,29 @@ class OpusFilter:
             pickle.dump(model, model_file)
 
     def classify(self, parameters, overwrite=False):
-        """Assign cleanness probabilities to scored sentence pairs"""
-        scores_out = os.path.join(self.output_dir, parameters['output'])
-        if not overwrite and os.path.isfile(scores_out):
-            logger.info("Output file exists, skipping step")
+        """Assign classifier probabilities and/or labels to scored sentence pairs"""
+        labels_out = os.path.join(
+            self.output_dir, parameters['output_labels']) \
+            if 'output_labels' in parameters else None
+        probs_out = os.path.join(
+            self.output_dir, parameters['output_probabilities']) \
+            if 'output_probabilities' in parameters else None
+        if (not overwrite and
+            (labels_out is None or os.path.isfile(labels_out)) and
+            (probs_out is None or os.path.isfile(probs_out))):
+            logger.info("Output files exists, skipping step")
             return
         model_in = os.path.join(self.output_dir, parameters['model'])
-
         #with file_open(model_in, 'rb') as model_file:
         #TODO: ValueError: binary mode doesn't take an encoding argument
         with open(model_in, 'rb') as model_file:
             model = pickle.load(model_file)
         scores_in = os.path.join(self.output_dir, parameters['scores'])
-        model.write_probs(scores_in, scores_out)
+        true_label = parameters.get('true_label', None)
+        if labels_out:
+            model.write_preds(scores_in, labels_out, true_label)
+        if probs_out:
+            model.write_probs(scores_in, probs_out, true_label)
 
     @staticmethod
     def _read_values(fobj, key=None, conv=None):
