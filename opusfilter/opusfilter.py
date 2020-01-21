@@ -2,8 +2,10 @@
 
 import collections
 import copy
+import functools
 import itertools
 import logging
+import operator
 import os
 import pickle
 import random
@@ -406,23 +408,37 @@ class OpusFilter:
             model.write_probs(scores_in, probs_out, true_label)
 
     @staticmethod
-    def _read_values(fobj, key=None, conv=None):
+    def _read_values(fobj, key=None, conv=None, combine=None):
         """Return a generator for values in score file
 
         The file should contain one JSON object per line. If the line
         cannot be interpreted as a JSON object, it is taken as a
         string. If conv is not None, conv(value) is yielded instead of
-        the plain value.
+        the plain value. Values of multiple keys are combined with the
+        given operator from the operator module, or returned as a list
+        if combine is None.
 
         """
+        if combine and not hasattr(operator, combine):
+            raise ConfigurationError(
+                "Combine operator {} not found in the operator module".format(combine))
         for line in fobj:
             try:
                 val = json.loads(line)
             except json.decoder.JSONDecodeError:
                 val = line
-            if key is not None:
+            if isinstance(key, str):
                 val = dict_get(key, val)
-            yield val if conv is None else conv(val)
+                if conv is not None:
+                    val = conv(val)
+            elif isinstance(key, (list, tuple)):
+                val = [dict_get(k, val) for k in key]
+                if conv is not None:
+                    val = [conv(v) for v in val]
+                if combine:
+                    oper = getattr(operator, combine)
+                    val = functools.reduce(oper, val)
+            yield val
 
     def sort_files(self, parameters, overwrite=False):
         """Sort file(s) by values read from other file"""
@@ -439,9 +455,11 @@ class OpusFilter:
         typeconv = parameters.get('type')
         if typeconv is not None:
             typeconv = {'float': float, 'int': int, 'str': str}[typeconv]
+        combine = parameters.get('combine_operator')
         with file_open(valuefile, 'r') as fobj:
             logger.info("Reading values from %s", valuefile)
-            values = [x for x in tqdm(self._read_values(fobj, key=key, conv=typeconv))]
+            values = [x for x in tqdm(
+                self._read_values(fobj, key=key, conv=typeconv, combine=combine))]
             order = list(np.argsort(values))
             if reverse:
                 order.reverse()
