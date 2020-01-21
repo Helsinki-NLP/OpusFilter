@@ -76,11 +76,16 @@ values            Plot score values by line number
             description='Print score statistics',
             usage='opusfilter-scores describe [-h] scorefile')
         parser.add_argument('scorefile', type=str)
+        parser.add_argument(
+            '--percentiles', type=str,
+            help='percentiles to include in the output (default "%(default)s")',
+            default='.0001 .001 .01 .05 .1 .25 .5 .75 .9 .95 .99 .999 .9999')
         args = parser.parse_args(argv)
+        percentiles = [float(x) for x in args.percentiles.split()]
         df = self._load_scores(args.scorefile)
         for col in df.columns:
             print('# {}'.format(col))
-            print(df[col].describe())
+            print(df[col].describe(percentiles=percentiles))
             print()
 
     def scatter_matrix(self, argv):
