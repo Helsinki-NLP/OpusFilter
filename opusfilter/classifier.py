@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 def load_dataframe(data_file):
-    """Load normalized scores dataframe from a jsonlines file"""
+    """Load normalized scores dataframe from a JSON lines file"""
     data = []
     with file_open(data_file) as dfile:
         for line in dfile:
@@ -54,6 +54,12 @@ def standardize_dataframe_scores(df, features, means_stds=None):
 
 
 class Classifier:
+    """Wrapper for sklearn classifiers (e.g. LogisticRegression)
+
+    Includes feature selection and standardization from pandas
+    dataframes.
+
+    """
 
     def __init__(self, classname, params, features, standardize_params):
         self.classname = classname
@@ -63,6 +69,7 @@ class Classifier:
         self.standardize_params = standardize_params
 
     def standardize(self, df):
+        """Standardize features in the data frame"""
         if not self.standardize_params:
             logger.warning("Feature standardization parameters missing")
             return df[self.features]
@@ -119,23 +126,27 @@ class TrainClassifier:
         logger.info("Loading training data")
         self.df_training_data = load_dataframe(training_scores)
 
-        self.features = {}
+        self.group_config = features
+        self.feature_config = {}
         for t_key in self.df_training_data.keys():
             for f_key in features.keys():
                 if t_key.startswith(f_key):
-                    self.features[t_key] = features[f_key]
+                    self.feature_config[t_key] = features[f_key]
 
-        self.df_training_data = self.df_training_data[self.features.keys()]
+        self.df_training_data = self.df_training_data[self.feature_config.keys()]
         self.df_training_data, self.means_stds = standardize_dataframe_scores(
-                    self.df_training_data, self.features)
+                    self.df_training_data, self.feature_config)
 
         if dev_scores:
             logger.info("Loading development data")
             self.dev_data = load_dataframe(dev_scores)
             self.dev_labels = self.dev_data.pop('label')
-            self.dev_data = self.dev_data[self.features.keys()]
+            self.dev_data = self.dev_data[self.feature_config.keys()]
             self.dev_data = standardize_dataframe_scores(
-                    self.dev_data, self.features, self.means_stds)[0]
+                    self.dev_data, self.feature_config, self.means_stds)[0]
+        else:
+            self.dev_data = None
+            self.dev_labels = None
 
         if model_type == None:
             self.model_type = 'LogisticRegression'
@@ -208,28 +219,14 @@ class TrainClassifier:
             cutoffs[key] = training_data[key].quantile(quantiles[key])
         return cutoffs
 
-    def find_best_model(self, criterion_name, algorithm='default', options=None):
-        """Find the model with the best AIC / BIC / SSE / CE / ROC_AUC"""
-        criteria = {'AIC':
-                    {'func': self.get_aic, 'best': 'low', 'dev': False},
-                'BIC':
-                    {'func': self.get_bic, 'best': 'low', 'dev': False},
-                'SSE':
-                    {'func': self.get_sse, 'best': 'low', 'dev': False},
-                'CE':
-                    {'func': self.get_ce, 'best': 'low', 'dev': False},
-                'ROC_AUC':
-                    {'func': self.get_roc_auc, 'best': 'high', 'dev': True}}
-
-        if criterion_name not in criteria.keys():
-            raise ValueError('Invalid criterion. Expected one of: {}'.format(
-                list(criteria.keys())))
-        criterion = criteria[criterion_name]
-        features = list(self.features.keys())
-        cutoffs = {key: None for key in features}
+    @staticmethod
+    def _load_feature_bounds_and_init(fdict):
+        """Load feature boundaries and initial values from config dict"""
+        features = []
         bounds = []
         initial = []
-        for key, params in self.features.items():
+        for key, params in fdict.items():
+            features.append(key)
             if 'quantiles' in params:
                 min_ = params['quantiles'].get('min', 0)
                 max_ = params['quantiles'].get('max', 1)
@@ -248,20 +245,47 @@ class TrainClassifier:
                     key, init)
             initial.append(init)
         initial = np.array(initial)
+        return features, bounds, initial
+
+    def find_best_model(self, criterion_name, algorithm='default', options=None):
+        """Find the model with the best AIC / BIC / SSE / CE / ROC_AUC"""
+        criteria = {'AIC':
+                    {'func': self.get_aic, 'best': 'low', 'dev': False},
+                'BIC':
+                    {'func': self.get_bic, 'best': 'low', 'dev': False},
+                'SSE':
+                    {'func': self.get_sse, 'best': 'low', 'dev': False},
+                'CE':
+                    {'func': self.get_ce, 'best': 'low', 'dev': False},
+                'ROC_AUC':
+                    {'func': self.get_roc_auc, 'best': 'high', 'dev': True}}
+
+        if criterion_name not in criteria.keys():
+            raise ValueError('Invalid criterion. Expected one of: {}'.format(
+                list(criteria.keys())))
+        criterion = criteria[criterion_name]
+
+        features, bounds, initial = self._load_feature_bounds_and_init(
+            self.feature_config)
+        cutoffs = {key: None for key in features}
 
         def cost(qvector):
             best_quantiles = {key: value for key, value in zip(features, qvector)}
-            logger.info('Training logistic regression model with quantiles'
-                        ' {}'.format(list(best_quantiles.values())))
+            logger.info('Training logistic regression model with quantiles:\n'
+                        '{}'.format(
+                            '\n'.join('* {}: {}'.format(*t)
+                                      for t in best_quantiles.items())))
             if any(q == 0 for q in best_quantiles.values()):
                 # Remove unused features
                 df_train_copy = self.df_training_data.copy()
-                df_dev_copy = self.dev_data.copy()
+                if self.dev_data:
+                    df_dev_copy = self.dev_data.copy()
                 active = set(features)
                 for key, value in best_quantiles.items():
                     if value == 0:
                         df_train_copy.pop(key)
-                        df_dev_copy.pop(key)
+                        if self.dev_data:
+                            df_dev_copy.pop(key)
                         active.remove(key)
             else:
                 df_train_copy = self.df_training_data
@@ -288,23 +312,28 @@ class TrainClassifier:
 
         if options is None:
             options = {}
-        if algorithm == 'default':
+        if algorithm == 'none':
+            # Use initial values
+            best_quantiles = {key: value for key, value in zip(features, initial)}
+        elif algorithm == 'default':
+            # Default local search with multiplicative updates
             res = self.default_search(cost, initial, bounds=bounds, **options)
-            logger.info(res)
             best_quantiles = {key: value for key, value in zip(features, res)}
         else:
+            # Use optimization algorithm from scipy
             res = scipy.optimize.minimize(
                 cost, initial, method=algorithm, bounds=bounds, options=options)
-            logger.info(res)
             best_quantiles = {key: value for key, value in zip(features, res.x)}
 
         df_train_copy = self.df_training_data.copy()
-        df_dev_copy = self.dev_data.copy()
+        if self.dev_data:
+            df_dev_copy = self.dev_data.copy()
         active = set(features)
         for key, value in best_quantiles.items():
             if value == 0:
                 df_train_copy.pop(key)
-                df_dev_copy.pop(key)
+                if self.dev_data:
+                    df_dev_copy.pop(key)
                 active.remove(key)
         cutoffs = self.get_cutoffs(
             df_train_copy, best_quantiles, active)
@@ -318,6 +347,7 @@ class TrainClassifier:
 
     @staticmethod
     def default_search(costfunc, initial, bounds=None, step_coef=1.25):
+        """Local search algorithm with multiplicative updates"""
         if bounds is None:
             bounds = [(0, 1) for _ in range(len(initial))]
         x = initial.copy()

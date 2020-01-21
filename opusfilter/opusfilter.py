@@ -351,7 +351,8 @@ class OpusFilter:
             return
         training_scores = os.path.join(self.output_dir,
                 parameters['training_scores'])
-        dev_scores = os.path.join(self.output_dir, parameters['dev_scores'])
+        dev_scores = os.path.join(self.output_dir, parameters['dev_scores']) \
+            if 'dev_scores' in parameters else None
         trainer = classifier.TrainClassifier(training_scores=training_scores,
                 dev_scores=dev_scores, model_type=parameters['model_type'],
                 model_parameters=parameters['model_parameters'],
