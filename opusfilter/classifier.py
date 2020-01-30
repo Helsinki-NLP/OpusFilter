@@ -278,13 +278,13 @@ class TrainClassifier:
             if any(q == 0 for q in best_quantiles.values()):
                 # Remove unused features
                 df_train_copy = self.df_training_data.copy()
-                if self.dev_data:
+                if self.dev_data is not None:
                     df_dev_copy = self.dev_data.copy()
                 active = set(features)
                 for key, value in best_quantiles.items():
                     if value == 0:
                         df_train_copy.pop(key)
-                        if self.dev_data:
+                        if self.dev_data is not None:
                             df_dev_copy.pop(key)
                         active.remove(key)
             else:
@@ -326,13 +326,13 @@ class TrainClassifier:
             best_quantiles = {key: value for key, value in zip(features, res.x)}
 
         df_train_copy = self.df_training_data.copy()
-        if self.dev_data:
+        if self.dev_data is not None:
             df_dev_copy = self.dev_data.copy()
         active = set(features)
         for key, value in best_quantiles.items():
             if value == 0:
                 df_train_copy.pop(key)
-                if self.dev_data:
+                if self.dev_data is not None:
                     df_dev_copy.pop(key)
                 active.remove(key)
         cutoffs = self.get_cutoffs(
