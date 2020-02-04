@@ -46,7 +46,7 @@ def standardize_dataframe_scores(df, features, means_stds=None):
         x = df[column].to_numpy()
         mean, std, direction = means_stds[column]
         if std == 0:
-            x = 0
+            x = [0 for i in range(len(df[column]))]
         else:
             x = direction * (x - mean) / std
         new_df[column] = x
