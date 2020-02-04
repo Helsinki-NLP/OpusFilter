@@ -12,7 +12,7 @@ steps:
         model_parameters:
             solver: liblinear
         model: ce_model
-        features: 
+        features:
             CharacterScoreFilter:
                 clean-direction: high
                 quantiles: &def_quant
@@ -39,7 +39,7 @@ steps:
     parameters:
         output_probabilities: ce.fi-en.probabilities.txt
         model: ce_model
-        scores: scores.fi-en.jsonl
+        scores: scores.fi-en.jsonl.gz
 
   - type: sort
     parameters:
@@ -52,53 +52,53 @@ steps:
         values: ce.fi-en.probabilities.txt
         reverse: True
 
- - type: head
-   parameters:
-       inputs:
-       - ce.sents.fi.gz
-       - ce.sents.en.gz
-       outputs:
-       - ce.sents.fi.90.gz
-       - ce.sents.en.90.gz
-       n: 1940462
+  - type: head
+    parameters:
+        inputs:
+        - ce.sents.fi.gz
+        - ce.sents.en.gz
+        outputs:
+        - ce.sents.fi.90.gz
+        - ce.sents.en.90.gz
+        n: 1940462
 
- - type: head
-   parameters:
-       inputs:
-       - ce.sents.fi.gz
-       - ce.sents.en.gz
-       outputs:
-       - ce.sents.fi.80.gz
-       - ce.sents.en.80.gz
-       n: 1724855
+  - type: head
+    parameters:
+        inputs:
+        - ce.sents.fi.gz
+        - ce.sents.en.gz
+        outputs:
+        - ce.sents.fi.80.gz
+        - ce.sents.en.80.gz
+        n: 1724855
 
- - type: head
-   parameters:
-       inputs:
-       - ce.sents.fi.gz
-       - ce.sents.en.gz
-       outputs:
-       - ce.sents.fi.70.gz
-       - ce.sents.en.70.gz
-       n: 1509248
+  - type: head
+    parameters:
+        inputs:
+        - ce.sents.fi.gz
+        - ce.sents.en.gz
+        outputs:
+        - ce.sents.fi.70.gz
+        - ce.sents.en.70.gz
+        n: 1509248
 
- - type: head
-   parameters:
-       inputs:
-       - ce.sents.fi.gz
-       - ce.sents.en.gz
-       outputs:
-       - ce.sents.fi.60.gz
-       - ce.sents.en.60.gz
-       n: 1293641
+  - type: head
+    parameters:
+        inputs:
+        - ce.sents.fi.gz
+        - ce.sents.en.gz
+        outputs:
+        - ce.sents.fi.60.gz
+        - ce.sents.en.60.gz
+        n: 1293641
 
- - type: head
-   parameters:
-       inputs:
-       - ce.sents.fi.gz
-       - ce.sents.en.gz
-       outputs:
-       - ce.sents.fi.50.gz
-       - ce.sents.en.50.gz
-       n: 1078034
+  - type: head
+    parameters:
+        inputs:
+        - ce.sents.fi.gz
+        - ce.sents.en.gz
+        outputs:
+        - ce.sents.fi.50.gz
+        - ce.sents.en.50.gz
+        n: 1078034
 

@@ -50,8 +50,8 @@ steps:
 
   - type: score
     parameters:
-      src_input: train_ce_v2_default_def_fien.fi.70
-      tgt_input: train_ce_v2_default_def_fien.en.70
+      src_input: ce.sents.fi.70.gz
+      tgt_input: ce.sents.en.70.gz
       output: domain-scores.fi-en.jsonl.gz
       filters:
         - CrossEntropyFilter:
@@ -82,23 +82,23 @@ steps:
       - CrossEntropyFilter.tgt
       combine_operator: add
 
- - type: head
-   parameters:
-       inputs:
-       - ce.sents.domain.fi.70.gz
-       - ce.sents.domain.en.70.gz
-       outputs:
-       - ce.sents.domain.fi.60.gz
-       - ce.sents.en.60.gz
-       n: 1293641
+  - type: head
+    parameters:
+        inputs:
+        - ce.sents.domain.fi.70.gz
+        - ce.sents.domain.en.70.gz
+        outputs:
+        - ce.sents.domain.fi.60.gz
+        - ce.sents.domain.en.60.gz
+        n: 1293641
 
- - type: head
-   parameters:
-       inputs:
-       - ce.sents.domain.fi.70.gz
-       - ce.sents.domain.en.70.gz
-       outputs:
-       - ce.sents.domain.fi.50.gz
-       - ce.sents.domain.en.50.gz
-       n: 1078034
+  - type: head
+    parameters:
+        inputs:
+        - ce.sents.domain.fi.70.gz
+        - ce.sents.domain.en.70.gz
+        outputs:
+        - ce.sents.domain.fi.50.gz
+        - ce.sents.domain.en.50.gz
+        n: 1078034
 
