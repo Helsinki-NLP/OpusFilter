@@ -53,7 +53,7 @@ steps:
       src_input: train_ce_v2_default_def_fien.fi.70
       tgt_input: train_ce_v2_default_def_fien.en.70
       output: domain-scores.fi-en.jsonl.gz
-      filters: &cefilters
+      filters:
         - CrossEntropyFilter:
             src_lm_params:
               filename: wmt-news.fi.arpa.gz

@@ -15,22 +15,25 @@ steps:
         features: 
             CharacterScoreFilter:
                 clean-direction: high
-                quantiles: [0, 0.1, 0.02]
+                quantiles: &def_quant
+                    min: 0
+                    max: 0.1
+                    initial: 0.02
             CrossEntropyFilter:
                 clean-direction: low
-                quantiles: [0, 0.1, 0.02]
+                quantiles: *def_quant
             LanguageIDFilter:
                 clean-direction: high
-                quantiles: [0, 0.1, 0.02]
+                quantiles: *def_quant
             NonZeroNumeralsFilter:
                 clean-direction: high
-                quantiles: [0, 0.1, 0.02]
+                quantiles: *def_quant
             TerminalPunctuationFilter:
                 clean-direction: high
-                quantiles: [0, 0.1, 0.02]
+                quantiles: *def_quant
             WordAlignFilter:
                 clean-direction: low
-                quantiles: [0, 0.1, 0.02]
+                quantiles: *def_quant
 
   - type: classify
     parameters:

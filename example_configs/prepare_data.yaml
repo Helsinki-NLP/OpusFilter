@@ -35,7 +35,7 @@ steps:
       tgt_input: sents.en.gz
       src_output: filtered.fi.gz
       tgt_output: filtered.en.gz
-      filters: &initfilt
+      filters:
         - LengthFilter:
             unit: word
             min_length: 1
