@@ -621,15 +621,58 @@ pairs is accepted of the ratio is below the given threshold.
 
 #### `CharacterScoreFilter`
 
+Filter segments based on what proportion of their alphabetic characters are in a given script. For a list of valid scripts, see e.g. https://www.regular-expressions.info/unicode.html
+
+Parameters:
+
+* `src_script`: script for source segment (default Latin)
+* `tgt_script`: script for target segment (default Latin)
+* `src_threshold`: minimum proportion of source characters in a script (default 1)
+* `tgt_threshold`: minimum proportion of target characters in a script (default 1)
+
+Returned scores are proportions of valid characters in source and target segments. In filtering, both values have to be equal to or greater than the minimum thresholds.
+
 #### `LanguageIDFilter`
+
+Filter segments based on their language identification confidence scores.
+
+Parameters:
+
+* `src_lang`: expected language for source segment
+* `tgt_lang`: expected language for target segment
+* `id_method`: language indentification method (`langid` for using the `langid` library of `cld2` for using the `cld2` library; the default is `langid`)
+* `src_threshold`: minimum identification confidence score for source segment
+* `tgt_threshold`: minimum identification confidence score for target segment
+
+Returned scores are the language identification confidence scores from a given identification method for source and target segments. The scores range from 0 to 1. In filtering, both values have to be greater than the minimum thresholds.
 
 ### Special character filters
 
 #### `HtmlTagFilter`
 
+Filter segments based on whether they contain HTML tags or not.
+
+The returned scores are two boolean values indicating whether the source and target segments contain HTML tags. In filtering, a segment pair is accepted if neither of the segments contains HTML tags.
+
 #### `TerminalPunctuationFilter`
 
+Filter segments based on a penalty score with respect to the co-occurrence of therminal punctuation marks ('.', '...', '?', '!') in source and target segments. The score is formulated as follows: the initial score is the absolute difference in source and target terminal punctuation counts, the score is then incremented by the number of terminal punctuation beyond the first occurence in both segments, and finally, the score is updated with `score=-log(score+1)` [Vázquez et al.](https://www.aclweb.org/anthology/W19-5441/). The score of the greatest co-occurrence is 0 and smaller values indicate greater penalty.
+
+Parameters:
+
+* `threshold`: minimum score threshold (default -2)
+
+The returned score is a single terminal punctuation score. In filtering, the score has to equal to of be greater than the minimum threshold.
+
 #### `NonZeroNumeralsFilter`
+
+Filter segments based on a similarity measure of numerals between the source and target segments with zeros removed. Non-zero numerals are extracted fron both segments preserving the relative order of the numerals. The similarity score between the numeral sequences is produced with `SequenceMatcher.ratio()` from Python's `difflib` library.
+
+Parameters:
+
+* `threshold`: minimum score threshold (default 0.5)
+
+The returned score is a single similarity score. In filtering, the score has to equal to or be greater than the minimum threshold.
 
 ### Language model filters
 
