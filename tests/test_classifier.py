@@ -33,16 +33,13 @@ class TestTrainClassifier(unittest.TestCase):
 
         features = {'CharacterScoreFilter':
                     {'clean-direction': 'high',
-                        'quantiles': [0.1, 0.09, 0.08, 0.07, 0.06, 0.05,
-                            0.04, 0.03, 0.02, 0.01, 0.0]},
+                        'quantiles': {'min': 0, 'max': 0.1, 'initial': 0.02}},
                 'LanguageIDFilter':
                     {'clean-direction': 'high',
-                        'quantiles': [0.1, 0.09, 0.08, 0.07, 0.06, 0.05,
-                            0.04, 0.03, 0.02, 0.01]},
+                        'quantiles': {'min': 0, 'max': 0.1, 'initial': 0.02}},
                 'LongWordFilter':
                     {'clean-direction': 'high',
-                        'quantiles': [0.1, 0.09, 0.08, 0.07, 0.06, 0.05,
-                            0.04, 0.03, 0.02, 0.01]}
+                        'quantiles': {'min': 0, 'max': 0.1, 'initial': 0.02}}
                 }
 
         self.fc = TrainClassifier(
@@ -59,16 +56,16 @@ class TestTrainClassifier(unittest.TestCase):
     def test_set_cutoffs(self):
         cutoffs = {key: None for key in self.fc.df_training_data.keys()}
         discards = {key: 0.5 for key in self.fc.df_training_data.keys()}
-        new_cutoffs = self.fc.set_cutoffs(self.fc.df_training_data, discards,
+        new_cutoffs = self.fc.get_cutoffs(self.fc.df_training_data, discards,
                 cutoffs)
         self.assertEqual(new_cutoffs['LongWordFilter'], 0.0)
         discards = {key: 0.25 for key in self.fc.df_training_data.keys()}
-        new_cutoffs = self.fc.set_cutoffs(self.fc.df_training_data, discards,
+        new_cutoffs = self.fc.get_cutoffs(self.fc.df_training_data, discards,
                 cutoffs)
         self.assertEqual(new_cutoffs['LanguageIDFilter.cld2.src'],
                 -0.7071067811865475)
         discards = {key: 0.75 for key in self.fc.df_training_data.keys()}
-        new_cutoffs = self.fc.set_cutoffs(self.fc.df_training_data, discards,
+        new_cutoffs = self.fc.get_cutoffs(self.fc.df_training_data, discards,
                 cutoffs)
         self.assertEqual(new_cutoffs['LanguageIDFilter.cld2.tgt'],
                 0.7071067811865475)
@@ -76,56 +73,56 @@ class TestTrainClassifier(unittest.TestCase):
     def test_add_labels(self):
         cutoffs = {key: None for key in self.fc.df_training_data.keys()}
         discards = {key: 0.26 for key in self.fc.df_training_data.keys()}
-        new_cutoffs = self.fc.set_cutoffs(self.fc.df_training_data, discards,
+        new_cutoffs = self.fc.get_cutoffs(self.fc.df_training_data, discards,
                 cutoffs)
-        self.fc.add_labels(self.fc.df_training_data, new_cutoffs)
-        ones = sum(self.fc.labels_train)
+        temp_labels = self.fc.get_labels(self.fc.df_training_data, new_cutoffs)
+        ones = sum(temp_labels)
         self.assertEqual(ones, 3)
         discards = {key: 0.25 for key in self.fc.df_training_data.keys()}
-        new_cutoffs = self.fc.set_cutoffs(self.fc.df_training_data, discards,
+        new_cutoffs = self.fc.get_cutoffs(self.fc.df_training_data, discards,
                 cutoffs)
-        self.fc.add_labels(self.fc.df_training_data, new_cutoffs)
-        ones = sum(self.fc.labels_train)
+        temp_labels = self.fc.get_labels(self.fc.df_training_data, new_cutoffs)
+        ones = sum(temp_labels)
         self.assertEqual(ones, 4)
 
     def test_train_classifier(self):
         cutoffs = {key: None for key in self.fc.df_training_data.keys()}
         discards = {key: 0.26 for key in self.fc.df_training_data.keys()}
-        new_cutoffs = self.fc.set_cutoffs(self.fc.df_training_data, discards,
+        new_cutoffs = self.fc.get_cutoffs(self.fc.df_training_data, discards,
                 cutoffs)
-        labels = self.fc.add_labels(self.fc.df_training_data, new_cutoffs)
+        labels = self.fc.get_labels(self.fc.df_training_data, new_cutoffs)
         LR = self.fc.train_classifier(self.fc.df_training_data, labels)
         self.assertAlmostEqual(round(LR.classifier.intercept_[0], 8),
-                0.30343394)
+                0.31536332)
 
     def test_get_roc_auc(self):
         cutoffs = {key: None for key in self.fc.df_training_data.keys()}
         discards = {key: 0.26 for key in self.fc.df_training_data.keys()}
-        new_cutoffs = self.fc.set_cutoffs(self.fc.df_training_data, discards,
+        new_cutoffs = self.fc.get_cutoffs(self.fc.df_training_data, discards,
                 cutoffs)
-        labels = self.fc.add_labels(self.fc.df_training_data, new_cutoffs)
+        labels = self.fc.get_labels(self.fc.df_training_data, new_cutoffs)
         LR = self.fc.train_classifier(self.fc.df_training_data, labels)
         self.assertAlmostEqual(self.fc.get_roc_auc(LR, self.fc.dev_data), 1)
 
     def test_get_aic(self):
         cutoffs = {key: None for key in self.fc.df_training_data.keys()}
         discards = {key: 0.26 for key in self.fc.df_training_data.keys()}
-        new_cutoffs = self.fc.set_cutoffs(self.fc.df_training_data, discards,
+        new_cutoffs = self.fc.get_cutoffs(self.fc.df_training_data, discards,
                 cutoffs)
-        labels = self.fc.add_labels(self.fc.df_training_data, new_cutoffs)
+        labels = self.fc.get_labels(self.fc.df_training_data, new_cutoffs)
         LR = self.fc.train_classifier(self.fc.df_training_data, labels)
-        aic = self.fc.get_aic(LR, self.fc.df_training_data)
-        self.assertAlmostEqual(aic, 13.05305257199207)
+        aic = self.fc.get_aic(LR, self.fc.df_training_data, labels)
+        self.assertAlmostEqual(aic, 17.25174505066196)
 
     def test_get_bic(self):
         cutoffs = {key: None for key in self.fc.df_training_data.keys()}
         discards = {key: 0.26 for key in self.fc.df_training_data.keys()}
-        new_cutoffs = self.fc.set_cutoffs(self.fc.df_training_data, discards,
+        new_cutoffs = self.fc.get_cutoffs(self.fc.df_training_data, discards,
                 cutoffs)
-        labels = self.fc.add_labels(self.fc.df_training_data, new_cutoffs)
+        labels = self.fc.get_labels(self.fc.df_training_data, new_cutoffs)
         LR = self.fc.train_classifier(self.fc.df_training_data, labels)
-        bic = self.fc.get_bic(LR, self.fc.df_training_data)
-        self.assertAlmostEqual(bic, -23.025850929940454)
+        bic = self.fc.get_bic(LR, self.fc.df_training_data, labels)
+        self.assertAlmostEqual(bic, -4.910486801786702)
 
     def test_find_best_roc_auc_model(self):
         LR, roc_auc, value = self.fc.find_best_model('ROC_AUC')
