@@ -1,0 +1,105 @@
+#NOTE: devset_100_concatenated.fi-en.jsonl.gz has to be
+#      manually annotated before using this config file
+
+common:
+
+  output_directory: paracrawl_fi-en
+
+steps:
+
+  - type: train_classifier
+    parameters:
+        training_scores: subset_100k-scores.fi-en.jsonl.gz
+        criterion: ROC_AUC
+        dev_scores: devset_100_concatenated.fi-en.jsonl.gz
+        model_type: LogisticRegression
+        model_parameters:
+            solver: liblinear
+        model: roc_auc_model
+        features: &features
+            CharacterScoreFilter:
+                clean-direction: high
+                quantiles: [0, 0.1, 0.02]
+            CrossEntropyFilter:
+                clean-direction: low
+                quantiles: [0, 0.1, 0.02]
+            LanguageIDFilter:
+                clean-direction: high
+                quantiles: [0, 0.1, 0.02]
+            NonZeroNumeralsFilter:
+                clean-direction: high
+                quantiles: [0, 0.1, 0.02]
+            TerminalPunctuationFilter:
+                clean-direction: high
+                quantiles: [0, 0.1, 0.02]
+            WordAlignFilter:
+                clean-direction: low
+                quantiles: [0, 0.1, 0.02]
+
+  - type: classify
+    parameters:
+        output_probabilities: roc_auc.fi-en.probabilities.txt
+        model: roc_auc_model
+        scores: scores.fi-en.jsonl
+
+  - type: sort
+    parameters:
+        inputs:
+        - sents.fi.gz
+        - sents.en.gz
+        outputs:
+        - roc_auc.sents.fi.gz
+        - roc_auc.sents.en.gz
+        values: roc_auc.fi-en.probabilities.txt
+        reverse: True
+
+ - type: head
+   parameters:
+       inputs:
+       - roc_auc.sents.fi.gz
+       - roc_auc.sents.en.gz
+       outputs:
+       - roc_auc.sents.fi.90.gz
+       - roc_auc.sents.en.90.gz
+       n: 1940462
+
+ - type: head
+   parameters:
+       inputs:
+       - roc_auc.sents.fi.gz
+       - roc_auc.sents.en.gz
+       outputs:
+       - roc_auc.sents.fi.80.gz
+       - roc_auc.sents.en.80.gz
+       n: 1724855
+
+ - type: head
+   parameters:
+       inputs:
+       - roc_auc.sents.fi.gz
+       - roc_auc.sents.en.gz
+       outputs:
+       - roc_auc.sents.fi.70.gz
+       - roc_auc.sents.en.70.gz
+       n: 1509248
+
+ - type: head
+   parameters:
+       inputs:
+       - roc_auc.sents.fi.gz
+       - roc_auc.sents.en.gz
+       outputs:
+       - roc_auc.sents.fi.60.gz
+       - roc_auc.sents.en.60.gz
+       n: 1293641
+
+ - type: head
+   parameters:
+       inputs:
+       - roc_auc.sents.fi.gz
+       - roc_auc.sents.en.gz
+       outputs:
+       - roc_auc.sents.fi.50.gz
+       - roc_auc.sents.en.50.gz
+       n: 1078034
+

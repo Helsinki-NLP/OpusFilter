@@ -1,0 +1,198 @@
+common:
+
+  output_directory: paracrawl_fi-en
+
+steps:
+
+  - type: opus_read
+    parameters:
+      corpus_name: ParaCrawl
+      source_language: fi
+      target_language: en
+      release: v4
+      preprocessing: raw
+      src_output: sents.fi.gz
+      tgt_output: sents.en.gz
+
+  - type: concatenate
+    parameters:
+      inputs:
+      - sents.fi.gz
+      - sents.en.gz
+      output: concatenated.gz
+
+  - type: train_ngram
+    parameters:
+      data: concatenated.gz
+      parameters:
+        norder: 5
+        dscale: 1
+      model: bg.arpa.gz
+
+  - type: filter
+    parameters:
+      src_input: sents.fi.gz
+      tgt_input: sents.en.gz
+      src_output: filtered.fi.gz
+      tgt_output: filtered.en.gz
+      filters: &initfilt
+        - LengthFilter:
+            unit: word
+            min_length: 1
+            max_length: 100
+
+        - LengthRatioFilter:
+            unit: word
+            threshold: 3
+
+        - LongWordFilter:
+            threshold: 40
+
+        - HtmlTagFilter: {}
+
+        - CharacterScoreFilter:
+            src_script: Latin
+            tgt_script: Latin
+            src_threshold: 1
+            tgt_threshold: 1
+
+  - type: train_ngram
+    parameters:
+      data: filtered.fi.gz
+      parameters:
+        norder: 15
+        dscale: 0.1
+      model: fi.arpa.gz
+
+  - type: train_ngram
+    parameters:
+      data: filtered.en.gz
+      parameters:
+        norder: 15
+        dscale: 0.1
+      model: en.arpa.gz
+
+  - type: train_alignment
+    parameters:
+      src_data: filtered.fi.gz
+      tgt_data: filtered.en.gz
+      parameters:
+        src_tokenizer: [moses, fi]
+        tgt_tokenizer: [moses, en]
+        model: 3
+      output: align.priors
+
+  - type: subset
+    parameters:
+      src_input: sents.fi.gz
+      tgt_input: sents.en.gz
+      src_output: subset_100k.fi.gz
+      tgt_output: subset_100k.en.gz
+      seed: 123
+      size: 100000
+
+  - type: subset
+    parameters:
+      src_input: sents.fi.gz
+      tgt_input: sents.en.gz
+      src_output: devset_100_1.fi.gz
+      tgt_output: devset_100_1.en.gz
+      seed: 1001
+      size: 100
+
+  - type: subset
+    parameters:
+      src_input: sents.fi.gz
+      tgt_input: sents.en.gz
+      src_output: devset_100_2.fi.gz
+      tgt_output: devset_100_2.en.gz
+      seed: 1002
+      size: 100
+
+  - type: score
+    parameters:
+      src_input: subset_100k.fi.gz
+      tgt_input: subset_100k.en.gz
+      output: subset_100k-scores.fi-en.jsonl.gz
+      filters: &scorefilt
+        - LengthFilter:
+            name: char
+            unit: char
+
+        - LengthFilter:
+            name: word
+            unit: word
+
+        - LengthRatioFilter:
+            name: char
+            unit: char
+
+        - LengthRatioFilter:
+            name: word
+            unit: word
+
+        - LongWordFilter: {}
+
+        - CharacterScoreFilter:
+            src_script: Latin
+            tgt_script: Latin
+
+        - LanguageIDFilter:
+            name: langid
+            id_method: langid
+            src_lang: fi
+            tgt_lang: en
+
+        - LanguageIDFilter:
+            name: cld2
+            id_method: cld2
+            src_lang: fi
+            tgt_lang: en
+
+        - TerminalPunctuationFilter: {}
+
+        - NonZeroNumeralsFilter: {}
+
+        - CrossEntropyFilter:
+            src_lm_params:
+              filename: fi.arpa.gz
+              interpolate:
+              - [bg.arpa.gz, 0.01]
+            tgt_lm_params:
+              filename: en.arpa.gz
+              interpolate:
+              - [bg.arpa.gz, 0.01]
+
+        - WordAlignFilter:
+            src_tokenizer: [moses, fi]
+            tgt_tokenizer: [moses, en]
+            model: 3
+            priors: align.priors
+
+  - type: score
+    parameters:
+      src_input: devset_100_1.fi.gz
+      tgt_input: devset_100_1.en.gz
+      output: devset_100_1-scores.fi-en.jsonl.gz
+      filters: *scorefilt
+
+  - type: score
+    parameters:
+      src_input: devset_100_2.fi.gz
+      tgt_input: devset_100_2.en.gz
+      output: devset_100_2-scores.fi-en.jsonl.gz
+      filters: *scorefilt
+
+  - type: score
+    parameters:
+      src_input: sents.fi.gz
+      tgt_input: sents.en.gz
+      output: scores.fi-en.jsonl.gz
+      filters: *scorefilt
+
+  - type: concatenate
+    parameters:
+      inputs:
+      - devset_100_1-scores.fi-en.jsonl.gz
+      - devset_100_2-scores.fi-en.jsonl.gz
+      output: devset_100_concatenated.fi-en.jsonl.gz
