@@ -1,6 +1,3 @@
-#NOTE: devset_100_concatenated.fi-en.jsonl.gz has to be
-#      manually annotated before using this config file
-
 common:
 
   output_directory: paracrawl_fi-en

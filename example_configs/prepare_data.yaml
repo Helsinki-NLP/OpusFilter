@@ -190,9 +190,25 @@ steps:
       output: scores.fi-en.jsonl.gz
       filters: *scorefilt
 
-  - type: concatenate
+  # requires devset_100_1_labels.jsonl in the current directory
+  - type: join
     parameters:
       inputs:
       - devset_100_1-scores.fi-en.jsonl.gz
+      - ../devset_100_1_labels.jsonl
+      output: devset_100_1-scores-and-labels.fi-en.jsonl.gz
+
+  # requires devset_100_2_labels.jsonl in the current directory
+  - type: join
+    parameters:
+      inputs:
       - devset_100_2-scores.fi-en.jsonl.gz
+      - ../devset_100_2_labels.jsonl
+      output: devset_100_2-scores-and-labels.fi-en.jsonl.gz
+
+  - type: concatenate
+    parameters:
+      inputs:
+      - devset_100_1-scores-and-labels.fi-en.jsonl.gz
+      - devset_100_2-scores-and-labels.fi-en.jsonl.gz
       output: devset_100_concatenated.fi-en.jsonl.gz
