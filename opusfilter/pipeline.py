@@ -2,25 +2,14 @@
 
 import collections
 import importlib
-import itertools
 import logging
 
 from tqdm import tqdm
 
-from . import filters as filtermodule
+from . import grouper, filters as filtermodule
 
 
 logger = logging.getLogger(__name__)
-
-
-def grouper(iterable, num):
-    """Split data into fixed-length chunks"""
-    it = iter(iterable)
-    while True:
-        chunk = tuple(itertools.islice(it, num))
-        if not chunk:
-            return
-        yield chunk
 
 
 class FilterPipeline:

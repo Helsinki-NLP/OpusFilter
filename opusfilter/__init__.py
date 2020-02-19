@@ -1,6 +1,7 @@
 """Opusfilter package"""
 
 import abc
+import itertools
 import logging
 
 
@@ -10,6 +11,16 @@ logger = logging.getLogger(__name__)
 class ConfigurationError(Exception):
     """Configuration error for filters"""
     pass
+
+
+def grouper(iterable, num):
+    """Split data into fixed-length chunks"""
+    it = iter(iterable)
+    while True:
+        chunk = tuple(itertools.islice(it, num))
+        if not chunk:
+            return
+        yield chunk
 
 
 class FilterABC(metaclass=abc.ABCMeta):

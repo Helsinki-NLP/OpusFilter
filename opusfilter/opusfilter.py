@@ -192,6 +192,7 @@ class OpusFilter:
             return
         with file_open(outfile, 'w') as outf:
             for infile in parameters['inputs']:
+                logger.info("opening %s", os.path.join(self.output_dir, infile))
                 with file_open(os.path.join(self.output_dir, infile)) as inf:
                     for line in inf:
                         outf.write(line.rstrip() + '\n')
@@ -402,10 +403,11 @@ class OpusFilter:
             model = pickle.load(model_file)
         scores_in = os.path.join(self.output_dir, parameters['scores'])
         true_label = parameters.get('true_label', None)
+        chunksize = parameters.get('chunksize', 100000)
         if labels_out:
-            model.write_preds(scores_in, labels_out, true_label)
+            model.write_preds(scores_in, labels_out, true_label, chunksize=chunksize)
         if probs_out:
-            model.write_probs(scores_in, probs_out, true_label)
+            model.write_probs(scores_in, probs_out, true_label, chunksize=chunksize)
 
     @staticmethod
     def _read_values(fobj, key=None, conv=None, combine=None):

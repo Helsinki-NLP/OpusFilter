@@ -14,6 +14,8 @@ from sklearn.metrics import accuracy_score, confusion_matrix, roc_auc_score, log
 
 from opustools.util import file_open
 
+from . import grouper
+
 logger = logging.getLogger(__name__)
 
 
@@ -28,6 +30,25 @@ def load_dataframe(data_file):
                 logger.error(line)
                 raise err
     return pd.DataFrame(json_normalize(data))
+
+
+def load_dataframe_in_chunks(data_file, chunksize):
+    """Yield normalized scores dataframes from a chunked JSON lines file
+
+    Use instead of load_dataframe if the data is too large to fit in memory.
+
+    """
+    with file_open(data_file) as dfile:
+        for num, chunk in enumerate(grouper(dfile, chunksize)):
+            data = []
+            for line in chunk:
+                try:
+                    data.append(json.loads(line))
+                except json.decoder.JSONDecodeError as err:
+                    logger.error(line)
+                    raise err
+            logger.info("Processing chunk %s with %s lines", num, len(data))
+            yield pd.DataFrame(json_normalize(data))
 
 
 def standardize_dataframe_scores(df, features, means_stds=None):
@@ -80,32 +101,42 @@ class Classifier:
         df = self.standardize(df) if standardize else df
         self.classifier.fit(df[self.features], labels)
 
-    def write_preds(self, input_fname, output_fname, true_label=None, standardize=True):
+    def write_preds(self, input_fname, output_fname, true_label=None,
+                    standardize=True, chunksize=None):
         """Write predicted class labels to output file"""
-        df_tbc = load_dataframe(input_fname)
-        df = self.standardize(df_tbc) if standardize else df_tbc
+        if chunksize:
+            dfs_tbc = load_dataframe_in_chunks(input_fname, chunksize)
+        else:
+            dfs_tbc = [load_dataframe(input_fname)]
         logger.info("Classifier labels: %s", self.classifier.classes_)
-        labels = self.classifier.predict(df[self.features])
-        if true_label:
-            true_labels = df_tbc[true_label]
-            logger.info('accuracy: %s', accuracy_score(true_labels, labels))
-            logger.info('confusion matrix:\n%s', confusion_matrix(true_labels, labels))
         with file_open(output_fname, 'w') as output:
-            for label in labels:
-                output.write('{}\n'.format(label))
+            for df_tbc in dfs_tbc:
+                df = self.standardize(df_tbc) if standardize else df_tbc
+                labels = self.classifier.predict(df[self.features])
+                if true_label:
+                    true_labels = df_tbc[true_label]
+                    logger.info('accuracy: %s', accuracy_score(true_labels, labels))
+                    logger.info('confusion matrix:\n%s', confusion_matrix(true_labels, labels))
+                for label in labels:
+                    output.write('{}\n'.format(label))
 
-    def write_probs(self, input_fname, output_fname, true_label=None, standardize=True):
+    def write_probs(self, input_fname, output_fname, true_label=None,
+                    standardize=True, chunksize=None):
         """Write classification probabilities to output file"""
-        df_tbc = load_dataframe(input_fname)
-        df = self.standardize(df_tbc) if standardize else df_tbc
+        if chunksize:
+            dfs_tbc = load_dataframe_in_chunks(input_fname, chunksize)
+        else:
+            dfs_tbc = [load_dataframe(input_fname)]
         logger.info("Classifier labels: %s", self.classifier.classes_)
-        probas = self.classifier.predict_proba(df[self.features])
-        if true_label:
-            true_labels = df_tbc[true_label]
-            logger.info('roc_auc: %s', roc_auc_score(true_labels, probas[:,1]))
         with file_open(output_fname, 'w') as output:
-            for proba in probas[:,1]:
-                output.write('{0:.10f}\n'.format(proba))
+            for df_tbc in dfs_tbc:
+                df = self.standardize(df_tbc) if standardize else df_tbc
+                probas = self.classifier.predict_proba(df[self.features])
+                if true_label:
+                    true_labels = df_tbc[true_label]
+                    logger.info('roc_auc: %s', roc_auc_score(true_labels, probas[:,1]))
+                for proba in probas[:,1]:
+                    output.write('{0:.10f}\n'.format(proba))
 
     def weights(self):
         """Yield classifier weights"""
