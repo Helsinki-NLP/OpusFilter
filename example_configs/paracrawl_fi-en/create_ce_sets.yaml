@@ -1,3 +1,5 @@
+# Run first the steps in prepare_data.yaml
+
 common:
 
   output_directory: paracrawl_fi-en
@@ -7,12 +9,11 @@ steps:
   - type: train_classifier
     parameters:
         training_scores: subset_100k-scores.fi-en.jsonl.gz
-        criterion: ROC_AUC
-        dev_scores: devset_100_concatenated.fi-en.jsonl.gz
+        criterion: CE
         model_type: LogisticRegression
         model_parameters:
             solver: liblinear
-        model: roc_auc_model
+        model: ce_model
         features:
             CharacterScoreFilter:
                 clean-direction: high
@@ -38,8 +39,8 @@ steps:
 
   - type: classify
     parameters:
-        output_probabilities: roc_auc.fi-en.probabilities.txt
-        model: roc_auc_model
+        output_probabilities: ce.fi-en.probabilities.txt
+        model: ce_model
         scores: scores.fi-en.jsonl.gz
 
   - type: sort
@@ -48,58 +49,58 @@ steps:
         - sents.fi.gz
         - sents.en.gz
         outputs:
-        - roc_auc.sents.fi.gz
-        - roc_auc.sents.en.gz
-        values: roc_auc.fi-en.probabilities.txt
+        - ce.sents.fi.gz
+        - ce.sents.en.gz
+        values: ce.fi-en.probabilities.txt
         reverse: True
 
   - type: head
     parameters:
         inputs:
-        - roc_auc.sents.fi.gz
-        - roc_auc.sents.en.gz
+        - ce.sents.fi.gz
+        - ce.sents.en.gz
         outputs:
-        - roc_auc.sents.fi.90.gz
-        - roc_auc.sents.en.90.gz
+        - ce.sents.fi.90.gz
+        - ce.sents.en.90.gz
         n: 1940462
 
   - type: head
     parameters:
         inputs:
-        - roc_auc.sents.fi.gz
-        - roc_auc.sents.en.gz
+        - ce.sents.fi.gz
+        - ce.sents.en.gz
         outputs:
-        - roc_auc.sents.fi.80.gz
-        - roc_auc.sents.en.80.gz
+        - ce.sents.fi.80.gz
+        - ce.sents.en.80.gz
         n: 1724855
 
   - type: head
     parameters:
         inputs:
-        - roc_auc.sents.fi.gz
-        - roc_auc.sents.en.gz
+        - ce.sents.fi.gz
+        - ce.sents.en.gz
         outputs:
-        - roc_auc.sents.fi.70.gz
-        - roc_auc.sents.en.70.gz
+        - ce.sents.fi.70.gz
+        - ce.sents.en.70.gz
         n: 1509248
 
   - type: head
     parameters:
         inputs:
-        - roc_auc.sents.fi.gz
-        - roc_auc.sents.en.gz
+        - ce.sents.fi.gz
+        - ce.sents.en.gz
         outputs:
-        - roc_auc.sents.fi.60.gz
-        - roc_auc.sents.en.60.gz
+        - ce.sents.fi.60.gz
+        - ce.sents.en.60.gz
         n: 1293641
 
   - type: head
     parameters:
         inputs:
-        - roc_auc.sents.fi.gz
-        - roc_auc.sents.en.gz
+        - ce.sents.fi.gz
+        - ce.sents.en.gz
         outputs:
-        - roc_auc.sents.fi.50.gz
-        - roc_auc.sents.en.50.gz
+        - ce.sents.fi.50.gz
+        - ce.sents.en.50.gz
         n: 1078034
 

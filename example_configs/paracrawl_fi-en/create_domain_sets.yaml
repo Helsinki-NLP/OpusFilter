@@ -1,3 +1,12 @@
+# Note: This will need the fi-en WMT shared task dev sets 2015, 2016,
+# and 2017 stored in wmt2019-dev below the current directory as text
+# files. The data is available from
+# http://data.statmt.org/wmt19/translation-task/dev.tgz and the SGML
+# tags can be stripped using e.g.
+# https://gist.github.com/Rj7/15e64d9ca4faacdda235159083bd3b20.
+#
+# Run first the steps in prepare_data.yaml and create_ce_sets.yaml.
+
 common:
 
   output_directory: paracrawl_fi-en
@@ -7,17 +16,17 @@ steps:
   - type: concatenate
     parameters:
       inputs:
-      - wmt2019-dev/newsdev2015.fi.txt
-      - wmt2019-dev/newsdev2016.fi.txt
-      - wmt2019-dev/newsdev2017.fi.txt
+      - ../wmt2019-dev/newsdev2015.fi.txt
+      - ../wmt2019-dev/newstest2016.fi.txt
+      - ../wmt2019-dev/newstest2017.fi.txt
       output: wmt-news-train.fi.gz
 
   - type: concatenate
     parameters:
       inputs:
-      - wmt2019-dev/newsdev2015.en.txt
-      - wmt2019-dev/newsdev2016.en.txt
-      - wmt2019-dev/newsdev2017.en.txt
+      - ../wmt2019-dev/newsdev2015.en.txt
+      - ../wmt2019-dev/newstest2016.en.txt
+      - ../wmt2019-dev/newstest2017.en.txt
       output: wmt-news-train.en.gz
 
   - type: filter
