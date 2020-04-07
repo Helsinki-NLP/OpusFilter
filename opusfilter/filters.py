@@ -4,6 +4,7 @@ import logging
 import string
 import math
 import difflib
+import itertools
 
 import regex
 from langid.langid import LanguageIdentifier, model
@@ -28,19 +29,15 @@ class LengthFilter(FilterABC):
         super().__init__(**kwargs)
 
     def score(self, pairs):
-        for sent1, sent2 in pairs:
+        for pair in pairs:
             if self.unit == 'word':
-                length1 = len(sent1.split())
-                length2 = len(sent2.split())
+                lengths = [len(sent.split()) for sent in pair]
             else:
-                length1 = len(sent1)
-                length2 = len(sent2)
-            yield {'src': length1, 'tgt': length2}
+                lengths = [len(sent) for sent in pair]
+            yield lengths
 
     def accept(self, score):
-        length1, length2 = score['src'], score['tgt']
-        return (length1 >= self.min_length and length2 >= self.min_length and
-                length1 <= self.max_length and length2 <= self.max_length)
+        return all(self.min_length <= length <= self.max_length for length in score)
 
 
 class LengthRatioFilter(FilterABC):
@@ -55,18 +52,16 @@ class LengthRatioFilter(FilterABC):
         super().__init__(**kwargs)
 
     def score(self, pairs):
-        for sent1, sent2 in pairs:
+        for pair in pairs:
             if self.unit == 'word':
-                length1 = len(sent1.split())
-                length2 = len(sent2.split())
+                lengths = [len(sent.split()) for sent in pair]
             else:
-                length1 = len(sent1)
-                length2 = len(sent2)
-            if length1 == 0 or length2 == 0:
+                lengths = [len(sent) for sent in pair]
+            lengths.sort()
+            if lengths[0] == 0:
                 yield float('inf')
             else:
-                lens = sorted([length1, length2])
-                yield lens[1] / lens[0]
+                yield lengths[-1] / lengths[0]
 
     def accept(self, score):
         return score < self.threshold
@@ -80,9 +75,9 @@ class LongWordFilter(FilterABC):
         super().__init__(**kwargs)
 
     def score(self, pairs):
-        for sent1, sent2 in pairs:
+        for pair in pairs:
             longest = 0
-            for word in sent1.split() + sent2.split():
+            for word in (word for sent in pair for word in sent.split()):
                 if len(word) > longest:
                     longest = len(word)
             yield longest
@@ -98,14 +93,11 @@ class HtmlTagFilter(FilterABC):
         super().__init__(**kwargs)
 
     def score(self, pairs):
-        for sent1, sent2 in pairs:
-            src_tags = bool(bs(sent1, 'html.parser').find())
-            tgt_tags = bool(bs(sent2, 'html.parser').find())
-            yield {'src': src_tags, 'tgt': tgt_tags}
+        for pair in pairs:
+            yield [bool(bs(sent, 'html.parser').find()) for sent in pair]
 
     def accept(self, score):
-        src_tags, tgt_tags = score['src'], score['tgt']
-        return not (src_tags or tgt_tags)
+        return not any(score)
 
 
 class CharacterScoreFilter(FilterABC):
@@ -116,53 +108,47 @@ class CharacterScoreFilter(FilterABC):
 
     """
 
-    def __init__(self, src_script='Latin', tgt_script='Latin',
-                 src_threshold=1, tgt_threshold=1, **kwargs):
-        self.src_script = src_script
-        self.tgt_script = tgt_script
-        self.src_threshold = src_threshold
-        self.tgt_threshold = tgt_threshold
+    def __init__(self, scripts=None, thresholds=None, **kwargs):
+        if scripts is None:
+            raise ConfigurationError("A list of language scripts needs to be defined")
+        self.scripts = scripts
+        self.thresholds = [1] * len(scripts) if thresholds is None else thresholds
+        if len(self.scripts) != len(self.thresholds):
+            raise ConfigurationError("Mismatch in number of scripts {} and thresholds {}".format(
+                len(self.scripts), len(self.thresholds)))
         self.re_not_alphas = regex.compile(r'\p{Alphabetic=No}')
-        self.re_not_src_script = regex.compile(r'\p{{^Script={}}}'.format(src_script))
-        self.re_not_tgt_script = regex.compile(r'\p{{^Script={}}}'.format(tgt_script))
+        self.re_not_script = [regex.compile(r'\p{{^Script={}}}'.format(script))
+                              for script in self.scripts]
         super().__init__(**kwargs)
 
     def score(self, pairs):
-        for sent1, sent2 in pairs:
-            scores = {}
-            src_alphas = regex.sub(self.re_not_alphas, '', sent1)
-            if src_alphas:
-                src_script = regex.sub(self.re_not_src_script, '', src_alphas)
-                scores['src'] = len(src_script) / len(src_alphas)
-            else:
-                scores['src'] = 1.0
-            tgt_alphas = regex.sub(self.re_not_alphas, '', sent2)
-            if tgt_alphas:
-                tgt_script = regex.sub(self.re_not_tgt_script, '', tgt_alphas)
-                scores['tgt'] = len(tgt_script) / len(tgt_alphas)
-            else:
-                scores['tgt'] = 1.0
+        for pair in pairs:
+            if len(pair) != len(self.scripts):
+                raise ValueError("Mismatch in number of scripts {} and sentences {}".format(
+                    len(self.scripts), len(pair)))
+            scores = []
+            for idx, sent in enumerate(pair):
+                alphas = regex.sub(self.re_not_alphas, '', sent)
+                if alphas:
+                    script = regex.sub(self.re_not_script[idx], '', alphas)
+                    scores.append(len(script) / len(alphas))
+                else:
+                    scores.append(1.0)
             yield scores
 
     def accept(self, score):
-        src_score, tgt_score = score['src'], score['tgt']
-        return (src_score >= self.src_threshold and
-                tgt_score >= self.tgt_threshold)
+        return all(ratio >= threshold for ratio, threshold in zip(score, self.thresholds))
 
 
 class LanguageIDFilter(FilterABC):
     """Language identification confidence filter"""
 
-    def __init__(self, src_lang=None, tgt_lang=None, id_method='langid',
-                 src_threshold=0, tgt_threshold=0, **kwargs):
-        if not (isinstance(src_lang, str) and isinstance(tgt_lang, str)):
-            logging.error("Both source and target languages need to be defined")
-            raise ValueError("Strings expected, got: %s %s" % (src_lang, tgt_lang))
-        self.src_lang = src_lang
-        self.tgt_lang = tgt_lang
+    def __init__(self, languages=None, id_method='langid', thresholds=None, **kwargs):
+        if languages is None:
+            raise ConfigurationError("A list of language codes needs to be defined")
+        self.languages = languages
         self.id_method = id_method
-        self.src_threshold = src_threshold
-        self.tgt_threshold = tgt_threshold
+        self.thresholds = [0] * len(self.languages) if thresholds is None else thresholds
         self.identifier = LanguageIdentifier.from_modelstring(model, norm_probs=True)
         super().__init__(**kwargs)
 
@@ -191,14 +177,11 @@ class LanguageIDFilter(FilterABC):
             return liconf
 
     def score(self, pairs):
-        for sent1, sent2 in pairs:
-            src_score = self.confidence(sent1, self.src_lang)
-            tgt_score = self.confidence(sent2, self.tgt_lang)
-            yield {'src': src_score, 'tgt': tgt_score}
+        for pair in pairs:
+            yield [self.confidence(sent, self.languages[idx]) for idx, sent in enumerate(pair)]
 
     def accept(self, score):
-        score1, score2 = score['src'], score['tgt']
-        return score1 > self.src_threshold and score2 > self.tgt_threshold
+        return all(conf > threshold for conf, threshold in zip(score, self.thresholds))
 
 
 class TerminalPunctuationFilter(FilterABC):
@@ -210,7 +193,10 @@ class TerminalPunctuationFilter(FilterABC):
         super().__init__(**kwargs)
 
     def score(self, pairs):
-        for sent1, sent2 in pairs:
+        for pair in pairs:
+            if len(pair) != 2:
+                raise ValueError("Only bilingual input supported by TerminalPunctuationFilter")
+            sent1, sent2 = pair
             spun = len([c for c in sent1 if c in ['.', '?', '!', '…']])
             tpun = len([c for c in sent2 if c in ['.', '?', '!', '…']])
             score = abs(spun-tpun)
@@ -234,7 +220,10 @@ class NonZeroNumeralsFilter(FilterABC):
         super().__init__(**kwargs)
 
     def score(self, pairs):
-        for sent1, sent2 in pairs:
+        for pair in pairs:
+            if len(pair) != 2:
+                raise ValueError("Only bilingual input supported by NonZeroNumeralsFilter")
+            sent1, sent2 = pair
             snums = [int(c) for c in sent1 if c in string.digits and c != '0']
             tnums = [int(c) for c in sent2 if c in string.digits and c != '0']
             seq = difflib.SequenceMatcher(None, snums, tnums)

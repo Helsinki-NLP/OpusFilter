@@ -49,12 +49,12 @@ class FilterABC(metaclass=abc.ABCMeta):
 
     def filter(self, pairs):
         """Yield only accepted sentence pairs"""
-        for sent1, sent2 in pairs:
-            if self.accept(next(self.score([(sent1, sent2)]))):
-                yield sent1, sent2
+        for pair in pairs:
+            if self.accept(next(self.score([pair]))):
+                yield pair
 
     def filterfalse(self, pairs):
         """Yield sentence pairs that are not accepted"""
-        for sent1, sent2 in pairs:
-            if not self.accept(next(self.score([(sent1, sent2)]))):
-                yield sent1, sent2
+        for pair in pairs:
+            if not self.accept(next(self.score([pair]))):
+                yield pair

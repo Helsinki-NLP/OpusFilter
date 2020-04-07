@@ -31,18 +31,14 @@ class TestOpusFilter(unittest.TestCase):
                         'src_output': 'RF1_filtered.en',
                         'tgt_output': 'RF1_filtered.sv',
                         'filters': [{'LanguageIDFilter':
-                            {'src_lang': 'en',
-                                'tgt_lang': 'sv',
-                                'src_threshold': 0,
-                                'tgt_threshold': 0}},
+                            {'languages': ['en', 'sv'],
+                                'thresholds': [0, 0]}},
                             {'TerminalPunctuationFilter':
                                 {'threshold': -2}},
                             {'NonZeroNumeralsFilter': {'threshold': 0.5}},
                             {'CharacterScoreFilter':
-                                {'src_script': 'Latin',
-                                    'tgt_script': 'Latin',
-                                    'src_threshold': 1,
-                                    'tgt_threshold': 1}}]}},
+                                {'scripts': ['Latin', 'Latin'],
+                                    'thresholds': [1, 1]}}]}},
                 {'type': 'train_ngram',
                     'parameters': {'data': 'RF1_filtered.en',
                         'parameters': {'norder': 20, 'dscale': 0.001},
@@ -61,28 +57,23 @@ class TestOpusFilter(unittest.TestCase):
                         'tgt_input': 'RF1_sents.sv',
                         'output': 'RF1_scores.en-sv.jsonl',
                         'filters': [{'LanguageIDFilter':
-                            {'src_lang': 'en',
-                                'tgt_lang': 'sv',
-                                'src_threshold': 0,
-                                'tgt_threshold': 0}},
+                            {'languages': ['en', 'sv'],
+                                'thresholds': [0, 0]}},
                             {'TerminalPunctuationFilter':
                                 {'threshold': -2}},
                             {'NonZeroNumeralsFilter': {'threshold': 0.5}},
                             {'CharacterScoreFilter':
-                                {'src_script': 'Latin',
-                                    'tgt_script': 'Latin',
-                                    'src_threshold': 1,
-                                    'tgt_threshold': 1}},
+                                {'scripts': ['Latin', 'Latin'],
+                                    'sthreshold': [1, 1]}},
                             {'WordAlignFilter': {'tokenizer': 'none',
                                 'priors': 'RF1_align.priors',
                                 'model': 3,
                                 'src_threshold': 0,
                                 'tgt_threshold': 0}},
                             {'CrossEntropyFilter':
-                                {'src_lm_params': {'filename': 'RF1_en.arpa'},
-                                'tgt_lm_params': {'filename': 'RF1_sv.arpa'},
-                                'src_threshold': 50.0,
-                                'tgt_threshold': 50.0,
+                                {'lm_params': [{'filename': 'RF1_en.arpa'},
+                                               {'filename': 'RF1_sv.arpa'}],
+                                'thresholds': [50.0, 50.0],
                                 'diff_threshold': 10.0}}]}}]}
 
         OpusGet(directory='RF', source='en', target='sv', release='latest',
@@ -127,13 +118,13 @@ class TestOpusFilter(unittest.TestCase):
     def test_score_data(self):
         with open(os.path.join(self.tempdir, 'RF1_scores.en-sv.jsonl')) as scores_file:
             score = json.loads(scores_file.readline())
-            self.assertEqual(score['LanguageIDFilter'], {'src': 1.0, 'tgt': 0.98})
-            self.assertEqual(score['LanguageIDFilter'], {'src': 1.0, 'tgt': 0.98})
-            self.assertEqual(score['CharacterScoreFilter'], {'src': 1.0, 'tgt': 1.0})
+            self.assertEqual(score['LanguageIDFilter'], [1.0, 0.98])
+            self.assertEqual(score['LanguageIDFilter'], [1.0, 0.98])
+            self.assertEqual(score['CharacterScoreFilter'], [1.0, 1.0])
             self.assertAlmostEqual(
-                score['CrossEntropyFilter']['src'], 15.214258903317491)
+                score['CrossEntropyFilter'][0], 15.214258903317491)
             self.assertAlmostEqual(
-                score['CrossEntropyFilter']['tgt'], 7.569084909162213)
+                score['CrossEntropyFilter'][1], 7.569084909162213)
             self.assertEqual(score['TerminalPunctuationFilter'], -0.0)
             self.assertEqual(score['NonZeroNumeralsFilter'], 0.0)
             self.assertEqual(type(score['WordAlignFilter']), dict)

@@ -2,6 +2,7 @@
 
 import argparse
 import copy
+import itertools
 import logging
 import math
 import tempfile
@@ -210,45 +211,39 @@ class CrossEntropyFilter(FilterABC):
 
     score_types = {'entropy', 'perplexity', 'logprob'}
 
-    def __init__(self, src_lm_params=None, tgt_lm_params=None, score_type='entropy',
-                 src_threshold=50.0, tgt_threshold=50.0, diff_threshold=10.0, **kwargs):
-        if not src_lm_params or not tgt_lm_params:
+    def __init__(self, lm_params=None, score_type='entropy',
+                 thresholds=None, diff_threshold=10.0, **kwargs):
+        if not lm_params:
             raise ConfigurationError("Language model configurations need to be defined")
-        if src_lm_params.get('segmentation', {}).get('type', 'char') != 'char':
+        if any(param.get('segmentation', {}).get('type', 'char') != 'char' for param in lm_params):
             raise ConfigurationError("Only segmentation type supported currently is 'char'")
         if score_type not in self.score_types:
             raise ConfigurationError("Unknown score type {}, should be one of {}".format(
                 score_type, self.score_types))
         self.score_type = score_type
-        self.src_lm_params = src_lm_params
-        self.tgt_lm_params = tgt_lm_params
-        self.src_lm = get_lm(**self.src_lm_params)
-        self.tgt_lm = get_lm(**self.tgt_lm_params)
-        self.src_threshold = src_threshold
-        self.tgt_threshold = tgt_threshold
+        self.lm_params = lm_params
+        self.lms = [get_lm(**params) for params in self.lm_params]
+        self.thresholds = [50.0] * len(lm_params) if thresholds is None else thresholds
         self.diff_threshold = diff_threshold
         super().__init__(**kwargs)
 
-    def accept(self, score):
-        src, tgt = score['src'], score['tgt']
-        diff = abs(src - tgt)
-        return src < self.src_threshold and tgt < self.tgt_threshold and diff < self.diff_threshold
-
     def score(self, pairs):
-        src_tokenizer = LMTokenizer(**self.src_lm_params)
-        tgt_tokenizer = LMTokenizer(**self.tgt_lm_params)
-        for sent1, sent2 in pairs:
-            scores = {}
-            for key, lm, tokenizer, sent in [('src', self.src_lm, src_tokenizer, sent1),
-                                             ('tgt', self.tgt_lm, tgt_tokenizer, sent2)]:
+        tokenizers = [LMTokenizer(**params) for params in self.lm_params]
+        for pair in pairs:
+            scores = []
+            for lm, tokenizer, sent in zip(self.lms, tokenizers, pair):
                 tokens = tokenizer.tokenize(sent)
                 use_word = tokenizer.wb or tokenizer.mb
                 ppl, entr, logprob = word_perplexity(lm, tokens) if use_word \
                                      else token_perplexity(lm, tokens)
                 if self.score_type == 'logprob':
-                    scores[key] = logprob
+                    scores.append(logprob)
                 elif self.score_type == 'perplexity':
-                    scores[key] = ppl
+                    scores.append(ppl)
                 else:
-                    scores[key] = entr
+                    scores.append(entr)
             yield scores
+
+    def accept(self, score):
+        return all(value < threshold for value, threshold in zip(score, self.thresholds)) and \
+            all(abs(x[0] - x[1]) < self.diff_threshold for x in itertools.combinations(score, 2))

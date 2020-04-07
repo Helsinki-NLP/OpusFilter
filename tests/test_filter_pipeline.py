@@ -13,11 +13,10 @@ class TestFilterPipeline(unittest.TestCase):
                 {'LengthRatioFilter': {'threshold': 3, 'unit': 'word'}},
                 {'LongWordFilter': {'threshold': 40}},
                 {'HtmlTagFilter': {}},
-                {'CharacterScoreFilter': {'src_script': 'Latin',
-                    'tgt_script': 'Latin', 'src_threshold': 1,
-                    'tgt_threshold': 1}},
-                {'LanguageIDFilter': {'src_lang': 'en', 'tgt_lang': 'sv',
-                    'src_threshold': 0, 'tgt_threshold': 0}},
+                {'CharacterScoreFilter': {'scripts': ['Latin', 'Latin'],
+                                          'thresholds': [1, 1]}},
+                {'LanguageIDFilter': {'languages': ['en', 'sv'],
+                                      'thresholds': [0, 0]}},
                 {'TerminalPunctuationFilter': {'threshold': -2}},
                 {'NonZeroNumeralsFilter': {'threshold': 0.5}}
            ]
@@ -36,21 +35,21 @@ class TestFilterPipeline(unittest.TestCase):
                     '12345.....')]
         scores = list(fp.score(pairs))
         self.assertEqual(scores[0],
-                {'LengthFilter': {'src': 5, 'tgt': 9},
+                {'LengthFilter': [5, 9],
                     'LengthRatioFilter': 1.8,
                     'LongWordFilter': 12,
-                    'HtmlTagFilter': {'src': False, 'tgt': False},
-                    'CharacterScoreFilter': {'src': 1.0, 'tgt': 1.0},
-                    'LanguageIDFilter': {'src': 1.0, 'tgt': 1.0},
+                    'HtmlTagFilter': [False, False],
+                    'CharacterScoreFilter': [1.0, 1.0],
+                    'LanguageIDFilter': [1.0, 1.0],
                     'TerminalPunctuationFilter': -0.0,
                     'NonZeroNumeralsFilter': 1.0})
         self.assertEqual(scores[1],
-                {'LengthFilter': {'src': 1, 'tgt': 1},
+                {'LengthFilter': [1, 1],
                     'LengthRatioFilter': 1.0,
                     'LongWordFilter': 10,
-                    'HtmlTagFilter': {'src': False, 'tgt': False},
-                    'CharacterScoreFilter': {'src': 1.0, 'tgt': 1.0},
-                    'LanguageIDFilter': {'src': 0.17, 'tgt': 0.0},
+                    'HtmlTagFilter': [False, False],
+                    'CharacterScoreFilter': [1.0, 1.0],
+                    'LanguageIDFilter': [0.17, 0.0],
                     'TerminalPunctuationFilter': -2.1972245773362196,
                     'NonZeroNumeralsFilter': 0.8888888888888888})
 
@@ -114,10 +113,10 @@ class TestFilterPipelineScoreNames(unittest.TestCase):
         scores = list(fp.score(pairs))
         self.assertEqual(
             scores[0],
-            {'LengthFilter': {'1': {'src': 5, 'tgt': 9}, '2': {'src': 34, 'tgt': 65}}})
+            {'LengthFilter': {'1': [5, 9], '2': [34, 65]}})
         self.assertEqual(
             scores[1],
-            {'LengthFilter': {'1': {'src': 1, 'tgt': 1}, '2': {'src': 6, 'tgt': 10}}})
+            {'LengthFilter': {'1': [1, 1], '2': [6, 10]}})
 
     def test_with_names(self):
         config = [
@@ -139,7 +138,7 @@ class TestFilterPipelineScoreNames(unittest.TestCase):
         scores = list(fp.score(pairs))
         self.assertEqual(
             scores[0],
-            {'LengthFilter': {'words': {'src': 5, 'tgt': 9}, 'chars': {'src': 34, 'tgt': 65}}})
+            {'LengthFilter': {'words': [5, 9], 'chars': [34, 65]}})
         self.assertEqual(
             scores[1],
-            {'LengthFilter': {'words': {'src': 1, 'tgt': 1}, 'chars': {'src': 6, 'tgt': 10}}})
+            {'LengthFilter': {'words': [1, 1], 'chars': [6, 10]}})

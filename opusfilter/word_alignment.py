@@ -22,7 +22,10 @@ def create_align_input_file(sentence_pairs, src_tokenizer=None, tgt_tokenizer=No
     src_tokenize = tokenization.get_tokenize(src_tokenizer)
     tgt_tokenize = tokenization.get_tokenize(tgt_tokenizer)
     inputfile = tempfile.NamedTemporaryFile('w+')
-    for sent1, sent2 in sentence_pairs:
+    for pair in sentence_pairs:
+        if len(pair) != 2:
+            raise ValueError("Only bilingual input supported by WordAlignFilter")
+        sent1, sent2 = pair
         inputfile.write('{} ||| {}\n'.format(src_tokenize(sent1), tgt_tokenize(sent2)))
     inputfile.flush()
     return inputfile

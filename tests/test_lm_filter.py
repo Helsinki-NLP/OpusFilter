@@ -46,8 +46,8 @@ class TestLMFilter(unittest.TestCase):
         tgt_lm_params = {'filename': self.lmfile2}
         cefilter = lm.CrossEntropyFilter(
             score_type='entropy',
-            src_threshold=10, tgt_threshold=10, diff_threshold=5,
-            src_lm_params=src_lm_params, tgt_lm_params=tgt_lm_params)
+            thresholds=[10, 10], diff_threshold=5,
+            lm_params=[src_lm_params, tgt_lm_params])
         inputs = [('ab', 'AB'), ('abbb abbb', 'AB'), ('ab', 'BAA'), ('abbb', 'BA'), ('abbb', 'AB')]
         scores = []
         bools = []
@@ -62,8 +62,8 @@ class TestLMFilter(unittest.TestCase):
         tgt_lm_params = {'filename': self.lmfile2}
         cefilter = lm.CrossEntropyFilter(
             score_type='perplexity',
-            src_threshold=1000, tgt_threshold=1000, diff_threshold=100,
-            src_lm_params=src_lm_params, tgt_lm_params=tgt_lm_params)
+            thresholds=[1000, 1000], diff_threshold=100,
+            lm_params=[src_lm_params, tgt_lm_params])
         inputs = [('ab', 'AB'), ('abbb abbb', 'AB'), ('ab', 'BAA'), ('abbb', 'BA'), ('abbb', 'AB')]
         scores = []
         bools = []
@@ -78,8 +78,8 @@ class TestLMFilter(unittest.TestCase):
         tgt_lm_params = {'filename': self.lmfile2}
         cefilter = lm.CrossEntropyFilter(
             score_type='logprob',
-            src_threshold=20, tgt_threshold=20, diff_threshold=5,
-            src_lm_params=src_lm_params, tgt_lm_params=tgt_lm_params)
+            thresholds=[20, 20], diff_threshold=5,
+            lm_params=[src_lm_params, tgt_lm_params])
         inputs = [('ab', 'AB'), ('abbb abbb', 'AB'), ('ab', 'BAA'), ('abbb', 'BA'), ('abbb', 'AB')]
         scores = []
         bools = []
