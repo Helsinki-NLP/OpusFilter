@@ -42,7 +42,7 @@ class TestFilterPipeline(unittest.TestCase):
                     'CharacterScoreFilter': [1.0, 1.0],
                     'LanguageIDFilter': [1.0, 1.0],
                     'TerminalPunctuationFilter': -0.0,
-                    'NonZeroNumeralsFilter': 1.0})
+                    'NonZeroNumeralsFilter': [1.0]})
         self.assertEqual(scores[1],
                 {'LengthFilter': [1, 1],
                     'LengthRatioFilter': 1.0,
@@ -51,7 +51,7 @@ class TestFilterPipeline(unittest.TestCase):
                     'CharacterScoreFilter': [1.0, 1.0],
                     'LanguageIDFilter': [0.17, 0.0],
                     'TerminalPunctuationFilter': -2.1972245773362196,
-                    'NonZeroNumeralsFilter': 0.8888888888888888})
+                    'NonZeroNumeralsFilter': [0.8888888888888888]})
 
     def test_filter(self):
         fp = FilterPipeline.from_config(self.config)

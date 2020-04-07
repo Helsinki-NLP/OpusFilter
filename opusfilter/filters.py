@@ -212,8 +212,7 @@ class TerminalPunctuationFilter(FilterABC):
 
 
 class NonZeroNumeralsFilter(FilterABC):
-    """Similarity measure between numerals of the two sentences with
-        zeros removed"""
+    """Similarity measure between numerals of the two sentences with zeros removed"""
 
     def __init__(self, threshold=0.5, **kwargs):
         self.threshold = threshold
@@ -221,13 +220,13 @@ class NonZeroNumeralsFilter(FilterABC):
 
     def score(self, pairs):
         for pair in pairs:
-            if len(pair) != 2:
-                raise ValueError("Only bilingual input supported by NonZeroNumeralsFilter")
-            sent1, sent2 = pair
-            snums = [int(c) for c in sent1 if c in string.digits and c != '0']
-            tnums = [int(c) for c in sent2 if c in string.digits and c != '0']
-            seq = difflib.SequenceMatcher(None, snums, tnums)
-            yield seq.ratio()
+            nums = [[int(c) for c in sent if c in string.digits and c != '0']
+                    for sent in pair]
+            ratios = []
+            for num1, num2 in itertools.combinations(nums, 2):
+                seq = difflib.SequenceMatcher(None, num1, num2)
+                ratios.append(seq.ratio())
+            yield ratios
 
     def accept(self, score):
-        return score >= self.threshold
+        return all(ratio >= self.threshold for ratio in score)

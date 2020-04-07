@@ -140,16 +140,18 @@ class OpusFilter:
         opus_reader.printPairs()
 
     @staticmethod
-    def pair_generator(source_file_name, target_file_name,
-                       src_tokenizer=None, tgt_tokenizer=None):
+    def pair_generator(*filenames, tokenizers=None):
         """Yield and optionally tokenize sentence pairs from given files"""
-        src_tokenize = tokenization.get_tokenize(src_tokenizer)
-        tgt_tokenize = tokenization.get_tokenize(tgt_tokenizer)
-        with file_open(source_file_name) as source_file, \
-                file_open(target_file_name) as target_file:
-            for src_line in source_file:
-                tgt_line = target_file.readline()
-                yield (src_tokenize(src_line.rstrip()), tgt_tokenize(tgt_line.rstrip()))
+        if tokenizers is None:
+            tokenizers = [None] * len(filenames)
+        tokenize_funcs = [tokenization.get_tokenize(tokenizer) for tokenizer in tokenizers]
+        files = [file_open(fname) for fname in filenames]
+        lines = [f.readline() for f in files]
+        while all(lines):
+            yield tuple(tokenize(line.rstrip()) for tokenize, line in zip(tokenize_funcs, lines))
+            lines = [f.readline() for f in files]
+        for fobj in files:
+            fobj.close()
 
     def get_pairs(self, src_filename, tgt_filename):
         """Return a generator for given sentence files"""
@@ -169,47 +171,42 @@ class OpusFilter:
                 f[filter_name]['priors'] = os.path.join(
                     self.output_dir, f[filter_name]['priors'])
             if filter_name == 'CrossEntropyFilter':
-                src_lm_params = f[filter_name]['src_lm_params']
-                src_lm_params['filename'] = os.path.join(
-                    self.output_dir, src_lm_params['filename'])
-                if src_lm_params.get('interpolate'):
-                    for idx in range(len(src_lm_params['interpolate'])):
-                        src_lm_params['interpolate'][idx][0] = os.path.join(
-                            self.output_dir, src_lm_params['interpolate'][idx][0])
-                tgt_lm_params = f[filter_name]['tgt_lm_params']
-                tgt_lm_params['filename'] = os.path.join(
-                    self.output_dir, tgt_lm_params['filename'])
-                if tgt_lm_params.get('interpolate'):
-                    for idx in range(len(tgt_lm_params['interpolate'])):
-                        tgt_lm_params['interpolate'][idx][0] = os.path.join(
-                            self.output_dir, tgt_lm_params['interpolate'][idx][0])
+                for idx, lm_params in enumerate(f[filter_name]['lm_params']):
+                    f[filter_name]['lm_params'][idx]['filename'] = os.path.join(
+                        self.output_dir, lm_params['filename'])
+                    if lm_params.get('interpolate'):
+                        for idx in range(len(lm_params['interpolate'])):
+                            f[filter_name]['lm_params'][idx]['interpolate'][idx][0] = os.path.join(
+                                self.output_dir, lm_params['interpolate'][idx][0])
         return fixed_params
 
     def filter_data(self, parameters, overwrite=False):
         """Write sentences to file if they pass given filters"""
-        src_out = os.path.join(self.output_dir, parameters['src_output'])
-        tgt_out = os.path.join(self.output_dir, parameters['tgt_output'])
-        if not overwrite and os.path.isfile(src_out) and os.path.isfile(tgt_out):
+        outfiles = [os.path.join(self.output_dir, fname) for fname in parameters['outputs']]
+        infiles = [os.path.join(self.output_dir, fname) for fname in parameters['inputs']]
+        if len(outfiles) != len(infiles):
+            raise ConfigurationError("Number of input and output files should match in sort")
+        if not overwrite and all(os.path.isfile(outfile) for outfile in outfiles):
             logger.info("Output files exists, skipping step")
             return
-        fixed_params = self.fix_filter_file_paths(parameters['filters'])
-        filter_pipe = pipeline.FilterPipeline.from_config(fixed_params)
+        filter_params = self.fix_filter_file_paths(parameters['filters'])
+        filter_pipe = pipeline.FilterPipeline.from_config(filter_params)
         filterfalse = parameters.get('filterfalse', False)
-        pairs_gen = self.get_pairs(parameters['src_input'], parameters['tgt_input'])
+        pairs_gen = self.pair_generator(*infiles)
         if filterfalse:
             pairs = filter_pipe.filterfalse(pairs_gen)
         else:
             pairs = filter_pipe.filter(pairs_gen)
         limit = parameters.get('limit')
-        with file_open(src_out, 'w') as source_file, \
-                file_open(tgt_out, 'w') as target_file:
-            for idx, pair in tqdm(enumerate(pairs)):
-                source_file.write(pair[0]+'\n')
-                target_file.write(pair[1]+'\n')
-                source_file.flush()
-                target_file.flush()
-                if limit and idx >= limit - 1:
-                    break
+        outfileobjs = [file_open(fname, 'w') for fname in outfiles]
+        for idx, pair in tqdm(enumerate(pairs)):
+            for item, fobj in zip(pair, outfileobjs):
+                fobj.write(item+'\n')
+                fobj.flush()
+            if limit and idx >= limit - 1:
+                break
+        for fobj in outfileobjs:
+            fobj.close()
 
     def concatenate(self, parameters, overwrite=False):
         """Concatenate files"""
@@ -251,46 +248,43 @@ class OpusFilter:
     def get_subset(self, parameters, overwrite=False):
         """Get random subset of parallel data
 
-        Keeps the order of lines, unless if shuffle_target is True in
+        Keeps the order of lines, unless if shuffle_subset is True in
         parameters, in which case the target lines will be in a random
         order.
 
         """
-        src_in = os.path.join(self.output_dir, parameters['src_input'])
-        tgt_in = os.path.join(self.output_dir, parameters['tgt_input'])
-        src_out = os.path.join(self.output_dir, parameters['src_output'])
-        tgt_out = os.path.join(self.output_dir, parameters['tgt_output'])
-        if not overwrite and os.path.isfile(src_out) and os.path.isfile(tgt_out):
+        outfiles = [os.path.join(self.output_dir, fname) for fname in parameters['outputs']]
+        infiles = [os.path.join(self.output_dir, fname) for fname in parameters['inputs']]
+        if len(outfiles) != len(infiles):
+            raise ConfigurationError("Number of input and output files should match in sort")
+        if not overwrite and all(os.path.isfile(outfile) for outfile in outfiles):
             logger.info("Output files exists, skipping step")
             return
         random.seed(parameters.get('seed', None))
         size = parameters['size']
-        shuffle_target = parameters.get('shuffle_target', False)
-        total = self._get_total_lines(src_in)
+        shuffle_subset = parameters.get('shuffle_subset', False)
+        total = self._get_total_lines(infiles[0])
         logger.info("Sampling subset of %s lines from total %s lines", size, total)
-        if shuffle_target:
+        if shuffle_subset:
             sample = random.sample(range(total), size)
-            with file_open(src_in) as inf, \
-                 file_open(src_out, 'w') as outf:
+            with file_open(inputs[0]) as inf, \
+                 file_open(outputs[0], 'w') as outf:
                 for line in self._yield_subset(inf, sample):
                     outf.write(line)
-            sample = random.sample(range(total), size)
-            with file_open(tgt_in) as inf:
-                lines = [line for line in self._yield_subset(inf, sample)]
-            random.shuffle(lines)
-            with file_open(tgt_out, 'w') as outf:
-                for line in lines:
-                    outf.write(line)
+            for infname, outfname in zip(infiles[1:], outfiles[1:]):
+                with file_open(infname) as inf:
+                    lines = [line for line in self._yield_subset(inf, sample)]
+                random.shuffle(lines)
+                with file_open(outfname, 'w') as outf:
+                    for line in lines:
+                        outf.write(line)
         else:
             sample = random.sample(range(total), size)
-            with file_open(src_in) as inf, \
-                 file_open(src_out, 'w') as outf:
-                for line in self._yield_subset(inf, sample):
-                    outf.write(line)
-            with file_open(tgt_in) as inf, \
-                 file_open(tgt_out, 'w') as outf:
-                for line in self._yield_subset(inf, sample):
-                    outf.write(line)
+            for infname, outfname in zip(infiles, outfiles):
+                with file_open(infname) as inf, \
+                     file_open(outfname, 'w') as outf:
+                    for line in self._yield_subset(inf, sample):
+                        outf.write(line)
 
     def train_ngram(self, parameters, overwrite=False):
         """Train an n-gram language model"""
@@ -320,8 +314,8 @@ class OpusFilter:
         pair_gen = tqdm(self.pair_generator(
             os.path.join(self.output_dir, parameters['src_data']),
             os.path.join(self.output_dir, parameters['tgt_data']),
-            src_tokenizer=parameters['parameters'].get('src_tokenizer', None),
-            tgt_tokenizer=parameters['parameters'].get('tgt_tokenizer', None)))
+            tokenizers=[parameters['parameters'].get('src_tokenizer', None),
+                        parameters['parameters'].get('tgt_tokenizer', None)]))
         word_alignment.make_priors(
             pair_gen, model_out, model=parameters['parameters'].get('model', 3))
 
@@ -341,14 +335,14 @@ class OpusFilter:
 
     def score_data(self, parameters, overwrite=False):
         """Score language data based on given filters"""
+        infiles = [os.path.join(self.output_dir, fname) for fname in parameters['inputs']]
         score_out = os.path.join(self.output_dir, parameters['output'])
         if not overwrite and os.path.isfile(score_out):
             logger.info("Output file exists, skipping step")
             return
-        pairs_gen = self.get_pairs(parameters['src_input'], parameters['tgt_input'])
-        fixed_params = self.fix_filter_file_paths(parameters['filters'])
-        filter_pipe = pipeline.FilterPipeline.from_config(fixed_params)
-        scores_gen = filter_pipe.score(pairs_gen)
+        filter_params = self.fix_filter_file_paths(parameters['filters'])
+        filter_pipe = pipeline.FilterPipeline.from_config(filter_params)
+        scores_gen = filter_pipe.score(self.pair_generator(*infiles))
         self._write_jsonl(scores_gen, score_out)
 
     def train_classifier(self, parameters, overwrite=False):
