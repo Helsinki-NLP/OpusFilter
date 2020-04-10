@@ -159,6 +159,32 @@ class OpusFilter:
             result_dir=self.output_dir, tgt_filename=tgt_filename)
         return self.pair_generator(source_file_name, target_file_name)
 
+    def fix_filter_file_paths(self, filter_params):
+        """Fix file paths in filter parameters"""
+        # Make a copy so that the original paths are not modified
+        fixed_params = copy.deepcopy(filter_params)
+        for f in fixed_params:
+            filter_name = next(iter(f.items()))[0]
+            if filter_name == 'WordAlignFilter' and 'priors' in f[filter_name]:
+                f[filter_name]['priors'] = os.path.join(
+                    self.output_dir, f[filter_name]['priors'])
+            if filter_name == 'CrossEntropyFilter':
+                src_lm_params = f[filter_name]['src_lm_params']
+                src_lm_params['filename'] = os.path.join(
+                    self.output_dir, src_lm_params['filename'])
+                if src_lm_params.get('interpolate'):
+                    for idx in range(len(src_lm_params['interpolate'])):
+                        src_lm_params['interpolate'][idx][0] = os.path.join(
+                            self.output_dir, src_lm_params['interpolate'][idx][0])
+                tgt_lm_params = f[filter_name]['tgt_lm_params']
+                tgt_lm_params['filename'] = os.path.join(
+                    self.output_dir, tgt_lm_params['filename'])
+                if tgt_lm_params.get('interpolate'):
+                    for idx in range(len(tgt_lm_params['interpolate'])):
+                        tgt_lm_params['interpolate'][idx][0] = os.path.join(
+                            self.output_dir, tgt_lm_params['interpolate'][idx][0])
+        return fixed_params
+
     def filter_data(self, parameters, overwrite=False):
         """Write sentences to file if they pass given filters"""
         src_out = os.path.join(self.output_dir, parameters['src_output'])
@@ -166,7 +192,8 @@ class OpusFilter:
         if not overwrite and os.path.isfile(src_out) and os.path.isfile(tgt_out):
             logger.info("Output files exists, skipping step")
             return
-        filter_pipe = pipeline.FilterPipeline.from_config(parameters['filters'])
+        fixed_params = self.fix_filter_file_paths(parameters['filters'])
+        filter_pipe = pipeline.FilterPipeline.from_config(fixed_params)
         filterfalse = parameters.get('filterfalse', False)
         pairs_gen = self.get_pairs(parameters['src_input'], parameters['tgt_input'])
         if filterfalse:
@@ -318,31 +345,9 @@ class OpusFilter:
         if not overwrite and os.path.isfile(score_out):
             logger.info("Output file exists, skipping step")
             return
-        # Make a copy so that the original paths are not modified
-        filter_params = copy.deepcopy(parameters['filters'])
-        for f in filter_params:
-            filter_name = next(iter(f.items()))[0]
-            if filter_name == 'WordAlignFilter' and 'priors' in f[filter_name]:
-                f[filter_name]['priors'] = os.path.join(
-                    self.output_dir, f[filter_name]['priors'])
-            if filter_name == 'CrossEntropyFilter':
-                src_lm_params = f[filter_name]['src_lm_params']
-                src_lm_params['filename'] = os.path.join(
-                    self.output_dir, src_lm_params['filename'])
-                if src_lm_params.get('interpolate'):
-                    for idx in range(len(src_lm_params['interpolate'])):
-                        src_lm_params['interpolate'][idx][0] = os.path.join(
-                            self.output_dir, src_lm_params['interpolate'][idx][0])
-                tgt_lm_params = f[filter_name]['tgt_lm_params']
-                tgt_lm_params['filename'] = os.path.join(
-                    self.output_dir, tgt_lm_params['filename'])
-                if tgt_lm_params.get('interpolate'):
-                    for idx in range(len(tgt_lm_params['interpolate'])):
-                        tgt_lm_params['interpolate'][idx][0] = os.path.join(
-                            self.output_dir, tgt_lm_params['interpolate'][idx][0])
-
         pairs_gen = self.get_pairs(parameters['src_input'], parameters['tgt_input'])
-        filter_pipe = pipeline.FilterPipeline.from_config(filter_params)
+        fixed_params = self.fix_filter_file_paths(parameters['filters'])
+        filter_pipe = pipeline.FilterPipeline.from_config(fixed_params)
         scores_gen = filter_pipe.score(pairs_gen)
         self._write_jsonl(scores_gen, score_out)
 
