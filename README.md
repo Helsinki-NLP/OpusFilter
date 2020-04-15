@@ -188,10 +188,12 @@ steps:
 
   - type: filter
     parameters:
-      src_input: all.fi.gz
-      tgt_input: all.en.gz
-      src_output: filtered.fi.gz
-      tgt_output: filtered.en.gz
+      inputs:
+	  - all.fi.gz
+      - all.en.gz
+      outputs:
+	  - filtered.fi.gz
+      - filtered.en.gz
       filters:
         - LengthFilter:
             unit: word
@@ -212,10 +214,12 @@ WMT-News data, you can have:
 ```yaml
   - type: filter
     parameters:
-      src_input: paracrawl.fi.gz
-      tgt_input: paracrawl.en.gz
-      src_output: paracrawl_filtered.fi.gz
-      tgt_output: paracrawl_filtered.en.gz
+      inputs:
+	  - paracrawl.fi.gz
+      - paracrawl.en.gz
+      outputs:
+	  - paracrawl_filtered.fi.gz
+      - paracrawl_filtered.en.gz
       filters: &myfilters
         - LengthFilter:
             unit: word
@@ -228,10 +232,12 @@ WMT-News data, you can have:
 
   - type: filter
     parameters:
-      src_input: wmt.fi.gz
-      tgt_input: wmt.en.gz
-      src_output: wmt_filtered.fi.gz
-      tgt_output: wmt_filtered.en.gz
+      inputs:
+	  - wmt.fi.gz
+      - wmt.en.gz
+      outputs:
+	  - wmt_filtered.fi.gz
+      - wmt_filtered.en.gz
       filters: *myfilters
 ```
 
@@ -351,13 +357,11 @@ Take a random subset from parallel corpus files.
 
 Parameters:
 
-* `src_input`: input file for source language
-* `tgt_input`: input file for target language
-* `src_output`: output file for source language
-* `tgt_output`: output file for target language
+* `inputs`: input files
+* `outputs`: output files for storing the subset
 * `size`: number of lines to select for the subset
 * `seed`: seed for the random generator; set to ensure that two runs select the same lines (optional; default `null`)
-* `shuffle_target`: take different random lines from the target language; can be used to produce noisy examples for training a corpus filtering model (optional; default `false`)
+* `shuffle_subset`: shuffle the order of the selected lines for each language except for the first; can be used to produce noisy examples for training a corpus filtering model (optional; default `false`)
 
 ### Filtering and scoring
 
@@ -400,10 +404,8 @@ Filter parallel data with a combination of filters.
 
 Parameters:
 
-* `src_input`: input file for source language
-* `tgt_input`: input file for target language
-* `src_output`: output file for source language
-* `tgt_output`: output file for target language
+* `inputs`: input files for segments to filter
+* `outputs`: output files for filtered sentences
 * `filters`: a list of filters to apply; see below
 * `filterfalse`: Yield segment pairs that do not pass at least one of the filters (optional; default `false`)
 
@@ -430,8 +432,7 @@ Calculate filtering scores for the lines of parallel data.
 
 Parameters:
 
-* `src_input`: input file for source language
-* `tgt_input`: input file for target language
+* `inputs`: input files for segments to score
 * `output`: output file for the scores
 * `filters`: a list of filters to apply; see below
 
@@ -445,9 +446,8 @@ single JSON object. The top level of the object contains class names
 for the filters. If there is only of filter of the specific class, and
 its score is a single number, the value of the score is simply below
 the class name. The the filter outputs more scores, they are
-represented in a dictionary. Typically there is a key `src` for source
-segment score and `tgt` for target segment score, but the number of
-scores and their keys are not restricted.
+represented in a list or dictionary. Typically there is one score
+for each segment (language) if there are multiple scores.
 
 The filters may contain the same filter class multiple times so that
 the same filter can be used with different parameters (e.g. both words
@@ -656,12 +656,10 @@ Filter segments based on what proportion of their alphabetic characters are in a
 
 Parameters:
 
-* `src_script`: script for source segment (default Latin)
-* `tgt_script`: script for target segment (default Latin)
-* `src_threshold`: minimum proportion of source characters in a script (default 1)
-* `tgt_threshold`: minimum proportion of target characters in a script (default 1)
+* `scripts`: scripts for input segments
+* `thresholds`: minimum proportion of characters in a script (default 1)
 
-Returned scores are proportions of valid characters in source and target segments. In filtering, both values have to be equal to or greater than the minimum thresholds.
+Returned scores are proportions of valid characters in the segments. In filtering, all values have to be equal to or greater than the minimum thresholds.
 
 #### `LanguageIDFilter`
 
@@ -669,13 +667,11 @@ Filter segments based on their language identification confidence scores.
 
 Parameters:
 
-* `src_lang`: expected language for source segment
-* `tgt_lang`: expected language for target segment
+* `languages`: expected languages for the segments
 * `id_method`: language indentification method (`langid` for using the `langid` library of `cld2` for using the `cld2` library; the default is `langid`)
-* `src_threshold`: minimum identification confidence score for source segment
-* `tgt_threshold`: minimum identification confidence score for target segment
+* `thresholds`: minimum identification confidence score for the segments
 
-Returned scores are the language identification confidence scores from a given identification method for source and target segments. The scores range from 0 to 1. In filtering, both values have to be greater than the minimum thresholds.
+Returned scores are the language identification confidence scores from a given identification method for the segments. The scores range from 0 to 1. In filtering, all values have to be greater than the minimum thresholds.
 
 ### Special character filters
 
@@ -683,11 +679,13 @@ Returned scores are the language identification confidence scores from a given i
 
 Filter segments based on whether they contain HTML tags or not.
 
-The returned scores are two boolean values indicating whether the source and target segments contain HTML tags. In filtering, a segment pair is accepted if neither of the segments contains HTML tags.
+The returned scores are two boolean values indicating whether the segments contain HTML tags. In filtering, a segment pair is accepted if none of the segments contains HTML tags.
 
 #### `TerminalPunctuationFilter`
 
 Filter segments based on a penalty score with respect to the co-occurrence of therminal punctuation marks ('.', '...', '?', '!') in source and target segments. The score is formulated as follows: the initial score is the absolute difference in source and target terminal punctuation counts, the score is then incremented by the number of terminal punctuation beyond the first occurence in both segments, and finally, the score is updated with `score=-log(score+1)` ([Vázquez et al.](https://www.aclweb.org/anthology/W19-5441/)). The score of the greatest co-occurrence is 0 and smaller values indicate greater penalty.
+
+This filter works only for bilingual input.
 
 Parameters:
 
@@ -697,13 +695,13 @@ The returned score is a single terminal punctuation score. In filtering, the sco
 
 #### `NonZeroNumeralsFilter`
 
-Filter segments based on a similarity measure of numerals between the source and target segments with zeros removed. Non-zero numerals are extracted fron both segments preserving the relative order of the numerals. The similarity score between the numeral sequences is produced with `SequenceMatcher.ratio()` from Python's `difflib` library.
+Filter segments based on a similarity measure of numerals between the segments with zeros removed. Non-zero numerals are extracted fron all segments preserving the relative order of the numerals. The similarity score between the numeral sequences is produced with `SequenceMatcher.ratio()` from Python's `difflib` library.
 
 Parameters:
 
 * `threshold`: minimum score threshold (default 0.5)
 
-The returned score is a single similarity score. In filtering, the score has to equal to or be greater than the minimum threshold.
+The returned value is a list of similarity scores for all language pairs. In filtering, all pairwise scores has to equal to or be greater than the minimum threshold.
 
 ### Language model filters
 
@@ -713,14 +711,12 @@ Filter segments by n-gram language model probabilities.
 
 Parameters:
 
-* `src_lm_params`: dictionary for the parameters for the source language model; see below
-* `tgt_lm_params`: dictionary for the parameters for the target language model; see below
+* `lm_params`: a list of dictionaries for the parameters of the language models; see below
 * `score_type`: select whether to calculate cross-entropy (`entropy`; default), perplixty (`perplexity`) or negative log-probability (`logprob`) scores
-* `src_threshold`: upper threshold for source language score when filtering (optional; default 50.0)
-* `tgt_threshold`: upper threshold for target language score when filtering (optional; default 50.0)
+* `thresholds`: upper thresholds for scores when filtering (optional; default is 50.0 for all languages)
 * `diff_threshold`: upper threshold for absolute difference of source and target language scores when filtering (optional; default 10.0)
 
-Language model paramters for `src_lm_params` and `tgt_lm_params`:
+Language model paramters for `lm_params`:
 
 * `filename`: filename for the language model to use
 * `arpa`: LM is in ARPA format instead of binary LM (optional; default `true`)
@@ -797,8 +793,8 @@ Based on the `score` and `accept` methods, the abstract class
 iterator over segment pairs as input:
 
 * `decisions` yields results of the `accept` method
-* `filter` yields only accepted segment pairs
-* `filterfalse` yields only rejected segment pairs
+* `filter` yields only accepted segments
+* `filterfalse` yields only rejected segments
 
 These should not be redefined except for a good reason.
 
@@ -816,17 +812,18 @@ class UppercaseFilter(opusfilter.FilterABC):
         self.threshold = threshold
         super().__init__(**kwargs)
 
+    def uppercase_ratio(self, sentence):
+	    length = len(sentence)
+		if length > 0:
+            return sum(1 for char in sent if char.isupper()) / length
+	    return 0
+
     def score(self, pairs):
-        for sent1, sent2 in pairs:
-            length1 = len(sent1)
-            length2 = len(sent2)
-            up1 = sum(1 for c in sent1 if c.isupper()) / length1 if length1 > 0 else 0
-            up2 = sum(1 for c in sent2 if c.isupper()) / length2 if length2 > 0 else 0
-            yield {'src': up1, 'tgt': up2}
+        for pair in pairs:
+		    yield [self.uppercase_ratio(sentence) for sentence in pair]
 
     def accept(self, score):
-        up1, up2 = score['src'], score['tgt']
-        return up1 < self.threshold and up2 < self.threshold
+        return all(ratio < self.threshold for ratio in score)
 ```
 
 Assuming that the above code is in a module named `customfilter` in
