@@ -9,6 +9,7 @@ import operator
 import os
 import pickle
 import random
+import re
 
 import json
 import numpy as np
@@ -16,7 +17,6 @@ import pyhash
 from tqdm import tqdm
 
 from opustools import OpusRead
-from opustools.util import file_open
 
 from . import ConfigurationError
 from . import pipeline
@@ -24,6 +24,7 @@ from . import lm
 from . import word_alignment
 from . import tokenization
 from . import classifier
+from .util import file_open
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +40,10 @@ def dict_get(key, dictionary):
     """
     parts = key.split('.')
     first = parts.pop(0)
-    value = dictionary[first]
+    if isinstance(dictionary, list):
+        value = dictionary[int(first)]
+    else:
+        value = dictionary[first]
     return value if not len(parts) else dict_get('.'.join(parts), value)
 
 
@@ -96,7 +100,8 @@ class OpusFilter:
             'head': self.head,
             'tail': self.tail,
             'remove_duplicates': self.remove_duplicates,
-            'split': self.split
+            'split': self.split,
+            'unzip': self.unzip,
         }
 
     def execute_steps(self, overwrite=False, last=None):
@@ -170,14 +175,23 @@ class OpusFilter:
             if filter_name == 'WordAlignFilter' and 'priors' in f[filter_name]:
                 f[filter_name]['priors'] = os.path.join(
                     self.output_dir, f[filter_name]['priors'])
-            if filter_name == 'CrossEntropyFilter':
+            elif filter_name in 'CrossEntropyFilter':
                 for idx, lm_params in enumerate(f[filter_name]['lm_params']):
                     f[filter_name]['lm_params'][idx]['filename'] = os.path.join(
                         self.output_dir, lm_params['filename'])
                     if lm_params.get('interpolate'):
-                        for idx in range(len(lm_params['interpolate'])):
-                            f[filter_name]['lm_params'][idx]['interpolate'][idx][0] = os.path.join(
-                                self.output_dir, lm_params['interpolate'][idx][0])
+                        for idx2 in range(len(lm_params['interpolate'])):
+                            f[filter_name]['lm_params'][idx]['interpolate'][idx2][0] = os.path.join(
+                                self.output_dir, lm_params['interpolate'][idx2][0])
+            elif filter_name in 'CrossEntropyDifferenceFilter':
+                for key in ['id_lm_params', 'nd_lm_params']:
+                    for idx, lm_params in enumerate(f[filter_name][key]):
+                        f[filter_name][key][idx]['filename'] = os.path.join(
+                            self.output_dir, lm_params['filename'])
+                        if lm_params.get('interpolate'):
+                            for idx2 in range(len(lm_params['interpolate'])):
+                                f[filter_name][key][idx]['interpolate'][idx2][0] = os.path.join(
+                                    self.output_dir, lm_params['interpolate'][idx2][0])
         return fixed_params
 
     def filter_data(self, parameters, overwrite=False):
@@ -656,3 +670,21 @@ class OpusFilter:
         for idx in range(len(infiles)):
             infs[idx].close()
             outfs[idx].close()
+
+    def unzip(self, parameters, overwrite=False):
+        """Unzip parallel segments joined in a single file into multiple files"""
+        infile = os.path.join(self.output_dir, parameters['input'])
+        outfiles = [os.path.join(self.output_dir, fname) for fname in parameters['outputs']]
+        if not overwrite and all(os.path.isfile(outfile) for outfile in outfiles):
+            logger.info("Output files exists, skipping step")
+            return
+        separator = parameters['separator']
+        outfs = [file_open(outfile, 'w') for outfile in outfiles]
+        with file_open(infile, 'r') as inf:
+            for idx, line in tqdm(enumerate(inf)):
+                parts = line.split(separator)
+                if len(parts) != len(outfiles):
+                    raise ConfigurationError(
+                        "Number output files do not match the %s parts in line %s" % (len(parts), idx))
+                for part, outf in zip(parts, outfs):
+                    outf.write(part.strip() + '\n')

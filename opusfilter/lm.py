@@ -74,7 +74,10 @@ def token_perplexity(lm, tokens):
         lpsum += lm.token_logprob(token)
     logprob = -lpsum / math.log10(2)
     entropy = logprob / lm.processed_tokens()
-    ppl = 10**(-lpsum / lm.processed_tokens())
+    try:
+        ppl = 10**(-lpsum / lm.processed_tokens())
+    except OverflowError:
+        ppl = math.inf
     lm.clear_history()
     lm.init_variables()
     return ppl, entropy, logprob
@@ -87,7 +90,10 @@ def word_perplexity(lm, tokens):
         lpsum += lm.word_logprob(token)
     logprob = -lpsum / math.log10(2)
     entropy = logprob / lm.processed_words()
-    ppl = 10**(-lpsum / lm.processed_words())
+    try:
+        ppl = 10**(-lpsum / lm.processed_words())
+    except OverflowError:
+        ppl = math.inf
     lm.clear_history()
     lm.init_variables()
     return ppl, entropy, logprob
@@ -235,7 +241,7 @@ class CrossEntropyFilter(FilterABC):
                 tokens = tokenizer.tokenize(sent)
                 use_word = tokenizer.wb or tokenizer.mb
                 ppl, entr, logprob = word_perplexity(lm, tokens) if use_word \
-                                     else token_perplexity(lm, tokens)
+                    else token_perplexity(lm, tokens)
                 if self.score_type == 'logprob':
                     scores.append(logprob)
                 elif self.score_type == 'perplexity':
@@ -247,3 +253,57 @@ class CrossEntropyFilter(FilterABC):
     def accept(self, score):
         return all(value < threshold for value, threshold in zip(score, self.thresholds)) and \
             all(abs(x[0] - x[1]) < self.diff_threshold for x in itertools.combinations(score, 2))
+
+
+class CrossEntropyDifferenceFilter(FilterABC):
+    """Filtering based on cross-entropy difference
+
+    This method has been suggested by:
+
+    Robert C. Moore and William Lewis (2010). Intelligent Selection of
+    Language Model Training Data. In Proceedings of the ACL 2010
+    Conference Short Papers, pp. 220–224.
+
+    """
+
+    def __init__(self, id_lm_params=None, nd_lm_params=None, thresholds=None, **kwargs):
+        if not id_lm_params:
+            raise ConfigurationError("In-domain language model configurations need to be defined")
+        if not nd_lm_params:
+            raise ConfigurationError("Non-domain language model configurations need to be defined")
+        if any(param.get('segmentation', {}).get('type', 'char') != 'char' for param in id_lm_params):
+            raise ConfigurationError("Only segmentation type supported currently is 'char'")
+        if any(param.get('segmentation', {}).get('type', 'char') != 'char' for param in nd_lm_params):
+            raise ConfigurationError("Only segmentation type supported currently is 'char'")
+        if len(id_lm_params) != len(nd_lm_params):
+            raise ConfigurationError("The number of in-domain and non-domain language models should match")
+        self.id_lm_params = id_lm_params
+        self.nd_lm_params = nd_lm_params
+        self.id_lms = [get_lm(**params) for params in self.id_lm_params]
+        self.nd_lms = [get_lm(**params) for params in self.nd_lm_params]
+        self.thresholds = [0.0] * len(id_lm_params) if thresholds is None else thresholds
+        super().__init__(**kwargs)
+
+    @staticmethod
+    def _get_ce(sent, lm, tokenizer):
+        """Return cross-entropy for a sentence given the LM and tokenizer"""
+        tokens = tokenizer.tokenize(sent)
+        use_word = tokenizer.wb or tokenizer.mb
+        _, entr, _ = word_perplexity(lm, tokens) if use_word \
+            else token_perplexity(lm, tokens)
+        return entr
+
+    def score(self, pairs):
+        id_tokenizers = [LMTokenizer(**params) for params in self.id_lm_params]
+        nd_tokenizers = [LMTokenizer(**params) for params in self.nd_lm_params]
+        for pair in pairs:
+            scores = []
+            for id_lm, id_tokenizer, nd_lm, nd_tokenizer, sent in zip(
+                    self.id_lms, id_tokenizers, self.nd_lms, nd_tokenizers, pair):
+                id_entr = self._get_ce(sent, id_lm, id_tokenizer)
+                nd_entr = self._get_ce(sent, nd_lm, nd_tokenizer)
+                scores.append(id_entr - nd_entr)
+            yield scores
+
+    def accept(self, score):
+        return all(value < threshold for value, threshold in zip(score, self.thresholds))

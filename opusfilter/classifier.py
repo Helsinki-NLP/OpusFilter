@@ -12,9 +12,8 @@ from pandas.io.json import json_normalize
 import sklearn.linear_model
 from sklearn.metrics import accuracy_score, confusion_matrix, roc_auc_score, log_loss
 
-from opustools.util import file_open
-
 from . import grouper
+from .util import file_open
 
 logger = logging.getLogger(__name__)
 

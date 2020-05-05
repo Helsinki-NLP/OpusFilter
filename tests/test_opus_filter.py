@@ -623,3 +623,28 @@ class TestRemoveDuplicates(unittest.TestCase):
         self.opus_filter.remove_duplicates(parameters)
         with open(os.path.join(self.tempdir, 'output_src')) as f:
             self.assertEqual(f.read(), 'a\nb\nc\nd\ne\nf\n')
+
+
+class TestUnzip(unittest.TestCase):
+
+    def setUp(self):
+        self.tempdir = tempfile.mkdtemp()
+        self.opus_filter = OpusFilter(
+            {'common': {'output_directory': self.tempdir}, 'steps': []})
+        with open(os.path.join(self.tempdir, 'input'), 'w') as f:
+            f.write('Sentence1\tsentence1\nSentence2\tsentence2\n')
+
+    def tearDown(self):
+        shutil.rmtree(self.tempdir)
+
+    def test_head(self):
+        parameters = {
+            'input': os.path.join(self.tempdir, 'input'),
+            'outputs': [os.path.join(self.tempdir, 'output_src'),
+                        os.path.join(self.tempdir, 'output_tgt')],
+            'separator': '\t'}
+        self.opus_filter.unzip(parameters)
+        with open(os.path.join(self.tempdir, 'output_src')) as f:
+            self.assertEqual(f.read(), 'Sentence1\nSentence2\n')
+        with open(os.path.join(self.tempdir, 'output_tgt')) as f:
+            self.assertEqual(f.read(), 'sentence1\nsentence2\n')

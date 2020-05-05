@@ -30,6 +30,7 @@ Features:
       * [slice](#slice)
       * [split](#split)
       * [subset](#subset)
+      * [unzip](#unzip)
    * [Filtering and scoring](#filtering-and-scoring)
       * [remove_duplicates](#remove_duplicates)
       * [filter](#filter)
@@ -56,6 +57,7 @@ Features:
       * [NonZeroNumeralsFilter](#nonzeronumeralsfilter)
    * [Language model filters](#language-model-filters)
       * [CrossEntropyFilter](#crossentropyfilter)
+      * [CrossEntropyDifferenceFilter](#crossentropydifferencefilter)
    * [Alignment model filters](#alignment-model-filters)
       * [WordAlignFilter](#wordalignfilter)
 * [Custom filters](#custom-filters)
@@ -363,6 +365,18 @@ Parameters:
 * `seed`: seed for the random generator; set to ensure that two runs select the same lines (optional; default `null`)
 * `shuffle_subset`: shuffle the order of the selected lines for each language except for the first; can be used to produce noisy examples for training a corpus filtering model (optional; default `false`)
 
+#### `unzip`
+
+Unzip parallel segments joined in a single file into multiple files.
+
+Parameters:
+
+* `input`: input file
+* `outputs`: a list of output files
+* `separator`: a string separator in the input file
+
+Can be used to split e.g. Moses-style (` ||| `) or tab-separated parallel text files into parts.
+
 ### Filtering and scoring
 
 #### `remove_duplicates`
@@ -524,9 +538,9 @@ Parameters:
 The values file should contain one JSON object per line. If a line
 cannot be interpreted as a JSON object, it is read as a plain unicode
 string. Dots (`.`) in the key are interpreted as multiple get operations
-(e.g. `x.y` expects that there is key `x` under the key `y`). The type
-conversion can be used e.g. for forcing numerical values to be compared
-as strings.
+(e.g. `x.y` expects that there is key `x` under the key `y`). List items
+can be accessed with integer keys. The type conversion can be used e.g.
+for forcing numerical values to be compared as strings.
 
 ### Training language and alignment models
 
@@ -716,7 +730,7 @@ Parameters:
 * `thresholds`: upper thresholds for scores when filtering (optional; default is 50.0 for all languages)
 * `diff_threshold`: upper threshold for absolute difference of source and target language scores when filtering (optional; default 10.0)
 
-Language model paramters for `lm_params`:
+Language model parameters for `lm_params`:
 
 * `filename`: filename for the language model to use
 * `arpa`: LM is in ARPA format instead of binary LM (optional; default `true`)
@@ -737,6 +751,31 @@ Separate scores (entropy, perplexity, or negative log-probability) are
 returned for the source and target segment. In filtering, the segment
 pair is accepted if both values are below the respective thresholds,
 and their absolute difference is below the difference threshold.
+
+#### `CrossEntropyDifferenceFilter`
+
+Filter segments by using cross-entropy difference method by Moore and Lewis (2010).
+
+Parameters:
+
+* `id_lm_params`: a list of dictionaries for the parameters of the in-domain language models
+* `nd_lm_params`: a list of dictionaries for the parameters of the non-domain language models
+* `thresholds`: upper thresholds for scores when filtering (optional; default is 0.0 for all languages)
+
+For contents of the `id_lm_params` and `nd_lm_params`, see
+[CrossEntropyFilter](#crossentropyfilter).
+
+See [train_ngram](#train_ngram) for training the models. Note that the
+format, perplexity calculation, and boundary marking options should
+match the parameters used in model training; do not change them unless
+you know what you are doing.
+
+The filter returns difference between the in-domain LM and non-domain
+LM cross-entropy. For details, see:
+
+> Robert C. Moore and William Lewis (2010). Intelligent Selection of
+> Language Model Training Data. In Proceedings of the ACL 2010
+> Conference Short Papers, pp. 220–224.
 
 ### Alignment model filters
 

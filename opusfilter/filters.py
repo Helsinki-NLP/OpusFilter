@@ -12,7 +12,7 @@ import pycld2
 from bs4 import BeautifulSoup as bs
 
 from . import FilterABC, ConfigurationError
-from .lm import CrossEntropyFilter
+from .lm import CrossEntropyFilter, CrossEntropyDifferenceFilter
 from .word_alignment import WordAlignFilter
 
 
