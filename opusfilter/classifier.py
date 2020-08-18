@@ -18,13 +18,33 @@ from .util import file_open
 logger = logging.getLogger(__name__)
 
 
+def lists_to_dicts(obj):
+    """Convert lists in a JSON-style object to dicts recursively
+
+    Examples:
+
+    >>> lists_to_dicts([3, 4])
+    {"0": 3, "1": 4}
+    >>> lists_to_dicts([3, [4, 5]])
+    {"0": 3, "1": {"0": 4, "1": 5}}
+    >>> lists_to_dicts({"a": [3, 4], "b": []})
+    {"a": {"0": 3, "1": 4}, "b": {}}
+
+    """
+    if isinstance(obj, dict):
+        return {key: lists_to_dicts(value) for key, value in obj.items()}
+    elif isinstance(obj, list):
+        return {str(idx): lists_to_dicts(value) for idx, value in enumerate(obj)}
+    return obj
+
+
 def load_dataframe(data_file):
     """Load normalized scores dataframe from a JSON lines file"""
     data = []
     with file_open(data_file) as dfile:
         for line in dfile:
             try:
-                data.append(json.loads(line))
+                data.append(lists_to_dicts(json.loads(line)))
             except json.decoder.JSONDecodeError as err:
                 logger.error(line)
                 raise err
@@ -42,7 +62,7 @@ def load_dataframe_in_chunks(data_file, chunksize):
             data = []
             for line in chunk:
                 try:
-                    data.append(json.loads(line))
+                    data.append(lists_to_dicts(json.loads(line)))
                 except json.decoder.JSONDecodeError as err:
                     logger.error(line)
                     raise err

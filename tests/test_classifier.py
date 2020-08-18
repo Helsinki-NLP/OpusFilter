@@ -1,3 +1,4 @@
+import doctest
 import unittest
 import os
 import tempfile
@@ -14,17 +15,17 @@ class TestTrainClassifier(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         self.tempdir = tempfile.mkdtemp()
-        traindata = """{"CharacterScoreFilter": {"src": 1, "tgt": 1}, "LanguageIDFilter": {"cld2": {"src": 1, "tgt": 1}, "langid": {"src": 1, "tgt": 1}}, "LongWordFilter": 1}
-        {"CharacterScoreFilter": {"src": 2, "tgt": 2}, "LanguageIDFilter": {"cld2": {"src": 2, "tgt": 2}, "langid": {"src": 2, "tgt": 2}}, "LongWordFilter": 2}
-        {"CharacterScoreFilter": {"src": 3, "tgt": 3}, "LanguageIDFilter": {"cld2": {"src": 3, "tgt": 3}, "langid": {"src": 3, "tgt": 3}}, "LongWordFilter": 3}
-        {"CharacterScoreFilter": {"src": 4, "tgt": 4}, "LanguageIDFilter": {"cld2": {"src": 4, "tgt": 4}, "langid": {"src": 4, "tgt": 4}}, "LongWordFilter": 4}
-        {"CharacterScoreFilter": {"src": 5, "tgt": 5}, "LanguageIDFilter": {"cld2": {"src": 5, "tgt": 5}, "langid": {"src": 5, "tgt": 5}}, "LongWordFilter": 5}"""
+        traindata = """{"CharacterScoreFilter": [1, 1], "LanguageIDFilter": {"cld2": [1, 1], "langid": [1, 1]}, "LongWordFilter": 1}
+        {"CharacterScoreFilter": [2, 2], "LanguageIDFilter": {"cld2": [2, 2], "langid": [2, 2]}, "LongWordFilter": 2}
+        {"CharacterScoreFilter": [3, 3], "LanguageIDFilter": {"cld2": [3, 3], "langid": [3, 3]}, "LongWordFilter": 3}
+        {"CharacterScoreFilter": [4, 4], "LanguageIDFilter": {"cld2": [4, 4], "langid": [4, 4]}, "LongWordFilter": 4}
+        {"CharacterScoreFilter": [5, 5], "LanguageIDFilter": {"cld2": [5, 5], "langid": [5, 5]}, "LongWordFilter": 5}"""
         with open(os.path.join(self.tempdir, 'scores.jsonl'), 'w') as f:
             f.write(traindata)
             self.jsonl_train = os.path.join(self.tempdir, 'scores.jsonl')
 
-        devdata = """{"CharacterScoreFilter": {"src": 4, "tgt": 4}, "LanguageIDFilter": {"cld2": {"src": 4, "tgt": 4}, "langid": {"src": 4, "tgt": 4}}, "LongWordFilter": 4, "label": 0}
-        {"CharacterScoreFilter": {"src": 5, "tgt": 5}, "LanguageIDFilter": {"cld2": {"src": 5, "tgt": 5}, "langid": {"src": 5, "tgt": 5}}, "LongWordFilter": 5, "label": 1}"""
+        devdata = """{"CharacterScoreFilter": [4, 4], "LanguageIDFilter": {"cld2": [4, 4], "langid": [4, 4]}, "LongWordFilter": 4, "label": 0}
+        {"CharacterScoreFilter": [5, 5], "LanguageIDFilter": {"cld2": [5, 5], "langid": [5, 5]}, "LongWordFilter": 5, "label": 1}"""
 
         with open(os.path.join(self.tempdir, 'dev.jsonl'), 'w') as f:
             f.write(devdata)
@@ -62,12 +63,12 @@ class TestTrainClassifier(unittest.TestCase):
         discards = {key: 0.25 for key in self.fc.df_training_data.keys()}
         new_cutoffs = self.fc.get_cutoffs(self.fc.df_training_data, discards,
                 cutoffs)
-        self.assertEqual(new_cutoffs['LanguageIDFilter.cld2.src'],
+        self.assertEqual(new_cutoffs['LanguageIDFilter.cld2.0'],
                 -0.7071067811865475)
         discards = {key: 0.75 for key in self.fc.df_training_data.keys()}
         new_cutoffs = self.fc.get_cutoffs(self.fc.df_training_data, discards,
                 cutoffs)
-        self.assertEqual(new_cutoffs['LanguageIDFilter.cld2.tgt'],
+        self.assertEqual(new_cutoffs['LanguageIDFilter.cld2.1'],
                 0.7071067811865475)
 
     def test_add_labels(self):
