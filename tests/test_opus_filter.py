@@ -1,10 +1,11 @@
-import unittest
-from unittest import mock
-import json
 import argparse
+import copy
+import json
 import os
 import shutil
 import tempfile
+import unittest
+from unittest import mock
 
 from opustools import OpusGet
 from opusfilter.opusfilter import OpusFilter
@@ -205,6 +206,12 @@ class TestSort(unittest.TestCase):
                          {'MyScore': {'src': 0.5, 'tgt': 2}},
                          {'MyScore': {'src': 1, 'tgt': 10}}]:
                 f.write(json.dumps(item) + '\n')
+        with open(os.path.join(self.tempdir, 'scores_list_input'), 'w') as f:
+            for item in [{'MyScore': [1, 0.5]},
+                         {'MyScore': [0.8, 0]},
+                         {'MyScore': [0.5, 2]},
+                         {'MyScore': [1, 10]}]:
+                f.write(json.dumps(item) + '\n')
 
     def tearDown(self):
         shutil.rmtree(self.tempdir)
@@ -246,7 +253,7 @@ class TestSort(unittest.TestCase):
             self.assertEqual(f.read(), '10\n2\n0.5\n0\n')
 
     def test_sort_by_score(self):
-        parameters = {
+        parameters1 = {
             'inputs': [os.path.join(self.tempdir, 'rank_input_src'),
                        os.path.join(self.tempdir, 'rank_input_tgt'),
                        os.path.join(self.tempdir, 'ranks_input')],
@@ -256,13 +263,17 @@ class TestSort(unittest.TestCase):
                         os.path.join(self.tempdir, 'ranks_output')],
             'reverse': False,
             'key': 'MyScore.tgt'}
-        self.opus_filter.sort_files(parameters)
-        with open(os.path.join(self.tempdir, 'rank_output_src')) as f:
-            self.assertEqual(f.read(), 'Sentence4\nSentence3\nSentence2\nSentence1\n')
-        with open(os.path.join(self.tempdir, 'rank_output_tgt')) as f:
-            self.assertEqual(f.read(), 'Sentence4\nSentence3\nSentence2\nSentence1\n')
-        with open(os.path.join(self.tempdir, 'ranks_output')) as f:
-            self.assertEqual(f.read(), '0\n0.5\n2\n10\n')
+        parameters2 = copy.deepcopy(parameters1)
+        parameters2['values'] = os.path.join(self.tempdir, 'scores_list_input')
+        parameters2['key'] = 'MyScore.1'
+        for parameters in [parameters1, parameters2]:
+            self.opus_filter.sort_files(parameters)
+            with open(os.path.join(self.tempdir, 'rank_output_src')) as f:
+                self.assertEqual(f.read(), 'Sentence4\nSentence3\nSentence2\nSentence1\n')
+            with open(os.path.join(self.tempdir, 'rank_output_tgt')) as f:
+                self.assertEqual(f.read(), 'Sentence4\nSentence3\nSentence2\nSentence1\n')
+            with open(os.path.join(self.tempdir, 'ranks_output')) as f:
+                self.assertEqual(f.read(), '0\n0.5\n2\n10\n')
 
     def test_sort_by_str(self):
         parameters = {
