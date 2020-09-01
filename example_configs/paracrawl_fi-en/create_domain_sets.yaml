@@ -31,10 +31,8 @@ steps:
 
   - type: filter
     parameters:
-      src_input: wmt-news-train.fi.gz
-      tgt_input: wmt-news-train.en.gz
-      src_output: wmt-news-train-filtered.fi.gz
-      tgt_output: wmt-news-train-filtered.en.gz
+      inputs: [wmt-news-train.fi.gz, wmt-news-train.en.gz]
+      outputs: [wmt-news-train-filtered.fi.gz, wmt-news-train-filtered.en.gz]
       filters:
         - LengthFilter:
             unit: word
@@ -59,21 +57,19 @@ steps:
 
   - type: score
     parameters:
-      src_input: ce.sents.fi.70.gz
-      tgt_input: ce.sents.en.70.gz
+      inputs: [ce.sents.fi.70.gz, ce.sents.en.70.gz]
       output: domain-scores.fi-en.jsonl.gz
       filters:
         - CrossEntropyFilter:
-            src_lm_params:
-              filename: wmt-news.fi.arpa.gz
-              interpolate:
-              - [fi.arpa.gz, 0.01]
-              - [bg.arpa.gz, 0.01]
-            tgt_lm_params:
-              filename: wmt-news.en.arpa.gz
-              interpolate:
-              - [en.arpa.gz, 0.01]
-              - [bg.arpa.gz, 0.01]
+            lm_params:
+              - filename: wmt-news.fi.arpa.gz
+                interpolate:
+                - [fi.arpa.gz, 0.01]
+                - [bg.arpa.gz, 0.01]
+              - filename: wmt-news.en.arpa.gz
+                interpolate:
+                - [en.arpa.gz, 0.01]
+                - [bg.arpa.gz, 0.01]
 
   - type: sort
     parameters:
@@ -87,8 +83,8 @@ steps:
       - domain-scores-sorted.fi-en.jsonl.gz
       values: domain-scores.fi-en.jsonl.gz
       key:
-      - CrossEntropyFilter.src
-      - CrossEntropyFilter.tgt
+      - CrossEntropyFilter.0
+      - CrossEntropyFilter.1
       combine_operator: add
 
   - type: head

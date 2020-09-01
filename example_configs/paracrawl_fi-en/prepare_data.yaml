@@ -31,10 +31,8 @@ steps:
 
   - type: filter
     parameters:
-      src_input: sents.fi.gz
-      tgt_input: sents.en.gz
-      src_output: filtered.fi.gz
-      tgt_output: filtered.en.gz
+      inputs: [sents.fi.gz, sents.en.gz]
+      outputs: [filtered.fi.gz, filtered.en.gz]
       filters:
         - LengthFilter:
             unit: word
@@ -51,10 +49,8 @@ steps:
         - HtmlTagFilter: {}
 
         - CharacterScoreFilter:
-            src_script: Latin
-            tgt_script: Latin
-            src_threshold: 1
-            tgt_threshold: 1
+            scripts: [Latin, Latin]
+            thresholds: [1, 1]
 
   - type: train_ngram
     parameters:
@@ -84,35 +80,28 @@ steps:
 
   - type: subset
     parameters:
-      src_input: sents.fi.gz
-      tgt_input: sents.en.gz
-      src_output: subset_100k.fi.gz
-      tgt_output: subset_100k.en.gz
+      inputs: [sents.fi.gz, sents.en.gz]
+      outputs: [subset_100k.fi.gz, subset_100k.en.gz]
       seed: 123
       size: 100000
 
   - type: subset
     parameters:
-      src_input: sents.fi.gz
-      tgt_input: sents.en.gz
-      src_output: devset_100_1.fi.gz
-      tgt_output: devset_100_1.en.gz
+      inputs: [sents.fi.gz, sents.en.gz]
+      outputs: [devset_100_1.fi.gz, devset_100_1.en.gz]
       seed: 1001
       size: 100
 
   - type: subset
     parameters:
-      src_input: sents.fi.gz
-      tgt_input: sents.en.gz
-      src_output: devset_100_2.fi.gz
-      tgt_output: devset_100_2.en.gz
+      inputs: [sents.fi.gz, sents.en.gz]
+      outputs: [devset_100_2.fi.gz, devset_100_2.en.gz]
       seed: 1002
       size: 100
 
   - type: score
     parameters:
-      src_input: subset_100k.fi.gz
-      tgt_input: subset_100k.en.gz
+      inputs: [subset_100k.fi.gz, subset_100k.en.gz]
       output: subset_100k-scores.fi-en.jsonl.gz
       filters: &scorefilt
         - LengthFilter:
@@ -134,34 +123,30 @@ steps:
         - LongWordFilter: {}
 
         - CharacterScoreFilter:
-            src_script: Latin
-            tgt_script: Latin
+            scripts: [Latin, Latin]
 
         - LanguageIDFilter:
             name: langid
             id_method: langid
-            src_lang: fi
-            tgt_lang: en
+            languages: [fi, en]
 
         - LanguageIDFilter:
             name: cld2
             id_method: cld2
-            src_lang: fi
-            tgt_lang: en
+            languages: [fi, en]
 
         - TerminalPunctuationFilter: {}
 
         - NonZeroNumeralsFilter: {}
 
         - CrossEntropyFilter:
-            src_lm_params:
-              filename: fi.arpa.gz
-              interpolate:
-              - [bg.arpa.gz, 0.01]
-            tgt_lm_params:
-              filename: en.arpa.gz
-              interpolate:
-              - [bg.arpa.gz, 0.01]
+            lm_params:
+              - filename: fi.arpa.gz
+                interpolate:
+                - [bg.arpa.gz, 0.01]
+              - filename: en.arpa.gz
+                interpolate:
+                - [bg.arpa.gz, 0.01]
 
         - WordAlignFilter:
             src_tokenizer: [moses, fi]
@@ -171,22 +156,19 @@ steps:
 
   - type: score
     parameters:
-      src_input: devset_100_1.fi.gz
-      tgt_input: devset_100_1.en.gz
+      inputs: [devset_100_1.fi.gz, devset_100_1.en.gz]
       output: devset_100_1-scores.fi-en.jsonl.gz
       filters: *scorefilt
 
   - type: score
     parameters:
-      src_input: devset_100_2.fi.gz
-      tgt_input: devset_100_2.en.gz
+      inputs: [devset_100_2.fi.gz, devset_100_2.en.gz]
       output: devset_100_2-scores.fi-en.jsonl.gz
       filters: *scorefilt
 
   - type: score
     parameters:
-      src_input: sents.fi.gz
-      tgt_input: sents.en.gz
+      inputs: [sents.fi.gz, sents.en.gz]
       output: scores.fi-en.jsonl.gz
       filters: *scorefilt
 
