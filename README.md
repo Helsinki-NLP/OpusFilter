@@ -191,10 +191,10 @@ steps:
   - type: filter
     parameters:
       inputs:
-	  - all.fi.gz
+      - all.fi.gz
       - all.en.gz
       outputs:
-	  - filtered.fi.gz
+      - filtered.fi.gz
       - filtered.en.gz
       filters:
         - LengthFilter:
@@ -217,10 +217,10 @@ WMT-News data, you can have:
   - type: filter
     parameters:
       inputs:
-	  - paracrawl.fi.gz
+      - paracrawl.fi.gz
       - paracrawl.en.gz
       outputs:
-	  - paracrawl_filtered.fi.gz
+      - paracrawl_filtered.fi.gz
       - paracrawl_filtered.en.gz
       filters: &myfilters
         - LengthFilter:
@@ -235,10 +235,10 @@ WMT-News data, you can have:
   - type: filter
     parameters:
       inputs:
-	  - wmt.fi.gz
+      - wmt.fi.gz
       - wmt.en.gz
       outputs:
-	  - wmt_filtered.fi.gz
+      - wmt_filtered.fi.gz
       - wmt_filtered.en.gz
       filters: *myfilters
 ```
@@ -852,14 +852,14 @@ class UppercaseFilter(opusfilter.FilterABC):
         super().__init__(**kwargs)
 
     def uppercase_ratio(self, sentence):
-	    length = len(sentence)
-		if length > 0:
+        length = len(sentence)
+        if length > 0:
             return sum(1 for char in sent if char.isupper()) / length
-	    return 0
+        return 0
 
     def score(self, pairs):
         for pair in pairs:
-		    yield [self.uppercase_ratio(sentence) for sentence in pair]
+            yield [self.uppercase_ratio(sentence) for sentence in pair]
 
     def accept(self, score):
         return all(ratio < self.threshold for ratio in score)
