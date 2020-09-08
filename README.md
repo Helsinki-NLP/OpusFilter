@@ -14,11 +14,14 @@ Features:
   aligment, and n-gram language models
 * Extendable with your own filters written in Python
 
+OpusFilter has been presented in [ACL 2020 system demonstrations](https://www.aclweb.org/anthology/2020.acl-demos.20).
+
 ## Table of contents
 
 * [Installing](#installing)
    * [Required libraries](#required-libraries)
    * [Optional libraries and tools](#optional-libraries-and-tools)
+* [Citing](#citing)
 * [Overview](#overview)
    * [Examples](#examples)
 * [Available functions](#available-functions)
@@ -90,6 +93,24 @@ For using word alignment filters, you need to install elfomal
 (https://github.com/robertostling/eflomal) and set environment
 variable `EFLOMAL_PATH` to eflomal's root directory, which contains
 the Python scripts `align.py` and `makepriors.py`.
+
+## Citing
+
+If you use OpusFilter in your research, please cite our [ACL 2020 paper](https://www.aclweb.org/anthology/2020.acl-demos.20):
+
+```
+@inproceedings{aulamo-etal-2020-opusfilter,
+    title = "{O}pus{F}ilter: A Configurable Parallel Corpus Filtering Toolbox",
+    author = {Aulamo, Mikko and Virpioja, Sami and Tiedemann, J{\"o}rg},
+    booktitle = "Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics: System Demonstrations",
+    month = jul,
+    year = "2020",
+    publisher = "Association for Computational Linguistics",
+    url = "https://www.aclweb.org/anthology/2020.acl-demos.20",
+    doi = "10.18653/v1/2020.acl-demos.20",
+    pages = "150--156"
+}
+```
 
 ## Overview
 
