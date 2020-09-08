@@ -1,0 +1,86 @@
+#!/usr/bin/env python3
+
+import argparse
+import copy
+import json
+import logging
+
+import yaml
+
+from opusfilter.opusfilter import OpusFilter
+
+logger = logging.getLogger(__name__)
+
+
+def json_value(value):
+    """Interpret value as JSON if possible"""
+    try:
+        out = json.loads(value)
+    except json.decoder.JSONDecodeError:
+        out = value
+    return out
+
+
+def update_parameters(parameters, name, values):
+    """Update parameter dict"""
+    if not values:
+        logger.warning("Skipping '%s': no value given", name)
+        return
+    if name not in parameters:
+        if len(values) == 1:
+            parameters[name] = values[0]
+        else:
+            parameters[name] = values
+        return
+    # There is already something, so assume it should be a list
+    if not isinstance(parameters[name], list):
+        parameters[name] = [parameters[name]]
+    parameters[name].extend(values)
+
+
+# Use to prevent warning from missing directory
+tmpconfig = {'common': {'output_directory': '/tmp'}}
+
+logging.basicConfig(level=logging.INFO)
+logging.getLogger('mosestokenizer.tokenizer.MosesTokenizer').setLevel(logging.WARNING)
+
+parser = argparse.ArgumentParser(
+    prog='opusfilter-cmd', description='Run single opusfilter function', allow_abbrev=False)
+
+parser.add_argument('function', choices=OpusFilter(tmpconfig).step_functions, help='OpusFilter function')
+parser.add_argument('--overwrite', '-o', help='overwrite existing output files', action='store_true')
+parser.add_argument('--outputdir', '-d', default='.', help='output directory')
+parser.add_argument('--parameters', type=str, default=None, help='load parameters as a JSON object (e.g. \'{"inputs": ["all.gz"], "outputs": ["filtered.gz"]}\')')
+
+args, remaining = parser.parse_known_args()
+
+if args.parameters is None:
+    parameters = {}
+else:
+    parameters = json.loads(args.parameters)
+
+temp = copy.copy(remaining)
+name = None
+values = []
+while temp:
+    new = temp.pop(0)
+    if new.startswith('--'):
+        if name is not None:
+            update_parameters(parameters, name, values)
+        name = new[2:].replace('-', '_')
+        values = []
+        continue
+    if name is None:
+        raise ValueError("Could not parse remaining arguments: %s" % remaining)
+    values.append(json_value(new))
+update_parameters(parameters, name, values)
+
+configuration = {
+    'common': {'output_directory': args.outputdir},
+    'steps': [{'type': args.function, 'parameters': parameters}]
+}
+
+logger.info("Created configuration:\n\n%s", yaml.dump(configuration))
+
+of = OpusFilter(configuration)
+of.execute_steps(overwrite=args.overwrite)

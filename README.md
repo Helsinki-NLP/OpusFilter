@@ -21,6 +21,7 @@ Features:
    * [Optional libraries and tools](#optional-libraries-and-tools)
 * [Overview](#overview)
    * [Examples](#examples)
+   * [Running a single command](#running-a-single-command)
 * [Available functions](#available-functions)
    * [Downloading and selecting data](#downloading-and-selecting-data)
       * [opus_read](#opus_read)
@@ -95,10 +96,10 @@ the Python scripts `align.py` and `makepriors.py`.
 
 ## Overview
 
-The package provides the script `opusfilter` that takes a
-configuration file as an input. The configuration files are in
-[YAML](https://yaml.org/) format. At the top level, they have
-to sections:
+The main script provided by the package is `opusfilter`, which takes
+a configuration file as an input. The configuration files are in
+[YAML](https://yaml.org/) format. At the top level, they have to
+sections:
 
 * `common`, which may include `output_directory` for setting where to
   write the output files. If it is not set, the current working
@@ -242,6 +243,54 @@ WMT-News data, you can have:
       - wmt_filtered.en.gz
       filters: *myfilters
 ```
+
+### Running a single command
+
+If you need to run a single OpusFilter function wihtout the need of
+writing a complete configuration, the script `opustools-cmd` is
+provided for convenience. With the command, you can define a
+single-step configuration using just command line arguments.
+
+The syntax for the `opustools-cmd` is:
+
+```
+opustools-cmd [--overwrite] [--outputdir OUTDIR] FUNCTION [--parameters PARAMETERS] [PARAMETER-OPTION] ...
+```
+
+The `--outputdir` option defines the work directory; if not given the
+current directory is used. Existing output files will not be
+overwritten by default; the `--overwrite` option will force overwrite.
+
+The `FUNCTION` argument defines the function to use. Parameters for
+the function can be defined in two ways: Providing a single JSON
+object (as a string) that corresponds to the parameter definition in
+YAML configuration, or setting the parameters with custom options.
+
+For the former, use the `--parameters` option. For example, the
+following performs filtering with a single word length filter:
+```
+opustools-cmd filter --parameters {"inputs": ["wmt.fi.gz", "wmt.en.gz"], "outputs": ["wmt_filtered.fi.gz", "wmt_filtered.en.gz"], "filters": [{"LengthFilter": {"unit": "word", "min_length": 1, "max_length": 100}}]}
+```
+
+Writing a valid complex JSON object may be difficult, and the custom
+parameter options help with that. You can replace each top-level key
+(e.g. `inputs`) in the parameters with a corresponding option
+(`--inputs`) followed by its value, again as a JSON object. A value
+that cannot be parsed as JSON will be assumed to be a string. If
+multiple values are given for the same option, or the same option is
+given multiple times, the value is assumed to be a list containing all
+the values. For providing a list of a single value, use the JSON
+notation (e.g. `'["value"]'`). Any dashes in the option name will be
+replaced by underscores (e.g. `--corpus-name` can be used to produce
+the `corpus_name` parameter).
+
+In this manner, the above example can be written also as:
+```
+opustools-cmd filter --inputs wmt.fi.gz wmt.en.gz --outputs wmt_filtered.fi.gz wmt_filtered.en.gz --filters '[{"LengthFilter": {"unit": "word", "min_length": 1, "max_length": 100}}]'
+```
+Note that the filters still need to be defined as a complex JSON
+objects. The created configuration will be shown as YAML for easier
+checking and storing.
 
 ## Available functions
 
