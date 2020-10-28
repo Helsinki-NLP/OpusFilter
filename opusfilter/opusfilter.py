@@ -627,6 +627,8 @@ class OpusFilter:
         hasher = segment_hash.SegmentHasher(
             compare=parameters.get('compare', 'all'),
             hash=parameters.get('hash', 'xx_64'),
+            letters_only=parameters.get('letters_only', False),
+            lowercase=parameters.get('lowercase', False),
         )
         infs = [file_open(infile) for infile in infiles]
         outfs = [file_open(outfile, 'w') for outfile in outfiles]

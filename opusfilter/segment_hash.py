@@ -10,7 +10,7 @@ from . import ConfigurationError
 class SegmentHasher:
     """Hasher one or more text segments"""
 
-    re_not_letter = regex.compile(r'[^\p{L}]')
+    not_letter = regex.compile(r'[^\p{L}]')
 
     def __init__(self, compare='all', hash='xx_64', hashseed=0, lowercase=False, letters_only=False):
         self.compare = None
@@ -26,6 +26,7 @@ class SegmentHasher:
                 "Algorithm '{}' not available from from pyhash".format(hashname))
         self.hashfunc = getattr(pyhash, hashname)(seed=hashseed) if hashname else lambda x: x
         self.lowercase = lowercase
+        self.letters_only = letters_only
 
     def apply(self, lines):
         if self.compare is None:
@@ -37,4 +38,8 @@ class SegmentHasher:
                 raise ConfigurationError(
                     "The input indices {} in the compare parameter do not match input of lenght {}",
                     self.compare, len(lines))
+        if self.letters_only:
+            inputstr = regex.sub(self.not_letter, '', inputstr)
+        if self.lowercase:
+            inputstr = inputstr.lower()
         return self.hashfunc(inputstr)

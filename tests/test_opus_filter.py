@@ -636,6 +636,48 @@ class TestRemoveDuplicates(unittest.TestCase):
             self.assertEqual(f.read(), 'a\nb\nc\nd\ne\nf\n')
 
 
+class TestRemoveDuplicatesPreprocess(unittest.TestCase):
+
+    def setUp(self):
+        self.tempdir = tempfile.mkdtemp()
+        self.opus_filter = OpusFilter(
+            {'common': {'output_directory': self.tempdir}, 'steps': []})
+        with open(os.path.join(self.tempdir, 'input_src'), 'w') as f:
+            f.write('\n'.join(['a', 'b', 'c', 'B', 'b?', 'B!']) + '\n')
+        with open(os.path.join(self.tempdir, 'input_tgt'), 'w') as f:
+            f.write('\n'.join(['A', 'B', 'C', 'B', 'B', 'B']) + '\n')
+
+    def tearDown(self):
+        shutil.rmtree(self.tempdir)
+
+    def test_defaults(self):
+        parameters = {
+            'inputs': [os.path.join(self.tempdir, 'input_src'),
+                       os.path.join(self.tempdir, 'input_tgt')],
+            'outputs': [os.path.join(self.tempdir, 'output_src'),
+                        os.path.join(self.tempdir, 'output_tgt')]}
+        self.opus_filter.remove_duplicates(parameters)
+        with open(os.path.join(self.tempdir, 'output_src')) as f:
+            self.assertEqual(f.read(), 'a\nb\nc\nB\nb?\nB!\n')
+        with open(os.path.join(self.tempdir, 'output_tgt')) as f:
+            self.assertEqual(f.read(), 'A\nB\nC\nB\nB\nB\n')
+
+    def test_preprocessed(self):
+        parameters = {
+            'inputs': [os.path.join(self.tempdir, 'input_src'),
+                       os.path.join(self.tempdir, 'input_tgt')],
+            'outputs': [os.path.join(self.tempdir, 'output_src'),
+                        os.path.join(self.tempdir, 'output_tgt')],
+            'letters_only': True,
+            'lowercase': True
+        }
+        self.opus_filter.remove_duplicates(parameters)
+        with open(os.path.join(self.tempdir, 'output_src')) as f:
+            self.assertEqual(f.read(), 'a\nb\nc\n')
+        with open(os.path.join(self.tempdir, 'output_tgt')) as f:
+            self.assertEqual(f.read(), 'A\nB\nC\n')
+
+            
 class TestUnzip(unittest.TestCase):
 
     def setUp(self):
