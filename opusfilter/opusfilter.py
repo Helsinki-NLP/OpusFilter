@@ -9,11 +9,9 @@ import operator
 import os
 import pickle
 import random
-import re
 
 import json
 import numpy as np
-import pyhash
 from tqdm import tqdm
 
 from opustools import OpusRead
@@ -24,6 +22,7 @@ from . import lm
 from . import word_alignment
 from . import tokenization
 from . import classifier
+from . import segment_hash
 from .util import file_open
 
 logger = logging.getLogger(__name__)
@@ -586,22 +585,11 @@ class OpusFilter:
             return
         divisor = parameters['divisor']
         threshold = parameters.get('threshold', 1)
-        hashname = parameters.get('hash', 'xx_64')
-        hashseed = parameters.get('seed', 0)
-        if not hashname:
-            hashname = 'xx_64'
-        if not hasattr(pyhash, hashname):
-            raise ConfigurationError(
-                "Algorithm '{}' not available from from pyhash".format(hashname))
-        hashfunc = getattr(pyhash, hashname)(seed=hashseed)
-        key_indices = parameters.get('compare', 'all')
-        key_indices = list(range(len(infiles))) if key_indices == 'all' \
-            else sorted(key_indices)
-        if not isinstance(key_indices, list) or \
-           not all(isinstance(x, int) and 0 <= x < len(infiles) for x in key_indices):
-            raise ConfigurationError(
-                "The compare parameter for split has to be 'all' or "
-                "a list of input file indices")
+        hasher = segment_hash.SegmentHasher(
+            compare=parameters.get('compare', 'all'),
+            hash=parameters.get('hash', 'xx_64'),
+            hashseed=parameters.get('seed', 0)
+        )
         infs = [file_open(infile) for infile in infiles]
         outfs = [file_open(outfile, 'w') for outfile in outfiles]
         outfs_2 = [file_open(outfile, 'w') for outfile in outfiles_2]
@@ -609,7 +597,7 @@ class OpusFilter:
         total = 0
         for lines in tqdm(zip(*infs)):
             total += 1
-            key = hashfunc(''.join(lines[idx] for idx in key_indices))
+            key = hasher.apply(lines)
             if key % divisor < threshold:
                 hits += 1
                 for idx, line in enumerate(lines):
@@ -636,19 +624,10 @@ class OpusFilter:
         if not overwrite and all(os.path.isfile(outfile) for outfile in outfiles):
             logger.info("Output files exists, skipping step")
             return
-        hashname = parameters.get('hash', 'xx_64')
-        if hashname and not hasattr(pyhash, hashname):
-            raise ConfigurationError(
-                "Algorithm '{}' not available from from pyhash".format(hashname))
-        hashfunc = getattr(pyhash, hashname)() if hashname else lambda x: x
-        key_indices = parameters.get('compare', 'all')
-        key_indices = list(range(len(infiles))) if key_indices == 'all' \
-            else sorted(key_indices)
-        if not isinstance(key_indices, list) or \
-           not all(isinstance(x, int) and 0 <= x < len(infiles) for x in key_indices):
-            raise ConfigurationError(
-                "The compare parameter for remove_duplicates has to be 'all' or "
-                "a list of input file indices")
+        hasher = segment_hash.SegmentHasher(
+            compare=parameters.get('compare', 'all'),
+            hash=parameters.get('hash', 'xx_64'),
+        )
         infs = [file_open(infile) for infile in infiles]
         outfs = [file_open(outfile, 'w') for outfile in outfiles]
         counter = collections.Counter()
@@ -656,7 +635,7 @@ class OpusFilter:
         total = 0
         for lines in tqdm(zip(*infs)):
             total += 1
-            key = hashfunc(''.join(lines[idx] for idx in key_indices))
+            key = hasher.apply(lines)
             counter[key] += 1
             if counter[key] > 1:
                 removed_entries += 1
