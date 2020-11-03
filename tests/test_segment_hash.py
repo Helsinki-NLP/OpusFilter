@@ -107,3 +107,16 @@ class TestFilterPipeline(unittest.TestCase):
             [[x, 'cc ' * 10] for x in self.all_variants],
             [False, False, True, False, False, False, False]
         )
+
+    def test_pairs_join(self):
+        """Test that segment joining cannot be fooled"""
+        hasher = SegmentHasher()
+        for seg1, seg2 in [
+                (('aaa', 'bbb'), ('', 'aaabbb')),
+                (('aaa', 'bbb'), ('aaab', 'bb')),
+                (('aaa', 'bbb'), ('aaabbb', '')),
+                ((hasher.join_char + 'aaa', 'bbb'), ('', 'aaa' + hasher.join_char + 'bbb')),
+                (('aaa', 'bbb' + hasher.join_char), ('aaa' + hasher.join_char + 'bbb', '')),
+        ]:
+            out1, out2 = hasher.apply(seg1), hasher.apply(seg2)
+            self.assertNotEqual(out1, out2)

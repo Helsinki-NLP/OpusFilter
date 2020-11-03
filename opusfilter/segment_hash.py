@@ -11,6 +11,8 @@ class SegmentHasher:
     """Hasher for text segments"""
 
     not_letter = regex.compile(r'[^\p{L}]')
+    join_char = '\n'
+    join_char_escaped = r'\n'
 
     def __init__(self, compare='all', hash='xx_64', hashseed=0, lowercase=False, letters_only=False):
         """Create a hasher for parallel segments
@@ -44,17 +46,18 @@ class SegmentHasher:
             inputstr = regex.sub(self.not_letter, '', inputstr)
         if self.lowercase:
             inputstr = inputstr.lower()
+        inputstr = inputstr.replace(self.join_char, self.join_char_escaped)
         return inputstr
 
     def apply(self, segments):
         """Hash a list of segments"""
         if self.compare is None:
-            inputstr = ''.join(segments)
+            inputstr = self.join_char.join(self.preprocess(seg) for seg in segments)
         else:
             try:
-                inputstr = ''.join(segments[idx] for idx in self.compare)
+                inputstr = self.join_char.join(self.preprocess(segments[idx]) for idx in self.compare)
             except KeyError:
                 raise ConfigurationError(
                     "The input indices {} in the compare parameter do not match input of length {}",
                     self.compare, len(segments))
-        return self.hashfunc(self.preprocess(inputstr))
+        return self.hashfunc(inputstr)

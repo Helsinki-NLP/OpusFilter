@@ -463,6 +463,9 @@ class TestHeadTailSlice(unittest.TestCase):
 
 class TestSplit(unittest.TestCase):
 
+    # TODO: Replace with tests that are do not depend on the specific
+    # split with the current data and hash algorithm.
+
     def setUp(self):
         self.tempdir = tempfile.mkdtemp()
         self.opus_filter = OpusFilter(
@@ -484,9 +487,9 @@ class TestSplit(unittest.TestCase):
             'divisor': 2, 'hash': 'xx_64'}
         self.opus_filter.split(parameters)
         with open(os.path.join(self.tempdir, 'output_src')) as f:
-            self.assertEqual(f.read(), ''.join('Sent_{}\n'.format(idx) for idx in [0, 1]))
+            self.assertEqual(f.read(), ''.join('Sent_{}\n'.format(idx) for idx in [1, 2, 5]))
         with open(os.path.join(self.tempdir, 'output_tgt')) as f:
-            self.assertEqual(f.read(), ''.join('sent_{}\n'.format(idx) for idx in [0, 1]))
+            self.assertEqual(f.read(), ''.join('sent_{}\n'.format(idx) for idx in [1, 2, 5]))
 
     def test_split_single_out_seed(self):
         parameters = {
@@ -497,9 +500,9 @@ class TestSplit(unittest.TestCase):
             'divisor': 2, 'hash': 'xx_64', 'seed': 123}
         self.opus_filter.split(parameters)
         with open(os.path.join(self.tempdir, 'output_src')) as f:
-            self.assertEqual(f.read(), ''.join('Sent_{}\n'.format(idx) for idx in [2, 3, 4]))
+            self.assertEqual(f.read(), ''.join('Sent_{}\n'.format(idx) for idx in [1]))
         with open(os.path.join(self.tempdir, 'output_tgt')) as f:
-            self.assertEqual(f.read(), ''.join('sent_{}\n'.format(idx) for idx in [2, 3, 4]))
+            self.assertEqual(f.read(), ''.join('sent_{}\n'.format(idx) for idx in [1]))
 
     def test_split_two_out(self):
         parameters = {
@@ -512,14 +515,14 @@ class TestSplit(unittest.TestCase):
             'divisor': 2, 'hash': 'xx_64'}
         self.opus_filter.split(parameters)
         with open(os.path.join(self.tempdir, 'output_src')) as f:
-            self.assertEqual(f.read(), ''.join('Sent_{}\n'.format(idx) for idx in [0, 1]))
+            self.assertEqual(f.read(), ''.join('Sent_{}\n'.format(idx) for idx in [1, 2, 5]))
         with open(os.path.join(self.tempdir, 'output_tgt')) as f:
-            self.assertEqual(f.read(), ''.join('sent_{}\n'.format(idx) for idx in [0, 1]))
+            self.assertEqual(f.read(), ''.join('sent_{}\n'.format(idx) for idx in [1, 2, 5]))
 
         with open(os.path.join(self.tempdir, 'output_src_2')) as f:
-            self.assertEqual(f.read(), ''.join('Sent_{}\n'.format(idx) for idx in [2, 3, 4, 5]))
+            self.assertEqual(f.read(), ''.join('Sent_{}\n'.format(idx) for idx in [0, 3, 4]))
         with open(os.path.join(self.tempdir, 'output_tgt_2')) as f:
-            self.assertEqual(f.read(), ''.join('sent_{}\n'.format(idx) for idx in [2, 3, 4, 5]))
+            self.assertEqual(f.read(), ''.join('sent_{}\n'.format(idx) for idx in [0, 3, 4]))
 
     def test_split_src_key(self):
         parameters = {
@@ -530,9 +533,9 @@ class TestSplit(unittest.TestCase):
             'divisor': 2, 'compare': [0], 'hash': 'xx_64'}
         self.opus_filter.split(parameters)
         with open(os.path.join(self.tempdir, 'output_src')) as f:
-            self.assertEqual(f.read(), ''.join('Sent_{}\n'.format(idx) for idx in [0, 3, 4]))
+            self.assertEqual(f.read(), ''.join('Sent_{}\n'.format(idx) for idx in [3, 4]))
         with open(os.path.join(self.tempdir, 'output_tgt')) as f:
-            self.assertEqual(f.read(), ''.join('sent_{}\n'.format(idx) for idx in [0, 3, 4]))
+            self.assertEqual(f.read(), ''.join('sent_{}\n'.format(idx) for idx in [3, 4]))
 
     def test_split_tgt_key(self):
         parameters = {
@@ -543,9 +546,9 @@ class TestSplit(unittest.TestCase):
             'divisor': 2, 'compare': [1], 'hash': 'xx_64'}
         self.opus_filter.split(parameters)
         with open(os.path.join(self.tempdir, 'output_src')) as f:
-            self.assertEqual(f.read(), ''.join('Sent_{}\n'.format(idx) for idx in [0, 2, 3, 5]))
+            self.assertEqual(f.read(), ''.join('Sent_{}\n'.format(idx) for idx in [2, 4, 5]))
         with open(os.path.join(self.tempdir, 'output_tgt')) as f:
-            self.assertEqual(f.read(), ''.join('sent_{}\n'.format(idx) for idx in [0, 2, 3, 5]))
+            self.assertEqual(f.read(), ''.join('sent_{}\n'.format(idx) for idx in [2, 4, 5]))
 
     def test_split_modulo_threshold(self):
         parameters = {
@@ -556,9 +559,9 @@ class TestSplit(unittest.TestCase):
             'divisor': 10, 'threshold': 3, 'hash': 'xx_64'}
         self.opus_filter.split(parameters)
         with open(os.path.join(self.tempdir, 'output_src')) as f:
-            self.assertEqual(f.read(), ''.join('Sent_{}\n'.format(idx) for idx in [4, 5]))
+            self.assertEqual(f.read(), ''.join('Sent_{}\n'.format(idx) for idx in [1, 3, 5]))
         with open(os.path.join(self.tempdir, 'output_tgt')) as f:
-            self.assertEqual(f.read(), ''.join('sent_{}\n'.format(idx) for idx in [4, 5]))
+            self.assertEqual(f.read(), ''.join('sent_{}\n'.format(idx) for idx in [1, 3, 5]))
 
 
 class TestRemoveDuplicates(unittest.TestCase):
@@ -677,7 +680,7 @@ class TestRemoveDuplicatesPreprocess(unittest.TestCase):
         with open(os.path.join(self.tempdir, 'output_tgt')) as f:
             self.assertEqual(f.read(), 'A\nB\nC\n')
 
-            
+
 class TestUnzip(unittest.TestCase):
 
     def setUp(self):
