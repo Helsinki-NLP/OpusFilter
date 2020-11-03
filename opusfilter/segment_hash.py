@@ -8,11 +8,21 @@ from . import ConfigurationError
 
 
 class SegmentHasher:
-    """Hasher one or more text segments"""
+    """Hasher for text segments"""
 
     not_letter = regex.compile(r'[^\p{L}]')
 
     def __init__(self, compare='all', hash='xx_64', hashseed=0, lowercase=False, letters_only=False):
+        """Create a hasher for parallel segments
+
+        Keyword arguments:
+          compare -- a list of indices for selecting the segments to hash or 'all' (default 'all')
+          hash -- hash function from pyhash library, None for no hashing (default 'xx_64')
+          hashseed -- integer seed for the hash algorithm (default 0)
+          lowercase -- lowercase input strings before hashing
+          letters_only -- remove all non-letters from intput strings before hashing
+
+        """
         self.compare = None
         if compare != 'all':
             if not isinstance(compare, list) or not all(isinstance(x, int) for x in compare):
@@ -28,18 +38,23 @@ class SegmentHasher:
         self.lowercase = lowercase
         self.letters_only = letters_only
 
-    def apply(self, lines):
-        if self.compare is None:
-            inputstr = ''.join(lines)
-        else:
-            try:
-                inputstr = ''.join(lines[idx] for idx in self.compare)
-            except KeyError:
-                raise ConfigurationError(
-                    "The input indices {} in the compare parameter do not match input of lenght {}",
-                    self.compare, len(lines))
+    def preprocess(self, inputstr):
+        """Preprocess string"""
         if self.letters_only:
             inputstr = regex.sub(self.not_letter, '', inputstr)
         if self.lowercase:
             inputstr = inputstr.lower()
-        return self.hashfunc(inputstr)
+        return inputstr
+
+    def apply(self, segments):
+        """Hash a list of segments"""
+        if self.compare is None:
+            inputstr = ''.join(segments)
+        else:
+            try:
+                inputstr = ''.join(segments[idx] for idx in self.compare)
+            except KeyError:
+                raise ConfigurationError(
+                    "The input indices {} in the compare parameter do not match input of length {}",
+                    self.compare, len(segments))
+        return self.hashfunc(self.preprocess(inputstr))
