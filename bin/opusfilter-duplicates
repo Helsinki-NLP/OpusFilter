@@ -18,10 +18,9 @@ logging.getLogger('mosestokenizer.tokenizer.MosesTokenizer').setLevel(logging.WA
 parser = argparse.ArgumentParser(prog='opusfilter-duplicates',
     description='find duplicates from parallel text data using hashes and print statistics')
 
-parser.add_argument('files', nargs='+', help='parallel text input files')
-parser.add_argument('--compare', type=str, default='all',
-                    help=('comma-separated indices for selecting the '
-                          'segments to hash (e.g. "0,2") or "all" (default)'))
+parser.add_argument('files', nargs='+', metavar='FILE', help='parallel text input file(s)')
+parser.add_argument('--overlap', '-o', nargs='+', metavar='FILE', default=None,
+                    help='calculate overlap with second set of input files')
 parser.add_argument('--hash', type=str, default='xx_64',
                     help=('hash function from pyhash library, empty string '
                           'for no hashing (default "xx_64")'))
@@ -32,28 +31,46 @@ parser.add_argument('--lowercase', action='store_true', default=False,
 
 args = parser.parse_args()
 
+if args.overlap and len(args.overlap) != len(args.files):
+    raise ValueError("The number of the main and overlap input files should match")
+
 hasher = SegmentHasher(
-    compare=args.compare if args.compare == 'all' else [int(x) for x in args.compare.split(',')],
+    compare='all',
     hash=args.hash,
     letters_only=args.letters_only,
     lowercase=args.lowercase
 )
 
-infs = [file_open(infile) for infile in args.files]
-counter = collections.Counter()
-removed_entries = 0
 total = 0
+counter = collections.Counter()
+infs = [file_open(infile) for infile in args.files]
 for lines in tqdm(zip(*infs)):
     total += 1
     key = hasher.apply(lines)
     counter[key] += 1
 
-counts_of_counts = collections.Counter(counter.values())
-logger.debug(counts_of_counts)
-
-print("Total segment pairs: {}".format(total))
-print("Unique segment pairs: {}".format(sum(counts_of_counts.values())))
-print("Segment pairs occurring once: {}".format(counts_of_counts[1]))
-print("Average number of duplicates: {:.1f}".format(
-    sum((k * v) for k, v in counts_of_counts.items()) / sum(counts_of_counts.values())))
-print("Max number of duplicates: {}".format(max(counts_of_counts.keys())))
+if args.overlap:
+    total2 = 0
+    overlap = 0
+    overlap_counter = collections.Counter()
+    infs = [file_open(infile) for infile in args.overlap]
+    for lines in tqdm(zip(*infs)):
+        total2 += 1
+        key = hasher.apply(lines)
+        if key in counter:
+            overlap += 1
+            overlap_counter[key] += 1
+    print("Total segments in 1st: {}".format(total))
+    print("Total segments in 2nd: {}".format(total2))
+    print("Overlapping segments: {} ({:.1f}% in 1st, {:.1f}% in 2nd)".format(
+        overlap, 100 * overlap / total, 100 * overlap / total2))
+    print("Overlapping unique segments: {}".format(len(overlap_counter)))
+else:
+    counts_of_counts = collections.Counter(counter.values())
+    uniq = sum(counts_of_counts.values())
+    print("Total segments: {}".format(total))
+    print("Unique segments: {} ({:.1f}%)".format(uniq, 100 * uniq / total))
+    print("Segments occurring once: {}".format(counts_of_counts[1]))
+    print("Average number of duplicates: {:.1f}".format(
+        sum((k * v) for k, v in counts_of_counts.items()) / sum(counts_of_counts.values())))
+    print("Maximum number of duplicates: {}".format(max(counts_of_counts.keys())))
