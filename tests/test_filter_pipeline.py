@@ -1,3 +1,4 @@
+import copy
 import unittest
 
 from opusfilter.pipeline import FilterPipeline
@@ -29,29 +30,41 @@ class TestFilterPipeline(unittest.TestCase):
     def test_score(self):
         fp = FilterPipeline.from_config(self.config)
         pairs = [('That safeguards our independence .',
-                    ('Kränkningar av svenskt territorium kommer aldrig att '
-                    'accepteras .')),
-                ('1245..',
-                    '12345.....')]
+                  ('Kränkningar av svenskt territorium kommer aldrig att '
+                   'accepteras .')),
+                 ('1245..', '12345.....'),
+                 ('', '')]
         scores = list(fp.score(pairs))
-        self.assertEqual(scores[0],
-                {'LengthFilter': [5, 9],
-                    'LengthRatioFilter': 1.8,
-                    'LongWordFilter': 12,
-                    'HtmlTagFilter': [False, False],
-                    'CharacterScoreFilter': [1.0, 1.0],
-                    'LanguageIDFilter': [1.0, 1.0],
-                    'TerminalPunctuationFilter': -0.0,
-                    'NonZeroNumeralsFilter': [1.0]})
-        self.assertEqual(scores[1],
-                {'LengthFilter': [1, 1],
-                    'LengthRatioFilter': 1.0,
-                    'LongWordFilter': 10,
-                    'HtmlTagFilter': [False, False],
-                    'CharacterScoreFilter': [1.0, 1.0],
-                    'LanguageIDFilter': [0.17, 0.0],
-                    'TerminalPunctuationFilter': -2.1972245773362196,
-                    'NonZeroNumeralsFilter': [0.8888888888888888]})
+        self.assertEqual(
+            scores[0],
+            {'LengthFilter': [5, 9],
+             'LengthRatioFilter': 1.8,
+             'LongWordFilter': 12,
+             'HtmlTagFilter': [False, False],
+             'CharacterScoreFilter': [1.0, 1.0],
+             'LanguageIDFilter': [1.0, 1.0],
+             'TerminalPunctuationFilter': -0.0,
+             'NonZeroNumeralsFilter': [1.0]})
+        self.assertEqual(
+            scores[1],
+            {'LengthFilter': [1, 1],
+             'LengthRatioFilter': 1.0,
+             'LongWordFilter': 10,
+             'HtmlTagFilter': [False, False],
+             'CharacterScoreFilter': [1.0, 1.0],
+             'LanguageIDFilter': [0.17, 0.0],
+             'TerminalPunctuationFilter': -2.1972245773362196,
+             'NonZeroNumeralsFilter': [0.8888888888888888]})
+        self.assertEqual(
+            scores[2],
+            {'LengthFilter': [0, 0],
+             'LengthRatioFilter': 0,
+             'LongWordFilter': 0,
+             'HtmlTagFilter': [False, False],
+             'CharacterScoreFilter': [1.0, 1.0],
+             'LanguageIDFilter': [1.0, 1.0],
+             'TerminalPunctuationFilter': -0.0,
+             'NonZeroNumeralsFilter': [1.0]})
 
     def test_filter(self):
         fp = FilterPipeline.from_config(self.config)
@@ -89,6 +102,19 @@ class TestFilterPipeline(unittest.TestCase):
                     'Denna mening är skriven på svenska.')]
         filtered = list(fp.filterfalse(pairs))
         self.assertEqual(filtered, pairs[:-1])
+
+    def test_filter_empty(self):
+        fp = FilterPipeline.from_config(self.config)
+        pairs = [('', ''), ('this is English', 'det är Svenska'), ('', '')]
+        filtered = list(fp.filter(pairs))
+        self.assertEqual(filtered, [('this is English', 'det är Svenska')])
+        # set LengthFilter to pass empty lines
+        config2 = copy.deepcopy(self.config)
+        config2[0]['LengthFilter']['pass_empty'] = True
+        fp = FilterPipeline.from_config(config2)
+        filtered = list(fp.filter(pairs))
+        self.assertEqual(
+            filtered, [('', ''), ('this is English', 'det är Svenska'), ('', '')])
 
 
 class TestFilterPipelineScoreNames(unittest.TestCase):

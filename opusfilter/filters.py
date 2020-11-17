@@ -19,13 +19,14 @@ from .word_alignment import WordAlignFilter
 class LengthFilter(FilterABC):
     """Sentence length filter"""
 
-    def __init__(self, min_length=1, max_length=100, unit='word', **kwargs):
+    def __init__(self, min_length=1, max_length=100, unit='word', pass_empty=False, **kwargs):
         if unit not in ('word', 'char', 'character'):
             raise ConfigurationError(
                 "Unit has to be either 'word', 'char', or 'character', not '%s'" % unit)
         self.min_length = min_length
         self.max_length = max_length
         self.unit = unit
+        self.pass_empty = pass_empty
         super().__init__(**kwargs)
 
     def score(self, pairs):
@@ -37,6 +38,8 @@ class LengthFilter(FilterABC):
             yield lengths
 
     def accept(self, score):
+        if self.pass_empty and sum(score) == 0:
+            return True
         return all(self.min_length <= length <= self.max_length for length in score)
 
 
@@ -59,7 +62,10 @@ class LengthRatioFilter(FilterABC):
                 lengths = [len(sent) for sent in pair]
             lengths.sort()
             if lengths[0] == 0:
-                yield float('inf')
+                if lengths[-1] == 0:
+                    yield 0
+                else:
+                    yield float('inf')
             else:
                 yield lengths[-1] / lengths[0]
 
@@ -154,6 +160,10 @@ class LanguageIDFilter(FilterABC):
 
     def confidence(self, sentence, lan):
         """Return confidence of the identifier"""
+        if not sentence:
+            # Prevent filtering empty lines
+            return 1.0
+
         if self.id_method == 'cld2':
             try:
                 clddetails = pycld2.detect(sentence)
