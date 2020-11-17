@@ -681,6 +681,39 @@ class TestRemoveDuplicatesPreprocess(unittest.TestCase):
             self.assertEqual(f.read(), 'A\nB\nC\n')
 
 
+class TestRemoveDuplicatesOverlap(unittest.TestCase):
+
+    def setUp(self):
+        self.tempdir = tempfile.mkdtemp()
+        self.opus_filter = OpusFilter(
+            {'common': {'output_directory': self.tempdir}, 'steps': []})
+        with open(os.path.join(self.tempdir, 'input_src'), 'w') as f:
+            f.write('\n'.join(['a', 'b', 'c', 'd', 'e', 'a', 'b', 'b', 'f']) + '\n')
+        with open(os.path.join(self.tempdir, 'input_tgt'), 'w') as f:
+            f.write('\n'.join(['A', 'B', 'C', 'D', 'E', 'A', 'B', 'F', 'C']) + '\n')
+        with open(os.path.join(self.tempdir, 'overlap_src'), 'w') as f:
+            f.write('\n'.join(['b', 'd', 'e']) + '\n')
+        with open(os.path.join(self.tempdir, 'overlap_tgt'), 'w') as f:
+            f.write('\n'.join(['B', 'D', 'E']) + '\n')
+
+    def tearDown(self):
+        shutil.rmtree(self.tempdir)
+
+    def test_defaults(self):
+        parameters = {
+            'inputs': [os.path.join(self.tempdir, 'input_src'),
+                       os.path.join(self.tempdir, 'input_tgt')],
+            'outputs': [os.path.join(self.tempdir, 'output_src'),
+                        os.path.join(self.tempdir, 'output_tgt')],
+            'overlap': [os.path.join(self.tempdir, 'overlap_src'),
+                        os.path.join(self.tempdir, 'overlap_tgt')]}
+        self.opus_filter.remove_duplicates(parameters)
+        with open(os.path.join(self.tempdir, 'output_src')) as f:
+            self.assertEqual(f.read(), 'a\nc\na\nb\nf\n')
+        with open(os.path.join(self.tempdir, 'output_tgt')) as f:
+            self.assertEqual(f.read(), 'A\nC\nA\nF\nC\n')
+
+
 class TestUnzip(unittest.TestCase):
 
     def setUp(self):

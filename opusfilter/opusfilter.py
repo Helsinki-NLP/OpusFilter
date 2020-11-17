@@ -632,16 +632,34 @@ class OpusFilter:
         )
         infs = [file_open(infile) for infile in infiles]
         outfs = [file_open(outfile, 'w') for outfile in outfiles]
+        overlap = parameters.get('overlap', None)
+        if overlap:
+            overlapfs = [file_open(infile) for infile in overlap]
+            overlap_total = 0
+            overlap_counter = collections.Counter()
+            for lines in tqdm(zip(*overlapfs)):
+                key = hasher.apply(lines)
+                overlap_total += 1
+                overlap_counter[key] += 1
+            logger.info(
+                "Collected {} types from {} tokens".format(
+                    len(overlap_counter), overlap_total))
         counter = collections.Counter()
         removed_entries = 0
         total = 0
         for lines in tqdm(zip(*infs)):
             total += 1
             key = hasher.apply(lines)
-            counter[key] += 1
-            if counter[key] > 1:
-                removed_entries += 1
-                continue
+            if overlap:
+                if key in overlap_counter:
+                    counter[key] += 1
+                    removed_entries += 1
+                    continue
+            else:
+                counter[key] += 1
+                if counter[key] > 1:
+                    removed_entries += 1
+                    continue
             for idx, line in enumerate(lines):
                 outfs[idx].write(line)
         removed_types = sum(1 for c in counter.values() if c > 1)

@@ -459,6 +459,7 @@ Parameters:
 * `outputs`: output file(s)
 * `compare`: select files for duplicate comparison (optional; default `all` or a list of indices)
 * `hash`: select hash algorithm from pyhash (optional; default `xx_64`)
+* `overlap`: remove overlap with a second set of files (optional; default `null`)
 
 Duplicate filtering is recommended as a first step especially if you
 combine different corpus collections (e.g. data crawled from web) and
@@ -471,6 +472,10 @@ to generate the key for duplicate comparison. For example, if you have
 source and target language files, and you want that each source or
 target sentence occurs only once, set `compare` to `[0]` or `[1]`,
 respectively.
+
+Instead of removing duplicates from a single set, the optional
+`overlap` argument can be used to remove all segments from `inputs`
+that match the segments in `overlap`.
 
 Non-cryptographic hashing is used to reduce memory consumption for the
 case that the files are very large. The lines defined by the `compare`
