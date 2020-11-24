@@ -66,6 +66,8 @@ OpusFilter has been presented in [ACL 2020 system demonstrations](https://www.ac
       * [WordAlignFilter](#wordalignfilter)
 * [Custom filters](#custom-filters)
 * [Other tools](#other-tools)
+   * [opusfilter-duplicates](#opusfilter-duplicates)
+   * [opusfilter-scores](#opusfilter-scores)
 
 ## Installing
 
@@ -268,14 +270,14 @@ WMT-News data, you can have:
 ### Running a single command
 
 If you need to run a single OpusFilter function wihtout the need of
-writing a complete configuration, the script `opustools-cmd` is
+writing a complete configuration, the script `opusfilter-cmd` is
 provided for convenience. With the command, you can define a
 single-step configuration using just command line arguments.
 
-The syntax for the `opustools-cmd` is:
+The syntax for the `opusfilter-cmd` is:
 
 ```
-opustools-cmd [--overwrite] [--outputdir OUTDIR] FUNCTION [--parameters PARAMETERS] [PARAMETER-OPTION] ...
+opusfilter-cmd [--overwrite] [--outputdir OUTDIR] FUNCTION [--parameters PARAMETERS] [PARAMETER-OPTION] ...
 ```
 
 The `--outputdir` option defines the work directory; if not given the
@@ -290,7 +292,7 @@ YAML configuration, or setting the parameters with custom options.
 For the former, use the `--parameters` option. For example, the
 following performs filtering with a single word length filter:
 ```
-opustools-cmd filter --parameters {"inputs": ["wmt.fi.gz", "wmt.en.gz"], "outputs": ["wmt_filtered.fi.gz", "wmt_filtered.en.gz"], "filters": [{"LengthFilter": {"unit": "word", "min_length": 1, "max_length": 100}}]}
+opusfilter-cmd filter --parameters {"inputs": ["wmt.fi.gz", "wmt.en.gz"], "outputs": ["wmt_filtered.fi.gz", "wmt_filtered.en.gz"], "filters": [{"LengthFilter": {"unit": "word", "min_length": 1, "max_length": 100}}]}
 ```
 
 Writing a valid complex JSON object may be difficult, and the custom
@@ -307,7 +309,7 @@ the `corpus_name` parameter).
 
 In this manner, the above example can be written also as:
 ```
-opustools-cmd filter --inputs wmt.fi.gz wmt.en.gz --outputs wmt_filtered.fi.gz wmt_filtered.en.gz --filters '[{"LengthFilter": {"unit": "word", "min_length": 1, "max_length": 100}}]'
+opusfilter-cmd filter --inputs wmt.fi.gz wmt.en.gz --outputs wmt_filtered.fi.gz wmt_filtered.en.gz --filters '[{"LengthFilter": {"unit": "word", "min_length": 1, "max_length": 100}}]'
 ```
 Note that the filters still need to be defined as a complex JSON
 objects. The created configuration will be shown as YAML for easier
@@ -475,7 +477,8 @@ respectively.
 
 Instead of removing duplicates from a single set, the optional
 `overlap` argument can be used to remove all segments from `inputs`
-that match the segments in `overlap`.
+that match the segments in `overlap`. For example, you can remove
+exact duplicates of the test data from your training data.
 
 Non-cryptographic hashing is used to reduce memory consumption for the
 case that the files are very large. The lines defined by the `compare`
@@ -964,12 +967,30 @@ steps:
 
 ## Other tools
 
-Apart from the main `opusfilter` script, the packages also provides
-the `opusfilter-scores` script. It is a tool that can be used to
-calculate and plot statistics from scores produced by the
-[`score`](#score) function. The tool has several subcommands that all
-take the JSON Lines score file as the input, and either print or plot
-the output:
+Apart from the main `opusfilter` and `opusfilter-cmd` scripts, the
+package also provides some tools for analysis.
+
+### `opusfilter-duplicates`
+
+This is a simple script based on the [`remove_duplicates`](#remove_duplicates)
+function that instead of filtering the data, prints out statistics of
+the duplicate entries. You can either provide a single corpus (as one
+monolingual file or multiple parallel files) for calculating the
+number of duplicates in it, or two corpora for calculating the overlap
+between them. The syntax for the `opusfilter-duplicates` is:
+
+```
+opusfilter-duplicates [--overlap FILE [FILE ...]] [--hash HASH] [--letters-only] [--lowercase] FILE [FILE ...]
+```
+
+The options are essentially the same as for [`remove_duplicates`](#remove_duplicates).
+
+### `opusfilter-scores`
+
+This is a tool that can be used to calculate and plot statistics from
+scores produced by the [`score`](#score) function. The tool has
+several subcommands that all take the JSON Lines score file as the
+input, and either print or plot the output:
 
 * `list`: Print score column names
 * `describe`: Print basic score statistics
