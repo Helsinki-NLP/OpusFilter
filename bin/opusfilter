@@ -13,7 +13,7 @@ logging.getLogger('mosestokenizer.tokenizer.MosesTokenizer').setLevel(logging.WA
 parser = argparse.ArgumentParser(prog='opusfilter',
     description='Filter OPUS bitexts')
 
-parser.add_argument('config', help='YAML configuration file')
+parser.add_argument('config', metavar='CONFIG', help='YAML configuration file')
 parser.add_argument('--overwrite', '-o', help='overwrite existing output files', action='store_true')
 parser.add_argument('--last', type=int, default=None, help='Last step to run')
 parser.add_argument('--single', type=int, default=None, help='Run only the nth step')

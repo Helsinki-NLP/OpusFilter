@@ -130,10 +130,15 @@ sections:
 
 * `steps`, which is a list of the corpus processing steps.
 
+The syntax for the `opusfilter` is
+```
+opusfilter [--overwrite] [--last LAST] [--single SINGLE] CONFIG
+```
+where `CONFIG` is path to the configuration file.
 The script will run the steps one by one and stops when the final step
 has been processed (if no exceptions were raised). The script has
-options for setting the last step to run (`--last <N>`) and running
-only a single step (`--single <N>`). It the latter, the user has to
+options for setting the last step to run (`--last`) and running
+only a single step (`--single`). It the latter, the user has to
 make sure that all input files for the step already exist. The first
 step has number 1, and -1 points to the last step, -2 to the second to
 last, and so on.
@@ -967,8 +972,8 @@ steps:
 
 ## Other tools
 
-Apart from the main `opusfilter` and `opusfilter-cmd` scripts, the
-package also provides some tools for analysis.
+Apart from the main [`opusfilter`](#overview) and [`opusfilter-cmd`](#running-a-single-command)
+scripts, the package also provides some analysis tools.
 
 ### `opusfilter-duplicates`
 
