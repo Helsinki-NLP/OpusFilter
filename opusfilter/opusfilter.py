@@ -131,6 +131,12 @@ class OpusFilter:
             logger.info("Output files exists, skipping step")
             return
 
+        try:
+            parameters['release']
+        except KeyError:
+            logger.info("No release version provided, using 'latest'")
+            parameters['release'] = 'latest'
+
         opus_reader = OpusRead(
             directory=parameters['corpus_name'],
             source=parameters['source_language'],
