@@ -130,7 +130,10 @@ class OpusFilter:
         if not overwrite and os.path.isfile(src_out) and os.path.isfile(tgt_out):
             logger.info("Output files exists, skipping step")
             return
-
+        if 'release' not in parameters:
+            logger.info("No release version provided for corpus %s, using 'latest'",
+                        parameters['corpus_name'])
+            parameters['release'] = 'latest'
         opus_reader = OpusRead(
             directory=parameters['corpus_name'],
             source=parameters['source_language'],
