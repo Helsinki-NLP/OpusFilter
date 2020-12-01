@@ -202,6 +202,7 @@ class OpusFilter:
         else:
             pairs = filter_pipe.filter(pairs_gen)
         limit = parameters.get('limit')
+        last_idx = 0
         with file_open(src_out, 'w') as source_file, \
                 file_open(tgt_out, 'w') as target_file:
             for idx, pair in enumerate(pairs):
@@ -209,10 +210,11 @@ class OpusFilter:
                 target_file.write(pair[1]+'\n')
                 source_file.flush()
                 target_file.flush()
+                last_idx = idx
                 if limit and idx >= limit - 1:
                     break
         if not limit:
-            removed = pairs_gen.n - idx
+            removed = pairs_gen.n - last_idx
             logger.info("Filtered out {} / {} = {:.2f}% lines".format(
                 removed, pairs_gen.n, 100 * removed / pairs_gen.n))
 
