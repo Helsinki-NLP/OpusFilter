@@ -218,7 +218,7 @@ class CrossEntropyFilter(FilterABC):
     score_types = {'entropy', 'perplexity', 'logprob'}
 
     def __init__(self, lm_params=None, score_type='entropy',
-                 thresholds=None, diff_threshold=10.0, **kwargs):
+                 thresholds=None, diff_threshold=10.0, score_for_empty=None, **kwargs):
         if not lm_params:
             raise ConfigurationError("Language model configurations need to be defined")
         if any(param.get('segmentation', {}).get('type', 'char') != 'char' for param in lm_params):
@@ -231,11 +231,15 @@ class CrossEntropyFilter(FilterABC):
         self.lms = [get_lm(**params) for params in self.lm_params]
         self.thresholds = [50.0] * len(lm_params) if thresholds is None else thresholds
         self.diff_threshold = diff_threshold
+        self.score_for_empty = score_for_empty
         super().__init__(**kwargs)
 
     def score(self, pairs):
         tokenizers = [LMTokenizer(**params) for params in self.lm_params]
         for pair in pairs:
+            if self.score_for_empty is not None and all(not sentence for sentence in pair):
+                yield [self.score_for_empty for _ in pair]
+                continue
             scores = []
             for lm, tokenizer, sent in zip(self.lms, tokenizers, pair):
                 tokens = tokenizer.tokenize(sent)
@@ -266,7 +270,9 @@ class CrossEntropyDifferenceFilter(FilterABC):
 
     """
 
-    def __init__(self, id_lm_params=None, nd_lm_params=None, thresholds=None, **kwargs):
+    empty_pair_sentinel = object()
+
+    def __init__(self, id_lm_params=None, nd_lm_params=None, thresholds=None, score_for_empty=False, **kwargs):
         if not id_lm_params:
             raise ConfigurationError("In-domain language model configurations need to be defined")
         if not nd_lm_params:
@@ -282,6 +288,7 @@ class CrossEntropyDifferenceFilter(FilterABC):
         self.id_lms = [get_lm(**params) for params in self.id_lm_params]
         self.nd_lms = [get_lm(**params) for params in self.nd_lm_params]
         self.thresholds = [0.0] * len(id_lm_params) if thresholds is None else thresholds
+        self.score_for_empty = score_for_empty
         super().__init__(**kwargs)
 
     @staticmethod
@@ -297,6 +304,9 @@ class CrossEntropyDifferenceFilter(FilterABC):
         id_tokenizers = [LMTokenizer(**params) for params in self.id_lm_params]
         nd_tokenizers = [LMTokenizer(**params) for params in self.nd_lm_params]
         for pair in pairs:
+            if self.score_for_empty is not None and all(not sentence for sentence in pair):
+                yield [self.score_for_empty for _ in pair]
+                continue
             scores = []
             for id_lm, id_tokenizer, nd_lm, nd_tokenizer, sent in zip(
                     self.id_lms, id_tokenizers, self.nd_lms, nd_tokenizers, pair):

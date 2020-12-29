@@ -127,7 +127,7 @@ class TestOpusFilter(unittest.TestCase):
                 score['CrossEntropyFilter'][1], 7.569084909162213)
             self.assertEqual(score['TerminalPunctuationFilter'], -0.0)
             self.assertEqual(score['NonZeroNumeralsFilter'], [0.0])
-            self.assertEqual(type(score['WordAlignFilter']), dict)
+            self.assertEqual(type(score['WordAlignFilter']), list)
 
     def test_initial_files(self):
         with open(os.path.join(self.tempdir, 'RF1_sents.en')) as sents_file_en:

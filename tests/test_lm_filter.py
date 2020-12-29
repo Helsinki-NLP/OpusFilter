@@ -88,3 +88,65 @@ class TestLMFilter(unittest.TestCase):
             bools.append(cefilter.accept(score))
         logging.info(scores)
         self.assertSequenceEqual(bools, [True, False, False, True, False])
+
+    def test_filter_empty_default(self):
+        src_lm_params = {'filename': self.lmfile1}
+        tgt_lm_params = {'filename': self.lmfile2}
+        cefilter = lm.CrossEntropyFilter(
+            score_type='entropy',
+            thresholds=[3, 3], diff_threshold=5,
+            lm_params=[src_lm_params, tgt_lm_params])
+        inputs = [('ab', 'AB'), ('', '')]
+        scores = []
+        bools = []
+        for score in cefilter.score(inputs):
+            scores.append(score)
+            bools.append(cefilter.accept(score))
+        logging.info(scores)
+        self.assertSequenceEqual(bools, [True, False])
+
+    def test_filter_empty_pass(self):
+        src_lm_params = {'filename': self.lmfile1}
+        tgt_lm_params = {'filename': self.lmfile2}
+        cefilter = lm.CrossEntropyFilter(
+            score_type='entropy',
+            thresholds=[3, 3], diff_threshold=5, score_for_empty=0,
+            lm_params=[src_lm_params, tgt_lm_params])
+        inputs = [('ab', 'AB'), ('', '')]
+        scores = []
+        bools = []
+        for score in cefilter.score(inputs):
+            scores.append(score)
+            bools.append(cefilter.accept(score))
+        logging.info(scores)
+        self.assertSequenceEqual(bools, [True, True])
+
+    def test_filter_entropy_difference(self):
+        id_lm_params = [{'filename': self.lmfile1}]
+        nd_lm_params = [{'filename': self.lmfile2}]
+        cefilter = lm.CrossEntropyDifferenceFilter(
+            id_lm_params=id_lm_params, nd_lm_params=nd_lm_params,
+            thresholds=[0, 0], pass_empty=False)
+        inputs = [('ab',), ('ab ab',), ('Ab ab',), ('Ab Ab',), ('aB Ab',), ('AB',), ('',)]
+        scores = []
+        bools = []
+        for score in cefilter.score(inputs):
+            scores.append(score)
+            bools.append(cefilter.accept(score))
+        logging.info(scores)
+        self.assertSequenceEqual(bools, [True, True, True, False, False, False, False])
+
+    def test_filter_entropy_difference_pass_empty(self):
+        id_lm_params = [{'filename': self.lmfile1}]
+        nd_lm_params = [{'filename': self.lmfile2}]
+        cefilter = lm.CrossEntropyDifferenceFilter(
+            id_lm_params=id_lm_params, nd_lm_params=nd_lm_params,
+            thresholds=[0, 0], score_for_empty=-1)
+        inputs = [('ab',), ('AB',), ('',)]
+        scores = []
+        bools = []
+        for score in cefilter.score(inputs):
+            scores.append(score)
+            bools.append(cefilter.accept(score))
+        logging.info(scores)
+        self.assertSequenceEqual(bools, [True, False, True])

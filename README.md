@@ -727,9 +727,10 @@ Parameters:
 * `min_length`: minimum segment length (optional; default 1)
 * `max_length`: maximum segment length (optional; default 100)
 * `unit`: type of unit for calculating the lengths (optional; `word` for words or any whitespace-separated units, and `character` or `char` for characters; the default is `word`)
+* `pass_empty`: if `true`, always accept if all segment lengths are zero (default `false`)
 
 Returned scores are lengths for the source and target segment. In
-filtering, both segments have to be between the minimum and maximum
+filtering, all segments have to be between the minimum and maximum
 length thresholds.
 
 #### `LengthRatioFilter`
@@ -812,6 +813,7 @@ Parameters:
 * `score_type`: select whether to calculate cross-entropy (`entropy`; default), perplixty (`perplexity`) or negative log-probability (`logprob`) scores
 * `thresholds`: upper thresholds for scores when filtering (optional; default is 50.0 for all languages)
 * `diff_threshold`: upper threshold for absolute difference of source and target language scores when filtering (optional; default 10.0)
+* `score_for_empty`: set score values manually for empty input pairs (default `null`)
 
 Language model parameters for `lm_params`:
 
@@ -832,8 +834,8 @@ you know what you are doing.
 
 Separate scores (entropy, perplexity, or negative log-probability) are
 returned for the source and target segment. In filtering, the segment
-pair is accepted if both values are below the respective thresholds,
-and their absolute difference is below the difference threshold.
+pair is accepted if all values are below the respective thresholds,
+and their absolute differences are below the difference threshold.
 
 #### `CrossEntropyDifferenceFilter`
 
@@ -844,6 +846,7 @@ Parameters:
 * `id_lm_params`: a list of dictionaries for the parameters of the in-domain language models
 * `nd_lm_params`: a list of dictionaries for the parameters of the non-domain language models
 * `thresholds`: upper thresholds for scores when filtering (optional; default is 0.0 for all languages)
+* `score_for_empty`: set score values manually for empty input pairs (default `null`)
 
 For contents of the `id_lm_params` and `nd_lm_params`, see
 [CrossEntropyFilter](#crossentropyfilter).
@@ -867,10 +870,16 @@ LM cross-entropy. For details, see:
 Filter segments by word aligment scores.
 
 Parameters:
+* `src_threshold`: score threshold for source language (default 0)
+* `tgt_threshold`: score threshold for target language (default 0)
 * `src_tokenizer`: tokenizer for source language (optional; default `null`)
 * `tgt_tokenizer`: tokenizer for target language (optional; default `null`)
 * `model`: eflomal model type (optional; default 3)
 * `priors`: priors for the aligment (optional; default `null`)
+* `score_for_empty`: score values for empty input pairs (default -100)
+
+A segment pair is accepted if scores for both directions are lower
+than the corresponding thresholds.
 
 The only tokenizer supported at the moment is the
 [mosestokenizer](https://github.com/luismsgomes/mosestokenizer) that
@@ -922,7 +931,7 @@ These should not be redefined except for a good reason.
 
 The example below shows code for simple filter that calculates the
 proportion of uppercase letters in the sentences, and accepts the pair
-only if both sentences have less than 50% (or given threshold) of
+only if all sentences have less than 50% (or given threshold) of
 uppercase characters:
 
 ```python

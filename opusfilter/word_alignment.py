@@ -22,13 +22,18 @@ def create_align_input_file(sentence_pairs, src_tokenizer=None, tgt_tokenizer=No
     src_tokenize = tokenization.get_tokenize(src_tokenizer)
     tgt_tokenize = tokenization.get_tokenize(tgt_tokenizer)
     inputfile = tempfile.NamedTemporaryFile('w+')
-    for pair in sentence_pairs:
+    empty = []
+    for idx, pair in enumerate(sentence_pairs):
         if len(pair) != 2:
             raise ValueError("Only bilingual input supported by WordAlignFilter")
+        if all(not sentence for sentence in pair):
+            empty.append(idx)
+            continue
         sent1, sent2 = pair
         inputfile.write('{} ||| {}\n'.format(src_tokenize(sent1), tgt_tokenize(sent2)))
     inputfile.flush()
-    return inputfile
+    empty.reverse()
+    return inputfile, empty
 
 
 def _run_eflomal_align(input_file, fwd_file, rev_file, model=3, priors=None):
@@ -60,7 +65,7 @@ def _run_eflomal_priors(input_file, scores_fwd_file, scores_rev_file, priors_fil
 
 def make_priors(sentence_pairs, priors_file, model=3):
     """Create alignment priors from clean sentence pairs"""
-    input_file = create_align_input_file(sentence_pairs)
+    input_file, _ = create_align_input_file(sentence_pairs)
     fwd_file = tempfile.NamedTemporaryFile('w+')
     rev_file = tempfile.NamedTemporaryFile('w+')
     process = _run_eflomal_align(
@@ -76,18 +81,42 @@ def make_priors(sentence_pairs, priors_file, model=3):
 class WordAlignFilter(FilterABC):
     """Filtering based on eflomal word aligment scores"""
 
+    _empty_pair_sentinel = object()
+
     def __init__(self, src_threshold=0, tgt_threshold=0, priors=None, model=3,
-                 src_tokenizer=None, tgt_tokenizer=None, **kwargs):
+                 src_tokenizer=None, tgt_tokenizer=None, score_for_empty=-100, **kwargs):
         self.src_threshold = src_threshold
         self.tgt_threshold = tgt_threshold
         self.src_tokenizer = src_tokenizer
         self.tgt_tokenizer = tgt_tokenizer
         self.priors = priors
         self.model = model
+        self.score_for_empty = score_for_empty
         super().__init__(**kwargs)
 
+    def _with_empty_pairs(self, iterator, empty_pairs):
+        """Append empty_pair_sentinel to the iterator positions indicated by empty_pairs"""
+        idx = 0
+        while True:
+            if empty_pairs and empty_pairs[-1] == idx:
+                # Next is empty pair
+                yield self._empty_pair_sentinel
+                empty_pairs.pop()
+                idx += 1
+                continue
+            # Next is pair from iterator
+            try:
+                pair = next(iterator)
+            except StopIteration:
+                # Yield any remaining empty lines
+                for _ in empty_pairs:
+                    yield self._empty_pair_sentinel
+                break
+            yield pair
+            idx += 1
+
     def score(self, pairs):
-        input_file = create_align_input_file(
+        input_file, empty_pairs = create_align_input_file(
             pairs, src_tokenizer=self.src_tokenizer, tgt_tokenizer=self.tgt_tokenizer)
         scores_fwd_file = tempfile.NamedTemporaryFile('w+')
         scores_rev_file = tempfile.NamedTemporaryFile('w+')
@@ -96,18 +125,22 @@ class WordAlignFilter(FilterABC):
         process.check_returncode()
         scores_fwd_file.seek(0)
         scores_rev_file.seek(0)
-        for line1, line2 in zip(scores_fwd_file, scores_rev_file):
-            yield {'src': float(line1.strip()), 'tgt': float(line2.strip())}
+        for item in self._with_empty_pairs(
+                zip(scores_fwd_file, scores_rev_file), empty_pairs):
+            if item == self._empty_pair_sentinel:
+                yield [self.score_for_empty, self.score_for_empty]
+            else:
+                line1, line2 = item
+                yield [float(line1.strip()), float(line2.strip())]
         input_file.close()
         scores_fwd_file.close()
         scores_rev_file.close()
 
     def accept(self, score):
-        src, tgt = score['src'], score['tgt']
-        return src < self.src_threshold and tgt < self.tgt_threshold
+        return score[0] < self.src_threshold and score[1] < self.tgt_threshold
 
     def _filtergen(self, pairs, filterfalse=False, decisions=False):
-        input_file = create_align_input_file(
+        input_file, empty_pairs = create_align_input_file(
             pairs, src_tokenizer=self.src_tokenizer, tgt_tokenizer=self.tgt_tokenizer)
         scores_fwd_file = tempfile.NamedTemporaryFile('w+')
         scores_rev_file = tempfile.NamedTemporaryFile('w+')
@@ -117,12 +150,18 @@ class WordAlignFilter(FilterABC):
         input_file.seek(0)
         scores_fwd_file.seek(0)
         scores_rev_file.seek(0)
-        for input_pair, line1, line2 in zip(input_file, scores_fwd_file, scores_rev_file):
-            score = {'src': float(line1.strip()), 'tgt': float(line2.strip())}
+        for item in self._with_empty_pairs(
+                zip(input_file, scores_fwd_file, scores_rev_file), empty_pairs):
+            if item == self._empty_pair_sentinel:
+                score = [self.score_for_empty, self.score_for_empty]
+                sent1, sent2 = '', ''
+            else:
+                input_pair, line1, line2 = item
+                score = [float(line1.strip()), float(line2.strip())]
+                sent1, sent2 = input_pair.strip().split(' ||| ')
             if decisions:
                 yield self.accept(score)
             elif bool(filterfalse) != bool(self.accept(score)):
-                sent1, sent2 = input_pair.strip().split(' ||| ')
                 yield sent1, sent2
         input_file.close()
         scores_fwd_file.close()
