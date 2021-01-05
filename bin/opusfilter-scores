@@ -9,12 +9,13 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from pandas.io.json import json_normalize
+from pandas import json_normalize
 from tqdm import tqdm
 
 from pandas.plotting import scatter_matrix
 
 from opusfilter.util import file_open
+from opusfilter.classifier import lists_to_dicts
 
 
 logger = logging.getLogger(__name__)
@@ -50,7 +51,7 @@ values            Plot score values by line number
 
     def _load_scores(self, fname, includefile=None):
         with file_open(fname, 'r') as fobj:
-            df = json_normalize([json.loads(line) for line in tqdm(fobj)])
+            df = json_normalize([lists_to_dicts(json.loads(line)) for line in tqdm(fobj)])
         if includefile:
             included = set(l.strip() for l in includefile.readlines())
             for col in df.columns:

@@ -8,7 +8,7 @@ import scipy.optimize
 
 import numpy as np
 import pandas as pd
-from pandas.io.json import json_normalize
+from pandas import json_normalize
 import sklearn.linear_model
 from sklearn.metrics import accuracy_score, confusion_matrix, roc_auc_score, log_loss
 
