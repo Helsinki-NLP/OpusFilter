@@ -252,10 +252,18 @@ class TerminalPunctuationFilter(FilterABC):
 
 
 class NonZeroNumeralsFilter(FilterABC):
-    """Similarity measure between numerals of the two sentences with zeros removed"""
+    """Similarity measure between numerals of the two sentences with zeros removed
 
-    def __init__(self, threshold=0.5, **kwargs):
+    If require_all is True, all scores (for pairs of n segments) have
+    to be equal or above the threshold; otherwise at least one the
+    scores have to be equal or above the threshold. For bilingual
+    input, it has no effect.
+
+    """
+
+    def __init__(self, threshold=0.5, require_all=True, **kwargs):
         self.threshold = threshold
+        self.require_all = require_all
         super().__init__(**kwargs)
 
     def score(self, pairs):
@@ -269,4 +277,36 @@ class NonZeroNumeralsFilter(FilterABC):
             yield ratios
 
     def accept(self, score):
-        return all(ratio >= self.threshold for ratio in score)
+        if self.require_all:
+            return all(ratio >= self.threshold for ratio in score)
+        return any(ratio >= self.threshold for ratio in score)
+
+
+class LongestCommonSubstringFilter(FilterABC):
+    """Ratios of longest common substring to the shorter of the strings
+
+    If require_all is True, all ratios (for pairs of n segments) have
+    to be below the threshold; otherwise at least one the ratios have
+    to be below the threshold. For bilingual input, it has no effect.
+
+    """
+
+    def __init__(self, threshold=0.9, require_all=True, **kwargs):
+        self.threshold = threshold
+        self.require_all = require_all
+        super().__init__(**kwargs)
+
+    def score(self, pairs):
+        for pair in pairs:
+            ratios = []
+            for seq1, seq2 in itertools.combinations(pair, 2):
+                seq = difflib.SequenceMatcher(isjunk=None, a=seq1, b=seq2)
+                _, _, size = seq.find_longest_match(0, len(seq1), 0, len(seq2))
+                minlen = min(len(seq1), len(seq2))
+                ratios.append(0 if minlen == 0 else size / minlen)
+            yield ratios
+
+    def accept(self, score):
+        if self.require_all:
+            return all(ratio < self.threshold for ratio in score)
+        return any(ratio < self.threshold for ratio in score)

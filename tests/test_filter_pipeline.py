@@ -25,7 +25,6 @@ class TestFilterPipeline(unittest.TestCase):
 
     def test_from_config(self):
         fp = FilterPipeline.from_config(self.config)
-
         self.assertEqual(len(fp.filters), 9)
 
     def test_score(self):

@@ -52,13 +52,16 @@ OpusFilter has been presented in [ACL 2020 system demonstrations](https://www.ac
    * [Length filters](#length-filters)
       * [LengthFilter](#lengthfilter)
       * [LengthRatioFilter](#lengthratiofilter)
+      * [AverageWordLengthFilter](#averagewordlengthfilter)
+      * [LongWordFilter](#longwordfilter)
    * [Script and language identification filters](#script-and-language-identification-filters)
       * [CharacterScoreFilter](#characterscorefilter)
       * [LanguageIDFilter](#languageidfilter)
-   * [Special character filters](#special-character-filters)
+   * [Special character and similarity filters](#special-character-and-similarity-filters)
       * [HtmlTagFilter](#htmltagfilter)
       * [TerminalPunctuationFilter](#terminalpunctuationfilter)
       * [NonZeroNumeralsFilter](#nonzeronumeralsfilter)
+      * [LongestCommonSubstringFilter](#longestcommonsubstringfilter)
    * [Language model filters](#language-model-filters)
       * [CrossEntropyFilter](#crossentropyfilter)
       * [CrossEntropyDifferenceFilter](#crossentropydifferencefilter)
@@ -796,7 +799,7 @@ Parameters:
 
 Returned scores are the language identification confidence scores from a given identification method for the segments. The scores range from 0 to 1. In filtering, all values have to be greater than the minimum thresholds.
 
-### Special character filters
+### Special character and similarity filters
 
 #### `HtmlTagFilter`
 
@@ -818,13 +821,25 @@ The returned score is a single terminal punctuation score. In filtering, the sco
 
 #### `NonZeroNumeralsFilter`
 
-Filter segments based on a similarity measure of numerals between the segments with zeros removed. Non-zero numerals are extracted fron all segments preserving the relative order of the numerals. The similarity score between the numeral sequences is produced with `SequenceMatcher.ratio()` from Python's `difflib` library.
+Filter segments based on a similarity measure of numerals between the segments with zeros removed. Non-zero numerals are extracted from all segments preserving the relative order of the numerals. The similarity score between the numeral sequences is produced with `SequenceMatcher.ratio()` from Python's `difflib` library.
 
 Parameters:
 
 * `threshold`: minimum score threshold (default 0.5)
+* `require_all`: if True, all scores (for pairs of n segments) have to be reach threshold; otherwise at least one the ratios has to reach the threshold
 
-The returned value is a list of similarity scores for all language pairs. In filtering, all pairwise scores has to equal to or be greater than the minimum threshold.
+The returned value is a list of similarity scores for all language pairs. For n-lingual input, the scores will include C(n, 2) values. In filtering, all pairwise scores has to equal to or be greater than the minimum threshold.
+
+#### `LongestCommonSubstringFilter`
+
+Filter segments based on similarity of the strings.
+
+Parameters:
+
+* `threshold`: filter segments if the similarity is equal or above the threshold (optional; default 0.9)
+* `require_all`: if True, all ratios (for pairs of n segments) have to be below the threshold; otherwise at least one the ratios have to be below the threshold
+
+Returned scores are ratios between the length of the longest common substring and the length of the shorter of the compared strings for all language pairs. For n-lingual input, the scores will include C(n, 2) values.
 
 ### Language model filters
 
