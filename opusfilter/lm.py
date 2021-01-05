@@ -218,7 +218,8 @@ class CrossEntropyFilter(FilterABC):
     score_types = {'entropy', 'perplexity', 'logprob'}
 
     def __init__(self, lm_params=None, score_type='entropy',
-                 thresholds=None, diff_threshold=10.0, score_for_empty=None, **kwargs):
+                 thresholds=None, low_thresholds=None, diff_threshold=10.0,
+                 score_for_empty=None, **kwargs):
         if not lm_params:
             raise ConfigurationError("Language model configurations need to be defined")
         if any(param.get('segmentation', {}).get('type', 'char') != 'char' for param in lm_params):
@@ -230,6 +231,7 @@ class CrossEntropyFilter(FilterABC):
         self.lm_params = lm_params
         self.lms = [get_lm(**params) for params in self.lm_params]
         self.thresholds = [50.0] * len(lm_params) if thresholds is None else thresholds
+        self.low_thresholds = low_thresholds
         self.diff_threshold = diff_threshold
         self.score_for_empty = score_for_empty
         super().__init__(**kwargs)
@@ -255,8 +257,11 @@ class CrossEntropyFilter(FilterABC):
             yield scores
 
     def accept(self, score):
-        return all(value < threshold for value, threshold in zip(score, self.thresholds)) and \
-            all(abs(x[0] - x[1]) < self.diff_threshold for x in itertools.combinations(score, 2))
+        high = all(value < threshold for value, threshold in zip(score, self.thresholds))
+        low = all(value > threshold for value, threshold in zip(score, self.low_thresholds)) \
+            if self.low_thresholds else True
+        diff = all(abs(x[0] - x[1]) < self.diff_threshold for x in itertools.combinations(score, 2))
+        return high and low and diff
 
 
 class CrossEntropyDifferenceFilter(FilterABC):

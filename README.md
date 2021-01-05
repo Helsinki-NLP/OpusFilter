@@ -812,6 +812,7 @@ Parameters:
 * `lm_params`: a list of dictionaries for the parameters of the language models; see below
 * `score_type`: select whether to calculate cross-entropy (`entropy`; default), perplixty (`perplexity`) or negative log-probability (`logprob`) scores
 * `thresholds`: upper thresholds for scores when filtering (optional; default is 50.0 for all languages)
+* `low_thresholds`: lower thresholds for scores when filtering (optional; default is no threshold)
 * `diff_threshold`: upper threshold for absolute difference of source and target language scores when filtering (optional; default 10.0)
 * `score_for_empty`: set score values manually for empty input pairs (default `null`)
 
