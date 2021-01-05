@@ -92,6 +92,36 @@ class LongWordFilter(FilterABC):
         return score < self.threshold
 
 
+class AverageWordLengthFilter(FilterABC):
+    """Average word length filter
+
+    Returns zeros for empty segments. If pass_empty is true, pairs
+    with only empty segments are accepted.
+
+    """
+
+    def __init__(self, min_length=2, max_length=20, pass_empty=False, **kwargs):
+        self.min_length = min_length
+        self.max_length = max_length
+        self.pass_empty = pass_empty
+        super().__init__(**kwargs)
+
+    def _average_word_len(self, sentence):
+        parts = sentence.split()
+        if parts:
+            return len(''.join(parts)) / len(parts)
+        return 0
+
+    def score(self, pairs):
+        for pair in pairs:
+            yield [self._average_word_len(sent) for sent in pair]
+
+    def accept(self, score):
+        if self.pass_empty and sum(score) == 0:
+            return True
+        return all(self.min_length <= length <= self.max_length for length in score)
+
+
 class HtmlTagFilter(FilterABC):
     """Html tag filter"""
 

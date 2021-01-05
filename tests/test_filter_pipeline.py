@@ -13,6 +13,7 @@ class TestFilterPipeline(unittest.TestCase):
                     'unit': 'word'}},
                 {'LengthRatioFilter': {'threshold': 3, 'unit': 'word'}},
                 {'LongWordFilter': {'threshold': 40}},
+                {'AverageWordLengthFilter': {'min_length': 1, 'max_length': 20}},
                 {'HtmlTagFilter': {}},
                 {'CharacterScoreFilter': {'scripts': ['Latin', 'Latin'],
                                           'thresholds': [1, 1]}},
@@ -25,7 +26,7 @@ class TestFilterPipeline(unittest.TestCase):
     def test_from_config(self):
         fp = FilterPipeline.from_config(self.config)
 
-        self.assertEqual(len(fp.filters), 8)
+        self.assertEqual(len(fp.filters), 9)
 
     def test_score(self):
         fp = FilterPipeline.from_config(self.config)
@@ -40,6 +41,7 @@ class TestFilterPipeline(unittest.TestCase):
             {'LengthFilter': [5, 9],
              'LengthRatioFilter': 1.8,
              'LongWordFilter': 12,
+             'AverageWordLengthFilter': [6, 19 / 3],
              'HtmlTagFilter': [False, False],
              'CharacterScoreFilter': [1.0, 1.0],
              'LanguageIDFilter': [1.0, 1.0],
@@ -50,6 +52,7 @@ class TestFilterPipeline(unittest.TestCase):
             {'LengthFilter': [1, 1],
              'LengthRatioFilter': 1.0,
              'LongWordFilter': 10,
+             'AverageWordLengthFilter': [6, 10],
              'HtmlTagFilter': [False, False],
              'CharacterScoreFilter': [1.0, 1.0],
              'LanguageIDFilter': [0.17, 0.0],
@@ -60,6 +63,7 @@ class TestFilterPipeline(unittest.TestCase):
             {'LengthFilter': [0, 0],
              'LengthRatioFilter': 0,
              'LongWordFilter': 0,
+             'AverageWordLengthFilter': [0, 0],
              'HtmlTagFilter': [False, False],
              'CharacterScoreFilter': [1.0, 1.0],
              'LanguageIDFilter': [1.0, 1.0],
@@ -111,6 +115,7 @@ class TestFilterPipeline(unittest.TestCase):
         # set LengthFilter to pass empty lines
         config2 = copy.deepcopy(self.config)
         config2[0]['LengthFilter']['pass_empty'] = True
+        config2[3]['AverageWordLengthFilter']['pass_empty'] = True
         fp = FilterPipeline.from_config(config2)
         filtered = list(fp.filter(pairs))
         self.assertEqual(

@@ -746,6 +746,31 @@ Returned score is the higher length divided by the lower length, or
 infinity of either of the lengths are zero. In filtering, segment
 pairs is accepted of the ratio is below the given threshold.
 
+#### `AverageWordLengthFilter`
+
+Filtering based on average word lengths.
+
+Parameters:
+
+* `min_length`: minimum length (optional; default 2)
+* `max_length`: maximum length (optional; default 20)
+* `pass_empty`: if `true`, always accept if all segment lengths are zero (default `false`)
+
+Returned scores are average words lengths for the segments. In
+filtering, all segments have to be between the minimum and maximum
+length thresholds.
+
+#### `LongWordFilter`
+
+Filtering based on maximum word length.
+
+Parameters:
+
+* `threshold`: maximum length (optional; default 40)
+
+Returned score is the length of the longests words across the
+segments. The length has to below the threshold.
+
 ### Script and language identification filters
 
 #### `CharacterScoreFilter`
