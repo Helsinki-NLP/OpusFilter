@@ -16,7 +16,7 @@ logging.basicConfig(level=logging.INFO)
 logging.getLogger('mosestokenizer.tokenizer.MosesTokenizer').setLevel(logging.WARNING)
 
 parser = argparse.ArgumentParser(prog='opusfilter-duplicates',
-    description='find duplicates from parallel text data using hashes and print statistics')
+    description='Find duplicates from parallel text data using hashes and print statistics')
 
 parser.add_argument('files', nargs='+', metavar='FILE', help='parallel text input file(s)')
 parser.add_argument('--overlap', '-o', nargs='+', metavar='FILE', default=None,

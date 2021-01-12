@@ -71,6 +71,7 @@ OpusFilter has been presented in [ACL 2020 system demonstrations](https://www.ac
 * [Other tools](#other-tools)
    * [opusfilter-duplicates](#opusfilter-duplicates)
    * [opusfilter-scores](#opusfilter-scores)
+   * [opusfilter-test](#opusfilter-test)
 
 ## Installing
 
@@ -1028,7 +1029,7 @@ scripts, the package also provides some analysis tools.
 ### `opusfilter-duplicates`
 
 This is a simple script based on the [`remove_duplicates`](#remove_duplicates)
-function that instead of filtering the data, prints out statistics of
+function, that instead of filtering the data, prints out statistics of
 the duplicate entries. You can either provide a single corpus (as one
 monolingual file or multiple parallel files) for calculating the
 number of duplicates in it, or two corpora for calculating the overlap
@@ -1053,3 +1054,29 @@ input, and either print or plot the output:
 * `hist`: Plot score histograms
 * `scatter-matrix`: Plot scatter matrix for scores
 * `values`: Plot score values by line number
+
+### `opusfilter-test`
+
+This is a simple script based on the [`filter`](#filter) function that
+can be used to calculate the amount of segments that the given
+filter(s) would remove from the parallel data, and optionally output
+the to-be-removed segments.
+
+The syntax for the `opusfilter-test` is:
+
+```
+opusfilter-test [--yaml FILE] [--add CLASS JSON] [--removed FILE] FILE [FILE ...]
+```
+
+The filters to test can be defined either from a YAML file (`--yaml`)
+using a similar definition as the `filters` parameter for the `filter`
+function, or adding the one by one with the `--add` option, which
+takes the filter class as the first argument and filter parameters in
+as a JSON object as the second argument. For default filter
+parameters, an empty dictionary (`'{}'`) should be provided.
+
+The scripts first calculates the total number of segments in the input
+files, and then runs the filters on them one by one. The number and
+proportion of removed segments is printed. In addition, it is possible
+to write the removed segments to a file in JSON Lines format
+(`--removed`).
