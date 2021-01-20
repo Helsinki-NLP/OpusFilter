@@ -668,7 +668,7 @@ class OpusFilter:
         removed_types = sum(1 for c in counter.values() if c > 1)
         logger.info(
             "Removed {} / {} = {:.2f}% duplicate lines (duplicate types: {})".format(
-                removed_entries, total, 100 * removed_entries / total, removed_types))
+                removed_entries, total, 100 * removed_entries / total if total > 0 else 0, removed_types))
         for idx in range(len(infiles)):
             infs[idx].close()
             outfs[idx].close()
