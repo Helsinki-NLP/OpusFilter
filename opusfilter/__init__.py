@@ -63,8 +63,7 @@ class FilterABC(metaclass=abc.ABCMeta):
 class PreprocessorABC(metaclass=abc.ABCMeta):
     """Abstract base class for preprocessors"""
 
-    def __init__(self, name=None, **kwargs):
-        self.name = name
+    def __init__(self, **kwargs):
         self.kwargs = kwargs
         if kwargs:
             logging.warning("Ignoring extra keyword arguments: %s", kwargs)
