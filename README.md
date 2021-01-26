@@ -35,6 +35,8 @@ OpusFilter has been presented in [ACL 2020 system demonstrations](https://www.ac
       * [split](#split)
       * [subset](#subset)
       * [unzip](#unzip)
+   * [Preprocessing text](#preprocessing-text)
+      * [preprocess](#preprocess)
    * [Filtering and scoring](#filtering-and-scoring)
       * [remove_duplicates](#remove_duplicates)
       * [filter](#filter)
@@ -68,6 +70,12 @@ OpusFilter has been presented in [ACL 2020 system demonstrations](https://www.ac
    * [Alignment model filters](#alignment-model-filters)
       * [WordAlignFilter](#wordalignfilter)
 * [Custom filters](#custom-filters)
+* [Available preprocessors](#available-preprocessors)
+   * [Tokenizer](#tokenizer)
+   * [Detokenizer](#detokenizer)
+   * [WhitespaceNormalizer](#whitespacenormalizer)
+   * [RegExpSub](#regexpsub)
+* [Custom preprocessors](#custom-preprocessors)
 * [Other tools](#other-tools)
    * [opusfilter-duplicates](#opusfilter-duplicates)
    * [opusfilter-scores](#opusfilter-scores)
@@ -458,6 +466,29 @@ Parameters:
 
 Can be used to split e.g. Moses-style (` ||| `) or tab-separated parallel text files into parts.
 
+### Preprocessing text
+
+#### `preprocess`
+
+Filter parallel data with a combination of filters.
+
+Parameters:
+
+* `inputs`: input files for segments to preprocess
+* `outputs`: output files for preprocessed segments
+* `preprocessors`: a list of preprocessors to apply; see below
+
+The preprocessors parameter is a list of dictionaries, each
+representing one preprocessor. The top level should typically include
+a single key that defines the class name for the preprocessor
+(e.g. `WhitespaceNormalizer`). Additionally it can include a special
+key `module` for defining module name for [custom preprocessors](#custom-preprocessors).
+
+Under the class name there is a dictionary the defines the parameters
+of the preprocessors. The are mostly specific to the preprocessor
+class; see section [Available preprocessors](#available-preprocessors)
+for ready-made preprocessors.
+
 ### Filtering and scoring
 
 #### `remove_duplicates`
@@ -514,13 +545,14 @@ The filters parameter is a list of dictionaries, each representing one
 filter. The top level should typically include a single key that
 defines the class name for the filter (e.g. `LenghtFilter`).
 Additionally it can include a special key `module` for defining module
-name for custom filters (see the end of the document for details).
+name for [custom filters](#custom-filters).
 
 Under the class name there is a dictionary the defines the parameters
-of the filters. The are mostly specific to the filter class; see the
-section Available filters for ready-made filters. An exception is a
-parameter `name` that is available for all filters. It has no effect
-for the filter function, but is useful for the score function below.
+of the filters. The are mostly specific to the filter class; see
+section [Available filters](#available-filters) for ready-made
+filters. An exception is a parameter `name` that is available for all
+filters. It has no effect for the filter function, but is useful for
+the score function below.
 
 The output of the step is only those segment pairs that are accepted
 by all the filters, unless `filterfalse` is set true, in which case
@@ -1020,6 +1052,83 @@ steps:
             threshold: 0.5
           module: customfilter
 ```
+
+## Available preprocessors
+
+### `Tokenizer`
+
+Tokenize parallel texts.
+
+Parameters:
+
+* `tokenizer`: tokenizer type
+* `languages`: a list of language codes for the tokenizer
+
+Currently there is only one type of tokenizer available: `moses` (uses
+the `mosestokenizer` package).
+
+The list of language codes should match to the languages of the input
+files given in the `preprocess` step.
+
+### `Detokenizer`
+
+Detokenize parallel texts.
+
+Parameters:
+
+* `tokenizer`: tokenizer type
+* `languages`: a list of language codes for the detokenizer
+
+Currently there is only one type of tokenizer available: `moses` (uses
+the `mosestokenizer` package).
+
+The list of language codes should match to the languages of the input
+files given in the `preprocess` step.
+
+### `WhitespaceNormalizer`
+
+Normalizes whitespace characters.
+
+The whitespace normalization consists of two steps: First, any
+sequence of one or more unicode whitespace characters (as matched by
+`\s` in the `re` standard library) are replaced by a single space
+character. Second, any leading and trailing whitespace is removed.
+
+### `RegExpSub`
+
+Run a sequence of arbitrary regular expression substitutions.
+
+Parameters:
+
+* `patterns`: a list of patterns to use by default
+* `lang_patterns`: a dictionary or list of patterns to use for specific languages
+
+Multiple substitutions are applied in the given order. The default
+patterns are replaced with language-specific patterns when the
+corresponding index (starting from 0) is found in the `lang_patterns`
+dictionary. The `lang_patterns` argument may also be a list, if you
+e.g. want to use separate patterns for all languages.
+
+The substitution patterns are 4-tuples containing the regular
+expression, replacement, count (0 = substitute all) and flags (list of
+flag constants in the `re` library, e.g. `["I", "A"]`). The regular
+expressions are first compiled with [`re.compile`](https://docs.python.org/3/library/re.html#re.compile),
+and then the substitutions are applied with [`re.sub`](https://docs.python.org/3/library/re.html#re.sub).
+
+## Custom preprocessors
+
+Similarly to filters, You can import your own preprocessors by
+defining the `module` key in the filter configuration entries.
+
+The custom preprocessors should inherit the abstract base class
+`PreprocessorABC` from the `opusfilter` package, and implement the
+abstract methods `process`. The `process` method is a generator that
+takes an iterator over segments and yields preprocessed (modified)
+segments of text. It also has an additional argument, `f_idx`, which
+is the index of the current file being processed by the `preprocess`
+step. This argument enables preprocessing parallel files in the same
+step even if the preprocessing options (such as language code for a
+tokenizer) varies.
 
 ## Other tools
 
