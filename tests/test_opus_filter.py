@@ -737,3 +737,43 @@ class TestUnzip(unittest.TestCase):
             self.assertEqual(f.read(), 'Sentence1\nSentence2\n')
         with open(os.path.join(self.tempdir, 'output_tgt')) as f:
             self.assertEqual(f.read(), 'sentence1\nsentence2\n')
+
+
+class TestPreprocess(unittest.TestCase):
+
+    def setUp(self):
+        self.tempdir = tempfile.mkdtemp()
+        self.opus_filter = OpusFilter(
+            {'common': {'output_directory': self.tempdir}, 'steps': []})
+        self.inputs = [
+            ["Hello, world!", "(1) Punctuation, e.g., comma", "(2) C. done 4.5"],
+            ["Hei, maailma!", "(1) Välimerkit, esim. pilkku", "(2) C. valmis 4,5"]
+        ]
+        self.expected = [
+            ["Hello , world !", "Punctuation , e.g. , comma", "C. done 4.5"],
+            ["Hei , maailma !", "Välimerkit , esim. pilkku", "C. valmis 4,5"]
+        ]
+        with open(os.path.join(self.tempdir, 'input_src'), 'w') as f:
+            f.write('\n'.join(self.inputs[0]))
+        with open(os.path.join(self.tempdir, 'input_tgt'), 'w') as f:
+            f.write('\n'.join(self.inputs[1]))
+
+    def tearDown(self):
+        shutil.rmtree(self.tempdir)
+
+    def test_preprocess(self):
+        parameters = {
+            'inputs': [os.path.join(self.tempdir, 'input_src'),
+                       os.path.join(self.tempdir, 'input_tgt')],
+            'outputs': [os.path.join(self.tempdir, 'output_src'),
+                        os.path.join(self.tempdir, 'output_tgt')],
+            'preprocessors': [
+                {'WhitespaceNormalizer': {}},
+                {'RegExpSub': {'patterns': ([(r"^ *\([0-9-]+\) *", "", 0, [])])}},
+                {'Tokenizer': {'tokenizer': 'moses', 'languages': ['fi', 'en']}},
+            ]}
+        self.opus_filter.preprocess(parameters)
+        with open(os.path.join(self.tempdir, 'output_src')) as f:
+            self.assertEqual(f.read(), '\n'.join(self.expected[0]) + '\n')
+        with open(os.path.join(self.tempdir, 'output_tgt')) as f:
+            self.assertEqual(f.read(), '\n'.join(self.expected[1]) + '\n')

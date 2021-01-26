@@ -58,3 +58,18 @@ class FilterABC(metaclass=abc.ABCMeta):
         for pair in pairs:
             if not self.accept(next(self.score([pair]))):
                 yield pair
+
+
+class PreprocessorABC(metaclass=abc.ABCMeta):
+    """Abstract base class for preprocessors"""
+
+    def __init__(self, name=None, **kwargs):
+        self.name = name
+        self.kwargs = kwargs
+        if kwargs:
+            logging.warning("Ignoring extra keyword arguments: %s", kwargs)
+
+    @abc.abstractmethod
+    def process(self, segments, f_idx=0):
+        """For each segment in parallel file of give index, yield preprocessed segment"""
+        pass

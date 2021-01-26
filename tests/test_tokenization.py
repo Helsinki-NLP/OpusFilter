@@ -13,6 +13,14 @@ class TestTokenization(unittest.TestCase):
         tokenize = tokenization.get_tokenize(None)
         self.assertEqual(tokenize("Hello, world!"), "Hello, world!")
 
+    def test_dummy_detok(self):
+        tokenize = tokenization.get_tokenize(None)
+        self.assertEqual(tokenize.detokenize("Hello , world !"), "Hello , world !")
+
     def test_moses(self):
         tokenize = tokenization.get_tokenize(('moses', 'en'))
         self.assertEqual(tokenize("Hello, world!"), "Hello , world !")
+
+    def test_moses_detok(self):
+        tokenize = tokenization.get_tokenize(('moses', 'en'))
+        self.assertEqual(tokenize.detokenize("Hello , world !"), "Hello, world!")

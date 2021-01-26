@@ -101,6 +101,7 @@ class OpusFilter:
             'remove_duplicates': self.remove_duplicates,
             'split': self.split,
             'unzip': self.unzip,
+            'preprocess': self.preprocess
         }
 
     def execute_steps(self, overwrite=False, last=None):
@@ -690,3 +691,21 @@ class OpusFilter:
                         "Number output files do not match the %s parts in line %s" % (len(parts), idx))
                 for part, outf in zip(parts, outfs):
                     outf.write(part.strip() + '\n')
+
+    def preprocess(self, parameters, overwrite=False):
+        """Run preprocessors on text data"""
+        outfiles = [os.path.join(self.output_dir, fname) for fname in parameters['outputs']]
+        infiles = [os.path.join(self.output_dir, fname) for fname in parameters['inputs']]
+        if len(outfiles) != len(infiles):
+            raise ConfigurationError("Number of input and output files should match in preprocess")
+        if not overwrite and all(os.path.isfile(outfile) for outfile in outfiles):
+            logger.info("Output files exists, skipping step")
+            return
+        preprocess_pipe = pipeline.PreprocessorPipeline.from_config(parameters['preprocessors'])
+        for idx, files in enumerate(zip(infiles, outfiles)):
+            infile, outfile = files
+            logger.info("Processing file %s (%s)", infile, idx)
+            with file_open(infile, 'r') as inf, file_open(outfile, 'w') as outf:
+                for line in tqdm(preprocess_pipe.process(
+                        (line.rstrip('\n') for line in inf), f_idx=idx)):
+                    outf.write(line + '\n')

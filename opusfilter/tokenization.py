@@ -21,6 +21,10 @@ class DummyTokenizer:
         """Return tokenized version of the input string"""
         return string
 
+    def detokenize(self, string):
+        """Return detokenized version of the input string"""
+        return string
+
     def __call__(self, string):
         """Return tokenized version of the input string"""
         return self.tokenize(string)
@@ -32,12 +36,16 @@ class MosesTokenizer(DummyTokenizer):
     def __init__(self, lang):
         try:
             self._moses_tokenizer = mosestokenizer.MosesTokenizer(lang)
+            self._moses_detokenizer = mosestokenizer.MosesDetokenizer(lang)
         except NameError as err:
             logger.error("Install mosestokenizer to support moses tokenization")
             raise err
 
     def tokenize(self, string):
         return ' '.join(self._moses_tokenizer(string))
+
+    def detokenize(self, string):
+        return self._moses_detokenizer(string.split())
 
 
 def get_tokenize(specs):

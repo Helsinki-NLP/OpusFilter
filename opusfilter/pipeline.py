@@ -6,7 +6,9 @@ import logging
 
 from tqdm import tqdm
 
-from . import grouper, filters as filtermodule
+from . import grouper
+from . import filters as filtermodule
+from . import preprocessors as preprocessmodule
 
 
 logger = logging.getLogger(__name__)
@@ -106,3 +108,32 @@ class FilterPipeline:
                     break
                 current = remaining
                 remaining = []
+
+
+class PreprocessorPipeline:
+    """Pipeline for combining multiple preprocessors"""
+
+    def __init__(self, preprocessors=None):
+        self.preprocessors = [] if preprocessors is None else preprocessors
+
+    @classmethod
+    def from_config(cls, config):
+        """Initilize filter pipeline from configuration dictionary"""
+        pipeline = cls()
+        for processor in config:
+            custom_module = processor.pop('module') if 'module' in processor else None
+            name = next(iter(processor.keys()))
+            attributes = processor[name]
+            if custom_module:
+                mod = importlib.import_module(custom_module)
+                processor_cls = getattr(mod, name)
+            else:
+                processor_cls = getattr(preprocessmodule, name)
+            pipeline.preprocessors.append(processor_cls(**attributes))
+        return pipeline
+
+    def process(self, segments, f_idx=0):
+        """Yield segments processed by all preprocessors"""
+        for preprocessor in self.preprocessors:
+            segments = preprocessor.process(segments, f_idx=0)
+        return segments
