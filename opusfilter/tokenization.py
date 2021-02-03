@@ -31,11 +31,33 @@ class DummyTokenizer:
 
 
 class MosesTokenizer(DummyTokenizer):
-    """Wrapper for mosestokenizer.MosesTokenizer"""
+    """Wrapper for mosestokenizer.MosesTokenizer
 
-    def __init__(self, lang):
+    Options for MosesTokenizer:
+
+      aggressive_dash_splits (bool, optional):
+          Aggressively split hyphens. Defaults to False.
+      escape_xml (bool, optional):
+          Escape XML characters. Defaults to False.
+      unescape_xml (bool, optional):
+          Unescape XML characters. Defaults to False.
+      preserve_xml_entities (bool, optional):
+          Preserve HTML entities. Defaults to False.
+      refined_punct_splits (bool, optional):
+          Refined punctuation splitting. Defaults to False.
+      url_handling (bool, optional): Handle URLs. Defaults to True.
+      supersub (bool, optional): Account for numerical super and
+          subscript conjoining. Defaults to False.
+      penn (bool, optional): Use PENN tokenizer. Defaults to False.
+      verbose (bool, optional): Print messages. Defaults to False.
+      user_dir (Optional[str], optional): User provided nonbreaking
+          prefixes and protected patterns. Defaults to None.
+
+    """
+
+    def __init__(self, lang, **options):
         try:
-            self._moses_tokenizer = mosestokenizer.MosesTokenizer(lang)
+            self._moses_tokenizer = mosestokenizer.MosesTokenizer(lang, **options)
         except RuntimeError as err:
             msg = str(err)
             if 'No known abbreviations for language' in msg:
@@ -58,11 +80,15 @@ def get_tokenize(specs):
     """Return object that returns a tokenized version of the input string on call"""
     if specs is None:
         return DummyTokenizer()
-    if not (isinstance(specs, (list, tuple)) and len(specs) == 2):
+    if not (isinstance(specs, (list, tuple)) and len(specs) in {2, 3}):
         raise ConfigurationError(
-            "Tokenizer definition should be None or a (type, language code) pair")
-    tokenizer, lang = specs
+            "Tokenizer definition should be None or a list or tuple (type, language code[, options])")
+    tokenizer = specs[0]
+    lang = specs[1]
+    options = specs[2] if len(specs) > 2 else None
+    if options is None:
+        options = {}
     if tokenizer == 'moses':
-        return MosesTokenizer(lang)
+        return MosesTokenizer(lang, **options)
     else:
         raise ConfigurationError("Tokenizer type '%s' not supported" % tokenizer)

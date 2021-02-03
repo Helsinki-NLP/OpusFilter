@@ -1063,9 +1063,12 @@ Parameters:
 
 * `tokenizer`: tokenizer type
 * `languages`: a list of language codes for the tokenizer
+* `options`: a dictionary of tokenizer options (optional)
 
 Currently there is only one type of tokenizer available: `moses` (uses
-the `fast-mosestokenizer` package).
+the `fast-mosestokenizer` package). Options are passed to the
+`mosestokenizer.MosesTokenizer` class; see its documentation for the
+available options.
 
 The list of language codes should match to the languages of the input
 files given in the `preprocess` step.
@@ -1078,9 +1081,12 @@ Parameters:
 
 * `tokenizer`: tokenizer type
 * `languages`: a list of language codes for the detokenizer
+* `options`: a dictionary of tokenizer options (optional)
 
-Currently there is only one type of detokenizer available: `moses` (uses
-the `fast-mosestokenizer` package).
+Currently there is only one type of detokenizer available: `moses`
+(uses the `fast-mosestokenizer` package). Options are passed to the
+`mosestokenizer.MosesTokenizer` class; see its documentation for the
+available options.
 
 The list of language codes should match to the languages of the input
 files given in the `preprocess` step.
