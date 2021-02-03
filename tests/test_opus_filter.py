@@ -461,6 +461,165 @@ class TestHeadTailSlice(unittest.TestCase):
             self.assertEqual(f.read(), 'sentence4\nsentence1\n')
 
 
+class TestProduct(unittest.TestCase):
+
+    def setUp(self):
+        self.tempdir = tempfile.mkdtemp()
+        self.opus_filter = OpusFilter(
+            {'common': {'output_directory': self.tempdir}, 'steps': []})
+        with open(os.path.join(self.tempdir, 'input_a_1'), 'w') as f:
+            f.write('\n'.join(['a', 'o', 'u', 'i']) + '\n')
+        with open(os.path.join(self.tempdir, 'input_a_2'), 'w') as f:
+            f.write('\n'.join(['A', 'O', 'U', '']) + '\n')
+        with open(os.path.join(self.tempdir, 'input_a_3'), 'w') as f:
+            f.write('\n'.join(['ä', 'ö', '', '']) + '\n')
+        with open(os.path.join(self.tempdir, 'input_b_1'), 'w') as f:
+            f.write('\n'.join(['1', '2', '3', '']) + '\n')
+        with open(os.path.join(self.tempdir, 'input_b_2'), 'w') as f:
+            f.write('\n'.join(['I', 'II', '3', '']) + '\n')
+        with open(os.path.join(self.tempdir, 'input_c_1'), 'w') as f:
+            f.write('\n'.join(['-', '|', '+', 'x']) + '\n')
+
+    def tearDown(self):
+        shutil.rmtree(self.tempdir)
+
+    def test_all(self):
+        parameters = {
+            'inputs': [[os.path.join(self.tempdir, 'input_a_1'),
+                        os.path.join(self.tempdir, 'input_a_2'),
+                        os.path.join(self.tempdir, 'input_a_3')],
+                       [os.path.join(self.tempdir, 'input_b_1'),
+                        os.path.join(self.tempdir, 'input_b_2')],
+                       [os.path.join(self.tempdir, 'input_c_1')]],
+            'outputs': [os.path.join(self.tempdir, 'output_a'),
+                        os.path.join(self.tempdir, 'output_b'),
+                        os.path.join(self.tempdir, 'output_c')],
+            'skip_empty': False,
+            'skip_duplicates': False,
+            'k': None}
+        self.opus_filter.product(parameters)
+        with open(os.path.join(self.tempdir, 'output_a')) as f:
+            self.assertEqual(
+                f.read(), '\n'.join(
+                    ['a', 'a', 'A', 'A', 'ä', 'ä',
+                     'o', 'o', 'O', 'O', 'ö', 'ö',
+                     'u', 'u', 'U', 'U', '', '',
+                     'i', 'i', '', '', '', ''],
+                ) + '\n')
+        with open(os.path.join(self.tempdir, 'output_b')) as f:
+            self.assertEqual(
+                f.read(), '\n'.join(
+                    ['1', 'I', '1', 'I', '1', 'I',
+                     '2', 'II', '2', 'II', '2', 'II',
+                     '3', '3', '3', '3', '3', '3',
+                     '', '', '', '', '', ''],
+                ) + '\n')
+        with open(os.path.join(self.tempdir, 'output_c')) as f:
+            self.assertEqual(
+                f.read(), '\n'.join(
+                    ['-', '-', '-', '-', '-', '-',
+                     '|', '|', '|', '|', '|', '|',
+                     '+', '+', '+', '+', '+', '+',
+                     'x', 'x', 'x', 'x', 'x', 'x'],
+                ) + '\n')
+
+    def test_skip_empty(self):
+        parameters = {
+            'inputs': [[os.path.join(self.tempdir, 'input_a_1'),
+                        os.path.join(self.tempdir, 'input_a_2'),
+                        os.path.join(self.tempdir, 'input_a_3')],
+                       [os.path.join(self.tempdir, 'input_b_1'),
+                        os.path.join(self.tempdir, 'input_b_2')],
+                       [os.path.join(self.tempdir, 'input_c_1')]],
+            'outputs': [os.path.join(self.tempdir, 'output_a'),
+                        os.path.join(self.tempdir, 'output_b'),
+                        os.path.join(self.tempdir, 'output_c')],
+            'skip_empty': True,
+            'skip_duplicates': False,
+            'k': None}
+        self.opus_filter.product(parameters)
+        with open(os.path.join(self.tempdir, 'output_a')) as f:
+            self.assertEqual(
+                f.read(), '\n'.join(
+                    ['a', 'a', 'A', 'A', 'ä', 'ä',
+                     'o', 'o', 'O', 'O', 'ö', 'ö',
+                     'u', 'u', 'U', 'U'],
+                ) + '\n')
+        with open(os.path.join(self.tempdir, 'output_b')) as f:
+            self.assertEqual(
+                f.read(), '\n'.join(
+                    ['1', 'I', '1', 'I', '1', 'I',
+                     '2', 'II', '2', 'II', '2', 'II',
+                     '3', '3', '3', '3'],
+                ) + '\n')
+        with open(os.path.join(self.tempdir, 'output_c')) as f:
+            self.assertEqual(
+                f.read(), '\n'.join(
+                    ['-', '-', '-', '-', '-', '-',
+                     '|', '|', '|', '|', '|', '|',
+                     '+', '+', '+', '+'],
+                ) + '\n')
+
+    def test_skip_duplicates(self):
+        parameters = {
+            'inputs': [[os.path.join(self.tempdir, 'input_a_1'),
+                        os.path.join(self.tempdir, 'input_a_2'),
+                        os.path.join(self.tempdir, 'input_a_3')],
+                       [os.path.join(self.tempdir, 'input_b_1'),
+                        os.path.join(self.tempdir, 'input_b_2')],
+                       [os.path.join(self.tempdir, 'input_c_1')]],
+            'outputs': [os.path.join(self.tempdir, 'output_a'),
+                        os.path.join(self.tempdir, 'output_b'),
+                        os.path.join(self.tempdir, 'output_c')],
+            'skip_empty': True,
+            'skip_duplicates': True,
+            'k': None}
+        self.opus_filter.product(parameters)
+        with open(os.path.join(self.tempdir, 'output_a')) as f:
+            self.assertEqual(
+                f.read(), '\n'.join(
+                    ['A', 'A', 'a', 'a', 'ä', 'ä',
+                     'O', 'O', 'o', 'o', 'ö', 'ö',
+                     'U', 'u'],  # Note: sorted order
+                ) + '\n')
+        with open(os.path.join(self.tempdir, 'output_b')) as f:
+            self.assertEqual(
+                f.read(), '\n'.join(
+                    ['1', 'I', '1', 'I', '1', 'I',
+                     '2', 'II', '2', 'II', '2', 'II',
+                     '3', '3'],
+                ) + '\n')
+        with open(os.path.join(self.tempdir, 'output_c')) as f:
+            self.assertEqual(
+                f.read(), '\n'.join(
+                    ['-', '-', '-', '-', '-', '-',
+                     '|', '|', '|', '|', '|', '|',
+                     '+', '+'],
+                ) + '\n')
+
+    def test_sample(self):
+        parameters = {
+            'inputs': [[os.path.join(self.tempdir, 'input_a_1'),
+                        os.path.join(self.tempdir, 'input_a_2'),
+                        os.path.join(self.tempdir, 'input_a_3')],
+                       [os.path.join(self.tempdir, 'input_b_1'),
+                        os.path.join(self.tempdir, 'input_b_2')],
+                       [os.path.join(self.tempdir, 'input_c_1')]],
+            'outputs': [os.path.join(self.tempdir, 'output_a'),
+                        os.path.join(self.tempdir, 'output_b'),
+                        os.path.join(self.tempdir, 'output_c')],
+            'skip_empty': True,
+            'skip_duplicates': True,
+            'k': 3}
+        self.opus_filter.product(parameters)
+        with open(os.path.join(self.tempdir, 'output_a')) as f:
+            self.assertEqual(len(f.read().strip().split('\n')), 8)  # 2 x 3 + 2
+        with open(os.path.join(self.tempdir, 'output_b')) as f:
+            self.assertEqual(len(f.read().strip().split('\n')), 8)  # 2 x 3 + 2
+        with open(os.path.join(self.tempdir, 'output_c')) as f:
+            self.assertEqual(len(f.read().strip().split('\n')), 8)  # 2 x 3 + 2
+
+
 class TestSplit(unittest.TestCase):
 
     # TODO: Replace with tests that are do not depend on the specific

@@ -98,6 +98,7 @@ class OpusFilter:
             'sort': self.sort_files,
             'head': self.head,
             'tail': self.tail,
+            'product': self.product,
             'remove_duplicates': self.remove_duplicates,
             'split': self.split,
             'unzip': self.unzip,
@@ -574,6 +575,54 @@ class OpusFilter:
                         tmp.pop(0)
                 for line in tmp:
                     outf.write(line)
+
+    @staticmethod
+    def _multipair_gen(lists_of_files):
+        """Generator for lines in lists of parallel files"""
+        infs = [[file_open(infile) for infile in infiles] for infiles in lists_of_files]
+        lines = [[fobj.readline() for fobj in flist] for flist in infs]
+        while all(line for linelist in lines for line in linelist):
+            yield lines
+            lines = [[fobj.readline() for fobj in flist] for flist in infs]
+        for folist in infs:
+            for fobj in folist:
+                fobj.close()
+
+    def product(self, parameters, overwrite=False):
+        """Sample a product of segments from lists of alternative files"""
+        infilelists = [
+            [os.path.join(self.output_dir, fname) for fname in filelist]
+            for filelist in parameters['inputs']
+        ]
+        outfiles = [
+            os.path.join(self.output_dir, fname) for fname in parameters['outputs']
+        ]
+        if len(outfiles) != len(infilelists):
+            raise ConfigurationError(
+                "Number of input file lists and output files should match in product")
+        if not overwrite and all(os.path.isfile(outfile) for outfile in outfiles):
+            logger.info("Output files exists, skipping step")
+            return
+        skip_empty = parameters.get('skip_empty', True)
+        skip_duplicates = parameters.get('skip_duplicates', True)
+        sample_k = parameters.get('k', None)
+        random.seed(parameters.get('seed', None))
+        outfs = [file_open(outfile, 'w') for outfile in outfiles]
+        for lines in tqdm(self._multipair_gen(infilelists)):
+            if skip_empty:
+                lines = [
+                    [line for line in linelist if line.strip()]
+                    for linelist in lines
+                ]
+            if skip_duplicates:
+                lines = [sorted(set(linelist)) for linelist in lines]
+            product = list(itertools.product(*lines))
+            if sample_k is not None:
+                random.shuffle(product)
+                product = product[:sample_k]
+            for pair in product:
+                for fobj, line in zip(outfs, pair):
+                    fobj.write(line)
 
     def split(self, parameters, overwrite=False):
         """Split parallel files to two subsets"""

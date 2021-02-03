@@ -34,6 +34,7 @@ OpusFilter has been presented in [ACL 2020 system demonstrations](https://www.ac
       * [slice](#slice)
       * [split](#split)
       * [subset](#subset)
+      * [product](#product)
       * [unzip](#unzip)
    * [Preprocessing text](#preprocessing-text)
       * [preprocess](#preprocess)
@@ -453,6 +454,26 @@ Parameters:
 * `size`: number of lines to select for the subset
 * `seed`: seed for the random generator; set to ensure that two runs select the same lines (optional; default `null`)
 * `shuffle_subset`: shuffle the order of the selected lines for each language except for the first; can be used to produce noisy examples for training a corpus filtering model (optional; default `false`)
+
+#### `product`
+
+Create a Cartesian product of parallel segments and optionally sample from them.
+
+Parameters:
+
+* `inputs`: a list of input files lists
+* `outputs`: a list of output files
+* `skip_empty`: skip empty lines (optional, default `true`)
+* `skip_duplicates`: skip duplicate lines per language (optional, default `true`)
+* `k`: sample at most k random items per product (optional, default `null`)
+* `seed`: seed for the random generator; set to ensure that two runs produce the same lines (optional; default `null`)
+
+Can be used to combine parallel files of the same language that
+contain alternative translations or other meaningful variation
+(e.g. alternative subword segmenatations). For example, if you have
+the same text translated to language A by N translators and to
+language B by M translators, you can combine the N + M files into two
+files having N x M lines for each original line.
 
 #### `unzip`
 
