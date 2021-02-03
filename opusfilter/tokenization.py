@@ -36,16 +36,22 @@ class MosesTokenizer(DummyTokenizer):
     def __init__(self, lang):
         try:
             self._moses_tokenizer = mosestokenizer.MosesTokenizer(lang)
-            self._moses_detokenizer = mosestokenizer.MosesDetokenizer(lang)
+        except RuntimeError as err:
+            msg = str(err)
+            if 'No known abbreviations for language' in msg:
+                logger.warning(msg + " - attempting fall-back to English version")
+                self._moses_tokenizer = mosestokenizer.MosesTokenizer('en')
+            else:
+                raise err
         except NameError as err:
-            logger.error("Install mosestokenizer to support moses tokenization")
+            logger.error("Install fast-mosestokenizer to support moses tokenization")
             raise err
 
     def tokenize(self, string):
-        return ' '.join(self._moses_tokenizer(string))
+        return ' '.join(self._moses_tokenizer.tokenize(string))
 
     def detokenize(self, string):
-        return self._moses_detokenizer(string.split())
+        return self._moses_tokenizer.detokenize(string.split())
 
 
 def get_tokenize(specs):

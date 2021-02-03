@@ -89,7 +89,7 @@ OpusFilter has been presented in [ACL 2020 system demonstrations](https://www.ac
 
 * beautifulsoup4
 * langid
-* mosestokenizer
+* fast-mosestokenizer
 * OpusTools
 * pandas
 * pycld2
@@ -956,10 +956,10 @@ A segment pair is accepted if scores for both directions are lower
 than the corresponding thresholds.
 
 The only tokenizer supported at the moment is the
-[mosestokenizer](https://github.com/luismsgomes/mosestokenizer) that
-wraps the tokenizer script from the Moses toolkit. To enable it,
-provide a tuple containing `moses` and an appropriate two-letter
-language code, e.g. `[moses, en]` for English.
+[fast-mosestokenizer](https://github.com/mingruimingrui/fast-mosestokenizer)
+that re-implements the tokenizer script from the Moses toolkit. To
+enable it, provide a tuple containing `moses` and an appropriate
+two-letter language code, e.g. `[moses, en]` for English.
 
 The eflomal model types are 1 for IBM1, 2 for IBM1 + HMM, and 3 for
 IBM1 + HMM + fertility. See https://github.com/robertostling/eflomal
@@ -1065,7 +1065,7 @@ Parameters:
 * `languages`: a list of language codes for the tokenizer
 
 Currently there is only one type of tokenizer available: `moses` (uses
-the `mosestokenizer` package).
+the `fast-mosestokenizer` package).
 
 The list of language codes should match to the languages of the input
 files given in the `preprocess` step.
@@ -1079,8 +1079,8 @@ Parameters:
 * `tokenizer`: tokenizer type
 * `languages`: a list of language codes for the detokenizer
 
-Currently there is only one type of tokenizer available: `moses` (uses
-the `mosestokenizer` package).
+Currently there is only one type of detokenizer available: `moses` (uses
+the `fast-mosestokenizer` package).
 
 The list of language codes should match to the languages of the input
 files given in the `preprocess` step.
