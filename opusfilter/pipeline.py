@@ -135,5 +135,5 @@ class PreprocessorPipeline:
     def process(self, segments, f_idx=0):
         """Yield segments processed by all preprocessors"""
         for preprocessor in self.preprocessors:
-            segments = preprocessor.process(segments, f_idx=0)
+            segments = preprocessor.process(segments, f_idx)
         return segments
