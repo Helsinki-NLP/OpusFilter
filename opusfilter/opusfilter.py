@@ -162,14 +162,6 @@ class OpusFilter:
         for fobj in files:
             fobj.close()
 
-    def get_pairs(self, src_filename, tgt_filename):
-        """Return a generator for given sentence files"""
-        source_file_name = '{result_dir}/{src_filename}'.format(
-            result_dir=self.output_dir, src_filename=src_filename)
-        target_file_name = '{result_dir}/{tgt_filename}'.format(
-            result_dir=self.output_dir, tgt_filename=tgt_filename)
-        return self.pair_generator(source_file_name, target_file_name)
-
     def fix_filter_file_paths(self, filter_params):
         """Fix file paths in filter parameters"""
         # Make a copy so that the original paths are not modified

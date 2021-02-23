@@ -86,15 +86,6 @@ class TestOpusFilter(unittest.TestCase):
     def tearDownClass(self):
         shutil.rmtree(self.tempdir)
 
-    def test_get_pairs(self):
-        pair_gen = self.opus_filter.get_pairs('RF1_sents.en', 'RF1_sents.sv')
-        pair = next(pair_gen)
-        for pair in pair_gen:
-            pass
-        self.assertEqual(pair,
-                ('This will ensure the cohesion of Swedish society .',
-                'Så kan vi hålla samman Sverige .'))
-
     def test_clean_data(self):
         with open(os.path.join(self.tempdir, 'RF1_filtered.en')) as clean:
             self.assertEqual(
