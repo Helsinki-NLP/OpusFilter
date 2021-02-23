@@ -3,6 +3,7 @@
 import bz2
 import gzip
 import lzma
+import os
 
 
 def file_open(filename, mode='r', encoding='utf8'):
@@ -10,7 +11,11 @@ def file_open(filename, mode='r', encoding='utf8'):
 
     Uses text mode by default regardless of the compression.
 
+    In write mode, creates the output directory if it does not exist.
+
     """
+    if 'w' in mode and not os.path.isdir(os.path.dirname(filename)):
+        os.makedirs(os.path.dirname(filename))
     if filename.endswith('.bz2'):
         if mode in {'r', 'w', 'x', 'a'}:
             mode += 't'
