@@ -41,31 +41,31 @@ class TestWhitespaceNormalizer(unittest.TestCase):
     def test_trailing(self):
         inputs = ["hello", "hello ", "hello  ", "hello\t\r", "hello\u2004"]
         expected = ["hello"] * 5
-        results = list(self.processor.process(inputs))
+        results = list(self.processor.process([x] for x in inputs))
         for result, correct in zip(results, expected):
-            self.assertEqual(result, correct)
+            self.assertEqual(result, [correct])
 
     def test_leading(self):
         inputs = ["hello", " hello", "  hello", "\thello", "\u3000hello"]
         expected = ["hello"] * 5
-        results = list(self.processor.process(inputs))
+        results = list(self.processor.process([x] for x in inputs))
         for result, correct in zip(results, expected):
-            self.assertEqual(result, correct)
+            self.assertEqual(result, [correct])
 
     def test_multiple(self):
         inputs = ["hello world", "hello  world", "hello    world",
                   "hello\tworld", "hello \t  world\r"]
         expected = ["hello world"] * 5
-        results = list(self.processor.process(inputs))
+        results = list(self.processor.process([x] for x in inputs))
         for result, correct in zip(results, expected):
-            self.assertEqual(result, correct)
+            self.assertEqual(result, [correct])
 
     def test_special(self):
         inputs = ["hello" + char + "world" for char in UNICODE_WHITESPACE_CHARACTERS]
         expected = ["hello world"] * len(inputs)
-        results = list(self.processor.process(inputs))
+        results = list(self.processor.process([x] for x in inputs))
         for result, correct in zip(results, expected):
-            self.assertEqual(result, correct)
+            self.assertEqual(result, [correct])
 
 
 class TestTokenizer(unittest.TestCase):
@@ -73,21 +73,20 @@ class TestTokenizer(unittest.TestCase):
     def test_moses_fi_en(self):
         tokenizer = Tokenizer('moses', ['fi', 'en'])
         detokenizer = Detokenizer('moses', ['fi', 'en'])
-        inputs = [
+        detokenized = list(zip(*[
             ["Hello, world!", "Punctuation, e.g., comma", "C. done 4.5"],
             ["Hei, maailma!", "Välimerkit, esim. pilkku", "C. valmis 4,5"]
-        ]
-        expected = [
+        ]))
+        tokenized = list(zip(*[
             ["Hello , world !", "Punctuation , e.g. , comma", "C. done 4.5"],
             ["Hei , maailma !", "Välimerkit , esim. pilkku", "C. valmis 4,5"]
-        ]
-        for idx in [0, 1]:
-            results = list(tokenizer.process(inputs[idx], f_idx=idx))
-            for result, correct in zip(results, expected[idx]):
-                self.assertEqual(result, correct)
-            results = list(detokenizer.process(expected[idx], f_idx=idx))
-            for result, correct in zip(results, inputs[idx]):
-                self.assertEqual(result, correct)
+        ]))
+        results = list(tokenizer.process(detokenized))
+        for result, expected in zip(results, tokenized):
+            self.assertSequenceEqual(result, expected)
+        results = list(detokenizer.process(tokenized))
+        for result, expected in zip(results, detokenized):
+            self.assertSequenceEqual(result, expected)
 
 
 class TestRegExpSub(unittest.TestCase):
@@ -96,23 +95,22 @@ class TestRegExpSub(unittest.TestCase):
         inputs = ["hello", "(1) hello", " (24) hello", "(4-2) hello", "hello (0)"]
         expected = ["hello"] * 4 + ["hello (0)"]
         processor = RegExpSub([(r"^ *\([0-9-]+\) *", "", 0, [])])
-        results = list(processor.process(inputs))
+        results = list(processor.process([x] for x in inputs))
         for result, correct in zip(results, expected):
-            self.assertEqual(result, correct)
+            self.assertEqual(result, [correct])
 
     def test_lang_patterns(self):
-        inputs = [["hello", "(1) hello", " (24) hello", "(4-2) hello", "hello (0)"],
-                  ["hei"] * 4 + ["(1) hei"]]
-        expected = [["hello"] * 4 + ["hello (0)"], ["hei"] * 4 + ["(1) hei"]]
+        inputs = zip(*[["hello", "(1) hello", " (24) hello", "(4-2) hello", "hello (0)"],
+                  ["hei"] * 4 + ["(1) hei"]])
+        outputs = zip(*[["hello"] * 4 + ["hello (0)"], ["hei"] * 4 + ["(1) hei"]])
         # Use substitution only for the first language index
         processor = RegExpSub(
             [(r"^ *\([0-9-]+\) *", "", 0, [])],
             lang_patterns={1: []}
         )
-        for idx in [0, 1]:
-            results = list(processor.process(inputs[idx], f_idx=idx))
-            for result, correct in zip(results, expected[idx]):
-                self.assertEqual(result, correct)
+        results = list(processor.process(inputs))
+        for result, expected in zip(results, outputs):
+            self.assertSequenceEqual(result, expected)
 
 
 class TestPreprocessorPipeline(unittest.TestCase):
@@ -128,15 +126,14 @@ class TestPreprocessorPipeline(unittest.TestCase):
     def test_from_config(self):
         pipe = PreprocessorPipeline.from_config(self.config)
         self.assertEqual(len(pipe.preprocessors), 3)
-        inputs = [
+        inputs = zip(*[
             ["Hello, world!", "(1) Punctuation, e.g., comma", "(2) C. done 4.5"],
             ["Hei, maailma!", "(1) Välimerkit, esim. pilkku", "(2) C. valmis 4,5"]
-        ]
-        expected = [
+        ])
+        outputs = zip(*[
             ["Hello , world !", "Punctuation , e.g. , comma", "C. done 4.5"],
             ["Hei , maailma !", "Välimerkit , esim. pilkku", "C. valmis 4,5"]
-        ]
-        for idx in [0, 1]:
-            results = pipe.process(inputs[idx], f_idx=idx)
-            for result, correct in zip(results, expected[idx]):
-                self.assertEqual(result, correct)
+        ])
+        results = list(pipe.process(inputs))
+        for result, expected in zip(results, outputs):
+            self.assertSequenceEqual(result, expected)

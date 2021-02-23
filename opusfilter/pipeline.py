@@ -132,8 +132,8 @@ class PreprocessorPipeline:
             pipeline.preprocessors.append(processor_cls(**attributes))
         return pipeline
 
-    def process(self, segments, f_idx=0):
+    def process(self, pairs):
         """Yield segments processed by all preprocessors"""
         for preprocessor in self.preprocessors:
-            segments = preprocessor.process(segments, f_idx)
-        return segments
+            pairs = preprocessor.process(pairs)
+        return pairs

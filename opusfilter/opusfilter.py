@@ -743,10 +743,11 @@ class OpusFilter:
             logger.info("Output files exists, skipping step")
             return
         preprocess_pipe = pipeline.PreprocessorPipeline.from_config(parameters['preprocessors'])
-        for idx, files in enumerate(zip(infiles, outfiles)):
-            infile, outfile = files
-            logger.info("Processing file %s (%s)", infile, idx)
-            with file_open(infile, 'r') as inf, file_open(outfile, 'w') as outf:
-                for line in tqdm(preprocess_pipe.process(
-                        (line.rstrip('\n') for line in inf), f_idx=idx)):
-                    outf.write(line + '\n')
+        pairs = preprocess_pipe.process(self.pair_generator(*infiles))
+        outfileobjs = [file_open(fname, 'w') for fname in outfiles]
+        for pair in tqdm(pairs):
+            for item, fobj in zip(pair, outfileobjs):
+                fobj.write(item + '\n')
+                fobj.flush()
+        for fobj in outfileobjs:
+            fobj.close()

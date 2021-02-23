@@ -21,19 +21,17 @@ class Tokenizer(PreprocessorABC):
         self.tokenizers = [get_tokenize((tokenizer, lang, options)) for lang in languages]
         super().__init__(**kwargs)
 
-    def process(self, segments, f_idx=0):
-        tokenizer = self.tokenizers[f_idx]
-        for segment in segments:
-            yield tokenizer.tokenize(segment)
+    def process(self, pairs):
+        for segments in pairs:
+            yield [self.tokenizers[idx].tokenize(segment) for idx, segment in enumerate(segments)]
 
 
 class Detokenizer(Tokenizer):
     """Detokenize text"""
 
-    def process(self, segments, f_idx=0):
-        tokenizer = self.tokenizers[f_idx]
-        for segment in segments:
-            yield tokenizer.detokenize(segment)
+    def process(self, pairs):
+        for segments in pairs:
+            yield [self.tokenizers[idx].detokenize(segment) for idx, segment in enumerate(segments)]
 
 
 class WhitespaceNormalizer(PreprocessorABC):
@@ -44,11 +42,15 @@ class WhitespaceNormalizer(PreprocessorABC):
 
     """
 
-    def process(self, segments, f_idx=0):
-        for segment in segments:
-            segment = re.sub(r'\s+', ' ', segment)
-            segment = segment.strip()
-            yield segment
+    @staticmethod
+    def _normalize(segment):
+        segment = re.sub(r'\s+', ' ', segment)
+        segment = segment.strip()
+        return segment
+
+    def process(self, pairs):
+        for segments in pairs:
+            yield [self._normalize(segment) for segment in segments]
 
 
 class RegExpSub(PreprocessorABC):
@@ -89,9 +91,12 @@ class RegExpSub(PreprocessorABC):
             patterns.append((re.compile(pattern, flags), repl, count))
         return patterns
 
-    def process(self, segments, f_idx=0):
-        for segment in segments:
-            patterns = self.lang_patterns.get(f_idx, self.patterns)
-            for pattern, repl, count in patterns:
-                segment = re.sub(pattern, repl, segment, count=count)
-            yield segment
+    def process(self, pairs):
+        for segments in pairs:
+            output = []
+            for idx, segment in enumerate(segments):
+                patterns = self.lang_patterns.get(idx, self.patterns)
+                for pattern, repl, count in patterns:
+                    segment = re.sub(pattern, repl, segment, count=count)
+                output.append(segment)
+            yield output

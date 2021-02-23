@@ -69,6 +69,6 @@ class PreprocessorABC(metaclass=abc.ABCMeta):
             logging.warning("Ignoring extra keyword arguments: %s", kwargs)
 
     @abc.abstractmethod
-    def process(self, segments, f_idx=0):
-        """For each segment in parallel file of give index, yield preprocessed segment"""
+    def process(self, pairs):
+        """For each tuple of parallel segments, yield preprocessed segments"""
         pass
