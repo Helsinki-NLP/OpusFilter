@@ -78,6 +78,7 @@ OpusFilter has been presented in [ACL 2020 system demonstrations](https://www.ac
    * [RegExpSub](#regexpsub)
 * [Custom preprocessors](#custom-preprocessors)
 * [Other tools](#other-tools)
+   * [opusfilter-diagram](#opusfilter-diagram)
    * [opusfilter-duplicates](#opusfilter-duplicates)
    * [opusfilter-scores](#opusfilter-scores)
    * [opusfilter-test](#opusfilter-test)
@@ -89,6 +90,7 @@ OpusFilter has been presented in [ACL 2020 system demonstrations](https://www.ac
 ### Required libraries
 
 * beautifulsoup4
+* graphviz
 * langid
 * fast-mosestokenizer
 * OpusTools
@@ -1161,6 +1163,20 @@ tokenizer) varies.
 
 Apart from the main [`opusfilter`](#overview) and [`opusfilter-cmd`](#running-a-single-command)
 scripts, the package also provides some analysis tools.
+
+### `opusfilter-diagram`
+
+Draws a diagram (a directed acyclic graph) from OpusFilter
+configuration file using the `graphviz` library.
+
+```
+opusfilter-diagram [--rankdir {TB,LR}] FILE FILE
+```
+
+The `--rankdir` option changes the direction of the graph from
+left-to-right (default) to top-to-bottom. If the output file ends
+with `.dot`, the raw dot format is used; otherwise the graph is
+rendered to the format indicated by the extension (e.g. PDF or PNG).
 
 ### `opusfilter-duplicates`
 

@@ -13,8 +13,8 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/Helsinki-NLP/OpusFilter",
     packages=setuptools.find_packages(),
-    scripts=["bin/opusfilter", "bin/opusfilter-cmd", "bin/opusfilter-duplicates", "bin/opusfilter-scores", "bin/opusfilter-test"],
-    install_requires=["opustools", "beautifulsoup4", "langid", "matplotlib", "fast-mosestokenizer", "pandas>=0.24.0", "pycld2", "pyhash", "PyYAML", "regex", "scikit-learn", "tqdm"],
+    scripts=["bin/opusfilter", "bin/opusfilter-cmd", "bin/opusfilter-diagram", "bin/opusfilter-duplicates", "bin/opusfilter-scores", "bin/opusfilter-test"],
+    install_requires=["opustools", "beautifulsoup4", "graphviz", "langid", "matplotlib", "fast-mosestokenizer", "pandas>=0.24.0", "pycld2", "pyhash", "PyYAML", "regex", "scikit-learn", "tqdm"],
     classifiers=(
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
