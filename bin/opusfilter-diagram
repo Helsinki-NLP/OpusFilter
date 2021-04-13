@@ -55,6 +55,7 @@ parser = argparse.ArgumentParser(prog='opusfilter-test',
 parser.add_argument('yaml', metavar='FILE', help='YAML configuration file')
 parser.add_argument('output', metavar='FILE', help='output file (rendered if does not end with .dot)')
 parser.add_argument('--rankdir', default='LR', choices=['TB', 'LR'], help='graph direction (default %(default)s)')
+parser.add_argument('--exclude-params', action='store_true', help='do not write step parameters')
 
 args = parser.parse_args()
 
@@ -72,7 +73,7 @@ for idx, step in enumerate(config['steps']):
     name = str(idx)
     label = step['type']
     params = get_other_params(step)
-    if params:
+    if params and not args.exclude_params:
         paramstr = dump(params)
         label += '\n\n' + paramstr.replace('\n', '\l')
     graph.node(name, label=label)
