@@ -70,6 +70,9 @@ class OpusFilter:
     def __init__(self, configuration):
         self.configuration = configuration
         self.output_dir = configuration.get('common', {}).get('output_directory')
+
+        self.linecount_cache = dict()
+
         if not self.output_dir:
             logger.warning(
                 'Output directory not specified. Writing files to current '
@@ -543,7 +546,18 @@ class OpusFilter:
         if not overwrite and all(os.path.isfile(outfile) for outfile in outfiles):
             logger.info("Output files exists, skipping step")
             return
-        n = parameters['n']
+        if 'n' in parameters:
+            n = parameters['n']
+        elif 'percentage' in parameters:
+            if infiles[0] in self.linecount_cache:
+                num_total = self.linecount_cache[infiles[0]]
+                logger.info("Got line count from cache for %s: %d", infiles[0], num_total)
+            else:
+                num_total = self._get_total_lines(infiles[0])
+                self.linecount_cache[infiles[0]] = num_total
+            n = int(num_total * parameters['percentage'] / 100)
+        else:
+            raise ConfigurationError("Either parameter n on percentage should be present in head")
         for infile, outfile in zip(infiles, outfiles):
             logger.info("Processing file %s", infile)
             with file_open(infile, 'r') as inf, file_open(outfile, 'w') as outf:

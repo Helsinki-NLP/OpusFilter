@@ -1,5 +1,7 @@
 """Corpus filtering"""
 
+# pylint: disable=invalid-name, line-too-long, bad-whitespace
+
 import logging
 import string
 import math
@@ -10,6 +12,7 @@ from langid.langid import LanguageIdentifier, model
 import pycld2
 from bs4 import BeautifulSoup as bs
 
+import editdistance
 from . import FilterABC, ConfigurationError
 from .lm import CrossEntropyFilter
 from .word_alignment import WordAlignFilter
@@ -242,3 +245,103 @@ class NonZeroNumeralsFilter(FilterABC):
 
     def accept(self, score):
         return score >= self.threshold
+
+
+class EditDistanceFilter(FilterABC):
+    """ Edit distance filter """
+
+    def __init__(self, chartype='alpha',
+                 min_dist=0, max_dist=math.inf,
+                 strip=False, ratio=False, **kwargs):
+        self.min_dist = min_dist
+        self.max_dist = max_dist
+        if chartype not in ('alpha', 'numeric', 'nonalpha'):
+            raise ConfigurationError(
+                "Unit has to be either 'alpha', 'numeric' or 'nonalpha', not '%s'" % chartype)
+        self.chartype = chartype
+        self.strip = strip
+        self.ratio = ratio
+        self.punktchars = ['.', ',', ':', '-', '"', '?', '!']
+        super().__init__(**kwargs)
+
+
+    def score(self, pairs):
+        for sent1, sent2 in pairs:
+            if self.strip:
+                if self.chartype == 'alpha':
+                    str1 = ''.join([ c for c in sent1 if c.isalpha()])
+                    str2 = ''.join([ c for c in sent2 if c.isalpha()])
+                elif self.chartype == 'numeric':
+                    str1 = ''.join([ c for c in sent1 if c.isnumeric()])
+                    str2 = ''.join([ c for c in sent2 if c.isnumeric()])
+                else:
+                    str1 = ''.join([ c for c in sent1 if not c.isalpha() and not c.isspace()])
+                    str2 = ''.join([ c for c in sent2 if not c.isalpha() and not c.isspace()])
+                dist = editdistance.distance(str1, str2)
+                seq = difflib.SequenceMatcher(None, str1, str2)
+                # print("%s -> %s\n%s -> %s\n  -> %d (%f)" % (sent1, str1, sent2, str2, dist, seq.ratio()))
+            else:
+                dist = editdistance.distance(sent1, sent2)
+                seq = difflib.SequenceMatcher(None, sent1, sent2)
+
+            if self.ratio:
+                dist = seq.ratio()
+
+            yield dist
+
+
+    def accept(self, score):
+#        print(dist, self.min_dist, self.max_dist)
+        return self.min_dist <= score <= self.max_dist
+
+
+class AlphaFilter(FilterABC):
+    """ Edit alpha filter """
+
+    def __init__(self, min_score=0, max_score=1, **kwargs):
+        self.min_score = min_score
+        self.max_score = max_score
+        super().__init__(**kwargs)
+
+    def score(self, pairs):
+        for sent1, sent2 in pairs:
+            str1 = ''.join([ c for c in sent1 if c.isalpha() or c.isspace()])
+            str2 = ''.join([ c for c in sent2 if c.isalpha() or c.isspace()])
+
+            src_ratio = len(str1) / len(sent1)
+            tgt_ratio = len(str2) / len(sent2)
+
+            yield {
+                'src': src_ratio,
+                'tgt': tgt_ratio
+            }
+
+    def accept(self, score):
+        return (self.min_score <= score['src'] <= self.max_score) and (self.min_score <= score['tgt'] <= self.max_score)
+
+
+class PunktFilter(FilterABC):
+    """ Punctuation filter """
+
+    def __init__(self, threshold=0.1, **kwargs):
+        self.threshold = threshold
+        self.punktchars = ['.', ',', ':', '-', '"', '?', '!']
+        super().__init__(**kwargs)
+
+    def score(self, pairs):
+        for sent1, sent2 in pairs:
+            str1 = ''.join([ c for c in sent1 if not c.isnumeric() and not c.isspace() and not c.isalpha() and c not in self.punktchars])
+            str2 = ''.join([ c for c in sent2 if not c.isnumeric() and not c.isspace() and not c.isalpha() and c not in self.punktchars])
+
+            src_ratio = len(str1) / len(sent1)
+            tgt_ratio = len(str2) / len(sent2)
+
+            # print("%s -> %s\n%s -> %s\n  -> %f / %f" % (sent1, str1, sent2, str2, src_ratio, tgt_ratio))
+
+            yield {
+                'src': src_ratio,
+                'tgt': tgt_ratio
+            }
+
+    def accept(self, score):
+        return (score['src'] <= self.threshold) or (score['tgt'] <= self.threshold)
