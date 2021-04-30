@@ -1,0 +1,140 @@
+common:
+
+  output_directory: .
+
+steps:
+
+  - type: train_classifier
+    parameters:
+        training_scores: subset-scores.en-br.jsonl.gz
+        criterion: CE
+        model_type: LogisticRegression
+        model_parameters:
+            solver: liblinear
+        model: ce_model
+        features:
+            CharacterScoreFilter:
+                clean-direction: high
+                quantiles: &def_quant
+                    min: 0
+                    max: 0.1
+                    initial: 0.02
+            CrossEntropyFilter:
+                clean-direction: low
+                quantiles: *def_quant
+#            EditDistanceFilter.EditDistance:
+#                clean-direction: high
+#                quantiles: *def_quant
+            EditDistanceFilter.EditDistanceRatio:
+                clean-direction: low
+                quantiles: *def_quant
+#            EditDistanceFilter.EditDistanceNumeric:
+#                clean-direction: low
+#                quantiles: *def_quant
+#            EditDistanceFilter.EditDistanceNumericRatio:
+#                clean-direction: high
+#                quantiles: *def_quant
+            LanguageIDFilter:
+                clean-direction: high
+                quantiles: *def_quant
+            NonZeroNumeralsFilter:
+                clean-direction: high
+                quantiles: *def_quant
+            TerminalPunctuationFilter:
+                clean-direction: high
+                quantiles: *def_quant
+            WordAlignFilter:
+                clean-direction: low
+                quantiles: *def_quant
+                quantiles: *def_quant
+            AlphaFilter:
+                clean-direction: high
+                quantiles: *def_quant
+            PunktFilter:
+                clean-direction: low
+                quantiles: *def_quant
+
+  - type: classify
+    parameters:
+        output_probabilities: ce.en-br.probabilities.txt
+        model: ce_model
+        scores: dedup-scores.en-br.jsonl.gz
+
+  - type: sort
+    parameters:
+        inputs:
+        - filtered_dedup.en
+        - filtered_dedup.br
+        outputs:
+        - ce-filtered.en
+        - ce-filtered.br
+        values: ce.en-br.probabilities.txt
+        reverse: True
+
+  - type: head
+    parameters:
+        inputs:
+        - ce-filtered.en
+        - ce-filtered.br
+        outputs:
+        - ce-filtered.en.90
+        - ce-filtered.br.90
+        percentage: 90
+
+  - type: head
+    parameters:
+        inputs:
+        - ce-filtered.en
+        - ce-filtered.br
+        outputs:
+        - ce-filtered.en.80
+        - ce-filtered.br.80
+        percentage: 80
+
+  - type: head
+    parameters:
+        inputs:
+        - ce-filtered.en
+        - ce-filtered.br
+        outputs:
+        - ce-filtered.en.70
+        - ce-filtered.br.70
+        percentage: 70
+
+  - type: head
+    parameters:
+        inputs:
+        - ce-filtered.en
+        - ce-filtered.br
+        outputs:
+        - ce-filtered.en.60
+        - ce-filtered.br.60
+        percentage: 60
+
+  - type: head
+    parameters:
+        inputs:
+        - ce-filtered.en
+        - ce-filtered.br
+        outputs:
+        - ce-filtered.en.50
+        - ce-filtered.br.50
+        percentage: 50
+  - type: head
+    parameters:
+        inputs:
+        - ce-filtered.en
+        - ce-filtered.br
+        outputs:
+        - ce-filtered.en.40
+        - ce-filtered.br.40
+        percentage: 40
+  - type: head
+    parameters:
+        inputs:
+        - ce-filtered.en
+        - ce-filtered.br
+        outputs:
+        - ce-filtered.en.30
+        - ce-filtered.br.30
+        percentage: 30

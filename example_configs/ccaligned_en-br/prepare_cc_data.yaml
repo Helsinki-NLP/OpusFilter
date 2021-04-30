@@ -1,0 +1,534 @@
+common:
+
+  output_directory: .
+#  sourcelang: &sourcelang !ENV SRCLANG
+#  target: &targetlang !ENV TRGLANG
+
+steps:
+
+#  - type: opus_read
+#    parameters:
+#      corpus_name: CCAligned
+#      source_language: en
+#      target_language: br
+#      release: v1
+#      preprocessing: raw
+#      src_output: sentences.en
+#      tgt_output: sentences.br
+
+  - type: filter
+    parameters:
+      src_input: sentences.en
+      tgt_input: sentences.br
+      src_output: filtered.en
+      tgt_output: filtered.br
+      filters:
+        - LengthFilter:
+            unit: word
+            min_length: 1
+            max_length: 1000
+
+        - LengthRatioFilter:
+            unit: word
+            threshold: 3
+
+        - LongWordFilter:
+            threshold: 40
+
+        - HtmlTagFilter: {}
+
+        - CharacterScoreFilter:
+            src_script: Latin
+            tgt_script: Latin
+            src_threshold: 1
+            tgt_threshold: 1
+
+  - type: remove_duplicates
+    parameters:
+      inputs:
+      - filtered.en
+      - filtered.br
+      outputs:
+      - filtered_dedup.en
+      - filtered_dedup.br
+
+  - type: concatenate
+    parameters:
+      inputs:
+      - filtered_dedup.en
+      - filtered_dedup.br
+      output: concatenated.gz
+
+  - type: train_ngram
+    parameters:
+      data: concatenated.gz
+      parameters:
+        norder: 5
+        dscale: 1
+      model: bg.arpa.gz
+
+  - type: train_ngram
+    parameters:
+      data: filtered_dedup.en
+      parameters:
+        norder: 15
+        dscale: 0.1
+      model: en.arpa.gz
+
+  - type: train_ngram
+    parameters:
+      data: filtered_dedup.br
+      parameters:
+        norder: 15
+        dscale: 0.1
+      model: br.arpa.gz
+
+  - type: train_alignment
+    parameters:
+      src_data: filtered_dedup.en
+      tgt_data: filtered_dedup.br
+      parameters:
+        src_tokenizer: [moses, en]
+        tgt_tokenizer: [moses, br]
+        model: 3
+      output: align.priors
+
+  - type: filter
+    parameters:
+      src_input: filtered_dedup.en
+      tgt_input: filtered_dedup.br
+      src_output: filtered_alpha.en
+      tgt_output: filtered_alpha.br
+
+      filters:
+        - EditDistanceFilter:
+            chartype: alpha
+            min_dist: 5
+            strip: true
+
+#        - EditDistanceFilter:
+#            min_dist: 4
+
+  - type: filter
+    parameters:
+      src_input: filtered_dedup.en
+      tgt_input: filtered_dedup.br
+      src_output: filtered_rm_alpha.en
+      tgt_output: filtered_rm_alpha.br
+      filterfalse: true
+
+      filters:
+        - EditDistanceFilter:
+            chartype: alpha
+            min_dist: 5
+            strip: true
+
+#        - EditDistanceFilter:
+#            min_dist: 4
+
+  - type: filter
+    parameters:
+      src_input: filtered_alpha.en
+      tgt_input: filtered_alpha.br
+      src_output: filtered_alpha_num.en
+      tgt_output: filtered_alpha_num.br
+
+      filters:
+        - EditDistanceFilter:
+            chartype: numeric
+            max_dist: 1
+            strip: true
+
+  - type: filter
+    parameters:
+      src_input: filtered_alpha.en
+      tgt_input: filtered_alpha.br
+      src_output: filtered_rm_alpha_num.en
+      tgt_output: filtered_rm_alpha_num.br
+      filterfalse: true
+
+      filters:
+        - EditDistanceFilter:
+            chartype: numeric
+            max_dist: 1
+            strip: true
+
+  - type: subset
+    parameters:
+      src_input: filtered_dedup.en
+      tgt_input: filtered_dedup.br
+      src_output: subset.en.gz
+      tgt_output: subset.br.gz
+      seed: 123
+      size: 10000
+
+  - type: score
+    parameters:
+      src_input: subset.en.gz
+      tgt_input: subset.br.gz
+      output: subset-scores.en-br.jsonl.gz
+      filters: &scorefilt
+        - LengthFilter:
+            name: char
+            unit: char
+
+        - LengthFilter:
+            name: word
+            unit: word
+
+        - LengthRatioFilter:
+            name: char
+            unit: char
+
+        - LengthRatioFilter:
+            name: word
+            unit: word
+
+        - LongWordFilter: {}
+
+        - CharacterScoreFilter:
+            src_script: Latin
+            tgt_script: Latin
+
+        - LanguageIDFilter:
+            name: langid
+            id_method: langid
+            src_lang: en
+            tgt_lang: br
+
+        - LanguageIDFilter:
+            name: cld2
+            id_method: cld2
+            src_lang: en
+            tgt_lang: br
+
+        - TerminalPunctuationFilter: {}
+
+        - NonZeroNumeralsFilter: {}
+
+        - CrossEntropyFilter:
+            src_lm_params:
+              filename: en.arpa.gz
+              interpolate:
+              - [bg.arpa.gz, 0.01]
+            tgt_lm_params:
+              filename: br.arpa.gz
+              interpolate:
+              - [bg.arpa.gz, 0.01]
+
+        - WordAlignFilter:
+            src_tokenizer: [moses, en]
+            tgt_tokenizer: [moses, br]
+            model: 3
+            priors: align.priors
+
+        - EditDistanceFilter:
+            name: EditDistance
+            chartype: alpha
+            strip: true
+
+        - EditDistanceFilter:
+            chartype: alpha
+            name: EditDistanceRatio
+            strip: true
+            ratio: true
+
+        - EditDistanceFilter:
+            name: EditDistanceNumeric
+            chartype: numeric
+            strip: true
+
+        - EditDistanceFilter:
+            name: EditDistanceNumericRatio
+            chartype: numeric
+            strip: true
+            ratio: true
+
+        - AlphaFilter: {}
+
+        - PunktFilter: {}
+
+  - type: score
+    parameters:
+      src_input: filtered_dedup.en
+      tgt_input: filtered_dedup.br
+      output: dedup-scores.en-br.jsonl.gz
+      filters: *scorefilt
+
+  - type: score
+    parameters:
+      src_input: filtered_alpha.en
+      tgt_input: filtered_alpha.br
+      output: alpha-scores.en-br.jsonl.gz
+      filters: *scorefilt
+
+  - type: score
+    parameters:
+      src_input: filtered_alpha_num.en
+      tgt_input: filtered_alpha_num.br
+      output: alphanum-scores.en-br.jsonl.gz
+      filters: *scorefilt
+
+#  - type: filter
+#    parameters:
+#      src_input: !+ filtered_alpha.{*sourcelang}
+#      tgt_input: !+ filtered_alpha.{*targetlang}
+#      src_output: !+ filtered_alpha_num.{*sourcelang}
+#      tgt_output: !+ filtered_alpha_num.{*targetlang}
+#
+#      filters:
+#        - EditDistanceFilter:
+#            chartype: numeric
+#            max_dist: 1
+#            strip: true
+
+  - type: filter
+    parameters:
+      src_input: filtered_dedup.en
+      tgt_input: filtered_dedup.br
+      src_output: filtered_alpha2.en
+      tgt_output: filtered_alpha2.br
+      filterfalse: True
+
+      filters:
+        - EditDistanceFilter:
+            chartype: alpha
+            max_dist: 0
+            strip: true
+
+  - type: filter
+    parameters:
+      src_input: filtered_dedup.en
+      tgt_input: filtered_dedup.br
+      src_output: filtered_rm_alpha2.en
+      tgt_output: filtered_rm_alpha2.br
+
+      filters:
+        - EditDistanceFilter:
+            chartype: alpha
+            max_dist: 0
+            strip: true
+
+  - type: subset
+    parameters:
+      src_input: filtered_alpha2.en
+      tgt_input: filtered_alpha2.br
+      src_output: alpha2-subset.en.gz
+      tgt_output: alpha2-subset.br.gz
+      seed: 123
+      size: 10000
+
+  - type: score
+    parameters:
+      src_input: alpha2-subset.en.gz
+      tgt_input: alpha2-subset.br.gz
+      output: alpha2-subset-scores.en-br.jsonl.gz
+      filters: *scorefilt
+
+  - type: score
+    parameters:
+      src_input: filtered_alpha2.en
+      tgt_input: filtered_alpha2.en
+      output: alpha2-scores.en-br.jsonl.gz
+      filters: *scorefilt
+
+  - type: filter
+    parameters:
+      src_input: filtered_alpha2.en
+      tgt_input: filtered_alpha2.br
+      src_output: filtered_rm_alpha2_nz.en
+      tgt_output: filtered_rm_alpha2_nz.br
+      filterfalse: true
+
+      filters:
+        - NonZeroNumeralsFilter:
+            threshold: 0.9
+
+  - type: filter
+    parameters:
+      src_input: filtered_alpha2.en
+      tgt_input: filtered_alpha2.br
+      src_output: filtered_alpha2_nz.en
+      tgt_output: filtered_alpha2_nz.br
+
+      filters:
+        - NonZeroNumeralsFilter:
+            threshold: 0.9
+
+  - type: filter
+    parameters:
+      src_input: filtered_alpha2.en
+      tgt_input: filtered_alpha2.br
+      src_output: filtered_rm_alpha2_ratio.en
+      tgt_output: filtered_rm_alpha2_ratio.br
+      filterfalse: true
+
+      filters:
+        - EditDistanceFilter:
+            chartype: alpha
+            max_dist: 0.9
+            strip: true
+            ratio: true
+
+  - type: filter
+    parameters:
+      src_input: filtered_alpha2.en
+      tgt_input: filtered_alpha2.br
+      src_output: filtered_alpha2_ratio.en
+      tgt_output: filtered_alpha2_ratio.br
+
+      filters:
+        - EditDistanceFilter:
+            chartype: alpha
+            max_dist: 0.9
+            strip: true
+            ratio: true
+
+  - type: filter
+    parameters:
+      src_input: filtered_alpha2_ratio.en
+      tgt_input: filtered_alpha2_ratio.br
+      src_output: filtered_alpha2_ratio_nz.en
+      tgt_output: filtered_alpha2_ratio_nz.br
+
+      filters:
+        - NonZeroNumeralsFilter:
+            threshold: 0.9
+
+  - type: filter
+    parameters:
+      src_input: filtered_alpha2_ratio.en
+      tgt_input: filtered_alpha2_ratio.br
+      src_output: filtered_rm_alpha2_ratio_nz.en
+      tgt_output: filtered_rm_alpha2_ratio_nz.br
+      filterfalse: true
+
+      filters:
+        - NonZeroNumeralsFilter:
+            threshold: 0.9
+
+  - type: filter
+    parameters:
+      src_input: filtered_alpha2_ratio_nz.en
+      tgt_input: filtered_alpha2_ratio_nz.br
+      src_output: filtered_rm_alpha2_ratio_nz_char.en
+      tgt_output: filtered_rm_alpha2_ratio_nz_char.br
+
+      filters:
+        - EditDistanceFilter:
+            chartype: alpha
+            max_dist: 2
+            strip: true
+
+  - type: filter
+    parameters:
+      src_input: filtered_alpha2_ratio_nz.en
+      tgt_input: filtered_alpha2_ratio_nz.br
+      src_output: filtered_alpha2_ratio_nz_char.en
+      tgt_output: filtered_alpha2_ratio_nz_char.br
+      filterfalse: true
+
+      filters:
+        - EditDistanceFilter:
+            chartype: alpha
+            max_dist: 2
+            strip: true
+
+  - type: filter
+    parameters:
+      src_input: filtered_dedup.en
+      tgt_input: filtered_dedup.br
+      src_output: filtered_rm_punkt.en
+      tgt_output: filtered_rm_punkt.br
+      filterfalse: true
+
+      filters:
+        - PunktFilter: {}
+
+  - type: filter
+    parameters:
+      src_input: filtered_dedup.en
+      tgt_input: filtered_dedup.br
+      src_output: filtered_punkt.en
+      tgt_output: filtered_punkt.br
+
+      filters:
+        - PunktFilter: {}
+
+  - type: filter
+    parameters:
+      src_input: filtered_punkt.en
+      tgt_input: filtered_punkt.br
+      src_output: filtered_punkt_alpha.en
+      tgt_output: filtered_punkt_alpha.br
+      filterfalse: True
+
+      filters:
+        - EditDistanceFilter:
+            chartype: alpha
+            max_dist: 0
+            strip: true
+
+  - type: filter
+    parameters:
+      src_input: filtered_punkt.en
+      tgt_input: filtered_punkt.br
+      src_output: filtered_rm_punkt_alpha.en
+      tgt_output: filtered_rm_punkt_alpha.br
+
+      filters:
+        - EditDistanceFilter:
+            chartype: alpha
+            max_dist: 0
+            strip: true
+
+  - type: filter
+    parameters:
+      src_input: filtered_punkt.en
+      tgt_input: filtered_punkt.br
+      src_output: filtered_punkt_alpharatio.en
+      tgt_output: filtered_punkt_alpharatio.br
+
+      filters:
+        - EditDistanceFilter:
+            chartype: alpha
+            max_dist: 0.9
+            strip: true
+            ratio: true
+
+  - type: filter
+    parameters:
+      src_input: filtered_punkt.en
+      tgt_input: filtered_punkt.br
+      src_output: filtered_rm_punkt_alpharatio.en
+      tgt_output: filtered_rm_punkt_alpharatio.br
+      filterfalse: True
+
+      filters:
+        - EditDistanceFilter:
+            chartype: alpha
+            max_dist: 0.9
+            strip: true
+            ratio: true
+
+  - type: filter
+    parameters:
+      src_input: filtered_punkt.en
+      tgt_input: filtered_punkt.br
+      src_output: filtered_punkt_alpharatio2.en
+      tgt_output: filtered_punkt_alpharatio2.br
+
+      filters:
+        - AlphaFilter: {}
+
+
+  - type: filter
+    parameters:
+      src_input: filtered_punkt.en
+      tgt_input: filtered_punkt.br
+      src_output: filtered_rm_punkt_alpharatio2.en
+      tgt_output: filtered_rm_punkt_alpharatio2.br
+      filterfalse: True
+
+      filters:
+        - AlphaFilter: {}

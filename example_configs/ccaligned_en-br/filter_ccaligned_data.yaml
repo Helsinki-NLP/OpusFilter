@@ -1,0 +1,59 @@
+common:
+
+  output_directory: .
+
+steps:
+
+  - type: filter
+    parameters:
+      src_input: documents.en_XX
+      tgt_input: documents.br_FR
+      src_output: filtered-docs.en_XX
+      tgt_output: filtered-docs.br_FR
+      filters:
+#        - LengthFilter:
+#            unit: word
+#            min_length: 1
+#            max_length: 1000
+
+        - LengthRatioFilter:
+            unit: word
+            threshold: 3
+
+#        - LongWordFilter:
+#            threshold: 40
+
+#        - HtmlTagFilter: {}
+
+#        - CharacterScoreFilter:
+#            src_script: Latin
+#            tgt_script: Latin
+#            src_threshold: 1
+#            tgt_threshold: 1
+
+  - type: filter
+    parameters:
+      src_input: bifixed-documents.en_XX
+      tgt_input: bifixed-documents.br_FR
+      src_output: bifixed-filtered-docs.en_XX
+      tgt_output: bifixed-filtered-docs.br_FR
+      filters:
+#        - LengthFilter:
+#            unit: word
+#            min_length: 1
+#            max_length: 1000
+
+        - LengthRatioFilter:
+            unit: word
+            threshold: 3
+
+#        - LongWordFilter:
+#            threshold: 40
+
+#        - HtmlTagFilter: {}
+
+#        - CharacterScoreFilter:
+#            src_script: Latin
+#            tgt_script: Latin
+#            src_threshold: 1
+#            tgt_threshold: 1
