@@ -851,9 +851,9 @@ Parameters:
 
 * `languages`: expected languages for the segments
 * `id_method`: language indentification method (`langid` for using the `langid` library of `cld2` for using the `cld2` library; the default is `langid`)
-* `thresholds`: minimum identification confidence score for the segments
+* `thresholds`: minimum identification confidence score for the segments (a single float or a list of floats per language)
 
-Returned scores are the language identification confidence scores from a given identification method for the segments. The scores range from 0 to 1. In filtering, all values have to be greater than the minimum thresholds.
+Returned scores are the language identification confidence scores from a given identification method for the segments. The scores range from 0 to 1. In filtering, all values have to be greater than the minimum thresholds. Negative threshold can be used to skip filtering for a language.
 
 ### Special character and similarity filters
 
