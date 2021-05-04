@@ -22,6 +22,7 @@ def create_align_input_file(sentence_pairs, src_tokenizer=None, tgt_tokenizer=No
     src_tokenize = tokenization.get_tokenize(src_tokenizer)
     tgt_tokenize = tokenization.get_tokenize(tgt_tokenizer)
     inputfile = tempfile.NamedTemporaryFile('w+')
+    rawfile = tempfile.NamedTemporaryFile('w+') if src_tokenizer or tgt_tokenizer else None
     empty = []
     for idx, pair in enumerate(sentence_pairs):
         if len(pair) != 2:
@@ -30,10 +31,14 @@ def create_align_input_file(sentence_pairs, src_tokenizer=None, tgt_tokenizer=No
             empty.append(idx)
             continue
         sent1, sent2 = pair
+        if rawfile:
+            rawfile.write('{} ||| {}\n'.format(sent1, sent2))
         inputfile.write('{} ||| {}\n'.format(src_tokenize(sent1), tgt_tokenize(sent2)))
+    if rawfile:
+        rawfile.flush()
     inputfile.flush()
     empty.reverse()
-    return inputfile, empty
+    return inputfile, rawfile, empty
 
 
 def _run_eflomal_align(input_file, fwd_file, rev_file, model=3, priors=None):
@@ -65,7 +70,7 @@ def _run_eflomal_priors(input_file, scores_fwd_file, scores_rev_file, priors_fil
 
 def make_priors(sentence_pairs, priors_file, model=3):
     """Create alignment priors from clean sentence pairs"""
-    input_file, _ = create_align_input_file(sentence_pairs)
+    input_file, _, _ = create_align_input_file(sentence_pairs)
     fwd_file = tempfile.NamedTemporaryFile('w+')
     rev_file = tempfile.NamedTemporaryFile('w+')
     process = _run_eflomal_align(
@@ -116,8 +121,10 @@ class WordAlignFilter(FilterABC):
             idx += 1
 
     def score(self, pairs):
-        input_file, empty_pairs = create_align_input_file(
+        input_file, raw_file, empty_pairs = create_align_input_file(
             pairs, src_tokenizer=self.src_tokenizer, tgt_tokenizer=self.tgt_tokenizer)
+        if raw_file:
+            raw_file.close()
         scores_fwd_file = tempfile.NamedTemporaryFile('w+')
         scores_rev_file = tempfile.NamedTemporaryFile('w+')
         process = _run_eflomal_scoring(input_file.name, scores_fwd_file.name, scores_rev_file.name,
@@ -140,29 +147,36 @@ class WordAlignFilter(FilterABC):
         return score[0] < self.src_threshold and score[1] < self.tgt_threshold
 
     def _filtergen(self, pairs, filterfalse=False, decisions=False):
-        input_file, empty_pairs = create_align_input_file(
+        input_file, raw_file, empty_pairs = create_align_input_file(
             pairs, src_tokenizer=self.src_tokenizer, tgt_tokenizer=self.tgt_tokenizer)
         scores_fwd_file = tempfile.NamedTemporaryFile('w+')
         scores_rev_file = tempfile.NamedTemporaryFile('w+')
         process = _run_eflomal_scoring(input_file.name, scores_fwd_file.name, scores_rev_file.name,
                                        model=self.model, priors=self.priors)
         process.check_returncode()
-        input_file.seek(0)
+        if raw_file:
+            # input_file contains tokenized text, use raw_file
+            output_file = raw_file
+        else:
+            output_file = input_file
+        output_file.seek(0)
         scores_fwd_file.seek(0)
         scores_rev_file.seek(0)
         for item in self._with_empty_pairs(
-                zip(input_file, scores_fwd_file, scores_rev_file), empty_pairs):
+                zip(output_file, scores_fwd_file, scores_rev_file), empty_pairs):
             if item == self._empty_pair_sentinel:
                 score = [self.score_for_empty, self.score_for_empty]
                 sent1, sent2 = '', ''
             else:
-                input_pair, line1, line2 = item
+                pair, line1, line2 = item
                 score = [float(line1.strip()), float(line2.strip())]
-                sent1, sent2 = input_pair.strip().split(' ||| ')
+                sent1, sent2 = pair.strip().split(' ||| ')
             if decisions:
                 yield self.accept(score)
             elif bool(filterfalse) != bool(self.accept(score)):
                 yield sent1, sent2
+        if raw_file:
+            raw_file.close()
         input_file.close()
         scores_fwd_file.close()
         scores_rev_file.close()

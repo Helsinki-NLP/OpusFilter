@@ -90,3 +90,22 @@ class TestAlignFilter(unittest.TestCase):
         filtered = list(align_filter.filter(zip(data1, data2)))
         logging.info(filtered)
         self.assertSequenceEqual(filtered, list(zip(data1, data2))[:50] + [('', '')] * 2)
+
+    def test_filtering_with_tokenization(self):
+        """Test word alignment filtering on artificial data with tokenization
+
+        Note: The result of the alignment is not deterministic and the
+        test could fail with really bad luck.
+
+        """
+        data1 = ['%s.' % ('ab ' * (line + 1)).strip() for line in range(10)] * 5 + ['ab ab ab.', ''] * 2
+        data2 = ['%s.' % ('AB ' * (line + 1)).strip() for line in range(10)] * 5 + ['AB.', ''] * 2
+        logging.info(data1)
+        logging.info(data2)
+        align_filter = word_alignment.WordAlignFilter(
+            src_threshold=0, tgt_threshold=0, src_tokenizer=('moses', 'en'), tgt_tokenizer=('moses', 'en'))
+        scores = []
+        bools = []
+        filtered = list(align_filter.filter(zip(data1, data2)))
+        logging.info(filtered)
+        self.assertSequenceEqual(filtered, list(zip(data1, data2))[:50] + [('', '')] * 2)
