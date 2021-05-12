@@ -8,11 +8,14 @@ import difflib
 import regex
 from langid.langid import LanguageIdentifier, model
 import pycld2
+import fasttext
 from bs4 import BeautifulSoup as bs
 
 from . import FilterABC, ConfigurationError
 from .lm import CrossEntropyFilter
 from .word_alignment import WordAlignFilter
+
+
 
 
 class LengthFilter(FilterABC):
@@ -150,11 +153,17 @@ class CharacterScoreFilter(FilterABC):
                 tgt_score >= self.tgt_threshold)
 
 
+def fasttext_predict_lang(model,texts): 
+    output = model.predict(texts,k=1)
+    confidence = output[1][0]
+    label = output[0][0][9:]
+    return label, confidence
+
 class LanguageIDFilter(FilterABC):
     """Language identification confidence filter"""
 
     def __init__(self, src_lang=None, tgt_lang=None, id_method='langid',
-                 src_threshold=0, tgt_threshold=0, **kwargs):
+                 src_threshold=0, tgt_threshold=0, fasttext_model_path="", **kwargs):
         if not (isinstance(src_lang, str) and isinstance(tgt_lang, str)):
             logging.error("Both source and target languages need to be defined")
             raise ValueError("Strings expected, got: %s %s" % (src_lang, tgt_lang))
@@ -164,6 +173,15 @@ class LanguageIDFilter(FilterABC):
         self.src_threshold = src_threshold
         self.tgt_threshold = tgt_threshold
         self.identifier = LanguageIdentifier.from_modelstring(model, norm_probs=True)
+
+        self.fasttext_model = None
+        if id_method == "fasttext" :
+            if fasttext_model_path == "":
+                logging.error("If fasttext language detection method is chosen, you must provide a path to the model in the yml config (key name is 'fasttext_model_path'")
+                raise ValueError("'fasttext_model_path' was expected in yml config in the LanguageIDFilter section")
+            else:
+                self.fasttext_model = fasttext.load_model(fasttext_model_path)
+
         super().__init__(**kwargs)
 
     def confidence(self, sentence, lan):
@@ -188,6 +206,14 @@ class LanguageIDFilter(FilterABC):
             lilan, liconf = lidetails[0], round(lidetails[1], 2)
             if lilan != lan:
                 liconf = 0.0
+            return liconf
+        
+        elif self.id_method == 'fasttext':
+            lang, confidence = fasttext_predict_lang(self.fasttext_model, sentence)
+            if lang != lan:
+                liconf = 0.0
+            else:
+                liconf = confidence
             return liconf
 
     def score(self, pairs):
