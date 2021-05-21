@@ -81,6 +81,13 @@ class FilterPipeline:
             pairs = filt.filter(pairs)
         return pairs
 
+    def filterboth(self, pairs):
+        """Yield both accepted and rejected sentence pairs"""
+
+        for filt in self.filters:
+            pairs = filt.filterboth(pairs)
+        return pairs
+        
     def filterfalse(self, pairs):
         """Yield sentence pairs rejected by any of the filters
 

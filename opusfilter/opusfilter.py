@@ -192,27 +192,68 @@ class OpusFilter:
         if not overwrite and os.path.isfile(src_out) and os.path.isfile(tgt_out):
             logger.info("Output files exists, skipping step")
             return
+
+        output_both = False
+
+        if 'src_output_false' in parameters and 'tgt_output_false' in parameters:
+            src_false_out = os.path.join(self.output_dir, parameters['src_output_false'])
+            tgt_false_out = os.path.join(self.output_dir, parameters['tgt_output_false'])
+
+            if not overwrite and os.path.isfile(src_false_out) and os.path.isfile(tgt_false_out):
+                logger.info("Output files exists, skipping step")
+                return
+
+            output_both = True
+
         fixed_params = self.fix_filter_file_paths(parameters['filters'])
         filter_pipe = pipeline.FilterPipeline.from_config(fixed_params)
         filterfalse = parameters.get('filterfalse', False)
         pairs_gen = tqdm(self.get_pairs(
             parameters['src_input'], parameters['tgt_input']))
-        if filterfalse:
-            pairs = filter_pipe.filterfalse(pairs_gen)
+
+        if output_both:
+            pairs = filter_pipe.filterboth(pairs_gen)
         else:
-            pairs = filter_pipe.filter(pairs_gen)
+            if filterfalse:
+                pairs = filter_pipe.filterfalse(pairs_gen)
+            else:
+                pairs = filter_pipe.filter(pairs_gen)
         limit = parameters.get('limit')
-        with file_open(src_out, 'w') as source_file, \
-                file_open(tgt_out, 'w') as target_file:
-            for idx, pair in enumerate(pairs):
-                source_file.write(pair[0]+'\n')
-                target_file.write(pair[1]+'\n')
-                source_file.flush()
-                target_file.flush()
-                if limit and idx >= limit - 1:
-                    break
+        last_idx = 0
+
+        if output_both:
+            with file_open(src_out, 'w') as source_file, \
+                 file_open(tgt_out, 'w') as target_file, \
+                 file_open(src_false_out, 'w') as source_false_file, \
+                 file_open(tgt_false_out, 'w') as target_false_file:
+                for idx, pair in enumerate(pairs):
+                    if pair[2]:
+                        source_file.write(pair[0]+'\n')
+                        target_file.write(pair[1]+'\n')
+                        source_file.flush()
+                        target_file.flush()
+                        last_idx += 1
+                    else:
+                        source_false_file.write(pair[0]+'\n')
+                        target_false_file.write(pair[1]+'\n')
+                        source_false_file.flush()
+                        target_false_file.flush()
+                    if limit and idx >= limit - 1:
+                        break
+        else:
+            with file_open(src_out, 'w') as source_file, \
+                 file_open(tgt_out, 'w') as target_file:
+                for idx, pair in enumerate(pairs):
+                    source_file.write(pair[0]+'\n')
+                    target_file.write(pair[1]+'\n')
+                    source_file.flush()
+                    target_file.flush()
+                    last_idx = idx + 1
+                    if limit and idx >= limit - 1:
+                        break
+
         if not limit:
-            removed = pairs_gen.n - idx
+            removed = pairs_gen.n - last_idx
             logger.info("Filtered out {} / {} = {:.2f}% lines".format(
                 removed, pairs_gen.n, 100 * removed / pairs_gen.n))
 

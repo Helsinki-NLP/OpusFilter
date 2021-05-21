@@ -53,6 +53,26 @@ class FilterABC(metaclass=abc.ABCMeta):
             if self.accept(next(self.score([(sent1, sent2)]))):
                 yield sent1, sent2
 
+    def filterboth(self, pairs):
+        """Yield list of both accepted and rejected sentence pairs"""
+        for data in pairs:
+            sent1 = data[0]
+            sent2 = data[1]
+            if len(data) > 2:
+                last = data[2]
+            else:
+                # First pass, assume accept
+                last = True
+
+            if not last:
+                # One of the filters did not accept, no need to run any more
+                yield sent1, sent2, False
+            else:
+                if self.accept(next(self.score([(sent1, sent2)]))):
+                    yield sent1, sent2, True
+                else:
+                    yield sent1, sent2, False
+
     def filterfalse(self, pairs):
         """Yield sentence pairs that are not accepted"""
         for sent1, sent2 in pairs:
