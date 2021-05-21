@@ -296,24 +296,24 @@ class EditDistanceFilter(FilterABC):
 
 
 class AlphaFilter(FilterABC):
-    """ Edit alpha filter """
+    """ Filter for amount of alpha characters """
 
-    def __init__(self, min_score=0, max_score=1, **kwargs):
+    def __init__(self, min_score=0, max_score=math.inf, **kwargs):
         self.min_score = min_score
         self.max_score = max_score
         super().__init__(**kwargs)
 
     def score(self, pairs):
         for sent1, sent2 in pairs:
-            str1 = ''.join([ c for c in sent1 if c.isalpha() or c.isspace()])
-            str2 = ''.join([ c for c in sent2 if c.isalpha() or c.isspace()])
+            str1 = ''.join([ c for c in sent1 if c.isalpha()])
+            str2 = ''.join([ c for c in sent2 if c.isalpha()])
 
-            src_ratio = len(str1) / len(sent1)
-            tgt_ratio = len(str2) / len(sent2)
+            src_len = len(str1)
+            tgt_len = len(str2)
 
             yield {
-                'src': src_ratio,
-                'tgt': tgt_ratio
+                'src': src_len,
+                'tgt': tgt_len
             }
 
     def accept(self, score):
@@ -321,7 +321,7 @@ class AlphaFilter(FilterABC):
 
 
 class PunktFilter(FilterABC):
-    """ Punctuation filter """
+    """ Punctuation filter: characters don't usually occur in sentences. Based on ratio. """
 
     def __init__(self, threshold=0.1, **kwargs):
         self.threshold = threshold
@@ -345,3 +345,24 @@ class PunktFilter(FilterABC):
 
     def accept(self, score):
         return (score['src'] <= self.threshold) or (score['tgt'] <= self.threshold)
+
+
+class NumericFilter(FilterABC):
+    """ Filter based on amount of numbers """
+
+    def __init__(self, threshold=0, **kwargs):
+        self.threshold = threshold
+        super().__init__(**kwargs)
+
+    def score(self, pairs):
+        for sent1, sent2 in pairs:
+            str1 = ''.join([ c for c in sent1 if c.isnumeric()])
+            str2 = ''.join([ c for c in sent2 if c.isnumeric()])
+
+            yield {
+                'src': len(str1),
+                'tgt': len(str2),
+            }
+
+    def accept(self, score):
+        return (score['src'] <= self.threshold) and (score['tgt'] <= self.threshold)
