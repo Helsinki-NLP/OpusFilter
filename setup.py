@@ -5,7 +5,8 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="opusfilter",
-    version="2.0.0-beta",
+    use_scm_version=True,
+    setup_requires=['setuptools_scm'],
     author="Mikko Aulamo, Sami Virpioja",
     author_email="mikko.aulamo@helsinki.fi",
     description="Toolbox for filtering parallel corpora",
@@ -20,4 +21,5 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ),
+    python_requires=">=3.6",
 )
