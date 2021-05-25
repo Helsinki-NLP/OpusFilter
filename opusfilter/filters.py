@@ -12,8 +12,11 @@ import pycld2
 from bs4 import BeautifulSoup as bs
 
 from . import FilterABC, ConfigurationError
-from .lm import CrossEntropyFilter, CrossEntropyDifferenceFilter
-from .word_alignment import WordAlignFilter
+from .lm import CrossEntropyFilter, CrossEntropyDifferenceFilter  # noqa: F401
+from .word_alignment import WordAlignFilter  # noqa: F401
+
+
+logger = logging.getLogger(__name__)
 
 
 class LengthFilter(FilterABC):
@@ -197,7 +200,7 @@ class LanguageIDFilter(FilterABC):
         if self.id_method == 'cld2':
             try:
                 clddetails = pycld2.detect(sentence)
-            except Exception as exp:
+            except Exception:
                 clddetails = (0, 0, ((0, 'un', 0.0), 0))
 
             cldlan = clddetails[2][0][1]
@@ -209,7 +212,7 @@ class LanguageIDFilter(FilterABC):
         elif self.id_method == 'langid':
             try:
                 lidetails = self.identifier.classify(sentence)
-            except Exception as exp:
+            except Exception:
                 lidetails = ('un', 0.0)
             lilan, liconf = lidetails[0], round(lidetails[1], 2)
             if lilan != lan:

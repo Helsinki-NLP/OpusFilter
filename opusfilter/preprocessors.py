@@ -1,6 +1,5 @@
 """Corpus preprocessing"""
 
-import collections
 from functools import reduce
 import operator
 import re

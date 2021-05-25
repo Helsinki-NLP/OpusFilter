@@ -277,8 +277,7 @@ class OpusFilter:
         logger.info("Sampling subset of %s lines from total %s lines", size, total)
         if shuffle_subset:
             sample = random.sample(range(total), size)
-            with file_open(inputs[0]) as inf, \
-                 file_open(outputs[0], 'w') as outf:
+            with file_open(infiles[0]) as inf, file_open(outfiles[0], 'w') as outf:
                 for line in self._yield_subset(inf, sample):
                     outf.write(line)
             for infname, outfname in zip(infiles[1:], outfiles[1:]):
@@ -361,16 +360,17 @@ class OpusFilter:
         if not overwrite and os.path.isfile(model_out):
             logger.info("Output file exists, skipping step")
             return
-        training_scores = os.path.join(self.output_dir,
-                parameters['training_scores'])
+        training_scores = os.path.join(self.output_dir, parameters['training_scores'])
         dev_scores = os.path.join(self.output_dir, parameters['dev_scores']) \
             if 'dev_scores' in parameters else None
-        trainer = classifier.TrainClassifier(training_scores=training_scores,
-                dev_scores=dev_scores, model_type=parameters['model_type'],
-                model_parameters=parameters['model_parameters'],
-                features=parameters['features'])
+        trainer = classifier.TrainClassifier(
+            training_scores=training_scores,
+            dev_scores=dev_scores, model_type=parameters['model_type'],
+            model_parameters=parameters['model_parameters'],
+            features=parameters['features']
+        )
         model, value, features = trainer.find_best_model(
-                parameters['criterion'], **parameters.get('optimization', {}))
+            parameters['criterion'], **parameters.get('optimization', {}))
 
         logger.info('Best model has {criterion}: {value}'.format(
             criterion=parameters['criterion'], value=value))
@@ -387,8 +387,8 @@ class OpusFilter:
 
         logger.info('Saving best model to {}'.format(model_out))
 
-        #with file_open(model_out, 'wb') as model_file:
-        #TODO: ValueError: binary mode doesn't take an encoding argument
+        # with file_open(model_out, 'wb') as model_file:
+        # TODO: ValueError: binary mode doesn't take an encoding argument
         with open(model_out, 'wb') as model_file:
             pickle.dump(model, model_file)
 
@@ -401,13 +401,13 @@ class OpusFilter:
             self.output_dir, parameters['output_probabilities']) \
             if 'output_probabilities' in parameters else None
         if (not overwrite and
-            (labels_out is None or os.path.isfile(labels_out)) and
-            (probs_out is None or os.path.isfile(probs_out))):
+                (labels_out is None or os.path.isfile(labels_out)) and
+                (probs_out is None or os.path.isfile(probs_out))):
             logger.info("Output files exists, skipping step")
             return
         model_in = os.path.join(self.output_dir, parameters['model'])
-        #with file_open(model_in, 'rb') as model_file:
-        #TODO: ValueError: binary mode doesn't take an encoding argument
+        # with file_open(model_in, 'rb') as model_file:
+        # TODO: ValueError: binary mode doesn't take an encoding argument
         with open(model_in, 'rb') as model_file:
             model = pickle.load(model_file)
         scores_in = os.path.join(self.output_dir, parameters['scores'])

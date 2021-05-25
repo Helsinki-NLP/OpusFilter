@@ -153,8 +153,8 @@ class Classifier:
                 probas = self.classifier.predict_proba(df[self.features])
                 if true_label:
                     true_labels = df_tbc[true_label]
-                    logger.info('roc_auc: %s', roc_auc_score(true_labels, probas[:,1]))
-                for proba in probas[:,1]:
+                    logger.info('roc_auc: %s', roc_auc_score(true_labels, probas[:, 1]))
+                for proba in probas[:, 1]:
                     output.write('{0:.10f}\n'.format(proba))
 
     def weights(self):
@@ -172,7 +172,7 @@ class TrainClassifier:
     """Classify clean and noisy sentence pairs"""
 
     def __init__(self, training_scores=None, dev_scores=None, model_type=None,
-            model_parameters=None, features=None, **kwargs):
+                 model_parameters=None, features=None, **kwargs):
         logger.info("Loading training data")
         self.df_training_data = load_dataframe(training_scores)
 
@@ -198,11 +198,11 @@ class TrainClassifier:
             self.dev_data = None
             self.dev_labels = None
 
-        if model_type == None:
+        if model_type is None:
             self.model_type = 'LogisticRegression'
         else:
             self.model_type = model_type
-        if model_parameters == None:
+        if model_parameters is None:
             self.model_parameters = {}
         else:
             self.model_parameters = model_parameters
@@ -220,7 +220,7 @@ class TrainClassifier:
         # pred = model.classifier.predict(dev_data)
         # logger.info("Classifier labels: %s", model.classifier.classes_)
         # logger.info("Predicted labels: %s", collections.Counter(pred))
-        return roc_auc_score(self.dev_labels, probs[:,1])
+        return roc_auc_score(self.dev_labels, probs[:, 1])
 
     def get_sse(self, model, training_data, labels):
         """Calculate the residual sum of squares"""
@@ -237,17 +237,16 @@ class TrainClassifier:
     def get_aic(self, model, training_data, labels):
         """Calculate AIC for a given model"""
         loss = self.get_ce(model, training_data, labels)
-        k = training_data.shape[1] # number of variables
-        AIC = 2*k - 2*math.log(loss)
+        k = training_data.shape[1]  # number of variables
+        AIC = 2 * k - 2 * math.log(loss)
         return AIC
 
     def get_bic(self, model, training_data, labels):
         """Calculate BIC for a given model"""
         loss = self.get_ce(model, training_data, labels)
-        k = training_data.shape[1] # number of variables
-        n = training_data.shape[0] # number of observations
-        BIC = n*math.log(loss/n) + k*math.log(n)
-        #BIC = math.log(n)*k - 2*math.log(loss)
+        k = training_data.shape[1]  # number of variables
+        n = training_data.shape[0]  # number of observations
+        BIC = n * math.log(loss / n) + k * math.log(n)
         return BIC
 
     def get_labels(self, training_data, cutoffs):
@@ -299,16 +298,13 @@ class TrainClassifier:
 
     def find_best_model(self, criterion_name, algorithm='default', options=None):
         """Find the model with the best AIC / BIC / SSE / CE / ROC_AUC"""
-        criteria = {'AIC':
-                    {'func': self.get_aic, 'best': 'low', 'dev': False},
-                'BIC':
-                    {'func': self.get_bic, 'best': 'low', 'dev': False},
-                'SSE':
-                    {'func': self.get_sse, 'best': 'low', 'dev': False},
-                'CE':
-                    {'func': self.get_ce, 'best': 'low', 'dev': False},
-                'ROC_AUC':
-                    {'func': self.get_roc_auc, 'best': 'high', 'dev': True}}
+        criteria = {
+            'AIC': {'func': self.get_aic, 'best': 'low', 'dev': False},
+            'BIC': {'func': self.get_bic, 'best': 'low', 'dev': False},
+            'SSE': {'func': self.get_sse, 'best': 'low', 'dev': False},
+            'CE': {'func': self.get_ce, 'best': 'low', 'dev': False},
+            'ROC_AUC': {'func': self.get_roc_auc, 'best': 'high', 'dev': True}
+        }
 
         if criterion_name not in criteria.keys():
             raise ValueError('Invalid criterion. Expected one of: {}'.format(

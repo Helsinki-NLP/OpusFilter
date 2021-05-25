@@ -48,7 +48,7 @@ class FilterPipeline:
             if counts[nametuple] > 1:
                 instances[nametuple] += 1
                 newtuple = (clsname, str(instances[nametuple])) if name is None \
-                           else (clsname, name, str(instances[nametuple]))
+                    else (clsname, name, str(instances[nametuple]))
             else:
                 newtuple = (clsname, ) if name is None else (clsname, name)
             renamed.append(newtuple)
