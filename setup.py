@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="opusfilter",
-    version="1.0.0",
+    version="1.0.1",
     author="Mikko Aulamo, Sami Virpioja",
     author_email="mikko.aulamo@helsinki.fi",
     description="Toolbox for filtering parallel corpora",
