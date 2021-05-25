@@ -1,6 +1,7 @@
 import argparse
 import copy
 import json
+import logging
 import os
 import shutil
 import tempfile
@@ -10,7 +11,13 @@ from unittest import mock
 from opustools import OpusGet
 from opusfilter.opusfilter import OpusFilter
 
+try:
+    import varikn
+except ImportError:
+    logging.warning("Could not load varikn, language model filtering tests not supported")
 
+
+@unittest.skipIf('varikn' not in globals() or os.environ.get('EFLOMAL_PATH') is None, 'varikn or eflomal not found')
 class TestOpusFilter(unittest.TestCase):
 
     @classmethod

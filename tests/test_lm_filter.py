@@ -7,10 +7,13 @@ import unittest
 
 from opusfilter import lm
 
+try:
+    import varikn
+except ImportError:
+    logging.warning("Could not load varikn, language model filtering not supported")
 
-# TODO: tests for LMTokenizer
 
-
+@unittest.skipIf('varikn' not in globals(), 'varikn package not installed')
 class TestLMFilter(unittest.TestCase):
 
     def setUp(self):

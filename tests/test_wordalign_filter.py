@@ -8,6 +8,7 @@ import unittest
 from opusfilter import word_alignment
 
 
+@unittest.skipIf(os.environ.get('EFLOMAL_PATH') is None, 'EFLOMAL_PATH not defined in environment')
 class TestAlignFilter(unittest.TestCase):
 
     def test_scoring(self):
