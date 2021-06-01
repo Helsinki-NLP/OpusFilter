@@ -85,7 +85,12 @@ OpusFilter has been presented in [ACL 2020 system demonstrations](https://www.ac
 
 ## Installing
 
-`pip install .` or `python setup.py install`
+Install the latest release from PyPI:
+* `pip install opusfilter`
+
+Install from source:
+* `pip install .` or
+* `python setup.py install`
 
 ### Required libraries
 
