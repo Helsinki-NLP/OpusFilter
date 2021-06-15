@@ -10,7 +10,10 @@ import unittest
 from unittest import mock
 
 from opustools import OpusGet
+
+from opusfilter import ConfigurationError
 from opusfilter.opusfilter import OpusFilter
+from opusfilter.util import Var, VarStr
 
 try:
     import varikn
@@ -973,3 +976,52 @@ class TestWrite(unittest.TestCase):
         self.opus_filter.write_to_file(parameters)
         with open(os.path.join(self.tempdir, 'output')) as f:
             self.assertEqual(f.read(), str(data))
+
+
+class TestVariables(unittest.TestCase):
+
+    def setUp(self):
+        self.of = OpusFilter({'steps': []})
+
+    def test_check_variables_valid(self):
+        self.assertEqual(self.of._check_variables({}), 0)
+        self.assertEqual(self.of._check_variables({'key': []}), 0)
+        self.assertEqual(self.of._check_variables({'key': [1]}), 1)
+        self.assertEqual(self.of._check_variables({'key': ['a', 'b', 'c']}), 3)
+        self.assertEqual(self.of._check_variables({'key1': ['a', 'b', 'c'], 'key2': [1, 2, 3]}), 3)
+
+    def test_check_variables_invalid(self):
+        with self.assertRaises(ConfigurationError):
+            self.of._check_variables({'key': 1})
+        with self.assertRaises(ConfigurationError):
+            self.of._check_variables({'key': {}})
+        with self.assertRaises(ConfigurationError):
+            self.of._check_variables({'key1': ['a', 'b', 'c'], 'key2': [1, 2]})
+
+    def test_expand_parameters_empty(self):
+        for case in [
+                None, 'abc', 10, [], ['a'], {}, {'a': 3}, [{'foo': [1, 2]}]
+        ]:
+            self.assertEqual(self.of._expand_parameters(case, {}), case)
+
+    def test_expand_parameters(self):
+        variables = {'myint': 5, 'mylist': ['a', 'b'], 'mystr': 'bar'}
+        for case, expected in [
+                (Var('mystr'), variables['mystr']),
+                (Var('myint'), variables['myint']),
+                (Var('mylist'), variables['mylist']),
+                (VarStr('f_{mystr}.txt'), 'f_{mystr}.txt'.format(**variables)),
+                ([Var('myint')], [variables['myint']]),
+                ([VarStr('f_{mystr}.txt')], ['f_{mystr}.txt'.format(**variables)]),
+                ({'key': Var('myint')}, {'key': variables['myint']}),
+                ([{'key': Var('myint'), 'other': 0}, Var('mylist'), [VarStr('f_{mystr}.txt')]],
+                 [{'key': variables['myint'], 'other': 0}, variables['mylist'],
+                  ['f_{mystr}.txt'.format(**variables)]])
+        ]:
+            self.assertEqual(self.of._expand_parameters(case, variables), expected)
+
+    def test_expand_parameters_invalid(self):
+        variables = {'myint': 5, 'mylist': ['a', 'b'], 'mystr': 'bar'}
+        for case in [Var('unk'), VarStr('{}'), VarStr('{unk}'), VarStr('{mystr}-{unk}')]:
+            with self.assertRaises(ConfigurationError):
+                self.of._expand_parameters(case, variables)

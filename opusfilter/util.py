@@ -65,6 +65,35 @@ def file_download(url, localfile=None, chunk_size=None):
 yaml = ruamel.yaml.YAML()
 
 
+@ruamel.yaml.yaml_object(yaml)
+class Var:
+    """Reference for a variable"""
+    yaml_tag = '!var'
+
+    def __init__(self, value):
+        self.value = value
+
+    @classmethod
+    def to_yaml(cls, representer, node):
+        return representer.represent_scalar(cls.yaml_tag, '{.value}'.format(node))
+
+    @classmethod
+    def from_yaml(cls, constructor, node):
+        return cls(node.value)
+
+    def __repr__(self):
+        return "{}('{}')".format(self.__class__.__name__, self.value)
+
+    def __str__(self):
+        return self.__repr__()
+
+
+@ruamel.yaml.yaml_object(yaml)
+class VarStr(Var):
+    """String template formatted using variables"""
+    yaml_tag = '!varstr'
+
+
 def yaml_dumps(obj):
     """Return a string containing YAML output from input object"""
     with io.StringIO() as iostream:

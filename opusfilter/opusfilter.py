@@ -23,7 +23,8 @@ from . import word_alignment
 from . import tokenization
 from . import classifier
 from . import segment_hash
-from .util import file_open, file_download
+from .util import file_open, file_download, Var, VarStr
+
 
 logger = logging.getLogger(__name__)
 
@@ -83,7 +84,7 @@ class OpusFilter:
                 'Directory "{}" does not exist. It will be '
                 'created.'.format(self.output_dir))
             os.mkdir(self.output_dir)
-
+        self.constants = configuration.get('common', {}).get('constants', {})
         self.step_functions = {
             'opus_read': self.read_from_opus,
             'filter': self.filter_data,
@@ -113,8 +114,7 @@ class OpusFilter:
             if last is not None and num + 1 > last:
                 logger.info('Stopping after step %s', last)
                 break
-            logger.info('Running step %s: %s', num + 1, step['type'])
-            self.step_functions[step['type']](step['parameters'], overwrite=overwrite)
+            self._run_step(step, num + 1, overwrite)
 
     def execute_step(self, num, overwrite=False):
         """Execute single step in the configuration (first = 1, last = -1)
@@ -124,8 +124,61 @@ class OpusFilter:
 
         """
         step = self.configuration['steps'][num if num < 0 else num - 1]
+        self._run_step(step, num, overwrite)
+
+    def _check_variables(self, variables):
+        """Check that variable definitions are valid"""
+        lengths = set()
+        for key, value in variables.items():
+            if not isinstance(value, list):
+                raise ConfigurationError("Variable {} does not define a list".format(key))
+            lengths.add(len(value))
+            if len(lengths) > 1:
+                raise ConfigurationError(
+                    "Variable {} has a different length of values than the previous".format(key))
+        return list(lengths)[0] if lengths else 0
+
+    def _expand_parameters(self, obj, namespace):
+        """Expand Var and VarStr objects in obj"""
+        if isinstance(obj, list):
+            return [self._expand_parameters(x, namespace) for x in obj]
+        if isinstance(obj, dict):
+            return {key: self._expand_parameters(value, namespace) for key, value in obj.items()}
+        if isinstance(obj, VarStr):
+            try:
+                formatted = obj.value.format(**namespace)
+            except (KeyError, IndexError) as err:
+                raise ConfigurationError(
+                    "String substitutions not defined in the context: {}".format(obj.value))
+            return formatted
+        if isinstance(obj, Var):
+            if obj.value not in namespace:
+                raise ConfigurationError("Variable not defined in the context: {}".format(obj.value))
+            return namespace[obj.value]
+        return obj
+
+    def _run_step(self, step, num, overwrite):
+        """Run given step"""
         logger.info('Running step %s: %s', num, step['type'])
-        self.step_functions[step['type']](step['parameters'], overwrite=overwrite)
+        variables = step.get('variables', {})
+        namespace = copy.copy(self.constants)
+        logger.info("%s", namespace)
+        namespace.update(step.get('constants', {}))
+        if variables:
+            num_choices = self._check_variables(variables)
+            if not num_choices:
+                logger.warning("Variable value lists are empty, skipping step")
+            for idx in range(num_choices):
+                for key, values in variables.items():
+                    namespace[key] = values[idx]
+                parameters = self._expand_parameters(step['parameters'], namespace)
+                logger.info("- substep %s: %s", idx + 1, dict(namespace))
+                logger.debug("  parameters: %s", parameters)
+                self.step_functions[step['type']](parameters, overwrite=overwrite)
+        else:
+            parameters = self._expand_parameters(step['parameters'], namespace)
+            logger.debug("  parameters: %s", parameters)
+            self.step_functions[step['type']](parameters, overwrite=overwrite)
 
     def read_from_opus(self, parameters, overwrite=False):
         """Download and read a corpus from OPUS"""

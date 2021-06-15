@@ -24,6 +24,7 @@ OpusFilter has been presented in [ACL 2020 system demonstrations](https://www.ac
 * [Citing](#citing)
 * [Overview](#overview)
    * [Examples](#examples)
+   * [Variables and constants](#variables-and-constants)
    * [Running a single command](#running-a-single-command)
 * [Available functions](#available-functions)
    * [Downloading and selecting data](#downloading-and-selecting-data)
@@ -294,6 +295,79 @@ WMT-News data, you can have:
       - wmt_filtered.en.gz
       filters: *myfilters
 ```
+
+### Variables and constants
+
+If you have for example multiple bitexts, for which you want to use
+the same preprocessing steps, writing separate steps for each of them
+requires a lot of manually written configuration. While generating the
+YAML configuration programmatically is a recommended option especially
+for very complex setups, OpusFilter provides a couple of custom YAML
+tags for defining objects that can be replaced with constant or
+variable values.
+
+The first tag, `!var`, is used for mapping the variable name (string)
+to its value. For example, if the variable or constant `x` is one in
+the current scope, `{key: !var x}` will be replaced by `{key: 1}`.
+The value can be any kind of object.
+
+The second tag, `!varstr`, can be used for one or more variable
+substitutions within a single string, as in Python's `format()`
+method. For example, if `l1` and `l2` have the values `en` and `fi`,
+respectively, in the current scope,
+`{output: !varstr "cleaned.{l1}-{l2}.txt"}` will be replaced by
+`{output: cleaned.en-fi.txt}`.
+Note that the string template has to be quoted in order that the YAML
+loader will not consider the expressions inside the braces as objects.
+
+Constant values for the variables can be defined in the `common`
+section of the configuration, having a scope in all steps, or in
+individual steps, having a local scope within the step. In either
+case, the definitions are placed in a dictionary under the `constants`
+key, with variable names as keys. For example,
+```
+common:
+  constants:
+    source: en
+
+steps:
+  - type: concatenate
+    parameters:
+      inputs:
+      - !varstr "file1.{source}-{target}.gz"
+      - !varstr "file2.{source}-{target}.gz"
+      output: !varstr "all.{source}-{target}.gz"
+    constants:
+      target: fi
+```
+will produce the output file `"all.en-fi.gz"`. The local scope of the
+step overrides definitions in `common`.
+
+Another possibility is to define multiple choices for the variable(s)
+within a single step. The definitions are placed in a dictionary under
+the `variables` key, with variable names as keys and a list of
+intended variable values as values. For example,
+```
+common:
+  constants:
+    source: en
+
+steps:
+  - type: concatenate
+    parameters:
+      inputs:
+      - !varstr "file1.{source}-{target}.gz"
+      - !varstr "file2.{source}-{target}.gz"
+      output: !varstr "all.{source}-{target}.gz"
+    variables:
+      target: [fi, sv]
+```
+will produce output files `"all.en-fi.gz"` and `"all.en-sv.gz"`. If
+values are defined for multiple variables, the list are required to
+have the same length. The step is expanded into as many substeps as
+there are values in the lists. Note that if you need to use the
+same lists of variable values in multiple steps, you can exploit
+the standard YAML node anchors and references.
 
 ### Running a single command
 
