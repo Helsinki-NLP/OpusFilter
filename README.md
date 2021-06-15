@@ -104,7 +104,7 @@ Install from source:
 * pandas
 * pycld2
 * pyhash
-* PyYAML
+* ruamel.yaml
 * regex
 * scikit-learn
 * tqdm

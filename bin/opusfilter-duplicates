@@ -3,7 +3,6 @@
 import argparse
 import collections
 import logging
-from yaml import load, Loader
 
 from tqdm import tqdm
 

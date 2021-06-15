@@ -2,12 +2,14 @@
 
 import bz2
 import gzip
+import io
 import logging
 import lzma
 import os
 
 import requests
 from tqdm import tqdm
+import ruamel.yaml
 
 
 logger = logging.getLogger(__name__)
@@ -58,3 +60,14 @@ def file_download(url, localfile=None, chunk_size=None):
                 fobj.write(chunk)
                 fobj.flush()
     return localfile
+
+
+yaml = ruamel.yaml.YAML()
+
+
+def yaml_dumps(obj):
+    """Return a string containing YAML output from input object"""
+    with io.StringIO() as iostream:
+        yaml.dump(obj, iostream)
+        iostream.seek(0)
+        return iostream.read()

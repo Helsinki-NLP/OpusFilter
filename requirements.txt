@@ -7,9 +7,9 @@ fast-mosestokenizer==0.0.8.1
 pandas>=0.24.0
 pycld2==0.31
 pyhash==0.9.3
-PyYAML>=5.3.1
 regex>=2019.11.1
 requests>=2.22.0
+ruamel.yaml>=0.15.0
 scikit-learn>=0.24.0
 tqdm>=4.38.0
 fasttext==0.9.2

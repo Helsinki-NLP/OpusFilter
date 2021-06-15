@@ -2,9 +2,9 @@
 
 import argparse
 import logging
-from yaml import load, Loader
 
 from opusfilter.opusfilter import OpusFilter
+from opusfilter.util import yaml
 
 
 logging.basicConfig(level=logging.INFO)
@@ -20,7 +20,7 @@ parser.add_argument('--single', type=int, default=None, help='Run only the nth s
 
 args = parser.parse_args()
 
-configuration = load(open(args.config), Loader=Loader)
+configuration = yaml.load(open(args.config))
 
 of = OpusFilter(configuration)
 if args.single is None:
