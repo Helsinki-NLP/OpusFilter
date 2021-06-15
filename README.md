@@ -37,6 +37,7 @@ OpusFilter has been presented in [ACL 2020 system demonstrations](https://www.ac
       * [subset](#subset)
       * [product](#product)
       * [unzip](#unzip)
+      * [write](#write)
    * [Preprocessing text](#preprocessing-text)
       * [preprocess](#preprocess)
    * [Filtering and scoring](#filtering-and-scoring)
@@ -505,6 +506,17 @@ Parameters:
 * `separator`: a string separator in the input file
 
 Can be used to split e.g. Moses-style (` ||| `) or tab-separated parallel text files into parts.
+
+#### `write`
+
+Write a specified string into a file.
+
+Parameters:
+
+* `output`: output file
+* `data`: input data to write to the output (converted to a string if not already)
+
+Useful mostly for testing.
 
 ### Preprocessing text
 

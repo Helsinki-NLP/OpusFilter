@@ -103,7 +103,8 @@ class OpusFilter:
             'split': self.split,
             'unzip': self.unzip,
             'preprocess': self.preprocess,
-            'download': self.download_file
+            'download': self.download_file,
+            'write': self.write_to_file
         }
 
     def execute_steps(self, overwrite=False, last=None):
@@ -112,7 +113,7 @@ class OpusFilter:
             if last is not None and num + 1 > last:
                 logger.info('Stopping after step %s', last)
                 break
-            logger.info('Running step %s: %s', num + 1, step)
+            logger.info('Running step %s: %s', num + 1, step['type'])
             self.step_functions[step['type']](step['parameters'], overwrite=overwrite)
 
     def execute_step(self, num, overwrite=False):
@@ -123,7 +124,7 @@ class OpusFilter:
 
         """
         step = self.configuration['steps'][num if num < 0 else num - 1]
-        logger.info('Running step %s: %s', num, step)
+        logger.info('Running step %s: %s', num, step['type'])
         self.step_functions[step['type']](step['parameters'], overwrite=overwrite)
 
     def read_from_opus(self, parameters, overwrite=False):
@@ -768,3 +769,13 @@ class OpusFilter:
             logger.info("Output file exists, skipping step")
             return
         file_download(parameters['url'], outfile)
+
+    def write_to_file(self, parameters, overwrite=False):
+        """Write specified data to file"""
+        outfile = os.path.join(self.output_dir, parameters['output'])
+        if not overwrite and os.path.isfile(outfile):
+            logger.info("Output file exists, skipping step")
+            return
+        data = parameters.get('data', '')
+        with file_open(outfile, 'w') as outf:
+            outf.write(data)

@@ -955,3 +955,21 @@ class TestDownload(unittest.TestCase):
         except requests.exceptions.ConnectionError:
             self.skipTest("Failed to download test resources")
         self.assertTrue(os.path.isfile(os.path.join(self.tempdir, 'output')))
+
+
+class TestWrite(unittest.TestCase):
+
+    def setUp(self):
+        self.tempdir = tempfile.mkdtemp()
+        self.opus_filter = OpusFilter(
+            {'common': {'output_directory': self.tempdir}, 'steps': []})
+
+    def tearDown(self):
+        shutil.rmtree(self.tempdir)
+
+    def test_write(self):
+        data = 'foo\nbar\n99\n'
+        parameters = {'output': os.path.join(self.tempdir, 'output'), 'data': data}
+        self.opus_filter.write_to_file(parameters)
+        with open(os.path.join(self.tempdir, 'output')) as f:
+            self.assertEqual(f.read(), str(data))
