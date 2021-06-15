@@ -5,9 +5,9 @@ import copy
 import json
 import logging
 
-import yaml
-
 from opusfilter.opusfilter import OpusFilter
+from opusfilter.util import yaml_dumps
+
 
 logger = logging.getLogger(__name__)
 
@@ -80,7 +80,7 @@ configuration = {
     'steps': [{'type': args.function, 'parameters': parameters}]
 }
 
-logger.info("Created configuration:\n\n%s", yaml.dump(configuration))
+logger.info("Created configuration:\n\n%s", yaml_dumps(configuration))
 
 of = OpusFilter(configuration)
 of.execute_steps(overwrite=args.overwrite)

@@ -4,12 +4,11 @@ import argparse
 import collections
 import logging
 import json
-from yaml import load, Loader
 
 from tqdm import tqdm
 
 from opusfilter.pipeline import FilterPipeline
-from opusfilter.util import file_open
+from opusfilter.util import file_open, yaml
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +33,7 @@ parser.add_argument('--removed', metavar='FILE', help='write removed segments to
 
 args = parser.parse_args()
 
-config = load(open(args.yaml), Loader=Loader) if args.yaml else []
+config = yaml.load(open(args.yaml)) if args.yaml else []
 for name, jsonstr in args.add:
     config.append({name: json.loads(jsonstr)})
 
