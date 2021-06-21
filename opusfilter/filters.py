@@ -10,6 +10,7 @@ import regex
 from langid.langid import LanguageIdentifier, model
 import pycld2
 from bs4 import BeautifulSoup as bs
+import fasttext
 
 from . import FilterABC, ConfigurationError
 from .lm import CrossEntropyFilter, CrossEntropyDifferenceFilter  # noqa: F401
@@ -182,9 +183,18 @@ class CharacterScoreFilter(FilterABC):
 class LanguageIDFilter(FilterABC):
     """Language identification confidence filter"""
 
-    def __init__(self, languages=None, id_method='langid', thresholds=None, **kwargs):
+    def __init__(self, languages=None, id_method='langid', thresholds=None, 
+    fasttext_model_path="", **kwargs):
         if languages is None:
             raise ConfigurationError("A list of language codes needs to be defined")
+        if (id_method == "fasttext") and (fasttext_model_path == ""):
+            raise ConfigurationError("""FastText language ID method was choosen without specifying 
+                                        any path to fasttext model""")
+        if (id_method != "fasttext") and (fasttext_model_path != ""):
+            raise ConfigurationError("""FastText language ID method was not choosen but fasttext 
+                                        path to model was set""")
+        if (id_method == "fasttext"):
+            self.fasttext_model = fasttext.load_model(fasttext_model_path)
         self.languages = languages
         self.id_method = id_method
         self.thresholds = [0] * len(self.languages) if thresholds is None else thresholds
@@ -218,6 +228,14 @@ class LanguageIDFilter(FilterABC):
             if lilan != lan:
                 liconf = 0.0
             return liconf
+        
+        elif self.id_method == "fasttext":
+            lang, confidence = self._fasttext_predict_lang(self.fasttext_model, sentence)
+            if lang != lan:
+                liconf = 0.0
+            else:
+                liconf = confidence
+            return liconf
 
     def score(self, pairs):
         for pair in pairs:
@@ -225,6 +243,12 @@ class LanguageIDFilter(FilterABC):
 
     def accept(self, score):
         return all(conf > threshold for conf, threshold in zip(score, self.thresholds))
+    
+    def _fasttext_predict_lang(selft, model, texts): 
+        output = model.predict(texts, k=1)
+        confidence = output[1][0]
+        label = output[0][0][9:]
+        return label, confidence
 
 
 class TerminalPunctuationFilter(FilterABC):
