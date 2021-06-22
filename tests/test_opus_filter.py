@@ -3,6 +3,7 @@ import copy
 import json
 import logging
 import os
+import requests
 import shutil
 import tempfile
 import unittest
@@ -934,3 +935,23 @@ class TestPreprocess(unittest.TestCase):
             self.assertEqual(f.read(), '\n'.join(self.expected[0]) + '\n')
         with open(os.path.join(self.tempdir, 'output_tgt')) as f:
             self.assertEqual(f.read(), '\n'.join(self.expected[1]) + '\n')
+
+
+class TestDownload(unittest.TestCase):
+
+    def setUp(self):
+        self.tempdir = tempfile.mkdtemp()
+        self.opus_filter = OpusFilter(
+            {'common': {'output_directory': self.tempdir}, 'steps': []})
+
+    def tearDown(self):
+        shutil.rmtree(self.tempdir)
+
+    def test_download(self):
+        parameters = {'output': os.path.join(self.tempdir, 'output'),
+                      'url': 'https://github.com/Helsinki-NLP/OpusFilter/raw/master/README.md'}
+        try:
+            self.opus_filter.download_file(parameters)
+        except requests.exceptions.ConnectionError:
+            self.skipTest("Failed to download test resources")
+        self.assertTrue(os.path.isfile(os.path.join(self.tempdir, 'output')))
