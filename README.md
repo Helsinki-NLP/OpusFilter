@@ -82,6 +82,7 @@ OpusFilter has been presented in [ACL 2020 system demonstrations](https://www.ac
    * [opusfilter-duplicates](#opusfilter-duplicates)
    * [opusfilter-scores](#opusfilter-scores)
    * [opusfilter-test](#opusfilter-test)
+* [How to contiribute](#how-to-contribute)
 
 ## Installing
 
@@ -1237,3 +1238,31 @@ files, and then runs the filters on them one by one. The number and
 proportion of removed segments is printed. In addition, it is possible
 to write the removed segments to a file in JSON Lines format
 (`--removed`).
+
+## How to contribute
+
+Questions, bug reports, and feature wishes are welcome in the GitHub
+issues page. We are also happy to consider pull requests. There are a
+few rules for pull requests:
+
+* Make a pull request to the `develop` branch instead of `master`.
+* The code should support at least Python versions from 3.6 to 3.8.
+* Please follow [PEP 8](https://www.python.org/dev/peps/pep-0008/). Exception: The maximum line length is 127 characters instead of 79.
+* Especially for new features, please include test cases for unit testing.
+
+PEP 8 compatibility can be checked with `flake8`. Install it e.g. via
+`pip` and run `flake8 opusfilter/` in the project root.
+
+The unit tests are located in the `tests` directory. To run them,
+install [pytest](https://pytest.org/) and run `python -m pytest
+tests/` in the project root. Also nosetests should work, if you have
+VariKN and eflomal set up as instructed (pytest skips the respective
+tests if not).
+
+GitHub workflows defined in the project run automatically `flake8`
+checks and unit testing with `pytest` using Python 3.6, 3.7, and 3.8.
+
+For larger contributions, consider using a code analysis tool like
+[Pylint](https://github.com/PyCQA/pylint) and fix everything that is
+simple to fix. Note that the current code yields a large number of
+warnings from pylint.
