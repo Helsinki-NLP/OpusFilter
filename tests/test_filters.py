@@ -40,12 +40,21 @@ class TestFasttext(unittest.TestCase):
 
     fasttext_inputs = ["This sentence is in english", "Je suis une phrase en français"]
 
+    pairs_inputs = [
+        ("This sentence is in english", "Je suis une phrase en français"),
+        ("me llamo bernardo", "je m'appelle Bernard")
+    ]
+
+    fasttext_model = LanguageIDFilter(languages=["en", "fr"], id_method="fasttext", thresholds=[0.8, 0.99],
+                                      fasttext_model_path="./tests/models/lid.176.ftz")
+
     def test__fasttext_predict_lang(self):
-        fasttext_model = LanguageIDFilter(languages=["en", "fr"], id_method="fasttext", thresholds=[0.8, 0.7],
-                                          fasttext_model_path="./tests/models/lid.176.ftz")
-
         expected = ['en', 'fr']
-
-        results = [fasttext_model._fasttext_predict_lang(fasttext_input)[0] for fasttext_input in self.fasttext_inputs]
-
+        results = [self.fasttext_model._fasttext_predict_lang(fasttext_input)[0] for fasttext_input in self.fasttext_inputs]
         assert expected == results
+
+    def test_fasttext_accept(self):
+        pair_scores = self.fasttext_model.score(self.pairs_inputs)
+        pair_expecteds = [True, False]
+        for pair_score, pair_expected in zip(pair_scores, pair_expecteds):
+            assert self.fasttext_model.accept(pair_score) == pair_expected
