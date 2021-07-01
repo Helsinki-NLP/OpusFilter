@@ -244,8 +244,9 @@ class LanguageIDFilter(FilterABC):
     def accept(self, score):
         return all(conf > threshold for conf, threshold in zip(score, self.thresholds))
     
-    def _fasttext_predict_lang(selft, model, texts): 
-        output = model.predict(texts, k=1)
+    @staticmethod
+    def _fasttext_predict_lang(fasttext_model, texts): 
+        output = fasttext_model.predict(texts, k=1)
         confidence = output[1][0]
         label = output[0][0][9:]
         return label, confidence
