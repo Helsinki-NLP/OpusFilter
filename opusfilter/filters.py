@@ -230,7 +230,7 @@ class LanguageIDFilter(FilterABC):
             return liconf
 
         elif self.id_method == "fasttext":
-            lang, confidence = self._fasttext_predict_lang(self.fasttext_model, sentence)
+            lang, confidence = self._fasttext_predict_lang(sentence)
             if lang != lan:
                 liconf = 0.0
             else:
@@ -244,9 +244,8 @@ class LanguageIDFilter(FilterABC):
     def accept(self, score):
         return all(conf > threshold for conf, threshold in zip(score, self.thresholds))
 
-    @staticmethod
-    def _fasttext_predict_lang(fasttext_model, texts):
-        output = fasttext_model.predict(texts, k=1)
+    def _fasttext_predict_lang(self, texts):
+        output = self.fasttext_model.predict(texts, k=1)
         confidence = output[1][0]
         label = output[0][0][9:]
         return label, confidence
