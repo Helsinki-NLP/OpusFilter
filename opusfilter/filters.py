@@ -5,6 +5,7 @@ import string
 import math
 import difflib
 import itertools
+from typing import List, Tuple
 
 import regex
 from langid.langid import LanguageIdentifier, model
@@ -201,7 +202,7 @@ class LanguageIDFilter(FilterABC):
         self.identifier = LanguageIdentifier.from_modelstring(model, norm_probs=True)
         super().__init__(**kwargs)
 
-    def confidence(self, sentence, lan):
+    def confidence(self, sentence: str, lan: str) -> float:
         """Return confidence of the identifier"""
         if not sentence:
             # Prevent filtering empty lines
@@ -237,14 +238,14 @@ class LanguageIDFilter(FilterABC):
                 liconf = confidence
             return liconf
 
-    def score(self, pairs):
+    def score(self, pairs: List[Tuple[str, str]]):
         for pair in pairs:
             yield [self.confidence(sent, self.languages[idx]) for idx, sent in enumerate(pair)]
 
-    def accept(self, score):
+    def accept(self, score: Tuple[float, float]) -> bool:
         return all(conf > threshold for conf, threshold in zip(score, self.thresholds))
 
-    def _fasttext_predict_lang(self, texts):
+    def _fasttext_predict_lang(self, texts: List[str])-> Tuple[str, float]:
         output = self.fasttext_model.predict(texts, k=1)
         confidence = output[1][0]
         label = output[0][0][9:]
