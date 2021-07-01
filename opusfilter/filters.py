@@ -193,7 +193,7 @@ class LanguageIDFilter(FilterABC):
         if (id_method != "fasttext") and (fasttext_model_path != ""):
             raise ConfigurationError("""FastText language ID method was not choosen but fasttext 
                                         path to model was set""")
-        if (id_method == "fasttext"):
+        if id_method == "fasttext":
             self.fasttext_model = fasttext.load_model(fasttext_model_path)
         self.languages = languages
         self.id_method = id_method
