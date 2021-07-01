@@ -35,3 +35,17 @@ class TestLongestCommonSubstringFilter(unittest.TestCase):
         for result, correct in zip(results, expected):
             self.assertSequenceEqual(result, correct)
 
+
+class TestFasttext(unittest.TestCase):
+
+    fasttext_inputs = ["This sentence is in english", "Je suis une phrase en français"]
+
+    def test__fasttext_predict_lang(self):
+        fasttext_model = LanguageIDFilter(languages=["en", "fr"], id_method="fasttext", thresholds=[0.8, 0.7],
+                                          fasttext_model_path="./tests/models/lid.176.ftz")
+
+        expected = ['en', 'fr']
+
+        results = [fasttext_model._fasttext_predict_lang(fasttext_input)[0] for fasttext_input in self.fasttext_inputs]
+
+        assert expected == results
