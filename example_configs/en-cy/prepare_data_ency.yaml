@@ -1,0 +1,190 @@
+common:
+
+  output_directory: .
+
+steps:
+  - type: filter
+    parameters:
+      src_input: sentences.en
+      tgt_input: sentences.cy
+      src_output: filtered.en
+      tgt_output: filtered.cy
+      filters:
+        - LengthFilter:
+            unit: word
+            min_length: 1
+            max_length: 1000
+
+        - LengthRatioFilter:
+            unit: word
+            threshold: 3
+
+        - LongWordFilter:
+            threshold: 40
+
+        - HtmlTagFilter: {}
+
+        - CharacterScoreFilter:
+            src_script: Latin
+            tgt_script: Latin
+            src_threshold: 1
+            tgt_threshold: 1
+
+  - type: remove_duplicates
+    parameters:
+      inputs:
+      - filtered.en
+      - filtered.cy
+      outputs:
+      - filtered_dedup.en
+      - filtered_dedup.cy
+
+  - type: filter
+    parameters:
+      src_input: filtered_dedup.en
+      tgt_input: filtered_dedup.cy
+      src_output: filtered_punkt.en
+      tgt_output: filtered_punkt.cy
+
+      filters:
+        - PunktFilter: {}
+
+  - type: filter
+    parameters:
+      src_input: filtered_dedup.en
+      tgt_input: filtered_dedup.cy
+      src_output: filtered_rm_punkt.en
+      tgt_output: filtered_rm_punkt.cy
+      filterfalse: true
+
+      filters:
+        - PunktFilter: {}
+
+  - type: filter
+    parameters:
+      src_input: filtered_dedup.en
+      tgt_input: filtered_dedup.cy
+      src_output: filtered_alpha.en
+      tgt_output: filtered_alpha.cy
+
+      filters:
+        - AlphaFilter:
+            min_score: 2
+
+  - type: filter
+    parameters:
+      src_input: filtered_dedup.en
+      tgt_input: filtered_dedup.cy
+      src_output: filtered_rm_alpha.en
+      tgt_output: filtered_rm_alpha.cy
+      filterfalse: true
+
+      filters:
+        - AlphaFilter:
+            min_score: 2
+
+  - type: filter
+    parameters:
+      src_input: filtered_dedup.en
+      tgt_input: filtered_dedup.cy
+      src_output: filtered_punkt_alpha.en
+      tgt_output: filtered_punkt_alpha.cy
+
+      filters:
+        - AlphaFilter:
+            min_score: 2
+
+        - PunktFilter: {}
+
+  - type: filter
+    parameters:
+      src_input: filtered_dedup.en
+      tgt_input: filtered_dedup.cy
+      src_output: filtered_rm_punkt_alpha.en
+      tgt_output: filtered_rm_punkt_alpha.cy
+      filterfalse: true
+
+      filters:
+        - AlphaFilter:
+            min_score: 2
+
+        - PunktFilter: {}
+
+  - type: filter
+    parameters:
+      src_input: filtered_dedup.en
+      tgt_input: filtered_dedup.cy
+      src_output: filtered_rm_edit_length.en
+      tgt_output: filtered_rm_edit_length.cy
+
+      filters: &editdistance
+        - EditDistanceFilter:
+            max_dist: 4
+            strip: true
+
+        - LengthFilter:
+            unit: word
+            min_length: 3
+
+        - LengthFilter:
+            unit: char
+            min_length: 20
+
+  - type: filter
+    parameters:
+      src_input: filtered_dedup.en
+      tgt_input: filtered_dedup.cy
+      src_output: filtered_rm_edit_length_2.en
+      tgt_output: filtered_rm_edit_length_2.cy
+
+      filters: &editdistance2
+        - EditDistanceFilter:
+            max_dist: 2
+            strip: true
+
+        - LengthFilter:
+            unit: word
+            min_length: 2
+
+        - LengthFilter:
+            unit: char
+            min_length: 10
+
+  - type: filter
+    parameters:
+      src_input: filtered_punkt_alpha.en
+      tgt_input: filtered_punkt_alpha.cy
+      src_output: filtered_rm_pa_edit_length.en
+      tgt_output: filtered_rm_pa_edit_length.cy
+
+      filters: *editdistance
+
+  - type: filter
+    parameters:
+      src_input: filtered_punkt_alpha.en
+      tgt_input: filtered_punkt_alpha.cy
+      src_output: filtered_rm_pa_edit_length_2.en
+      tgt_output: filtered_rm_pa_edit_length_2.cy
+
+      filters: *editdistance2
+
+  - type: filter
+    parameters:
+      src_input: filtered_punkt_alpha.en
+      tgt_input: filtered_punkt_alpha.cy
+      src_output: filtered_punkt_alpha_e1.en
+      tgt_output: filtered_punkt_alpha_e1.cy
+      filterfalse: true
+
+      filters: *editdistance
+
+  - type: filter
+    parameters:
+      src_input: filtered_punkt_alpha.en
+      tgt_input: filtered_punkt_alpha.cy
+      src_output: filtered_punkt_alpha_e2.en
+      tgt_output: filtered_punkt_alpha_e2.cy
+      filterfalse: true
+
+      filters: *editdistance2
+
