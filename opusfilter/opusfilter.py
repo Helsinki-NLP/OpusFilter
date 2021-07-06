@@ -23,7 +23,7 @@ from . import word_alignment
 from . import tokenization
 from . import classifier
 from . import segment_hash
-from .util import file_open
+from .util import file_open, file_download
 
 logger = logging.getLogger(__name__)
 
@@ -102,7 +102,8 @@ class OpusFilter:
             'remove_duplicates': self.remove_duplicates,
             'split': self.split,
             'unzip': self.unzip,
-            'preprocess': self.preprocess
+            'preprocess': self.preprocess,
+            'download': self.download_file
         }
 
     def execute_steps(self, overwrite=False, last=None):
@@ -751,3 +752,11 @@ class OpusFilter:
                 fobj.flush()
         for fobj in outfileobjs:
             fobj.close()
+
+    def download_file(self, parameters, overwrite=False):
+        """Download file"""
+        outfile = os.path.join(self.output_dir, parameters['output'])
+        if not overwrite and os.path.isfile(outfile):
+            logger.info("Output file exists, skipping step")
+            return
+        file_download(parameters['url'], outfile)

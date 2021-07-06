@@ -29,6 +29,7 @@ OpusFilter has been presented in [ACL 2020 system demonstrations](https://www.ac
    * [Downloading and selecting data](#downloading-and-selecting-data)
       * [opus_read](#opus_read)
       * [concatenate](#concatenate)
+      * [download](#download)
       * [head](#head)
       * [tail](#tail)
       * [slice](#slice)
@@ -366,6 +367,15 @@ Concatenate two or more text files.
 Parameters:
 
 * `inputs`: a list of input files
+* `output`: output file
+
+#### `download`
+
+Download a file from URL.
+
+Parameters:
+
+* `url`: URL for the file to download
 * `output`: output file
 
 #### `head`
