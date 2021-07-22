@@ -133,6 +133,10 @@ class OpusFilter:
         if not overwrite and os.path.isfile(src_out) and os.path.isfile(tgt_out):
             logger.info("Output files exists, skipping step")
             return
+        if 'suppress_prompts' not in parameters:
+            logger.warning("By default prompting to download corpus")
+            logger.warning("To suppress prompts include `suppress_prompts: true`")
+            parameters['suppress_prompts'] = False
         if 'release' not in parameters:
             logger.info("No release version provided for corpus %s, using 'latest'",
                         parameters['corpus_name'])
@@ -142,6 +146,7 @@ class OpusFilter:
             source=parameters['source_language'],
             target=parameters['target_language'],
             release=parameters['release'],
+            suppress_prompts=parameters['suppress_prompts'],
             preprocess=parameters['preprocessing'], write_mode='moses',
             write=[src_out, tgt_out],
             leave_non_alignments_out=True,

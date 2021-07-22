@@ -359,6 +359,7 @@ Parameters:
 * `preprocessing`: `raw` for untokenized and `xml` for tokenized segments
 * `src_output`: output file for source language
 * `tgt_output`: output file for target language
+* `suppress_prompts`: `false` (default) prompts user to confirm before download, `true` to download without prompting
 
 #### `concatenate`
 
