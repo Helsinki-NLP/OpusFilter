@@ -5,7 +5,7 @@ import string
 import math
 import difflib
 import itertools
-from typing import List, Tuple
+from typing import Iterator, List, Tuple
 
 import regex
 from langid.langid import LanguageIdentifier, model
@@ -111,7 +111,8 @@ class AverageWordLengthFilter(FilterABC):
         self.pass_empty = pass_empty
         super().__init__(**kwargs)
 
-    def _average_word_len(self, sentence):
+    @staticmethod
+    def _average_word_len(sentence):
         parts = sentence.split()
         if parts:
             return len(''.join(parts)) / len(parts)
@@ -185,17 +186,17 @@ class LanguageIDFilter(FilterABC):
     """Language identification confidence filter"""
 
     def __init__(self, languages=None, id_method='langid', thresholds=None,
-                 fasttext_model_path="", **kwargs):
+                 fasttext_model_path='', **kwargs):
         if languages is None:
             raise ConfigurationError("A list of language codes needs to be defined")
-        if (id_method == "fasttext") and (fasttext_model_path == ""):
+        if (id_method == 'fasttext') and (fasttext_model_path == ''):
             raise ConfigurationError("""FastText language ID method was choosen without specifying
                                         any path to fasttext model""")
-        if (id_method != "fasttext") and (fasttext_model_path != ""):
+        if (id_method != 'fasttext') and (fasttext_model_path != ''):
             raise ConfigurationError("""FastText language ID method was not choosen but fasttext
                                         path to model was set""")
-        if id_method == "fasttext":
-            self.fasttext_model = fasttext.load_model(fasttext_model_path)
+        self.fasttext_model = fasttext.load_model(fasttext_model_path) \
+            if id_method == 'fasttext' else None
         self.languages = languages
         self.id_method = id_method
         self.thresholds = [0] * len(self.languages) if thresholds is None else thresholds
@@ -220,7 +221,7 @@ class LanguageIDFilter(FilterABC):
                 cldconf = 0.0
             return cldconf
 
-        elif self.id_method == 'langid':
+        if self.id_method == 'langid':
             try:
                 lidetails = self.identifier.classify(sentence)
             except Exception:
@@ -230,7 +231,7 @@ class LanguageIDFilter(FilterABC):
                 liconf = 0.0
             return liconf
 
-        elif self.id_method == "fasttext":
+        if self.id_method == 'fasttext':
             lang, confidence = self._fasttext_predict_lang(sentence)
             if lang != lan:
                 liconf = 0.0
@@ -238,14 +239,16 @@ class LanguageIDFilter(FilterABC):
                 liconf = confidence
             return liconf
 
-    def score(self, pairs: List[Tuple[str, str]]):
+        raise ValueError("Unknown language identification method '%s'" % self.id_method)
+
+    def score(self, pairs: List[Tuple[str, str]]) -> Iterator[List[float]]:
         for pair in pairs:
             yield [self.confidence(sent, self.languages[idx]) for idx, sent in enumerate(pair)]
 
     def accept(self, score: Tuple[float, float]) -> bool:
         return all(conf > threshold for conf, threshold in zip(score, self.thresholds))
 
-    def _fasttext_predict_lang(self, texts: List[str])-> Tuple[str, float]:
+    def _fasttext_predict_lang(self, texts: List[str]) -> Tuple[str, float]:
         output = self.fasttext_model.predict(texts, k=1)
         confidence = output[1][0]
         label = output[0][0][9:]
