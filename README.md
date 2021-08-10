@@ -16,6 +16,8 @@ Features:
 
 OpusFilter has been presented in [ACL 2020 system demonstrations](https://www.aclweb.org/anthology/2020.acl-demos.20).
 
+A changelog is available in [CHANGELOG.md](CHANGELOG.md).
+
 ## Table of contents
 
 * [Installing](#installing)
@@ -102,6 +104,7 @@ Install from source:
 * graphviz
 * langid
 * fast-mosestokenizer
+* fasttext
 * OpusTools
 * pandas
 * pycld2
