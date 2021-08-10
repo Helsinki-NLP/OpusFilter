@@ -194,7 +194,7 @@ class OpusFilter:
                             for idx2 in range(len(lm_params['interpolate'])):
                                 f[filter_name][key][idx]['interpolate'][idx2][0] = os.path.join(
                                     self.output_dir, lm_params['interpolate'][idx2][0])
-            elif filter_name == 'LanguageIDFilter' and f[filter_name]['fasttext_model_path']:
+            elif filter_name == 'LanguageIDFilter' and f[filter_name].get('fasttext_model_path'):
                 f[filter_name]['fasttext_model_path'] = os.path.join(
                     self.output_dir, f[filter_name]['fasttext_model_path'])
         return fixed_params
