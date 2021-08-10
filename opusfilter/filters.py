@@ -186,15 +186,15 @@ class LanguageIDFilter(FilterABC):
     """Language identification confidence filter"""
 
     def __init__(self, languages=None, id_method='langid', thresholds=None,
-                 fasttext_model_path='', **kwargs):
+                 fasttext_model_path=None, **kwargs):
         if languages is None:
             raise ConfigurationError("A list of language codes needs to be defined")
-        if (id_method == 'fasttext') and (fasttext_model_path == ''):
-            raise ConfigurationError("""FastText language ID method was choosen without specifying
-                                        any path to fasttext model""")
-        if (id_method != 'fasttext') and (fasttext_model_path != ''):
-            raise ConfigurationError("""FastText language ID method was not choosen but fasttext
-                                        path to model was set""")
+        if id_method == 'fasttext' and not fasttext_model_path:
+            raise ConfigurationError("FastText language ID method was choosen without specifying "
+                                     "any path to fasttext model")
+        if id_method != 'fasttext' and fasttext_model_path:
+            raise ConfigurationError("FastText language ID method was not choosen but fasttext "
+                                     "path to model was set")
         self.fasttext_model = fasttext.load_model(fasttext_model_path) \
             if id_method == 'fasttext' else None
         self.languages = languages

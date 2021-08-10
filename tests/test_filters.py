@@ -1,8 +1,10 @@
 import os
+import requests
 import shutil
 import tempfile
 import unittest
 
+from opusfilter import ConfigurationError
 from opusfilter.filters import *
 from opusfilter.util import file_download
 
@@ -57,23 +59,40 @@ class TestFasttext(unittest.TestCase):
         try:
             file_download(self.model_url, self.testmodel)
         except requests.exceptions.ConnectionError:
-            self.skipTest("Failed to download test resources")
-        self.fasttext_model = LanguageIDFilter(
-            languages=['en', 'fr'], id_method='fasttext', thresholds=[0.8, 0.99],
-            fasttext_model_path=self.testmodel)
+            self.testmodel = None
 
     @classmethod
     def tearDownClass(self):
         shutil.rmtree(self.tempdir)
 
+    def test_missing_model(self):
+        with self.assertRaises(ConfigurationError):
+            model = LanguageIDFilter(
+                languages=['en', 'fr'], id_method='fasttext', thresholds=[0.8, 0.99])
+
+    def test_wrong_method_with_model(self):
+        with self.assertRaises(ConfigurationError):
+            model = LanguageIDFilter(
+                languages=['en', 'fr'], thresholds=[0.8, 0.99], fasttext_model_path=self.tempdir)
+
     def test_fasttext_predict_lang(self):
+        if self.testmodel is None:
+            self.skipTest("Failed to download test resources")
+        model = LanguageIDFilter(
+            languages=['en', 'fr'], id_method='fasttext', thresholds=[0.8, 0.99],
+            fasttext_model_path=self.testmodel)
         expected = ['en', 'fr']
-        results = [self.fasttext_model._fasttext_predict_lang(fasttext_input)[0]
+        results = [model._fasttext_predict_lang(fasttext_input)[0]
                    for fasttext_input in self.fasttext_inputs]
         self.assertSequenceEqual(expected, results)
 
     def test_fasttext_accept(self):
-        pair_scores = self.fasttext_model.score(self.pairs_inputs)
+        if self.testmodel is None:
+            self.skipTest("Failed to download test resources")
+        model = LanguageIDFilter(
+            languages=['en', 'fr'], id_method='fasttext', thresholds=[0.8, 0.99],
+            fasttext_model_path=self.testmodel)
+        pair_scores = model.score(self.pairs_inputs)
         pair_expecteds = [True, False]
         for pair_score, pair_expected in zip(pair_scores, pair_expecteds):
-            self.assertEqual(self.fasttext_model.accept(pair_score), pair_expected)
+            self.assertEqual(model.accept(pair_score), pair_expected)
