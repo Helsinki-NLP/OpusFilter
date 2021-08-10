@@ -12,3 +12,4 @@ htmlcov
 *.xml
 *.zip
 *.gz
+venv
