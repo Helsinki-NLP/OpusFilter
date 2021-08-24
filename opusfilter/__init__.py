@@ -10,14 +10,13 @@ logger = logging.getLogger(__name__)
 
 class ConfigurationError(Exception):
     """Configuration error for filters"""
-    pass
 
 
 def grouper(iterable, num):
     """Split data into fixed-length chunks"""
-    it = iter(iterable)
+    iterable = iter(iterable)
     while True:
-        chunk = tuple(itertools.islice(it, num))
+        chunk = tuple(itertools.islice(iterable, num))
         if not chunk:
             return
         yield chunk
@@ -35,12 +34,10 @@ class FilterABC(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def score(self, pairs):
         """For each sentence pair, yield score(s)"""
-        pass
 
     @abc.abstractmethod
     def accept(self, score):
         """Return filtering decision for score"""
-        pass
 
     def decisions(self, pairs):
         """For each sentence pair, yield True if pair is accepted, False otherwise"""
@@ -50,13 +47,13 @@ class FilterABC(metaclass=abc.ABCMeta):
     def filter(self, pairs):
         """Yield only accepted sentence pairs"""
         for pair in pairs:
-            if self.accept(next(self.score([pair]))):
+            if self.accept(next(self.score([pair]))):  # pylint: disable=R1708
                 yield pair
 
     def filterfalse(self, pairs):
         """Yield sentence pairs that are not accepted"""
         for pair in pairs:
-            if not self.accept(next(self.score([pair]))):
+            if not self.accept(next(self.score([pair]))):  # pylint: disable=R1708
                 yield pair
 
 
@@ -71,4 +68,3 @@ class PreprocessorABC(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def process(self, pairs):
         """For each tuple of parallel segments, yield preprocessed segments"""
-        pass

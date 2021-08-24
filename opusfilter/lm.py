@@ -1,4 +1,5 @@
 """Language model filtering"""
+# pylint: disable=C0103
 
 import argparse
 import copy
@@ -52,6 +53,7 @@ def train(datafile, outputfile, **kwargs):
     Any extra keyword arguments are ignored.
 
     """
+    # pylint: disable=E1101
     args = argparse.Namespace()
     for key, default in _VARIKN_TRAINING_PARAMS.items():
         setattr(args, key, kwargs.get(key, default))
@@ -67,35 +69,35 @@ def train(datafile, outputfile, **kwargs):
     trainer.write_file(outputfile, args.arpa)
 
 
-def token_perplexity(lm, tokens):
+def token_perplexity(model, tokens):
     """Calculate token perplexity, entropy, and negative logprob for sentence tokens"""
     lpsum = 0.0
     for token in tokens:
-        lpsum += lm.token_logprob(token)
+        lpsum += model.token_logprob(token)
     logprob = -lpsum / math.log10(2)
-    entropy = logprob / lm.processed_tokens()
+    entropy = logprob / model.processed_tokens()
     try:
-        ppl = 10**(-lpsum / lm.processed_tokens())
+        ppl = 10**(-lpsum / model.processed_tokens())
     except OverflowError:
         ppl = math.inf
-    lm.clear_history()
-    lm.init_variables()
+    model.clear_history()
+    model.init_variables()
     return ppl, entropy, logprob
 
 
-def word_perplexity(lm, tokens):
+def word_perplexity(model, tokens):
     """Calculate word perplexity, entropy, and negative logprob for sentence tokens"""
     lpsum = 0.0
     for token in tokens:
-        lpsum += lm.word_logprob(token)
+        lpsum += model.word_logprob(token)
     logprob = -lpsum / math.log10(2)
-    entropy = logprob / lm.processed_words()
+    entropy = logprob / model.processed_words()
     try:
-        ppl = 10**(-lpsum / lm.processed_words())
+        ppl = 10**(-lpsum / model.processed_words())
     except OverflowError:
         ppl = math.inf
-    lm.clear_history()
-    lm.init_variables()
+    model.clear_history()
+    model.init_variables()
     return ppl, entropy, logprob
 
 
@@ -113,6 +115,7 @@ _VARIKN_PERPLEXITY_PARAMS = {
 
 
 def get_perplexity_params(params):
+    """Return default parameters for perplexity overwritten by params"""
     new = copy.copy(_VARIKN_PERPLEXITY_PARAMS)
     new.update(params)
     return new
@@ -143,6 +146,7 @@ def get_lm(**kwargs):
 
     """
 
+    # pylint: disable=E1101
     args = argparse.Namespace()
     for key, default in _VARIKN_PERPLEXITY_PARAMS.items():
         setattr(args, key, kwargs.get(key, default))
@@ -191,6 +195,8 @@ class LMTokenizer:
             raise ConfigurationError("Only segmentation type supported currently is 'char'")
         self.mb = mb
         self.wb = wb
+        if kwargs:
+            logger.debug("Ignoring extra keyword arguments: %s", ', '.join(kwargs))
 
     def tokenize(self, sent):
         """Tokenize single sentence"""
@@ -297,12 +303,12 @@ class CrossEntropyDifferenceFilter(FilterABC):
         super().__init__(**kwargs)
 
     @staticmethod
-    def _get_ce(sent, lm, tokenizer):
+    def _get_ce(sent, model, tokenizer):
         """Return cross-entropy for a sentence given the LM and tokenizer"""
         tokens = tokenizer.tokenize(sent)
         use_word = tokenizer.wb or tokenizer.mb
-        _, entr, _ = word_perplexity(lm, tokens) if use_word \
-            else token_perplexity(lm, tokens)
+        _, entr, _ = word_perplexity(model, tokens) if use_word \
+            else token_perplexity(model, tokens)
         return entr
 
     def score(self, pairs):

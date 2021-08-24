@@ -33,7 +33,7 @@ def lists_to_dicts(obj):
     """
     if isinstance(obj, dict):
         return {key: lists_to_dicts(value) for key, value in obj.items()}
-    elif isinstance(obj, list):
+    if isinstance(obj, list):
         return {str(idx): lists_to_dicts(value) for idx, value in enumerate(obj)}
     return obj
 
@@ -70,26 +70,26 @@ def load_dataframe_in_chunks(data_file, chunksize):
             yield pd.DataFrame(json_normalize(data))
 
 
-def standardize_dataframe_scores(df, features, means_stds=None):
+def standardize_dataframe_scores(dataframe, features, means_stds=None):
     """Normalize, zero average, and set direction for scores in each column"""
     new_df = pd.DataFrame()
     if not means_stds:
         means_stds = {}
-        for column in df:
-            x = df[column].to_numpy()
+        for column in dataframe:
+            vect = dataframe[column].to_numpy()
             if features[column].get('clean-direction', 'high') == 'low':
                 direction = -1
             else:
                 direction = 1
-            means_stds[column] = (x.mean(), x.std(), direction)
+            means_stds[column] = (vect.mean(), vect.std(), direction)
     for column in features:
-        x = df[column].to_numpy()
+        vect = dataframe[column].to_numpy()
         mean, std, direction = means_stds[column]
         if std == 0:
-            x = [0 for i in range(len(df[column]))]
+            vect = [0 for i in range(len(dataframe[column]))]
         else:
-            x = direction * (x - mean) / std
-        new_df[column] = x
+            vect = direction * (vect - mean) / std
+        new_df[column] = vect
     return new_df, means_stds
 
 
@@ -108,17 +108,17 @@ class Classifier:
         self.features = features
         self.standardize_params = standardize_params
 
-    def standardize(self, df):
+    def standardize(self, dataframe):
         """Standardize features in the data frame"""
         if not self.standardize_params:
             logger.warning("Feature standardization parameters missing")
-            return df[self.features]
-        return standardize_dataframe_scores(df, self.features, self.standardize_params)[0]
+            return dataframe[self.features]
+        return standardize_dataframe_scores(dataframe, self.features, self.standardize_params)[0]
 
-    def train(self, df, labels, standardize=True):
+    def train(self, dataframe, labels, standardize=True):
         """Train logistic regression with training_data"""
-        df = self.standardize(df) if standardize else df
-        self.classifier.fit(df[self.features], labels)
+        dataframe = self.standardize(dataframe) if standardize else dataframe
+        self.classifier.fit(dataframe[self.features], labels)
 
     def write_preds(self, input_fname, output_fname, true_label=None,
                     standardize=True, chunksize=None):
@@ -130,8 +130,8 @@ class Classifier:
         logger.info("Classifier labels: %s", self.classifier.classes_)
         with file_open(output_fname, 'w') as output:
             for df_tbc in dfs_tbc:
-                df = self.standardize(df_tbc) if standardize else df_tbc
-                labels = self.classifier.predict(df[self.features])
+                df_std = self.standardize(df_tbc) if standardize else df_tbc
+                labels = self.classifier.predict(df_std[self.features])
                 if true_label:
                     true_labels = df_tbc[true_label]
                     logger.info('accuracy: %s', accuracy_score(true_labels, labels))
@@ -149,8 +149,8 @@ class Classifier:
         logger.info("Classifier labels: %s", self.classifier.classes_)
         with file_open(output_fname, 'w') as output:
             for df_tbc in dfs_tbc:
-                df = self.standardize(df_tbc) if standardize else df_tbc
-                probas = self.classifier.predict_proba(df[self.features])
+                df_std = self.standardize(df_tbc) if standardize else df_tbc
+                probas = self.classifier.predict_proba(df_std[self.features])
                 if true_label:
                     true_labels = df_tbc[true_label]
                     logger.info('roc_auc: %s', roc_auc_score(true_labels, probas[:, 1]))
@@ -172,7 +172,7 @@ class TrainClassifier:
     """Classify clean and noisy sentence pairs"""
 
     def __init__(self, training_scores=None, dev_scores=None, model_type=None,
-                 model_parameters=None, features=None, **kwargs):
+                 model_parameters=None, features=None):
         logger.info("Loading training data")
         self.df_training_data = load_dataframe(training_scores)
 
@@ -222,34 +222,40 @@ class TrainClassifier:
         # logger.info("Predicted labels: %s", collections.Counter(pred))
         return roc_auc_score(self.dev_labels, probs[:, 1])
 
-    def get_sse(self, model, training_data, labels):
+    @staticmethod
+    def get_sse(model, training_data, labels):
         """Calculate the residual sum of squares"""
         y_hat = model.classifier.predict(training_data)
         resid = labels - y_hat
         sse = sum(resid**2)+0.01
         return sse
 
-    def get_ce(self, model, training_data, labels):
+    @staticmethod
+    def get_ce(model, training_data, labels):
         """Calculate cross entropy for a given model"""
         y_pred = model.classifier.predict_proba(training_data)
         return log_loss(labels, y_pred)
 
-    def get_aic(self, model, training_data, labels):
+    @classmethod
+    def get_aic(cls, model, training_data, labels):
         """Calculate AIC for a given model"""
-        loss = self.get_ce(model, training_data, labels)
+        loss = cls.get_ce(model, training_data, labels)
         k = training_data.shape[1]  # number of variables
-        AIC = 2 * k - 2 * math.log(loss)
-        return AIC
+        aic = 2 * k - 2 * math.log(loss)
+        return aic
 
-    def get_bic(self, model, training_data, labels):
+    @classmethod
+    def get_bic(cls, model, training_data, labels):
         """Calculate BIC for a given model"""
-        loss = self.get_ce(model, training_data, labels)
+        # pylint: disable=C0103
+        loss = cls.get_ce(model, training_data, labels)
         k = training_data.shape[1]  # number of variables
         n = training_data.shape[0]  # number of observations
-        BIC = n * math.log(loss / n) + k * math.log(n)
-        return BIC
+        bic = n * math.log(loss / n) + k * math.log(n)
+        return bic
 
-    def get_labels(self, training_data, cutoffs):
+    @staticmethod
+    def get_labels(training_data, cutoffs):
         """Get labels for training data based on cutoffs"""
         labels = []
         training_data_dict = training_data.copy().to_dict()
@@ -261,7 +267,8 @@ class TrainClassifier:
             labels.append(label)
         return labels
 
-    def get_cutoffs(self, training_data, quantiles, features):
+    @staticmethod
+    def get_cutoffs(training_data, quantiles, features):
         """Get cutoff values based on discard percentages"""
         cutoffs = {}
         for key in features:
@@ -316,11 +323,9 @@ class TrainClassifier:
         cutoffs = {key: None for key in features}
 
         def cost(qvector):
-            best_quantiles = {key: value for key, value in zip(features, qvector)}
-            logger.info('Training logistic regression model with quantiles:\n'
-                        '{}'.format(
-                            '\n'.join('* {}: {}'.format(*t)
-                                      for t in best_quantiles.items())))
+            best_quantiles = dict(zip(features, qvector))
+            logger.info('Training logistic regression model with quantiles:\n%s',
+                        '\n'.join('* {}: {}'.format(*t) for t in best_quantiles.items()))
             if any(q == 0 for q in best_quantiles.values()):
                 # Remove unused features
                 df_train_copy = self.df_training_data.copy()
@@ -344,32 +349,31 @@ class TrainClassifier:
             counts = collections.Counter(labels)
             logger.info("Label counts in data: %s", counts)
             if len(counts) > 1:
-                LR = self.train_classifier(df_train_copy, labels)
+                classifier = self.train_classifier(df_train_copy, labels)
                 if criterion['dev']:
-                    crit_value = criterion['func'](LR, df_dev_copy)
+                    crit_value = criterion['func'](classifier, df_dev_copy)
                 else:
-                    crit_value = criterion['func'](LR, df_train_copy, labels)
+                    crit_value = criterion['func'](classifier, df_train_copy, labels)
             else:
                 crit_value = np.inf if criterion['best'] == 'low' else -np.inf
 
-            logger.info('Model {crit}: {value}'.format(
-                crit=criterion_name, value=crit_value))
+            logger.info('Model %s: %s', criterion_name, crit_value)
             return crit_value if criterion['best'] == 'low' else -crit_value
 
         if options is None:
             options = {}
         if algorithm == 'none':
             # Use initial values
-            best_quantiles = {key: value for key, value in zip(features, initial)}
+            best_quantiles = dict(zip(features, initial))
         elif algorithm == 'default':
             # Default local search with multiplicative updates
             res = self.default_search(cost, initial, bounds=bounds, **options)
-            best_quantiles = {key: value for key, value in zip(features, res)}
+            best_quantiles = dict(zip(features, res))
         else:
             # Use optimization algorithm from scipy
             res = scipy.optimize.minimize(
                 cost, initial, method=algorithm, bounds=bounds, options=options)
-            best_quantiles = {key: value for key, value in zip(features, res.x)}
+            best_quantiles = dict(zip(features, res.x))
 
         df_train_copy = self.df_training_data.copy()
         if self.dev_data is not None:
@@ -384,21 +388,20 @@ class TrainClassifier:
         cutoffs = self.get_cutoffs(
             df_train_copy, best_quantiles, active)
         labels = self.get_labels(df_train_copy, cutoffs)
-        LR = self.train_classifier(df_train_copy, labels)
+        classifier = self.train_classifier(df_train_copy, labels)
         if criterion['dev']:
-            crit_value = criterion['func'](LR, df_dev_copy)
+            crit_value = criterion['func'](classifier, df_dev_copy)
         else:
-            crit_value = criterion['func'](LR, df_train_copy, labels)
-        return LR, crit_value, best_quantiles
+            crit_value = criterion['func'](classifier, df_train_copy, labels)
+        return classifier, crit_value, best_quantiles
 
     @staticmethod
     def default_search(costfunc, initial, bounds=None, step_coef=1.25):
         """Local search algorithm with multiplicative updates"""
         if bounds is None:
             bounds = [(0, 1) for _ in range(len(initial))]
-        x = initial.copy()
-        cur_x = x
-        cur_cost = costfunc(x)
+        cur_x = initial.copy()
+        cur_cost = costfunc(cur_x)
         while True:
             no_change = 0
             for fidx in range(len(initial)):

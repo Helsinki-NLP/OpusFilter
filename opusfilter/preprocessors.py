@@ -72,7 +72,7 @@ class RegExpSub(PreprocessorABC):
         if lang_patterns is None:
             lang_patterns = {}
         elif isinstance(lang_patterns, list):
-            lang_patterns = {idx: value for idx, value in enumerate(lang_patterns)}
+            lang_patterns = dict(enumerate(lang_patterns))
         self.lang_patterns = {
             idx: self._compile_patterns(idx_patterns)
             for idx, idx_patterns in lang_patterns.items()

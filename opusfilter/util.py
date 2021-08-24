@@ -37,7 +37,7 @@ def file_open(filename, mode='r', encoding='utf8'):
         if mode in {'r', 'w', 'x', 'a'}:
             mode += 't'
         return gzip.open(filename, mode=mode, encoding=encoding)
-    return open(filename, mode=mode, encoding=encoding)
+    return open(filename, mode=mode, encoding=encoding)  # pylint: disable=R1732
 
 
 def file_download(url, localfile=None, chunk_size=None):
@@ -75,10 +75,12 @@ class Var:
 
     @classmethod
     def to_yaml(cls, representer, node):
+        """Represent as YAML"""
         return representer.represent_scalar(cls.yaml_tag, '{.value}'.format(node))
 
     @classmethod
-    def from_yaml(cls, constructor, node):
+    def from_yaml(cls, constructor, node):  # pylint: disable=W0613
+        """Construct from YAML"""
         return cls(node.value)
 
     def __repr__(self):

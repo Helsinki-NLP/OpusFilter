@@ -14,12 +14,12 @@ class SegmentHasher:
     join_char = '\n'
     join_char_escaped = r'\n'
 
-    def __init__(self, compare='all', hash='xx_64', hashseed=0, lowercase=False, letters_only=False):
+    def __init__(self, compare='all', method='xx_64', hashseed=0, lowercase=False, letters_only=False):
         """Create a hasher for parallel segments
 
         Keyword arguments:
           compare -- a list of indices for selecting the segments to hash or 'all' (default 'all')
-          hash -- hash function from pyhash library, None for no hashing (default 'xx_64')
+          method -- hash function from pyhash library, None for no hashing (default 'xx_64')
           hashseed -- integer seed for the hash algorithm (default 0)
           lowercase -- lowercase input strings before hashing
           letters_only -- remove all non-letters from intput strings before hashing
@@ -32,11 +32,10 @@ class SegmentHasher:
                     "The compare parameter for hashing has to be 'all' or "
                     "a list of input file indices")
             self.compare = sorted(compare)
-        hashname = hash
-        if hashname and not hasattr(pyhash, hashname):
+        if method and not hasattr(pyhash, method):
             raise ConfigurationError(
-                "Algorithm '{}' not available from from pyhash".format(hashname))
-        self.hashfunc = getattr(pyhash, hashname)(seed=hashseed) if hashname else lambda x: x
+                "Algorithm '{}' not available from from pyhash".format(method))
+        self.hashfunc = getattr(pyhash, method)(seed=hashseed) if method else lambda x: x
         self.lowercase = lowercase
         self.letters_only = letters_only
 
@@ -56,8 +55,8 @@ class SegmentHasher:
         else:
             try:
                 inputstr = self.join_char.join(self.preprocess(segments[idx]) for idx in self.compare)
-            except KeyError:
+            except KeyError as err:
                 raise ConfigurationError(
-                    "The input indices {} in the compare parameter do not match input of length {}",
-                    self.compare, len(segments))
+                    "The input indices {} in the compare parameter do not match input of length {}".format(
+                        self.compare, len(segments))) from err
         return self.hashfunc(inputstr)

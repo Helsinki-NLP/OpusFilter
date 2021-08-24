@@ -17,11 +17,13 @@ except ImportError:
 class DummyTokenizer:
     """Dummy tokenizer"""
 
-    def tokenize(self, string):
+    @staticmethod
+    def tokenize(string):
         """Return tokenized version of the input string"""
         return string
 
-    def detokenize(self, string):
+    @staticmethod
+    def detokenize(string):
         """Return detokenized version of the input string"""
         return string
 
@@ -61,7 +63,7 @@ class MosesTokenizer(DummyTokenizer):
         except RuntimeError as err:
             msg = str(err)
             if 'No known abbreviations for language' in msg:
-                logger.warning(msg + " - attempting fall-back to English version")
+                logger.warning("%s - attempting fall-back to English version", msg)
                 self._moses_tokenizer = mosestokenizer.MosesTokenizer('en')
             else:
                 raise err
@@ -90,5 +92,4 @@ def get_tokenize(specs):
         options = {}
     if tokenizer == 'moses':
         return MosesTokenizer(lang, **options)
-    else:
-        raise ConfigurationError("Tokenizer type '%s' not supported" % tokenizer)
+    raise ConfigurationError("Tokenizer type '%s' not supported" % tokenizer)

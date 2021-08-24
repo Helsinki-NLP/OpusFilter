@@ -1363,7 +1363,8 @@ tests if not).
 GitHub workflows defined in the project run automatically `flake8`
 checks and unit testing with `pytest` using Python 3.6, 3.7, and 3.8.
 
-For larger contributions, consider using a code analysis tool like
-[Pylint](https://github.com/PyCQA/pylint) and fix everything that is
-simple to fix. Note that the current code yields a large number of
-warnings from pylint.
+Especially for larger contributions, consider using a code analysis
+tool like [Pylint](https://github.com/PyCQA/pylint). Install it
+e.g. via `pip`, run `pylint opusfilter/` in the project root and fix
+at least everything that is simple to fix in the new code (note that
+the current code yields a few warnings from `pylint`).

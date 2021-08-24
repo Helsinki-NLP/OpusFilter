@@ -103,7 +103,7 @@ class FilterPipeline:
                         yield pair
                     else:
                         remaining.append(pair)
-                if not len(remaining):
+                if not remaining:
                     # All yielded for this chunk
                     break
                 current = remaining
