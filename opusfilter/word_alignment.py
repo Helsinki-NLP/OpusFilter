@@ -81,7 +81,11 @@ def make_priors(sentence_pairs, priors_file, model=3):
 
 
 class WordAlignFilter(FilterABC):
-    """Filtering based on eflomal word aligment scores"""
+    """Filtering based on eflomal word aligment scores
+
+    See :cite:`ostling-tiedemann-2016-efficient`
+
+    """
 
     _empty_pair_sentinel = object()
 

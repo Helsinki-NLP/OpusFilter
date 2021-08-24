@@ -178,7 +178,13 @@ class OpusFilter:
             self.step_functions[step['type']](parameters, overwrite=overwrite)
 
     def read_from_opus(self, parameters, overwrite=False):
-        """Download and read a corpus from OPUS"""
+        """Download and read a corpus from OPUS using OpusTools
+
+        For details, see:
+        * OPUS corpus collection :cite:`tiedemann-2016-parallel`.
+        * OpusTools :cite:`aulamo-etal-2020-opustools`.
+
+        """
         src_out = os.path.join(self.output_dir, parameters['src_output'])
         tgt_out = os.path.join(self.output_dir, parameters['tgt_output'])
         if not overwrite and os.path.isfile(src_out) and os.path.isfile(tgt_out):

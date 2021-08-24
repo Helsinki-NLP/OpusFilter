@@ -52,6 +52,8 @@ def train(datafile, outputfile, **kwargs):
 
     Any extra keyword arguments are ignored.
 
+    For details of the algorithm, see :cite:`siivola-etal-2007-growing`
+
     """
     # pylint: disable=E1101
     args = argparse.Namespace()
@@ -273,11 +275,7 @@ class CrossEntropyFilter(FilterABC):
 class CrossEntropyDifferenceFilter(FilterABC):
     """Filtering based on cross-entropy difference
 
-    This method has been suggested by:
-
-    Robert C. Moore and William Lewis (2010). Intelligent Selection of
-    Language Model Training Data. In Proceedings of the ACL 2010
-    Conference Short Papers, pp. 220–224.
+    See :cite:`moore-lewis-2010-intelligent`
 
     """
 

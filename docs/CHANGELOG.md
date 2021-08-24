@@ -18,7 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `suppress_prompts` parameter for `opus_read` (https://github.com/Helsinki-NLP/OpusFilter/pull/19)
 - `download` and `write` steps
 - "How to contribute" section to README.md
-- CHANGELOG.md
+- changelog
+- bibliography and improved references
 
 ## [2.0.0] - 2021-06-01
 

@@ -1,13 +1,14 @@
 # OpusFilter
 
 OpusFilter is a tool for filtering and combining parallel corpora. It
-uses the OpusTool library to download data from the OPUS corpus
-collection, but can be used with any corpora in raw text format.
+uses the OpusTools library (Aulamo et al., 2020) to download data from
+the OPUS corpus collection (Tiedemann, 2012), but can be used with any
+corpora in raw text format.
 
 Features:
 
 * Preprocessing pipelines configured with [YAML](https://yaml.org/)
-* Simple downloading of parallel corpora from [OPUS](http://opus.nlpl.eu/)
+* Simple downloading of parallel corpora from [OPUS](http://opus.nlpl.eu/) with [OpusTools](https://github.com/Helsinki-NLP/OpusTools)
 * Implementations for many common text file operations on parallel files
 * Memory-efficient processing of large files
 * Implemented filters based e.g. on language identification, word
@@ -16,14 +17,14 @@ Features:
 
 OpusFilter has been presented in [ACL 2020 system demonstrations](https://www.aclweb.org/anthology/2020.acl-demos.20).
 
-A changelog is available in [CHANGELOG.md](CHANGELOG.md).
+A changelog is available in [docs/CHANGELOG.md](docs/CHANGELOG.md).
 
 ## Table of contents
 
 * [Installing](#installing)
    * [Required libraries](#required-libraries)
    * [Optional libraries and tools](#optional-libraries-and-tools)
-* [Citing](#citing)
+* [Citing and references](#citing-and-references)
 * [Overview](#overview)
    * [Examples](#examples)
    * [Variables and constants](#variables-and-constants)
@@ -87,7 +88,7 @@ A changelog is available in [CHANGELOG.md](CHANGELOG.md).
    * [opusfilter-duplicates](#opusfilter-duplicates)
    * [opusfilter-scores](#opusfilter-scores)
    * [opusfilter-test](#opusfilter-test)
-* [How to contiribute](#how-to-contribute)
+* [How to contribute](#how-to-contribute)
 
 ## Installing
 
@@ -126,7 +127,7 @@ For using word alignment filters, you need to install elfomal
 variable `EFLOMAL_PATH` to eflomal's root directory, which contains
 the Python scripts `align.py` and `makepriors.py`.
 
-## Citing
+## Citing and references
 
 If you use OpusFilter in your research, please cite our [ACL 2020 paper](https://www.aclweb.org/anthology/2020.acl-demos.20):
 
@@ -143,6 +144,9 @@ If you use OpusFilter in your research, please cite our [ACL 2020 paper](https:/
     pages = "150--156"
 }
 ```
+
+A bibliography of other papers cited in the documentation and code can
+be found from [docs/references.bib](docs/references.bib).
 
 ## Overview
 
@@ -426,7 +430,8 @@ checking and storing.
 
 #### `opus_read`
 
-Read a corpus from OPUS collection.
+Read a corpus from the OPUS corpus collection (Tiedemann, 2012) using
+the OpusTools (Aulamo et al., 2020) interface.
 
 Parameters:
 
@@ -794,7 +799,8 @@ for forcing numerical values to be compared as strings.
 
 #### `train_ngram`
 
-Train a character-based varigram language model with VariKN. Can be used for `CrossEntropyFilter`.
+Train a character-based varigram language model with VariKN (Siivola et al. 2007).
+Can be used for `CrossEntropyFilter` and `CrossEntropyDifferenceFilter`.
 
 Parameters:
 
@@ -830,7 +836,8 @@ details.
 
 #### `train_aligment`
 
-Train word alignment priors for eflomal. Can be used in `WordAlignFilter`.
+Train word alignment priors for eflomal (Östling and Tiedemann, 2016).
+Can be used in `WordAlignFilter`.
 
 Parameters:
 
@@ -962,6 +969,8 @@ Parameters:
 
 Returned scores are the language identification confidence scores from a given identification method for the segments. The scores range from 0 to 1. In filtering, all values have to be greater than the minimum thresholds. Negative threshold can be used to skip filtering for a language.
 
+A pretrained `fasttext` model can be downloaded from https://fasttext.cc/docs/en/language-identification.html
+
 ### Special character and similarity filters
 
 #### `HtmlTagFilter`
@@ -972,7 +981,7 @@ The returned scores are two boolean values indicating whether the segments conta
 
 #### `TerminalPunctuationFilter`
 
-Filter segments based on a penalty score with respect to the co-occurrence of therminal punctuation marks ('.', '...', '?', '!') in source and target segments. The score is formulated as follows: the initial score is the absolute difference in source and target terminal punctuation counts, the score is then incremented by the number of terminal punctuation beyond the first occurence in both segments, and finally, the score is updated with `score=-log(score+1)` ([Vázquez et al.](https://www.aclweb.org/anthology/W19-5441/)). The score of the greatest co-occurrence is 0 and smaller values indicate greater penalty.
+Filter segments based on a penalty score with respect to the co-occurrence of therminal punctuation marks ('.', '...', '?', '!') in source and target segments (Vázquez et al., 2019). The score is formulated as follows: the initial score is the absolute difference in source and target terminal punctuation counts, the score is then incremented by the number of terminal punctuation beyond the first occurence in both segments, and finally, the score is updated with `score=-log(score+1)`. The score of the greatest co-occurrence is 0 and smaller values indicate greater penalty.
 
 This filter works only for bilingual input.
 
@@ -984,7 +993,7 @@ The returned score is a single terminal punctuation score. In filtering, the sco
 
 #### `NonZeroNumeralsFilter`
 
-Filter segments based on a similarity measure of numerals between the segments with zeros removed. Non-zero numerals are extracted from all segments preserving the relative order of the numerals. The similarity score between the numeral sequences is produced with `SequenceMatcher.ratio()` from Python's `difflib` library.
+Filter segments based on a similarity measure of numerals between the segments with zeros removed (Vázquez et al., 2019). Non-zero numerals are extracted from all segments preserving the relative order of the numerals. The similarity score between the numeral sequences is produced with `SequenceMatcher.ratio()` from Python's `difflib` library.
 
 Parameters:
 
@@ -1061,17 +1070,13 @@ match the parameters used in model training; do not change them unless
 you know what you are doing.
 
 The filter returns difference between the in-domain LM and non-domain
-LM cross-entropy. For details, see:
-
-> Robert C. Moore and William Lewis (2010). Intelligent Selection of
-> Language Model Training Data. In Proceedings of the ACL 2010
-> Conference Short Papers, pp. 220–224.
+LM cross-entropy.
 
 ### Alignment model filters
 
 #### `WordAlignFilter`
 
-Filter segments by word aligment scores.
+Filter segments by word aligment scores using eflomal (Östling and Tiedemann, 2016).
 
 Parameters:
 * `src_threshold`: score threshold for source language (default 0)

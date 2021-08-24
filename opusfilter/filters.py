@@ -183,7 +183,14 @@ class CharacterScoreFilter(FilterABC):
 
 
 class LanguageIDFilter(FilterABC):
-    """Language identification confidence filter"""
+    """Language identification confidence filter
+
+    Currently this supports three methods:
+    * langid (default): see :cite:`lui-baldwin-2012-langid`
+    * cld2: see https://github.com/CLD2Owners/cld2
+    * fasttext: see :cite:`joulin-etal-2016-fasttext` and :cite:`joulin-etal-2017-bag`
+
+    """
 
     def __init__(self, languages=None, id_method='langid', thresholds=None,
                  fasttext_model_path=None, **kwargs):
@@ -256,8 +263,11 @@ class LanguageIDFilter(FilterABC):
 
 
 class TerminalPunctuationFilter(FilterABC):
-    """Penalty score with respect to the co-occurrence of terminal
-        punctuation marks"""
+    """Penalty score with respect to the co-occurrence of terminal punctuation marks
+
+    See :cite:`vazquez-etal-2019-university`
+
+    """
 
     def __init__(self, threshold=-2, **kwargs):
         self.threshold = threshold
@@ -289,6 +299,8 @@ class NonZeroNumeralsFilter(FilterABC):
     to be equal or above the threshold; otherwise at least one the
     scores have to be equal or above the threshold. For bilingual
     input, it has no effect.
+
+    See :cite:`vazquez-etal-2019-university`
 
     """
 
