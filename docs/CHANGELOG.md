@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.0] - 2021-08-31
+
 ### Changed
 
 - replace PyYAML with ruamel.yaml
@@ -57,7 +59,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 First tagged version.
 
 
-[Unreleased]: https://github.com/Helsinki-NLP/OpusFilter/compare/2.0.0...develop
+[Unreleased]: https://github.com/Helsinki-NLP/OpusFilter/compare/2.1.0...develop
+[2.1.0]: https://github.com/Helsinki-NLP/OpusFilter/compare/2.0.0...2.1.0
 [2.0.0]: https://github.com/Helsinki-NLP/OpusFilter/compare/1.0.1...2.0.0
 [1.0.1]: https://github.com/Helsinki-NLP/OpusFilter/compare/1.0.0...1.0.1
 [1.0.0]: https://github.com/Helsinki-NLP/OpusFilter/tree/1.0.0
