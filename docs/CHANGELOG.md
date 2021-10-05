@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- move "How to contribute" to docs/CONTRIBUTING.md
+
+### Fixed
+
+- fix setuptools requirement (https://github.com/Helsinki-NLP/OpusFilter/issues/21)
+
 ## [2.1.0] - 2021-08-31
 
 ### Changed
