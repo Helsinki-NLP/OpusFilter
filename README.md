@@ -99,6 +99,8 @@ Install from source:
 * `pip install .` or
 * `python setup.py install`
 
+Note that all required libraries are not available to install via PyPI on Windows OS.
+
 ### Required libraries
 
 * beautifulsoup4
@@ -114,6 +116,8 @@ Install from source:
 * regex
 * scikit-learn
 * tqdm
+
+See `setup.py` for possible version requirements.
 
 ### Optional libraries and tools
 
