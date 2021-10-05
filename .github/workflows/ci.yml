@@ -11,6 +11,7 @@ on:
     branches:
       - master
       - develop
+  workflow_dispatch:
 jobs:
   build-n-test:
     runs-on: ubuntu-latest
