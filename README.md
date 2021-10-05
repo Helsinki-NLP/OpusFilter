@@ -25,6 +25,7 @@ A changelog is available in [docs/CHANGELOG.md](docs/CHANGELOG.md).
    * [Required libraries](#required-libraries)
    * [Optional libraries and tools](#optional-libraries-and-tools)
 * [Citing and references](#citing-and-references)
+* [How to contribute](#how-to-contribute)
 * [Overview](#overview)
    * [Examples](#examples)
    * [Variables and constants](#variables-and-constants)
@@ -88,7 +89,6 @@ A changelog is available in [docs/CHANGELOG.md](docs/CHANGELOG.md).
    * [opusfilter-duplicates](#opusfilter-duplicates)
    * [opusfilter-scores](#opusfilter-scores)
    * [opusfilter-test](#opusfilter-test)
-* [How to contribute](#how-to-contribute)
 
 ## Installing
 
@@ -147,6 +147,10 @@ If you use OpusFilter in your research, please cite our [ACL 2020 paper](https:/
 
 A bibliography of other papers cited in the documentation and code can
 be found from [docs/references.bib](docs/references.bib).
+
+## How to contribute
+
+See [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md).
 
 ## Overview
 
@@ -1344,32 +1348,3 @@ files, and then runs the filters on them one by one. The number and
 proportion of removed segments is printed. In addition, it is possible
 to write the removed segments to a file in JSON Lines format
 (`--removed`).
-
-## How to contribute
-
-Questions, bug reports, and feature wishes are welcome in the GitHub
-issues page. We are also happy to consider pull requests. There are a
-few rules for pull requests:
-
-* Make a pull request to the `develop` branch instead of `master`.
-* The code should support at least Python versions from 3.6 to 3.8.
-* Please follow [PEP 8](https://www.python.org/dev/peps/pep-0008/). Exception: The maximum line length is 127 characters instead of 79.
-* Especially for new features, please include test cases for unit testing.
-
-PEP 8 compatibility can be checked with `flake8`. Install it e.g. via
-`pip` and run `flake8 opusfilter/` in the project root.
-
-The unit tests are located in the `tests` directory. To run them,
-install [pytest](https://pytest.org/) and run `python -m pytest
-tests/` in the project root. Also nosetests should work, if you have
-VariKN and eflomal set up as instructed (pytest skips the respective
-tests if not).
-
-GitHub workflows defined in the project run automatically `flake8`
-checks and unit testing with `pytest` using Python 3.6, 3.7, and 3.8.
-
-Especially for larger contributions, consider using a code analysis
-tool like [Pylint](https://github.com/PyCQA/pylint). Install it
-e.g. via `pip`, run `pylint opusfilter/` in the project root and fix
-at least everything that is simple to fix in the new code (note that
-the current code yields a few warnings from `pylint`).
