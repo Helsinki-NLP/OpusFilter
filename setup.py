@@ -3,6 +3,28 @@ import setuptools
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
+install_requires = [
+    "opustools",
+    "beautifulsoup4",
+    "fasttext",
+    "graphviz",
+    "langid",
+    "matplotlib",
+    "fast-mosestokenizer",
+    "pandas>=0.24.0",
+    "pycld2",
+    "pyhash",
+    "ruamel.yaml>=0.15.0",
+    "regex",
+    "requests",
+    "scikit-learn",
+    "tqdm"
+]
+
+tests_require = [
+    'pytest'
+]
+
 setuptools.setup(
     name="opusfilter",
     use_scm_version=True,
@@ -15,7 +37,9 @@ setuptools.setup(
     url="https://github.com/Helsinki-NLP/OpusFilter",
     packages=setuptools.find_packages(),
     scripts=["bin/opusfilter", "bin/opusfilter-cmd", "bin/opusfilter-diagram", "bin/opusfilter-duplicates", "bin/opusfilter-scores", "bin/opusfilter-test"],
-    install_requires=["opustools", "beautifulsoup4", "fasttext", "graphviz", "langid", "matplotlib", "fast-mosestokenizer", "pandas>=0.24.0", "pycld2", "pyhash", "ruamel.yaml>=0.15.0", "regex", "requests", "scikit-learn", "tqdm"],
+    install_requires=install_requires,
+    tests_require=tests_require,
+    extras_require={'test': tests_require},
     classifiers=(
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
