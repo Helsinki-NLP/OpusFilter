@@ -11,13 +11,13 @@ from .tokenization import get_tokenize
 class Tokenizer(PreprocessorABC):
     """Tokenize text"""
 
-    def __init__(self, tokenizer=None, languages=None, options=None, **kwargs):
-        if tokenizer is None:
+    def __init__(self, tokenizers=None, languages=None, options=None, **kwargs):
+        if tokenizers is None or not isinstance(tokenizers, list):
             raise ConfigurationError("Tokenizer method needs to be defined in tokenizer")
         if languages is None or not isinstance(languages, list):
             raise ConfigurationError(
                 "List of language code needs to be defined in languages, given %s" % languages)
-        self.tokenizers = [get_tokenize((tokenizer, lang, options)) for lang in languages]
+        self.tokenizers = [get_tokenize((tokenizer, lang, options)) for tokenizer, lang in zip(tokenizers, languages)]
         super().__init__(**kwargs)
 
     def process(self, pairs):
