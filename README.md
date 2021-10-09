@@ -1196,14 +1196,17 @@ Tokenize parallel texts.
 
 Parameters:
 
-* `tokenizer`: tokenizer type
-* `languages`: a list of language codes for the tokenizer
+* `tokenizers`: a list of tokenizers type for each input
+* `languages`: a list of language codes for each input
 * `options`: a dictionary of tokenizer options (optional)
 
-Currently there is only one type of tokenizer available: `moses` (uses
-the `fast-mosestokenizer` package). Options are passed to the
-`mosestokenizer.MosesTokenizer` class; see its documentation for the
-available options.
+Supported Tokenizer:
+
+* `moses` (usesthe `fast-mosestokenizer` package). Avaliable for most languages. Options are passed to the
+`mosestokenizer.MosesTokenizer` class; see its documentation for the available options.
+* `jieba` (usethe [jieba](https://github.com/fxsjy/jieba) package). Only Avaliable for chinese(zh, zh_CN). Options are
+passed to `jieba.cut` function; see its documentation for the avaliable options. Just put it aside. No options will be fine.
+If you use jieba please install optional libraries by `pip install -r requirements.opt.txt`
 
 The list of language codes should match to the languages of the input
 files given in the `preprocess` step.
@@ -1214,7 +1217,7 @@ Detokenize parallel texts.
 
 Parameters:
 
-* `tokenizer`: tokenizer type
+* `tokenizers`: tokenizers type
 * `languages`: a list of language codes for the detokenizer
 * `options`: a dictionary of tokenizer options (optional)
 
