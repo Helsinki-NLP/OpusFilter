@@ -1,4 +1,5 @@
 opustools
+jieba>=0.42
 beautifulsoup4>=4.8.2
 graphviz>=0.16
 langid==1.1.6
