@@ -4,7 +4,7 @@ graphviz>=0.16
 langid==1.1.6
 matplotlib>=3.3.0
 fast-mosestokenizer==0.0.8.1
-pandas>=0.24.0
+pandas>=1.0.0
 pycld2==0.31
 pyhash==0.9.3
 regex>=2019.11.1

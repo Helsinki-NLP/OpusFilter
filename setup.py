@@ -11,7 +11,7 @@ install_requires = [
     "langid",
     "matplotlib",
     "fast-mosestokenizer",
-    "pandas>=0.24.0",
+    "pandas>=1.0.0",
     "pycld2",
     "pyhash",
     "ruamel.yaml>=0.15.0",
