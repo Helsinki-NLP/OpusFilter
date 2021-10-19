@@ -29,6 +29,7 @@ class TestTokenization(unittest.TestCase):
         tokenize = tokenization.get_tokenize(('moses', 'en', {'aggressive_dash_splits': True}))
         self.assertEqual(tokenize("Hello, fine-looking world!"), "Hello , fine @-@ looking world !")
 
+    @unittest.skipIf('tokenization.jieba' not in globals(), 'jieba not installed')
     def test_jieba(self):
         tokenize = tokenization.get_tokenize(('jieba', 'en'))
         text = "同时，祖马革命的一代似乎对领导打破种族隔离制度15年后的南非，还不适应。"
@@ -38,6 +39,7 @@ class TestTokenization(unittest.TestCase):
         token_max_len = max(tokenize(text).split(), key=lambda x: len(x))
         self.assertLess(len(token_max_len), 8)
         
+    @unittest.skipIf('tokenization.jieba' not in globals(), 'jieba not installed')
     def test_jieba_detok(self):
         tokenize = tokenization.get_tokenize(('jieba', 'en'))
         tokens = "同时 ， 祖马 革命 的 一代 似乎 对 领导 打破 种族隔离 制度 15 年 后 的 南非 ， 还 不 适应 。"

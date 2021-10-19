@@ -83,12 +83,11 @@ class MosesTokenizer(DummyTokenizer):
         return self._moses_tokenizer.detokenize(string.split())
 
 class JiebaTokenizer(DummyTokenizer):
-    """Wrapper for popular Chinese tokenizer "jieba"
-    """
+    """Wrapper for popular Chinese tokenizer jieba"""
 
     def __init__(self, lang, **options):
         if "zh" not in lang:
-            logger.warning("Jieba tokenizer only avaliable for Chinese(zh)，not avaliable for language %s", lang)
+            logger.warning("Jieba tokenizer only avaliable for Chinese (zh)，not avaliable for language %s", lang)
         try:
             self.jieba = jieba
         except NameError as err:
