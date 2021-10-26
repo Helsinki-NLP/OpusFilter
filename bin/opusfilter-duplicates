@@ -35,7 +35,7 @@ if args.overlap and len(args.overlap) != len(args.files):
 
 hasher = SegmentHasher(
     compare='all',
-    hash=args.hash,
+    method=args.hash,
     letters_only=args.letters_only,
     lowercase=args.lowercase
 )
