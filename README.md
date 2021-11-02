@@ -99,7 +99,10 @@ Install from source:
 * `pip install .` or
 * `python setup.py install`
 
-Note that all required libraries are not available to install via PyPI on Windows OS.
+Note that all required libraries are not available to install via PyPI
+on Windows OS.  On Linux, it should work directly for Python versions
+from 3.6 to 3.8, but with Python 3.9 the `fast-mosestokenizer` library
+currently requires a manual install.
 
 ### Required libraries
 
@@ -129,7 +132,8 @@ library path (e.g. by setting the `PYTHONPATH` environment variable).
 For using word alignment filters, you need to install elfomal
 (https://github.com/robertostling/eflomal) and set environment
 variable `EFLOMAL_PATH` to eflomal's root directory, which contains
-the Python scripts `align.py` and `makepriors.py`.
+the Python scripts `align.py` and `makepriors.py`. Note that you
+will need `Cython` to install the Python interface to `eflomal`.
 
 ## Citing and references
 
