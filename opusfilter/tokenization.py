@@ -13,6 +13,11 @@ try:
 except ImportError:
     logger.warning("Could not import mosestokenizer, moses tokenization not supported")
 
+try:
+    import jieba
+except ImportError:
+    logger.warning("Could not import jieba, jieba tokenization not supported")
+
 
 class DummyTokenizer:
     """Dummy tokenizer"""
@@ -78,6 +83,26 @@ class MosesTokenizer(DummyTokenizer):
         return self._moses_tokenizer.detokenize(string.split())
 
 
+class JiebaTokenizer(DummyTokenizer):
+    """Wrapper for popular Chinese tokenizer jieba"""
+
+    def __init__(self, lang, **options):
+        if not lang.startswith('zh'):
+            logger.warning("Jieba tokenizer only avaliable for Chinese (zh), requested language %s", lang)
+        try:
+            self.jieba = jieba
+        except NameError as err:
+            logger.error("Install jieba to support jieba tokenization")
+            raise err
+        self.options = options
+
+    def tokenize(self, string):
+        return ' '.join(self.jieba.cut(string, **self.options))
+
+    def detokenize(self, string):
+        return ''.join(string.split())
+
+
 def get_tokenize(specs):
     """Return object that returns a tokenized version of the input string on call"""
     if specs is None:
@@ -92,4 +117,6 @@ def get_tokenize(specs):
         options = {}
     if tokenizer == 'moses':
         return MosesTokenizer(lang, **options)
+    if tokenizer == 'jieba':
+        return JiebaTokenizer(lang, **options)
     raise ConfigurationError("Tokenizer type '%s' not supported" % tokenizer)

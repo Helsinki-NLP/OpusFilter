@@ -12,12 +12,22 @@ class Tokenizer(PreprocessorABC):
     """Tokenize text"""
 
     def __init__(self, tokenizer=None, languages=None, options=None, **kwargs):
-        if tokenizer is None:
-            raise ConfigurationError("Tokenizer method needs to be defined in tokenizer")
+        if tokenizer is None or not isinstance(tokenizer, (str, list)):
+            raise ConfigurationError("Tokenizer method(s) needs to be defined in tokenizer")
         if languages is None or not isinstance(languages, list):
-            raise ConfigurationError(
-                "List of language code needs to be defined in languages, given %s" % languages)
-        self.tokenizers = [get_tokenize((tokenizer, lang, options)) for lang in languages]
+            raise ConfigurationError("List of language code needs to be defined in languages, given %s" % languages)
+        if options is None:
+            options = {}
+        if not (isinstance(options, dict) or isinstance(options, list) and isinstance(options[0], dict)):
+            raise ConfigurationError("Options should be a dictionary or a list of dictionaries, given %s" % options)
+        tokenizers = len(languages) * [tokenizer] if isinstance(tokenizer, str) else tokenizer
+        if isinstance(options, dict):
+            options = len(languages) * [options]
+        if len(tokenizers) != len(languages):
+            raise ConfigurationError("The number of languages does not match to the number of tokenizers")
+        if options and len(options) != len(languages):
+            raise ConfigurationError("The number of languages does not match to the number of tokenizer options")
+        self.tokenizers = [get_tokenize((tok, lang, opt)) for tok, lang, opt in zip(tokenizers, languages, options)]
         super().__init__(**kwargs)
 
     def process(self, pairs):

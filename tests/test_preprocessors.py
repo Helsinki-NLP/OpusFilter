@@ -1,36 +1,41 @@
-import copy
+import logging
 import unittest
 
 from opusfilter.pipeline import PreprocessorPipeline
 from opusfilter.preprocessors import *
 
+try:
+    import jieba
+except ImportError:
+    logging.warning("Could not import jieba")
+
 
 UNICODE_WHITESPACE_CHARACTERS = [
-    "\u0009", # character tabulation
-    "\u000a", # line feed
-    "\u000b", # line tabulation
-    "\u000c", # form feed
-    "\u000d", # carriage return
-    "\u0020", # space
-    "\u0085", # next line
-    "\u00a0", # no-break space
-    "\u1680", # ogham space mark
-    "\u2000", # en quad
-    "\u2001", # em quad
-    "\u2002", # en space
-    "\u2003", # em space
-    "\u2004", # three-per-em space
-    "\u2005", # four-per-em space
-    "\u2006", # six-per-em space
-    "\u2007", # figure space
-    "\u2008", # punctuation space
-    "\u2009", # thin space
-    "\u200A", # hair space
-    "\u2028", # line separator
-    "\u2029", # paragraph separator
-    "\u202f", # narrow no-break space
-    "\u205f", # medium mathematical space
-    "\u3000", # ideographic space
+    "\u0009",  # character tabulation
+    "\u000a",  # line feed
+    "\u000b",  # line tabulation
+    "\u000c",  # form feed
+    "\u000d",  # carriage return
+    "\u0020",  # space
+    "\u0085",  # next line
+    "\u00a0",  # no-break space
+    "\u1680",  # ogham space mark
+    "\u2000",  # en quad
+    "\u2001",  # em quad
+    "\u2002",  # en space
+    "\u2003",  # em space
+    "\u2004",  # three-per-em space
+    "\u2005",  # four-per-em space
+    "\u2006",  # six-per-em space
+    "\u2007",  # figure space
+    "\u2008",  # punctuation space
+    "\u2009",  # thin space
+    "\u200A",  # hair space
+    "\u2028",  # line separator
+    "\u2029",  # paragraph separator
+    "\u202f",  # narrow no-break space
+    "\u205f",  # medium mathematical space
+    "\u3000",  # ideographic space
 ]
 
 
@@ -88,6 +93,44 @@ class TestTokenizer(unittest.TestCase):
         for result, expected in zip(results, detokenized):
             self.assertSequenceEqual(result, expected)
 
+    @unittest.skipIf('jieba' not in globals(), 'jieba not installed')
+    def test_two_tokenizers(self):
+        tokenizer = Tokenizer(['jieba', 'moses'], ['zh', 'en'])
+        detokenizer = Detokenizer(['jieba', 'moses'], ['zh', 'en'])
+        detokenized = list(zip(*[
+            ["你好，世界！", "你好吗?"],
+            ["Hello, world!", "How are you?"],
+        ]))
+        tokenized = list(zip(*[
+            ["你好 ， 世界 ！", "你好 吗 ?"],
+            ["Hello , world !", "How are you ?"]
+        ]))
+        results = list(tokenizer.process(detokenized))
+        for result, expected in zip(results, tokenized):
+            self.assertSequenceEqual(result, expected)
+        results = list(detokenizer.process(tokenized))
+        for result, expected in zip(results, detokenized):
+            self.assertSequenceEqual(result, expected)
+
+    @unittest.skipIf('jieba' not in globals(), 'jieba not installed')
+    def test_two_tokenizers_and_options(self):
+        tokenizer = Tokenizer(['jieba', 'moses'], ['zh', 'en'], [{'cut_all': True}, {}])
+        detokenizer = Detokenizer(['jieba', 'moses'], ['zh', 'en'])
+        detokenized = list(zip(*[
+            ["你好，世界！", "你好吗?"],
+            ["Hello, world!", "How are you?"],
+        ]))
+        tokenized = list(zip(*[
+            ["你好 ， 世界 ！", "你好 吗 ?"],
+            ["Hello , world !", "How are you ?"]
+        ]))
+        results = list(tokenizer.process(detokenized))
+        for result, expected in zip(results, tokenized):
+            self.assertSequenceEqual(result, expected)
+        results = list(detokenizer.process(tokenized))
+        for result, expected in zip(results, detokenized):
+            self.assertSequenceEqual(result, expected)
+
 
 class TestRegExpSub(unittest.TestCase):
 
@@ -101,7 +144,7 @@ class TestRegExpSub(unittest.TestCase):
 
     def test_lang_patterns(self):
         inputs = zip(*[["hello", "(1) hello", " (24) hello", "(4-2) hello", "hello (0)"],
-                  ["hei"] * 4 + ["(1) hei"]])
+                       ["hei"] * 4 + ["(1) hei"]])
         outputs = zip(*[["hello"] * 4 + ["hello (0)"], ["hei"] * 4 + ["(1) hei"]])
         # Use substitution only for the first language index
         processor = RegExpSub(

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Support for Chinese word segmentation using `jieba` as a tokenizer (https://github.com/Helsinki-NLP/OpusFilter/pull/27)
+
 ## [2.1.2] - 2021-11-11
 
 ### Fixed
