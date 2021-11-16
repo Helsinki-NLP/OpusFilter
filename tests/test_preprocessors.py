@@ -1,8 +1,14 @@
 import copy
+import logging
 import unittest
 
 from opusfilter.pipeline import PreprocessorPipeline
 from opusfilter.preprocessors import *
+
+try:
+    import jieba
+except ImportError:
+    logging.warning("Could not import jieba")
 
 
 UNICODE_WHITESPACE_CHARACTERS = [
@@ -80,6 +86,44 @@ class TestTokenizer(unittest.TestCase):
         tokenized = list(zip(*[
             ["Hello , world !", "Punctuation , e.g. , comma", "C. done 4.5"],
             ["Hei , maailma !", "Välimerkit , esim. pilkku", "C. valmis 4,5"]
+        ]))
+        results = list(tokenizer.process(detokenized))
+        for result, expected in zip(results, tokenized):
+            self.assertSequenceEqual(result, expected)
+        results = list(detokenizer.process(tokenized))
+        for result, expected in zip(results, detokenized):
+            self.assertSequenceEqual(result, expected)
+
+    @unittest.skipIf('jieba' not in globals(), 'jieba not installed')
+    def test_two_tokenizers(self):
+        tokenizer = Tokenizer(['jieba', 'moses'], ['zh', 'en'])
+        detokenizer = Detokenizer(['jieba', 'moses'], ['zh', 'en'])
+        detokenized = list(zip(*[
+            ["你好，世界！", "你好吗?"],
+            ["Hello, world!", "How are you?"],
+        ]))
+        tokenized = list(zip(*[
+            ["你好 ， 世界 ！", "你好 吗 ?"],
+            ["Hello , world !", "How are you ?"]
+        ]))
+        results = list(tokenizer.process(detokenized))
+        for result, expected in zip(results, tokenized):
+            self.assertSequenceEqual(result, expected)
+        results = list(detokenizer.process(tokenized))
+        for result, expected in zip(results, detokenized):
+            self.assertSequenceEqual(result, expected)
+
+    @unittest.skipIf('jieba' not in globals(), 'jieba not installed')
+    def test_two_tokenizers_and_options(self):
+        tokenizer = Tokenizer(['jieba', 'moses'], ['zh', 'en'], [{'cut_all': True}, {}])
+        detokenizer = Detokenizer(['jieba', 'moses'], ['zh', 'en'])
+        detokenized = list(zip(*[
+            ["你好，世界！", "你好吗?"],
+            ["Hello, world!", "How are you?"],
+        ]))
+        tokenized = list(zip(*[
+            ["你好 ， 世界 ！", "你好 吗 ?"],
+            ["Hello , world !", "How are you ?"]
         ]))
         results = list(tokenizer.process(detokenized))
         for result, expected in zip(results, tokenized):

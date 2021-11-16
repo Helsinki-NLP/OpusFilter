@@ -94,12 +94,13 @@ class JiebaTokenizer(DummyTokenizer):
         except NameError as err:
             logger.error("Install jieba to support jieba tokenization")
             raise err
+        self.options = options
 
     def tokenize(self, string):
-        return ' '.join(self.jieba.cut(string))
+        return ' '.join(self.jieba.cut(string, **self.options))
 
     def detokenize(self, string):
-        return "".join(string.split())
+        return ''.join(string.split())
 
 
 def get_tokenize(specs):

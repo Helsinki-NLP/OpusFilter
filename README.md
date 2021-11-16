@@ -124,6 +124,11 @@ See `setup.py` for possible version requirements.
 
 ### Optional libraries and tools
 
+For Chinese tokenization (word segmentation), you can use the
+[jieba](https://github.com/fxsjy/jieba) library. It can be installed
+automatically with pip by including the extras `[jieba]` or `[all]`
+(e.g. `pip install opusfilter[all]`).
+
 For using n-gram language model filters, you need to install VariKN
 (https://github.com/vsiivola/variKN) and its Python wrapper. Include
 the library files compiled to `build/lib/python` to your Python
@@ -1102,11 +1107,10 @@ Parameters:
 A segment pair is accepted if scores for both directions are lower
 than the corresponding thresholds.
 
-The only tokenizer supported at the moment is the
-[fast-mosestokenizer](https://github.com/mingruimingrui/fast-mosestokenizer)
-that re-implements the tokenizer script from the Moses toolkit. To
-enable it, provide a tuple containing `moses` and an appropriate
-two-letter language code, e.g. `[moses, en]` for English.
+The supported tokenizers are listed in [Tokenizer](#tokenizer). For
+example, to enable Moses tokenizer, provide a tuple containing `moses`
+and an appropriate two-letter language code, e.g. `[moses, en]` for
+English.
 
 The eflomal model types are 1 for IBM1, 2 for IBM1 + HMM, and 3 for
 IBM1 + HMM + fertility. See https://github.com/robertostling/eflomal
@@ -1208,20 +1212,27 @@ Tokenize parallel texts.
 
 Parameters:
 
-* `tokenizers`: a list of tokenizers type for each input
+* `tokenizer`: tokenizer type or a list of types for each input
 * `languages`: a list of language codes for each input
-* `options`: a dictionary of tokenizer options (optional)
+* `options`: tokenizer options dictionary or a list of tokenizer dictionaries for multiple tokenziers (optional)
 
-Supported Tokenizer:
+Supported tokenizers:
 
-* `moses` (usesthe `fast-mosestokenizer` package). Avaliable for most languages. Options are passed to the
-`mosestokenizer.MosesTokenizer` class; see its documentation for the available options.
-* `jieba` (usethe [jieba](https://github.com/fxsjy/jieba) package). Only Avaliable for chinese(zh, zh_CN). Options are
-passed to `jieba.cut` function; see its documentation for the avaliable options. Just put it aside. No options will be fine.
-If you use jieba please install optional libraries by `pip install -r requirements.opt.txt`
+* `moses`:
+  * Uses the [fast-mosestokenizer](https://github.com/mingruimingrui/fast-mosestokenizer) package).
+  * Avaliable for most languages.
+  * Options are passed to the `mosestokenizer.MosesTokenizer` class; see its documentation for the available options.
+* `jieba`:
+  * Uses the [jieba](https://github.com/fxsjy/jieba) package.
+  * Only avaliable for Chinese (zh, zh_CN).
+  * Options are passed to `jieba.cut` function; see its documentation for the avaliable options.
+  * If you use `jieba`, please install OpusFilter with extras `[jieba]` or `[all]`.
 
 The list of language codes should match to the languages of the input
-files given in the `preprocess` step.
+files given in the `preprocess` step. If more than on tokenizer is
+provided, the length of the list should match the number of the
+languages. If more than one tokenizer options are provided, the length
+should again match the number of the languages.
 
 ### `Detokenizer`
 
@@ -1229,17 +1240,11 @@ Detokenize parallel texts.
 
 Parameters:
 
-* `tokenizers`: tokenizers type
-* `languages`: a list of language codes for the detokenizer
-* `options`: a dictionary of tokenizer options (optional)
+* `tokenizer`: tokenizer type or a list of types for each input
+* `languages`: a list of language codes for each input
+* `options`: tokenizer options dictionary or a list of tokenizer dictionaries for multiple tokenziers (optional)
 
-Currently there is only one type of detokenizer available: `moses`
-(uses the `fast-mosestokenizer` package). Options are passed to the
-`mosestokenizer.MosesTokenizer` class; see its documentation for the
-available options.
-
-The list of language codes should match to the languages of the input
-files given in the `preprocess` step.
+See [Tokenizer](#tokenizer) for description of the parameters.
 
 ### `WhitespaceNormalizer`
 
