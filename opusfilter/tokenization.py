@@ -16,7 +16,7 @@ except ImportError:
 try:
     import jieba
 except ImportError:
-    logger.warning("Could not imoprt jieba, jieba tokenization not supported")
+    logger.warning("Could not import jieba, jieba tokenization not supported")
 
 
 class DummyTokenizer:
@@ -82,12 +82,13 @@ class MosesTokenizer(DummyTokenizer):
     def detokenize(self, string):
         return self._moses_tokenizer.detokenize(string.split())
 
+
 class JiebaTokenizer(DummyTokenizer):
     """Wrapper for popular Chinese tokenizer jieba"""
 
     def __init__(self, lang, **options):
-        if "zh" not in lang:
-            logger.warning("Jieba tokenizer only avaliable for Chinese (zh)，not avaliable for language %s", lang)
+        if not lang.startswith('zh'):
+            logger.warning("Jieba tokenizer only avaliable for Chinese (zh), requested language %s", lang)
         try:
             self.jieba = jieba
         except NameError as err:
@@ -115,6 +116,6 @@ def get_tokenize(specs):
         options = {}
     if tokenizer == 'moses':
         return MosesTokenizer(lang, **options)
-    elif tokenizer == 'jieba' or "zh" in lang:  # handle zh and zh_CN cases
+    elif tokenizer == 'jieba':
         return JiebaTokenizer(lang, **options)
     raise ConfigurationError("Tokenizer type '%s' not supported" % tokenizer)
