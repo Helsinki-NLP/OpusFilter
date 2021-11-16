@@ -95,6 +95,9 @@ A changelog is available in [docs/CHANGELOG.md](docs/CHANGELOG.md).
 Install the latest release from PyPI:
 * `pip install opusfilter`
 
+Include optional Python libraries:
+* `pip install opusfilter[all]`
+
 Install from source:
 * `pip install .` or
 * `python setup.py install`
