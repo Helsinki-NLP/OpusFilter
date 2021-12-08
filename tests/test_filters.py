@@ -1,3 +1,4 @@
+import logging
 import os
 import requests
 import shutil
@@ -40,16 +41,64 @@ class TestLongestCommonSubstringFilter(unittest.TestCase):
         for result, correct in zip(results, expected):
             self.assertSequenceEqual(result, correct)
 
-
-class TestFasttext(unittest.TestCase):
-
-    fasttext_inputs = ["This sentence is in english", "Je suis une phrase en français"]
+class TestLangIDMethod(unittest.TestCase):
 
     pairs_inputs = [
         ("This sentence is in english", "Je suis une phrase en français"),
         ("me llamo bernardo", "je m'appelle Bernard")
     ]
 
+
+class TestLangId(TestLangIDMethod):
+
+    def test_accept(self):
+        model = LanguageIDFilter(
+            languages=['en', 'fr'], id_method='langid', thresholds=[0.8, 0.99])
+        pair_scores = model.score(self.pairs_inputs)
+        pair_expecteds = [True, False]
+        for pair_score, pair_expected in zip(pair_scores, pair_expecteds):
+            self.assertEqual(model.accept(pair_score), pair_expected)
+
+    def test_accept_with_set_languages(self):
+        model = LanguageIDFilter(
+            languages=['en', 'fr'], id_method='langid', thresholds=[0.8, 0.99],
+            langid_languages=['fr', 'de'])
+        pair_scores = model.score(self.pairs_inputs)
+        pair_expecteds = [False, False]
+        for pair_score, pair_expected in zip(pair_scores, pair_expecteds):
+            self.assertEqual(model.accept(pair_score), pair_expected)
+
+
+class TestCLD2(TestLangIDMethod):
+
+    pairs_inputs = [
+        ("This sentence is in english", "Je suis une phrase en français"),
+        ("me llamo bernardo", "je m'appelle Bernard"),
+        ("english sentence", "phrase français")
+    ]
+
+    def test_accept(self):
+        model = LanguageIDFilter(
+            languages=['en', 'fr'], id_method='cld2', thresholds=[0.9, 0.9])
+        pair_scores = model.score(self.pairs_inputs)
+        pair_expecteds = [True, False, False]
+        for pair_score, pair_expected in zip(pair_scores, pair_expecteds):
+            self.assertEqual(model.accept(pair_score), pair_expected)
+
+    def test_accept_with_options(self):
+        model = LanguageIDFilter(
+            languages=['en', 'fr'], id_method='cld2', thresholds=[0.9, 0.9],
+            cld2_options={'bestEffort': True})
+        pair_scores = model.score(self.pairs_inputs)
+        pair_expecteds = [True, False, True]
+        for pair_score, pair_expected in zip(pair_scores, pair_expecteds):
+            logging.warning('%s %s', pair_score, pair_expected)
+            self.assertEqual(model.accept(pair_score), pair_expected)
+
+
+class TestFasttext(TestLangIDMethod):
+
+    fasttext_inputs = ["This sentence is in english", "Je suis une phrase en français"]
     model_url = 'https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.ftz'
 
     @classmethod
@@ -86,7 +135,7 @@ class TestFasttext(unittest.TestCase):
                    for fasttext_input in self.fasttext_inputs]
         self.assertSequenceEqual(expected, results)
 
-    def test_fasttext_accept(self):
+    def test_accept(self):
         if self.testmodel is None:
             self.skipTest("Failed to download test resources")
         model = LanguageIDFilter(

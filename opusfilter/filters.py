@@ -193,9 +193,11 @@ class LanguageIDFilter(FilterABC):
     """
 
     def __init__(self, languages=None, id_method='langid', thresholds=None,
-                 fasttext_model_path=None, **kwargs):
+                 fasttext_model_path=None, langid_languages=None, cld2_options=None,
+                 **kwargs):
         if languages is None:
             raise ConfigurationError("A list of language codes needs to be defined")
+        # fasttext options
         if id_method == 'fasttext' and not fasttext_model_path:
             raise ConfigurationError("FastText language ID method was choosen without specifying "
                                      "any path to fasttext model")
@@ -204,10 +206,27 @@ class LanguageIDFilter(FilterABC):
                                      "path to model was set")
         self.fasttext_model = fasttext.load_model(fasttext_model_path) \
             if id_method == 'fasttext' else None
+        # langid options
+        if id_method == 'langid':
+            self.identifier = LanguageIdentifier.from_modelstring(model, norm_probs=True)
+            if langid_languages:
+                self.identifier.set_languages(langid_languages)
+        else:
+            if langid_languages:
+                raise ConfigurationError(
+                    "langid_languages option is supported only by the method langid")
+            self.identifier = None
+        # cld2 options
+        if id_method == 'cld2':
+            self.cld2_options = cld2_options if cld2_options else {}
+        else:
+            if cld2_options:
+                raise ConfigurationError("cld2_options is supported only by the method cld2")
+            self.cld2_options = None
+        # global options
         self.languages = languages
         self.id_method = id_method
         self.thresholds = [0] * len(self.languages) if thresholds is None else thresholds
-        self.identifier = LanguageIdentifier.from_modelstring(model, norm_probs=True)
         super().__init__(**kwargs)
 
     def confidence(self, sentence: str, lan: str) -> float:
@@ -218,7 +237,7 @@ class LanguageIDFilter(FilterABC):
 
         if self.id_method == 'cld2':
             try:
-                clddetails = pycld2.detect(sentence)
+                clddetails = pycld2.detect(sentence, **self.cld2_options)
             except Exception:
                 clddetails = (0, 0, ((0, 'un', 0.0), 0))
 
