@@ -27,6 +27,17 @@ class TestFilterPipeline(unittest.TestCase):
         fp = FilterPipeline.from_config(self.config)
         self.assertEqual(len(fp.filters), 9)
 
+    def test_set_chunksize(self):
+        fp = FilterPipeline.from_config(self.config)
+        fp.chunksize = 100
+
+    def test_set_chunksize_value_error(self):
+        fp = FilterPipeline.from_config(self.config)
+        with self.assertRaises(ValueError):
+            fp.chunksize = None
+        with self.assertRaises(ValueError):
+            fp.chunksize = 0
+
     def test_score(self):
         fp = FilterPipeline.from_config(self.config)
         pairs = [('That safeguards our independence .',

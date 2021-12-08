@@ -81,6 +81,7 @@ class OpusFilter:
             logger.warning('Directory "%s" does not exist. It will be created.', self.output_dir)
             os.mkdir(self.output_dir)
         self.constants = configuration.get('common', {}).get('constants', {})
+        self.chunksize = configuration.get('common', {}).get('chunksize', 100000)
         self.step_functions = {
             'opus_read': self.read_from_opus,
             'filter': self.filter_data,
@@ -267,6 +268,7 @@ class OpusFilter:
             return
         filter_params = self.fix_filter_file_paths(parameters['filters'])
         filter_pipe = pipeline.FilterPipeline.from_config(filter_params)
+        filter_pipe.chunksize = self.chunksize
         filterfalse = parameters.get('filterfalse', False)
         pairs_gen = self.pair_generator(*infiles)
         if filterfalse:
@@ -417,6 +419,7 @@ class OpusFilter:
             return
         filter_params = self.fix_filter_file_paths(parameters['filters'])
         filter_pipe = pipeline.FilterPipeline.from_config(filter_params)
+        filter_pipe.chunksize = self.chunksize
         scores_gen = filter_pipe.score(self.pair_generator(*infiles))
         self._write_jsonl(scores_gen, score_out)
 

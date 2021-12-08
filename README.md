@@ -175,10 +175,7 @@ a configuration file as an input. The configuration files are in
 [YAML](https://yaml.org/) format. At the top level, they have to
 sections:
 
-* `common`, which may include `output_directory` for setting where to
-  write the output files. If it is not set, the current working
-  directory is used.
-
+* `common`, which includes global options, and
 * `steps`, which is a list of the corpus processing steps.
 
 The syntax for the `opusfilter` is
@@ -197,6 +194,17 @@ last, and so on.
 By default, existing output files will be re-used, and the steps
 producing them skipped. The `--overwrite` option will force overwrite
 for all the steps.
+
+The valid options for the `common` section includes:
+
+* `output_directory` for setting where to write the output files. If
+  it is not set, the current working directory is used.
+* `chunksize` for changing the default chunk size option for `filter`
+  (with `filterfalse` option) and `score` steps. Increasing the value
+  from the default 100000 may speed up things at the cost of increased
+  memory use.
+* `constants` for setting constants; see
+  [Variables and constants](#variables-and-constants).
 
 Each step in `steps` is a dictionary (mapping) with two keys: `type`
 and `parameters`. Type is a string that defines the function that
@@ -693,7 +701,7 @@ Parameters:
 * `inputs`: input files for segments to filter
 * `outputs`: output files for filtered sentences
 * `filters`: a list of filters to apply; see below
-* `filterfalse`: Yield segment pairs that do not pass at least one of the filters (optional; default `false`)
+* `filterfalse`: yield segment pairs that do not pass at least one of the filters (optional; default `false`)
 
 The filters parameter is a list of dictionaries, each representing one
 filter. The top level should typically include a single key that

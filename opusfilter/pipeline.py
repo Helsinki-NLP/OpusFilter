@@ -19,7 +19,7 @@ class FilterPipeline:
 
     def __init__(self, filters=None):
         self.filters = [] if filters is None else filters
-        self._chunksize = 10000
+        self._chunksize = 100000
 
     @classmethod
     def from_config(cls, config):
@@ -36,6 +36,17 @@ class FilterPipeline:
                 filter_cls = getattr(filtermodule, name)
             pipeline.filters.append(filter_cls(**attributes))
         return pipeline
+
+    @property
+    def chunksize(self):
+        """Chunk size for score and filterfalse methods"""
+        return self._chunksize
+
+    @chunksize.setter
+    def chunksize(self, value):
+        if not (isinstance(value, int) and value > 0):
+            raise ValueError("positive integer value required for chunksize")
+        self._chunksize = value
 
     def get_score_tuples(self):
         """Return unique score name tuples for the filters in the pipeline"""
