@@ -9,7 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Support for Chinese word segmentation using `jieba` as a tokenizer (https://github.com/Helsinki-NLP/OpusFilter/pull/27)
+- method-specific options for LanguageIDFilter
+- chunksize option to the common section
+
+### Changed
+
+- increased default chunksize in FilterPipeline from 10000 to 100000
+
+## [2.2.0] - 2021-11-23
+
+### Added
+
+- support for Chinese word segmentation using `jieba` as a tokenizer (https://github.com/Helsinki-NLP/OpusFilter/pull/27)
 
 ## [2.1.2] - 2021-11-11
 
@@ -80,7 +91,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 First tagged version.
 
 
-[Unreleased]: https://github.com/Helsinki-NLP/OpusFilter/compare/2.1.2...develop
+[Unreleased]: https://github.com/Helsinki-NLP/OpusFilter/compare/2.2.0...develop
+[2.2.0]: https://github.com/Helsinki-NLP/OpusFilter/compare/2.1.2...2.2.0
 [2.1.2]: https://github.com/Helsinki-NLP/OpusFilter/compare/2.1.1...2.1.2
 [2.1.1]: https://github.com/Helsinki-NLP/OpusFilter/compare/2.1.0...2.1.1
 [2.1.0]: https://github.com/Helsinki-NLP/OpusFilter/compare/2.0.0...2.1.0
