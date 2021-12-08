@@ -27,7 +27,7 @@ class LengthFilter(FilterABC):
     def __init__(self, min_length=1, max_length=100, unit='word', pass_empty=False, **kwargs):
         if unit not in ('word', 'char', 'character'):
             raise ConfigurationError(
-                "Unit has to be either 'word', 'char', or 'character', not '%s'" % unit)
+                f"Unit has to be either 'word', 'char', or 'character', not '{unit}'")
         self.min_length = min_length
         self.max_length = max_length
         self.unit = unit
@@ -54,7 +54,7 @@ class LengthRatioFilter(FilterABC):
     def __init__(self, threshold=3, unit='word', **kwargs):
         if unit not in ('word', 'char', 'character'):
             raise ConfigurationError(
-                "Unit has to be either 'word', 'char', or 'character', not '%s'" % unit)
+                f"Unit has to be either 'word', 'char', or 'character', not '{unit}'")
         self.threshold = threshold
         self.unit = unit
         super().__init__(**kwargs)
@@ -156,8 +156,8 @@ class CharacterScoreFilter(FilterABC):
         self.scripts = scripts
         self.thresholds = [1] * len(scripts) if thresholds is None else thresholds
         if len(self.scripts) != len(self.thresholds):
-            raise ConfigurationError("Mismatch in number of scripts {} and thresholds {}".format(
-                len(self.scripts), len(self.thresholds)))
+            raise ConfigurationError(
+                f"Mismatch in number of scripts ({len(self.scripts)}) and thresholds ({len(self.thresholds)})")
         self.re_not_alphas = regex.compile(r'\p{Alphabetic=No}')
         self.re_not_script = [regex.compile(r'\p{{^Script={}}}'.format(script))
                               for script in self.scripts]
@@ -166,8 +166,7 @@ class CharacterScoreFilter(FilterABC):
     def score(self, pairs):
         for pair in pairs:
             if len(pair) != len(self.scripts):
-                raise ValueError("Mismatch in number of scripts {} and sentences {}".format(
-                    len(self.scripts), len(pair)))
+                raise ValueError(f"Mismatch in number of scripts ({len(self.scripts)}) and sentences ({len(pair)})")
             scores = []
             for idx, sent in enumerate(pair):
                 alphas = regex.sub(self.re_not_alphas, '', sent)
@@ -258,7 +257,7 @@ class LanguageIDFilter(FilterABC):
                 liconf = confidence
             return liconf
 
-        raise ValueError("Unknown language identification method '%s'" % self.id_method)
+        raise ValueError(f"Unknown language identification method '{self.id_method}'")
 
     def score(self, pairs: List[Tuple[str, str]]) -> Iterator[List[float]]:
         for pair in pairs:
