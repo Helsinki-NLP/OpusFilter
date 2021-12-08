@@ -236,11 +236,7 @@ class LanguageIDFilter(FilterABC):
             return 1.0
 
         if self.id_method == 'cld2':
-            try:
-                clddetails = pycld2.detect(sentence, **self.cld2_options)
-            except Exception:
-                clddetails = (0, 0, ((0, 'un', 0.0), 0))
-
+            clddetails = pycld2.detect(sentence, **self.cld2_options)
             cldlan = clddetails[2][0][1]
             cldconf = round(clddetails[2][0][2]/100, 2)
             if cldlan != lan:
@@ -248,10 +244,7 @@ class LanguageIDFilter(FilterABC):
             return cldconf
 
         if self.id_method == 'langid':
-            try:
-                lidetails = self.identifier.classify(sentence)
-            except Exception:
-                lidetails = ('un', 0.0)
+            lidetails = self.identifier.classify(sentence)
             lilan, liconf = lidetails[0], round(lidetails[1], 2)
             if lilan != lan:
                 liconf = 0.0
