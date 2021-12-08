@@ -169,3 +169,31 @@ class TestLMFilter(unittest.TestCase):
             bools.append(cefilter.accept(score))
         logging.info(scores)
         self.assertSequenceEqual(bools, [True, False, True])
+
+    def test_filter_lm_classifier(self):
+        lm_1_params = {'filename': self.lmfile1, 'interpolate': [(self.lmfile2, 0.001)]}
+        lm_2_params = {'filename': self.lmfile2, 'interpolate': [(self.lmfile1, 0.001)]}
+        lmfilter = lm.LMClassifierFilter(
+            labels=['1', '2'], lm_params={'1': lm_1_params, '2': lm_2_params}, thresholds=[0.5, 0.5])
+        inputs = [('ab', 'AB'), ('abbb abbb', 'AB'), ('ab', 'BAA'), ('abbb', 'BA'), ('abbb', 'AB'), ('abBB', 'AB'), ('ab', 'ABab')]
+        scores = []
+        bools = []
+        for score in lmfilter.score(inputs):
+            scores.append(score)
+            bools.append(lmfilter.accept(score))
+        logging.info(scores)
+        self.assertSequenceEqual(bools, [True, True, True, True, True, False, False])
+
+    def test_filter_lm_classifier_relative(self):
+        lm_1_params = {'filename': self.lmfile1, 'interpolate': [(self.lmfile2, 0.001)]}
+        lm_2_params = {'filename': self.lmfile2, 'interpolate': [(self.lmfile1, 0.001)]}
+        lmfilter = lm.LMClassifierFilter(
+            labels=['1', '2'], lm_params={'1': lm_1_params, '2': lm_2_params}, thresholds=[1.0, 1.0], relative_score=True)
+        inputs = [('ab', 'AB'), ('abbb abbb', 'AB'), ('ab', 'BAA'), ('abbb', 'BA'), ('abbb', 'AB'), ('abBB', 'AB'), ('ab', 'ABab')]
+        scores = []
+        bools = []
+        for score in lmfilter.score(inputs):
+            scores.append(score)
+            bools.append(lmfilter.accept(score))
+        logging.info(scores)
+        self.assertSequenceEqual(bools, [True, True, True, True, True, False, False])

@@ -75,6 +75,7 @@ A changelog is available in [docs/CHANGELOG.md](docs/CHANGELOG.md).
    * [Language model filters](#language-model-filters)
       * [CrossEntropyFilter](#crossentropyfilter)
       * [CrossEntropyDifferenceFilter](#crossentropydifferencefilter)
+      * [LMClassifierFilter](#lmclassifierfilter)
    * [Alignment model filters](#alignment-model-filters)
       * [WordAlignFilter](#wordalignfilter)
 * [Custom filters](#custom-filters)
@@ -1104,6 +1105,46 @@ you know what you are doing.
 
 The filter returns difference between the in-domain LM and non-domain
 LM cross-entropy.
+
+#### `LMClassifierFilter`
+
+Filter segments by using classification probability from a naive Bayes
+classifier using a set class-specific language models.
+
+Parameters:
+
+* `labels`: expected class labels for the segments
+* `lm_params`: a dictionary that maps labels to language model parameter dictionaries
+* `thresholds`: minimum thresholds for probability of the expected label when filtering (optional; default is 0.5)
+* `relative_score`: normalize probabilities by the largest probability (optional; default `false`)
+
+Each of the labels should have a corresponding language model in
+`lm_params`. The likelihood of the segment is calculated for all the
+language models. If `relative_score` is false, the likelihoods are
+normalized to probabilities that sum up to one over the labels, and
+the probability of the expected label is returned as a score. If
+`relative_score` is true, the probability values are first divided by
+the largest probability (i.e. one of the labels will always get one as
+the score).
+
+For contents of the language model parameters in `lm_params`, see
+[CrossEntropyFilter](#crossentropyfilter).
+
+See [train_ngram](#train_ngram) for training the models. Note that the
+format, perplexity calculation, and boundary marking options should
+match the parameters used in model training; do not change them unless
+you know what you are doing.
+
+A possible use case for this filter is creating a custom language
+identifier similar to Vatanen et al. (2010): Train a character-based
+n-gram model for each of the languages from clean corpora, and use the
+language codes as labels. Vatanen et al. (2010) recommend using
+absolute discounting and maximum n-gram length 4 or 5 for the
+models. Note that unknown tokens are ignored in the language model
+likelihoods, so it is a good idea to train a small (e.g. unigram)
+background model that includes data from all languages, and
+interpolate the language-specific models with it using a small
+interpolation coefficient.
 
 ### Alignment model filters
 

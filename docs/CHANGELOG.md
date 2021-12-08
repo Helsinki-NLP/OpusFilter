@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - new preprocessor for sentence splitting monolingual data
 - method-specific options for LanguageIDFilter
 - chunksize option to the common section
+- LMClassifierFilter for classification based on n-gram language models
 
 ### Changed
 
