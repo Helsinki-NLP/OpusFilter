@@ -71,6 +71,17 @@ def train(datafile, outputfile, **kwargs):
     trainer.write_file(outputfile, args.arpa)
 
 
+def negative_logprob(model, tokens):
+    """Calculate negative logprob for sentence tokens"""
+    lpsum = 0.0
+    for token in tokens:
+        lpsum += model.token_logprob(token)
+    logprob = -lpsum / math.log10(2)
+    model.clear_history()
+    model.init_variables()
+    return logprob
+
+
 def token_perplexity(model, tokens):
     """Calculate token perplexity, entropy, and negative logprob for sentence tokens"""
     lpsum = 0.0
@@ -125,8 +136,8 @@ def get_perplexity_params(params):
 
 def _temptokenfile(item):
     _, tmpfname = tempfile.mkstemp()
-    with open(tmpfname, 'w') as fobj:
-        fobj.write("{}\n".format(item))
+    with open(tmpfname, 'w', encoding='utf8') as fobj:
+        fobj.write(f"{item}\n")
     return tmpfname
 
 
@@ -233,8 +244,7 @@ class CrossEntropyFilter(FilterABC):
         if any(param.get('segmentation', {}).get('type', 'char') != 'char' for param in lm_params):
             raise ConfigurationError("Only segmentation type supported currently is 'char'")
         if score_type not in self.score_types:
-            raise ConfigurationError("Unknown score type {}, should be one of {}".format(
-                score_type, self.score_types))
+            raise ConfigurationError(f"Unknown score type {score_type}, should be one of {self.score_types}")
         self.score_type = score_type
         self.lm_params = lm_params
         self.lms = [get_lm(**params) for params in self.lm_params]
@@ -278,8 +288,6 @@ class CrossEntropyDifferenceFilter(FilterABC):
     See :cite:`moore-lewis-2010-intelligent`
 
     """
-
-    empty_pair_sentinel = object()
 
     def __init__(self, id_lm_params=None, nd_lm_params=None, thresholds=None, score_for_empty=False, **kwargs):
         if not id_lm_params:
@@ -326,3 +334,66 @@ class CrossEntropyDifferenceFilter(FilterABC):
 
     def accept(self, score):
         return all(value < threshold for value, threshold in zip(score, self.thresholds))
+
+
+class LMClassifierFilter(FilterABC):
+    """Filtering based on naive Bayes classifier using LM likelihoods
+
+    Can be used e.g. for LM-based language identification as in
+    :cite:`vatanen-etal-2010-language`. Returned score is the
+    normalized probability of the expected label.
+
+    """
+
+    def __init__(self, labels=None, lm_params=None, thresholds=None, relative_score=False, **kwargs):
+        if labels is None:
+            raise ConfigurationError("A list of correct labels needs to be defined")
+        self.labels = labels
+        self.relative_score = relative_score
+        self.thresholds = [0.5] * len(labels) if thresholds is None else thresholds
+        if len(self.labels) != len(self.thresholds):
+            raise ConfigurationError(
+                f"Mismatch in number of labels ({len(self.labels)}) and thresholds ({len(self.thresholds)})")
+        for label in labels:
+            if label not in lm_params:
+                raise ConfigurationError(f"A model to match label '{label}' not defined in lm_params")
+        self.lms = {}
+        for key, params in lm_params.items():
+            if params.get('segmentation', {}).get('type', 'char') != 'char':
+                raise ConfigurationError("Only segmentation type supported currently is 'char'")
+            self.lms[key] = get_lm(**params)
+        self.tokenizers = {key: LMTokenizer(**params) for key, params in lm_params.items()}
+        super().__init__(**kwargs)
+
+    def classify(self, sentence):
+        """Return a dictionary of classification probabilities for the sentence"""
+        logprobs = {}
+        maxlp = -math.inf
+        for key, model in self.lms.items():
+            tokens = self.tokenizers[key].tokenize(sentence)
+            logprob = -negative_logprob(model, tokens)
+            logprobs[key] = logprob
+            maxlp = max(maxlp, logprob)
+        probs = {key: 2**(lp - maxlp) for key, lp in logprobs.items()}
+        psum = sum(probs.values())
+        if psum > 0:
+            probs = {key: p / psum for key, p in probs.items()}
+        return probs
+
+    def score(self, pairs):
+        for pair in pairs:
+            scores = []
+            for ref_label, sentence in zip(self.labels, pair):
+                if not sentence:
+                    # Prevent filtering empty lines
+                    scores.append(1.0)
+                    continue
+                probs = self.classify(sentence)
+                if self.relative_score:
+                    maxp = max(probs.values())
+                    probs = {key: (p / maxp) for key, p in probs.items()}
+                scores.append(probs[ref_label])
+            yield scores
+
+    def accept(self, score):
+        return all(prob >= threshold for prob, threshold in zip(score, self.thresholds))

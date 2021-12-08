@@ -141,7 +141,8 @@ class OpusFilter:
         if isinstance(obj, list):
             return [self._expand_parameters(x, namespace) for x in obj]
         if isinstance(obj, dict):
-            return {key: self._expand_parameters(value, namespace) for key, value in obj.items()}
+            return {self._expand_parameters(key, namespace): self._expand_parameters(value, namespace)
+                    for key, value in obj.items()}
         if isinstance(obj, VarStr):
             try:
                 formatted = obj.value.format(**namespace)
@@ -252,6 +253,15 @@ class OpusFilter:
                             for idx2 in range(len(lm_params['interpolate'])):
                                 fdict[filter_name][key][idx]['interpolate'][idx2][0] = os.path.join(
                                     self.output_dir, lm_params['interpolate'][idx2][0])
+            elif filter_name in 'LMClassifierFilter':
+                for key in fdict[filter_name]['lm_params'].keys():
+                    lm_params = fdict[filter_name]['lm_params'][key]
+                    fdict[filter_name]['lm_params'][key]['filename'] = os.path.join(
+                        self.output_dir, lm_params['filename'])
+                    if lm_params.get('interpolate'):
+                        for idx in range(len(lm_params['interpolate'])):
+                            fdict[filter_name]['lm_params'][key]['interpolate'][idx][0] = os.path.join(
+                                self.output_dir, lm_params['interpolate'][idx][0])
             elif filter_name == 'LanguageIDFilter' and fdict[filter_name].get('fasttext_model_path'):
                 fdict[filter_name]['fasttext_model_path'] = os.path.join(
                     self.output_dir, fdict[filter_name]['fasttext_model_path'])
