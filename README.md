@@ -1144,7 +1144,8 @@ models. Note that unknown tokens are ignored in the language model
 likelihoods, so it is a good idea to train a small (e.g. unigram)
 background model that includes data from all languages, and
 interpolate the language-specific models with it using a small
-interpolation coefficient.
+interpolation coefficient. An example configuration is found at
+[example_configs/qed_lm_langid.yaml](example_configs/qed_lm_langid.yaml).
 
 ### Alignment model filters
 
