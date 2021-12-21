@@ -1,0 +1,168 @@
+# Example configuration for language identification with LMClassifierFilter.
+# Also shows how to to loop multiple language pairs in a single step.
+
+common:
+  output_directory: qed_lm_langid
+
+steps:
+
+# Read sv-{de,en,fr} data from the QED corpus that contains noisy
+# data. Around 600MB will be downloaded.
+- type: opus_read
+  parameters:
+    corpus_name: QED
+    source_language: sv
+    target_language: !var lang
+    release: latest
+    preprocessing: raw
+    src_output: !varstr "sv-{lang}.sv.raw.gz"
+    tgt_output: !varstr "sv-{lang}.{lang}.raw.gz"
+    suppress_prompts: true
+  variables:
+    lang: [de, en, fr]
+
+# Preprocess segments with WhitespaceNormalizer
+- type: preprocess
+  parameters:
+    inputs:
+    - !varstr "sv-{lang}.sv.raw.gz"
+    - !varstr "sv-{lang}.{lang}.raw.gz"
+    outputs:
+    - !varstr "sv-{lang}.sv.preprocessed.gz"
+    - !varstr "sv-{lang}.{lang}.preprocessed.gz"
+    preprocessors:
+    - WhitespaceNormalizer: {}
+  variables:
+    lang: [de, en, fr]
+
+# Initial filtering for QED data (for training the LMs). The cld2
+# language detection filter is fast, but not very robust and often
+# fails to identify short segments.
+- type: filter
+  parameters:
+    inputs:
+    - !varstr "sv-{lang}.sv.preprocessed.gz"
+    - !varstr "sv-{lang}.{lang}.preprocessed.gz"
+    outputs:
+    - !varstr "sv-{lang}.sv.training.gz"
+    - !varstr "sv-{lang}.{lang}.training.gz"
+    filters:
+    - LengthFilter:
+        unit: word
+        min_length: 3
+        max_length: 100
+    - LengthRatioFilter:
+        unit: word
+        threshold: 3
+    - LanguageIDFilter:
+        id_method: cld2
+        languages: [sv, !var lang]
+        thresholds: [0, 0]
+  variables:
+    lang: [de, en, fr]
+
+# Train 4-gram models from the pre-filtered data.
+# For sv, use data from the sv-en pair.
+- type: train_ngram
+  parameters:
+    data: !var data
+    parameters:
+      norder: 4
+      dscale: 0
+      absolute: true
+    model: !varstr "{lang}.arpa.gz"
+  variables:
+    lang: [de, en, fr, sv]
+    data: [sv-de.de.training.gz, sv-en.en.training.gz, sv-fr.fr.training.gz, sv-en.sv.training.gz]
+
+# Train a background unigram model from unfiltered pooled QED data.
+# When the language-specific models are interpolated with this, it
+# ensures that the same set of characters can be predicted by all
+# models.
+- type: concatenate
+  parameters:
+    inputs:
+    - sv-de.de.preprocessed.gz
+    - sv-en.en.preprocessed.gz
+    - sv-fr.fr.preprocessed.gz
+    - sv-fr.sv.preprocessed.gz
+    output: pooled.txt.gz
+
+- type: train_ngram
+  parameters:
+    data: pooled.txt.gz
+    parameters:
+      norder: 1
+      dscale: 0
+      absolute: true
+    model: pooled.arpa.gz
+
+# Some initial filtering
+- type: filter
+  parameters:
+    inputs:
+    - !varstr "sv-{lang}.sv.preprocessed.gz"
+    - !varstr "sv-{lang}.{lang}.preprocessed.gz"
+    outputs:
+    - !varstr "sv-{lang}.sv.filtered-initial.gz"
+    - !varstr "sv-{lang}.{lang}.filtered-initial.gz"
+    filters:
+    - LengthFilter:
+        unit: char
+        min_length: 2
+        max_length: 1000
+    - LengthRatioFilter:
+        unit: char
+        threshold: 5
+  variables:
+    lang: [de, en, fr]
+
+# Filter data with language identification LMs. Including the
+# background unigram model with its own label allows the classifier to
+# consider that the segment is outside of the four languages. Using
+# relative_score means that the label with the highest LM likelihood
+# always gets score one, which is also here the filtering threshold.
+# Without relative_score, the scores would be normalized label
+# probabilities that sum up to one.
+- type: filter
+  parameters:
+    inputs:
+    - !varstr "sv-{lang}.sv.filtered-initial.gz"
+    - !varstr "sv-{lang}.{lang}.filtered-initial.gz"
+    outputs:
+    - !varstr "sv-{lang}.sv.filtered-final.gz"
+    - !varstr "sv-{lang}.{lang}.filtered-final.gz"
+    filters:
+    - LMClassifierFilter:
+        lm_params: &lm_params
+          de: {filename: de.arpa.gz, interpolate: [[pooled.arpa.gz, 0.01]]}
+          en: {filename: en.arpa.gz, interpolate: [[pooled.arpa.gz, 0.01]]}
+          fr: {filename: fr.arpa.gz, interpolate: [[pooled.arpa.gz, 0.01]]}
+          sv: {filename: sv.arpa.gz, interpolate: [[pooled.arpa.gz, 0.01]]}
+          other: {filename: pooled.arpa.gz}
+        labels: [sv, !var lang]
+        relative_score: true
+        thresholds: [1.0, 1.0]
+  variables:
+    lang: [de, en, fr]
+
+# Use filterfalse for checking the segments that the filter removes.
+# Here it is applied to each monolingual file.
+- type: filter
+  parameters:
+    inputs: [!var inputfile]
+    outputs: [!varstr "{lang}.removed.gz"]
+    filters:
+    - LMClassifierFilter:
+        lm_params: *lm_params
+        labels: [!var lang]
+        relative_score: true
+        thresholds: [1.0]
+    filterfalse: true
+  variables:
+    lang: [de, en, fr, sv]
+    inputfile:
+    - sv-de.de.filtered-initial.gz
+    - sv-en.en.filtered-initial.gz
+    - sv-fr.fr.filtered-initial.gz
+    - sv-en.sv.filtered-initial.gz
