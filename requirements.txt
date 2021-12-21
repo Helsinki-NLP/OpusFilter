@@ -12,5 +12,6 @@ regex>=2019.11.1
 requests>=2.22.0
 ruamel.yaml>=0.15.0
 scikit-learn>=0.24.0
+sentence-splitter==1.4
 tqdm>=4.38.0
 fasttext==0.9.2

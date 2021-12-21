@@ -83,6 +83,7 @@ A changelog is available in [docs/CHANGELOG.md](docs/CHANGELOG.md).
    * [Detokenizer](#detokenizer)
    * [WhitespaceNormalizer](#whitespacenormalizer)
    * [RegExpSub](#regexpsub)
+   * [MonolingualSentenceSplitter](#monolingualsentencesplitter)
 * [Custom preprocessors](#custom-preprocessors)
 * [Other tools](#other-tools)
    * [opusfilter-diagram](#opusfilter-diagram)
@@ -1290,6 +1291,30 @@ expression, replacement, count (0 = substitute all) and flags (list of
 flag constants in the `re` library, e.g. `["I", "A"]`). The regular
 expressions are first compiled with [`re.compile`](https://docs.python.org/3/library/re.html#re.compile),
 and then the substitutions are applied with [`re.sub`](https://docs.python.org/3/library/re.html#re.sub).
+
+### `MonolingualSentenceSplitter`
+
+Split monolingual text segments into sentences.
+
+Parameters:
+
+* `language`: language code for the input
+* `non_breaking_prefix_file`: override the language's non-breaking prefix file by a custom one (optional; default `null`)
+* `enable_parallel`: do not raise expection if the input is parallel data (optional; default `false`)
+
+Sentence splitting method imported from the
+[sentence-splitter](https://github.com/mediacloud/sentence-splitter)
+library. Uses a heuristic algorithm by Philipp Koehn and Josh
+Schroeder developed for the Europarl corpus (Koehn, 2005). Supports
+mostly European languages, but a non-breaking prefix file for new
+languages can be provided.
+
+Warning: This is not intended for parallel data, as there the number
+of output lines per each parallel input line would not always
+match. Because of this, you can define only a single language, and an
+exception is raised if multiple input files are provided. The
+exception can be disabled with the `enable_parallel` option for
+special cases.
 
 ## Custom preprocessors
 
