@@ -235,7 +235,11 @@ class LanguageIDFilter(FilterABC):
             return 1.0
 
         if self.id_method == 'cld2':
-            clddetails = pycld2.detect(sentence, **self.cld2_options)
+            try:
+                clddetails = pycld2.detect(sentence, **self.cld2_options)
+            except pycld2.error as err:
+                logger.warning("pycld2 could not process '%s' due to: %s", sentence, err)
+                clddetails = (0, 0, ((0, 'un', 0.0), 0))
             cldlan = clddetails[2][0][1]
             cldconf = round(clddetails[2][0][2]/100, 2)
             if cldlan != lan:
