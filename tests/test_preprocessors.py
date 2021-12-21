@@ -180,3 +180,27 @@ class TestPreprocessorPipeline(unittest.TestCase):
         results = list(pipe.process(inputs))
         for result, expected in zip(results, outputs):
             self.assertSequenceEqual(result, expected)
+
+
+class TestMonolingualSentenceSplitter(unittest.TestCase):
+
+    def test_default(self):
+        inputs = [["Hello! How are you? I feel great."], ["Oh, no"]]
+        expected = ["Hello!", "How are you?", "I feel great.", "Oh, no"]
+        processor = MonolingualSentenceSplitter(language='en')
+        results = processor.process(inputs)
+        for result, correct in zip(results, expected):
+            self.assertEqual(result, [correct])
+
+    def test_parallel_error(self):
+        inputs = [["Hello!", "Hei"], ["How are you?", "Mitä kuuluu"]]
+        processor = MonolingualSentenceSplitter(language='en')
+        with self.assertRaises(ConfigurationError):
+            results = list(processor.process(inputs))
+
+    def test_parallel_enabled(self):
+        inputs = [["Hello!", "Hei"], ["How are you?", "Mitä kuuluu"]]
+        processor = MonolingualSentenceSplitter(language='en', enable_parallel=True)
+        results = processor.process(inputs)
+        for result, correct in zip(results, inputs):
+            self.assertEqual(result, correct)

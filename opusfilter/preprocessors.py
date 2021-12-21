@@ -1,11 +1,18 @@
 """Corpus preprocessing"""
 
 from functools import reduce
+from itertools import zip_longest
+import logging
 import operator
 import re
 
+import sentence_splitter
+
 from . import PreprocessorABC, ConfigurationError
 from .tokenization import get_tokenize
+
+
+logger = logging.getLogger(__name__)
 
 
 class Tokenizer(PreprocessorABC):
@@ -15,11 +22,11 @@ class Tokenizer(PreprocessorABC):
         if tokenizer is None or not isinstance(tokenizer, (str, list)):
             raise ConfigurationError("Tokenizer method(s) needs to be defined in tokenizer")
         if languages is None or not isinstance(languages, list):
-            raise ConfigurationError("List of language code needs to be defined in languages, given %s" % languages)
+            raise ConfigurationError(f"List of language code needs to be defined in languages, given {languages}")
         if options is None:
             options = {}
         if not (isinstance(options, dict) or isinstance(options, list) and isinstance(options[0], dict)):
-            raise ConfigurationError("Options should be a dictionary or a list of dictionaries, given %s" % options)
+            raise ConfigurationError(f"Options should be a dictionary or a list of dictionaries, given {options}")
         tokenizers = len(languages) * [tokenizer] if isinstance(tokenizer, str) else tokenizer
         if isinstance(options, dict):
             options = len(languages) * [options]
@@ -109,3 +116,40 @@ class RegExpSub(PreprocessorABC):
                     segment = re.sub(pattern, repl, segment, count=count)
                 output.append(segment)
             yield output
+
+
+class MonolingualSentenceSplitter(PreprocessorABC):
+    """Monolingual sentence splitter
+
+    Uses heuristic algorithm by Philipp Koehn and Josh Schroeder
+    developed for Europarl (:cite:`koehn-2005-europarl`), imported
+    from the sentence-splitter library. Supports mostly European
+    languages, but a non-breaking prefix file for new languages can be
+    provided.
+
+    Warning: Do not use for parallel data, as the number of lines
+    (sentences) in the output may not match.
+
+    """
+
+    def __init__(self, language=None, non_breaking_prefix_file=None, enable_parallel=False, **kwargs):
+        if language is None:
+            raise ConfigurationError("A language code needs to be defined")
+        if non_breaking_prefix_file:
+            self.splitter = sentence_splitter.SentenceSplitter(
+                language=language, non_breaking_prefix_file=non_breaking_prefix_file)
+        else:
+            self.splitter = sentence_splitter.SentenceSplitter(language=language)
+        self.enable_parallel = enable_parallel
+        super().__init__(**kwargs)
+
+    def process(self, pairs):
+        for segments in pairs:
+            logger.warning(segments)
+            if len(segments) > 1 and not self.enable_parallel:
+                raise ConfigurationError(
+                    "MonolingualSentenceSplitter should not be used for parallel data. "
+                    "To disable the error, use enable_parallel=True.")
+            outputs = [self.splitter.split(segment) for segment in segments]
+            for output_pair in zip_longest(*outputs, fillvalue=''):
+                yield list(output_pair)

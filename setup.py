@@ -14,6 +14,7 @@ install_requires = [
     "pandas>=1.0.0",
     "pycld2",
     "pyhash",
+    "sentence-splitter",
     "ruamel.yaml>=0.15.0",
     "regex",
     "requests",
