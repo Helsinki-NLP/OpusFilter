@@ -9,6 +9,7 @@ import operator
 import os
 import pickle
 import random
+import tempfile
 
 import json
 import numpy as np
@@ -380,17 +381,15 @@ class OpusFilter:
             logger.info("Output file exists, skipping step")
             return
         data_name = parameters['data']
-        seg_name = data_name + '.seg.gz'
         tokenizer = lm.LMTokenizer(**parameters['parameters'])
-        with file_open(os.path.join(self.output_dir, data_name), 'r') as \
-                infile, \
-                file_open(os.path.join(self.output_dir, seg_name), 'w') as \
-                outfile:
-            for line in tqdm(infile):
-                tokens = tokenizer.tokenize(line.strip())
-                outfile.write(' '.join(tokens) + '\n')
-        lm.train(os.path.join(self.output_dir, seg_name), model_out,
-                 **parameters['parameters'])
+        with tempfile.NamedTemporaryFile('w+b', suffix='.seg.gz') as segfile:
+            with file_open(os.path.join(self.output_dir, data_name), 'r') as infile, \
+                 file_open(os.path.join(self.output_dir, segfile.name), 'w') as outfile:
+                for line in tqdm(infile):
+                    tokens = tokenizer.tokenize(line.strip())
+                    outfile.write(' '.join(tokens) + '\n')
+            lm.train(os.path.join(self.output_dir, segfile.name), model_out,
+                     **parameters['parameters'])
 
     def train_alignment(self, parameters, overwrite=False):
         """Train eflomal alignment priors"""
