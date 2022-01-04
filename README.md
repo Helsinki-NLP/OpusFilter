@@ -163,7 +163,7 @@ If you use OpusFilter in your research, please cite our [ACL 2020 paper](https:/
 }
 ```
 
-A bibliography of other papers cited in the documentation and code can
+A full bibliography of papers cited in the documentation and code can
 be found from [docs/references.bib](docs/references.bib).
 
 ## How to contribute
@@ -461,7 +461,7 @@ checking and storing.
 #### `opus_read`
 
 Read a corpus from the OPUS corpus collection (Tiedemann, 2012) using
-the OpusTools (Aulamo et al., 2020) interface.
+the OpusTools (Aulamo et al., 2020a) interface.
 
 Parameters:
 

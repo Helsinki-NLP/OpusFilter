@@ -3,7 +3,7 @@
 ## paracrawl_fi-en
 
 Corpus filtering and domain adaptation experiments for Finnish-English
-translation (Aulamo et al., 2020).
+translation (Aulamo et al., 2020b).
 
 ## qed_lm_langid.yaml
 
