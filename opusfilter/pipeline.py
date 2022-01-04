@@ -109,7 +109,7 @@ class FilterPipeline:
             for namet, filt in zip(fnames, self.filters):
                 logger.info("Processing chunk %s with %s (%s to check)",
                             num, '.'.join(namet), len(current))
-                for pair, dec in zip(current, filt.decisions(current)):
+                for pair, dec in zip(tqdm(current), filt.decisions(current)):
                     if not dec:
                         yield pair
                     else:

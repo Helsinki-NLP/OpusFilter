@@ -285,10 +285,10 @@ class OpusFilter:
         if filterfalse:
             pairs = filter_pipe.filterfalse(pairs_gen)
         else:
-            pairs = filter_pipe.filter(pairs_gen)
+            pairs = filter_pipe.filter(tqdm(pairs_gen))
         limit = parameters.get('limit')
         outfileobjs = [file_open(fname, 'w') for fname in outfiles]
-        for idx, pair in tqdm(enumerate(pairs)):
+        for idx, pair in enumerate(pairs):
             for item, fobj in zip(pair, outfileobjs):
                 fobj.write(item+'\n')
                 fobj.flush()
