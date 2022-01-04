@@ -145,3 +145,49 @@ class TestFasttext(TestLangIDMethod):
         pair_expecteds = [True, False]
         for pair_score, pair_expected in zip(pair_scores, pair_expecteds):
             self.assertEqual(model.accept(pair_score), pair_expected)
+
+
+class TestRepetitionFilter(unittest.TestCase):
+
+    def test_get_repetition(self):
+        segments_and_repetitions = [
+            ('abc', [None]*3, [0, 0, 0]),
+            ('aaa', [None]*3, [0, 0, 0]),
+            ('abcabc', ['abc', None, None], [1, 0, 0]),
+            ('abc abc', ['abc', None, None], [1, 0, 0]),
+            ('abc abc abc', ['abc', 'abc', None], [2, 2, 0]),
+            ('abc abc   abc', ['abc', 'abc', None], [2, 2, 0]),
+            ('abc abcabc', ['abc', 'abc', None], [2, 2, 0]),
+            ('abcabc   abc', ['abc', 'abc', None], [2, 2, 0]),
+            ('abc abc   abcabc', ['abc']*3, [3, 3, 3]),
+            ('aaaa aaaa aaaa', ['aaaa', 'aaaa', None], [2, 2, 0]),
+            ('aaaa aaaa aaaa aaaa', ['aaaa']*3, [3, 3, 3]),
+            ('aaaa aaaa bbbb aaaa aaaa bbbb aaaa aaaa bbbb aaaa aaaa bbbb',
+             ['aaaa', 'aaaa aaaa bbbb', 'aaaa aaaa bbbb'], [1, 3, 3]),
+            ('Ahora bien, el que quiera ser el primero entre ustedes deberá ser su servidor, diferentes plantas para '
+             'ser un buen pescador y un buen pescador para ser un buen pescador y un buen pescador para ser un buen '
+             'pescador y un buen pescador para ser un buen pescador',
+             ['para ser un buen pescador y un buen pescador']*2 + [None], [2, 2, 0])
+        ]
+        for idx, threshold in enumerate(range(1, 4)):
+            testfilter = RepetitionFilter(threshold, min_length=3, max_length=50)
+            for segment, patterns, repetitions in segments_and_repetitions:
+                logging.info("%s '%s'", threshold, segment)
+                num, pat = testfilter.get_repetitions(segment)
+                self.assertEqual(num, repetitions[idx])
+                self.assertEqual(pat, patterns[idx])
+
+    def test_bilingual(self):
+        segments_and_decisions = [
+            (('abcd', 'abcd'), True),
+            (('abc abc', 'abcd'), True),
+            (('abc abc', 'bcd bcd'), True),
+            (('abc abc abc', 'bcd bcd'), False),
+            (('abc', 'bcde bcde bcde bcde'), False),
+        ]
+        testfilter = RepetitionFilter(2, min_length=3, max_length=50)
+        pairs, decisions = zip(*segments_and_decisions)
+        scores = testfilter.score(pairs)
+        for pair, score, expected in zip(pairs, scores, decisions):
+            logger.info("%s %s %s", pair, score, expected)
+            self.assertEqual(testfilter.accept(score), expected)
