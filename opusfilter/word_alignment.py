@@ -1,5 +1,6 @@
 """Word alignment filtering"""
 
+import json
 import logging
 import os
 import subprocess
@@ -7,6 +8,7 @@ import tempfile
 
 from . import FilterABC
 from . import tokenization
+from .util import file_open
 
 logger = logging.getLogger(__name__)
 
@@ -41,11 +43,13 @@ def create_align_input_file(sentence_pairs, src_tokenizer=None, tgt_tokenizer=No
     return inputfile, rawfile, empty
 
 
-def _run_eflomal_align(input_file, fwd_file, rev_file, model=3, priors=None):
+def _run_eflomal_align(input_file, fwd_file, rev_file, model=3, priors=None,
+                       scores_fwd_file=None, scores_rev_file=None):
     """Run eflomal alignment and produce alignment files"""
-    priors_arg = '--priors {}'.format(priors) if priors else ''
-    command = '{path}/align.py --overwrite -i {input} -f {fwd} -r {rev} --model {model} -M {model} {priors}'.format(
-        path=EFLOMAL_PATH, input=input_file, fwd=fwd_file, rev=rev_file,
+    priors_arg = f'--priors {priors}' if priors else ''
+    scores_arg = f'-F {scores_fwd_file} -R {scores_rev_file}' if (scores_fwd_file and scores_rev_file) else ''
+    command = '{path}/align.py --overwrite -i {input} -f {fwd} -r {rev} {scores} --model {model} -M {model} {priors}'.format(
+        path=EFLOMAL_PATH, input=input_file, fwd=fwd_file, rev=rev_file, scores=scores_arg,
         model=model, priors=priors_arg)
     return subprocess.run(command.split(), check=True)
 
@@ -68,13 +72,21 @@ def _run_eflomal_priors(input_file, scores_fwd_file, scores_rev_file, priors_fil
     return subprocess.run(command.split(), check=True)
 
 
-def make_priors(sentence_pairs, priors_file, model=3):
+def make_priors(sentence_pairs, priors_file, model=3, score_file=None):
     """Create alignment priors from clean sentence pairs"""
     input_file, _, _ = create_align_input_file(sentence_pairs)
-    with tempfile.NamedTemporaryFile('w+') as fwd_file, tempfile.NamedTemporaryFile('w+') as rev_file:
+    with tempfile.NamedTemporaryFile('w+') as fwd_file, tempfile.NamedTemporaryFile('w+') as rev_file, \
+         tempfile.NamedTemporaryFile('w+') as scores_fwd_file, tempfile.NamedTemporaryFile('w+') as scores_rev_file:
         process = _run_eflomal_align(
-            input_file.name, fwd_file.name, rev_file.name, model=model, priors=None)
+            input_file.name, fwd_file.name, rev_file.name, model=model, priors=None,
+            scores_fwd_file=scores_fwd_file.name if score_file else None,
+            scores_rev_file=scores_rev_file.name if score_file else None)
         process.check_returncode()
+        if score_file:
+            with file_open(score_file, 'w') as fobj:
+                for score1, score2 in zip(scores_fwd_file, scores_rev_file):
+                    obj = {WordAlignFilter.__name__: [float(score1.strip()), float(score2.strip())]}
+                    fobj.write(json.dumps(obj, sort_keys=True) + '\n')
         process = _run_eflomal_priors(input_file.name, fwd_file.name, rev_file.name, priors_file)
         process.check_returncode()
         input_file.close()

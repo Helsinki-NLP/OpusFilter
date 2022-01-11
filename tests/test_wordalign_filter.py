@@ -1,5 +1,6 @@
 
 import argparse
+import json
 import logging
 import os
 import tempfile
@@ -50,6 +51,38 @@ class TestAlignFilter(unittest.TestCase):
             bools.append(align_filter.accept(score))
         logging.info(scores)
         self.assertSequenceEqual(bools, [True] * 50 + [False, False, False, False])
+
+    def test_make_priors(self):
+        """Test making priors
+
+        Note: The result of the alignment is not deterministic and the
+        test could fail with really bad luck.
+
+        """
+        prior_data1 = ['%s.' % ('ab ' * (line + 1)) for line in range(10)] * 5
+        prior_data2 = ['%s.' % ('AB ' * (line + 1)) for line in range(10)] * 5
+        priors_file = tempfile.NamedTemporaryFile('w+')
+        word_alignment.make_priors(zip(prior_data1, prior_data2), priors_file.name)
+        self.assertTrue(priors_file.read())
+        priors_file.close()
+
+    def test_make_priors_with_scores(self):
+        """Test making priors with the score file option
+
+        Note: The result of the alignment is not deterministic and the
+        test could fail with really bad luck.
+
+        """
+        prior_data1 = ['%s.' % ('ab ' * (line + 1)) for line in range(10)] * 5
+        prior_data2 = ['%s.' % ('AB ' * (line + 1)) for line in range(10)] * 5
+        priors_file = tempfile.NamedTemporaryFile('w+')
+        score_file = tempfile.NamedTemporaryFile('w+')
+        word_alignment.make_priors(zip(prior_data1, prior_data2), priors_file.name, score_file=score_file.name)
+        self.assertTrue(priors_file.read())
+        scores = [json.loads(line) for line in score_file]
+        self.assertEqual(len(scores), len(prior_data1))
+        priors_file.close()
+        score_file.close()
 
     def test_scoring_priors(self):
         """Test word alignment scoring on artificial data using priors
