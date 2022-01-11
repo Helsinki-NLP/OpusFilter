@@ -137,7 +137,7 @@ class Classifier:
                     logger.info('accuracy: %s', accuracy_score(true_labels, labels))
                     logger.info('confusion matrix:\n%s', confusion_matrix(true_labels, labels))
                 for label in labels:
-                    output.write('{}\n'.format(label))
+                    output.write(f'{label}\n')
 
     def write_probs(self, input_fname, output_fname, true_label=None,
                     standardize=True, chunksize=None):
@@ -155,7 +155,7 @@ class Classifier:
                     true_labels = df_tbc[true_label]
                     logger.info('roc_auc: %s', roc_auc_score(true_labels, probas[:, 1]))
                 for proba in probas[:, 1]:
-                    output.write('{0:.10f}\n'.format(proba))
+                    output.write(f'{proba:.10f}\n')
 
     def weights(self):
         """Yield classifier weights"""
@@ -313,9 +313,8 @@ class TrainClassifier:
             'ROC_AUC': {'func': self.get_roc_auc, 'best': 'high', 'dev': True}
         }
 
-        if criterion_name not in criteria.keys():
-            raise ValueError('Invalid criterion. Expected one of: {}'.format(
-                list(criteria.keys())))
+        if criterion_name not in criteria:
+            raise ValueError(f'Invalid criterion. Expected one of: {", ".join(criteria)}')
         criterion = criteria[criterion_name]
 
         features, bounds, initial = self._load_feature_bounds_and_init(
@@ -325,7 +324,7 @@ class TrainClassifier:
         def cost(qvector):
             best_quantiles = dict(zip(features, qvector))
             logger.info('Training logistic regression model with quantiles:\n%s',
-                        '\n'.join('* {}: {}'.format(*t) for t in best_quantiles.items()))
+                        '\n'.join(f'* {t[0]}: {t[1]}' for t in best_quantiles.items()))
             if any(q == 0 for q in best_quantiles.values()):
                 # Remove unused features
                 df_train_copy = self.df_training_data.copy()

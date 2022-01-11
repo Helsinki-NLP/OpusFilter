@@ -159,7 +159,7 @@ class CharacterScoreFilter(FilterABC):
             raise ConfigurationError(
                 f"Mismatch in number of scripts ({len(self.scripts)}) and thresholds ({len(self.thresholds)})")
         self.re_not_alphas = regex.compile(r'\p{Alphabetic=No}')
-        self.re_not_script = [regex.compile(r'\p{{^Script={}}}'.format(script))
+        self.re_not_script = [regex.compile(fr'\p{{^Script={script}}}')
                               for script in self.scripts]
         super().__init__(**kwargs)
 

@@ -24,7 +24,7 @@ def create_align_input_file(sentence_pairs, src_tokenizer=None, tgt_tokenizer=No
     src_tokenize = tokenization.get_tokenize(src_tokenizer)
     tgt_tokenize = tokenization.get_tokenize(tgt_tokenizer)
     inputfile = tempfile.NamedTemporaryFile('w+')  # pylint: disable=R1732
-    rawfile = tempfile.NamedTemporaryFile('w+') if src_tokenizer or tgt_tokenizer else None
+    rawfile = tempfile.NamedTemporaryFile('w+') if src_tokenizer or tgt_tokenizer else None  # pylint: disable=R1732
     empty = []
     for idx, pair in enumerate(sentence_pairs):
         if len(pair) != 2:
@@ -34,8 +34,8 @@ def create_align_input_file(sentence_pairs, src_tokenizer=None, tgt_tokenizer=No
             continue
         sent1, sent2 = pair
         if rawfile:
-            rawfile.write('{} ||| {}\n'.format(sent1, sent2))
-        inputfile.write('{} ||| {}\n'.format(src_tokenize(sent1), tgt_tokenize(sent2)))
+            rawfile.write(f'{sent1} ||| {sent2}\n')
+        inputfile.write(f'{src_tokenize(sent1)} ||| {tgt_tokenize(sent2)}\n')
     if rawfile:
         rawfile.flush()
     inputfile.flush()
@@ -57,7 +57,7 @@ def _run_eflomal_align(input_file, fwd_file, rev_file, model=3, priors=None,
 def _run_eflomal_scoring(input_file, scores_fwd_file, scores_rev_file,
                          model=3, priors=None):
     """Run eflomal alignment and produce score files"""
-    priors_arg = '--priors {}'.format(priors) if priors else ''
+    priors_arg = f'--priors {priors}' if priors else ''
     command = '{path}/align.py -i {input} -F {fwd} -R {rev} --model {model} -M {model} {priors}'.format(
         path=EFLOMAL_PATH, input=input_file, fwd=scores_fwd_file, rev=scores_rev_file,
         model=model, priors=priors_arg)
@@ -66,9 +66,7 @@ def _run_eflomal_scoring(input_file, scores_fwd_file, scores_rev_file,
 
 def _run_eflomal_priors(input_file, scores_fwd_file, scores_rev_file, priors_file):
     """Run eflomal prior estimation"""
-    command = '{path}/makepriors.py -i {input} -f {fwd} -r {rev} --priors {priors}'.format(
-        path=EFLOMAL_PATH, input=input_file, fwd=scores_fwd_file, rev=scores_rev_file,
-        priors=priors_file)
+    command = f'{EFLOMAL_PATH}/makepriors.py -i {input_file} -f {scores_fwd_file} -r {scores_rev_file} --priors {priors_file}'
     return subprocess.run(command.split(), check=True)
 
 

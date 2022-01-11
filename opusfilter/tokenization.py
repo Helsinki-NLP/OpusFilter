@@ -119,4 +119,4 @@ def get_tokenize(specs):
         return MosesTokenizer(lang, **options)
     if tokenizer == 'jieba':
         return JiebaTokenizer(lang, **options)
-    raise ConfigurationError("Tokenizer type '%s' not supported" % tokenizer)
+    raise ConfigurationError(f"Tokenizer type '{tokenizer}' not supported")

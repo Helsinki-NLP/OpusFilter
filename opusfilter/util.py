@@ -76,7 +76,7 @@ class Var:
     @classmethod
     def to_yaml(cls, representer, node):
         """Represent as YAML"""
-        return representer.represent_scalar(cls.yaml_tag, '{.value}'.format(node))
+        return representer.represent_scalar(cls.yaml_tag, f'{node.value}')
 
     @classmethod
     def from_yaml(cls, constructor, node):  # pylint: disable=W0613
@@ -84,7 +84,7 @@ class Var:
         return cls(node.value)
 
     def __repr__(self):
-        return "{}('{}')".format(self.__class__.__name__, self.value)
+        return f"{self.__class__.__name__}('{self.value}')"
 
     def __str__(self):
         return self.__repr__()

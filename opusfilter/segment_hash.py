@@ -33,8 +33,7 @@ class SegmentHasher:
                     "a list of input file indices")
             self.compare = sorted(compare)
         if method and not hasattr(pyhash, method):
-            raise ConfigurationError(
-                "Algorithm '{}' not available from from pyhash".format(method))
+            raise ConfigurationError(f"Algorithm '{method}' not available from from pyhash")
         self.hashfunc = getattr(pyhash, method)(seed=hashseed) if method else lambda x: x
         self.lowercase = lowercase
         self.letters_only = letters_only
@@ -57,6 +56,6 @@ class SegmentHasher:
                 inputstr = self.join_char.join(self.preprocess(segments[idx]) for idx in self.compare)
             except KeyError as err:
                 raise ConfigurationError(
-                    "The input indices {} in the compare parameter do not match input of length {}".format(
-                        self.compare, len(segments))) from err
+                    f"The input indices {self.compare} in the compare parameter do not match input of "
+                    f"length {len(segments)}") from err
         return self.hashfunc(inputstr)

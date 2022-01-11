@@ -130,11 +130,11 @@ class OpusFilter:
         lengths = set()
         for key, value in variables.items():
             if not isinstance(value, list):
-                raise ConfigurationError("Variable {} does not define a list".format(key))
+                raise ConfigurationError(f"Variable {key} does not define a list")
             lengths.add(len(value))
             if len(lengths) > 1:
                 raise ConfigurationError(
-                    "Variable {} has a different length of values than the previous".format(key))
+                    f"Variable {key} has a different length of values than the previous")
         return list(lengths)[0] if lengths else 0
 
     def _expand_parameters(self, obj, namespace):
@@ -149,11 +149,11 @@ class OpusFilter:
                 formatted = obj.value.format(**namespace)
             except (KeyError, IndexError) as err:
                 raise ConfigurationError(
-                    "String substitutions not defined in the context: {}".format(obj.value)) from err
+                    f"String substitutions not defined in the context: {obj.value}") from err
             return formatted
         if isinstance(obj, Var):
             if obj.value not in namespace:
-                raise ConfigurationError("Variable not defined in the context: {}".format(obj.value))
+                raise ConfigurationError(f"Variable not defined in the context: {obj.value}")
             return namespace[obj.value]
         return obj
 
@@ -280,9 +280,8 @@ class OpusFilter:
         filter_params = self.fix_filter_file_paths(parameters['filters'])
         filter_pipe = pipeline.FilterPipeline.from_config(filter_params)
         filter_pipe.chunksize = self.chunksize
-        filterfalse = parameters.get('filterfalse', False)
         pairs_gen = self.pair_generator(*infiles)
-        if filterfalse:
+        if parameters.get('filterfalse', False):
             pairs = filter_pipe.filterfalse(pairs_gen)
         else:
             pairs = filter_pipe.filter(tqdm(pairs_gen))
@@ -504,8 +503,7 @@ class OpusFilter:
 
         """
         if combine and not hasattr(operator, combine):
-            raise ConfigurationError(
-                "Combine operator {} not found in the operator module".format(combine))
+            raise ConfigurationError(f"Combine operator {combine} not found in the operator module")
         for line in fobj:
             try:
                 val = json.loads(line)
@@ -534,17 +532,15 @@ class OpusFilter:
             logger.info("Output files exists, skipping step")
             return
         valuefile = os.path.join(self.output_dir, parameters['values'])
-        reverse = parameters.get('reverse', False)
-        key = parameters.get('key')
         typeconv = parameters.get('type')
         if typeconv is not None:
             typeconv = {'float': float, 'int': int, 'str': str}[typeconv]
-        combine = parameters.get('combine_operator')
         with file_open(valuefile, 'r') as fobj:
             logger.info("Reading values from %s", valuefile)
-            values = list(tqdm(self._read_values(fobj, key=key, conv=typeconv, combine=combine)))
+            values = list(tqdm(self._read_values(
+                fobj, key=parameters.get('key'), conv=typeconv, combine=parameters.get('combine_operator'))))
             order = list(np.argsort(values))
-            if reverse:
+            if parameters.get('reverse', False):
                 order.reverse()
         for infile, outfile in zip(infiles, outfiles):
             logger.info("Sorting file %s", infile)
@@ -695,8 +691,7 @@ class OpusFilter:
             if 'outputs_2' in parameters else []
         infiles = [os.path.join(self.output_dir, fname) for fname in parameters['inputs']]
         if len(outfiles) != len(infiles) or (outfiles_2 and len(outfiles_2) != len(infiles)):
-            raise ConfigurationError(
-                "Number of input and output files should match in split")
+            raise ConfigurationError("Number of input and output files should match in split")
         if not overwrite and all(os.path.isfile(outfile) for outfile in outfiles + outfiles_2):
             logger.info("Output files exists, skipping step")
             return
@@ -707,24 +702,22 @@ class OpusFilter:
             method=parameters.get('hash', 'xx_64'),
             hashseed=parameters.get('seed', 0)
         )
-        infs = [file_open(infile) for infile in infiles]
-        outfs = [file_open(outfile, 'w') for outfile in outfiles]
-        outfs_2 = [file_open(outfile, 'w') for outfile in outfiles_2]
+        infs = [file_open(fname) for fname in infiles]
+        outfs = [file_open(fname, 'w') for fname in outfiles]
+        outfs_2 = [file_open(fname, 'w') for fname in outfiles_2]
         hits = 0
         total = 0
         for lines in tqdm(zip(*infs)):
             total += 1
-            key = hasher.apply(lines)
-            if key % divisor < threshold:
+            if hasher.apply(lines) % divisor < threshold:
                 hits += 1
                 for idx, line in enumerate(lines):
                     outfs[idx].write(line)
             elif outfs_2:
                 for idx, line in enumerate(lines):
                     outfs_2[idx].write(line)
-        logger.info(
-            "Split {} lines to {} ({:.2f}%) and {} ({:.2f}%) lines".format(
-                total, hits, 100 * hits / total, total - hits, 100 * (total - hits) / total))
+        logger.info("Split %d lines to %s (%.2f%%) and %d (%.2f%%) lines",
+                    total, hits, 100 * hits / total, total - hits, 100 * (total - hits) / total)
         for idx in range(len(infiles)):
             infs[idx].close()
             outfs[idx].close()
@@ -752,13 +745,10 @@ class OpusFilter:
         overlap = parameters.get('overlap', None)
         if overlap:
             overlapfs = [file_open(infile) for infile in overlap]
-            overlap_total = 0
             overlap_counter = collections.Counter()
             for lines in tqdm(zip(*overlapfs)):
-                key = hasher.apply(lines)
-                overlap_total += 1
-                overlap_counter[key] += 1
-            logger.info("Collected %s types from %s tokens", len(overlap_counter), overlap_total)
+                overlap_counter[hasher.apply(lines)] += 1
+            logger.info("Collected %s types from %s tokens", len(overlap_counter), sum(overlap_counter.values()))
         counter = collections.Counter()
         removed_entries = 0
         total = 0
@@ -777,10 +767,9 @@ class OpusFilter:
                     continue
             for idx, line in enumerate(lines):
                 outfs[idx].write(line)
-        removed_types = sum(1 for c in counter.values() if c > 1)
-        logger.info(
-            "Removed {} / {} = {:.2f}% duplicate lines (duplicate types: {})".format(
-                removed_entries, total, 100 * removed_entries / total if total > 0 else 0, removed_types))
+        logger.info("Removed %d / %d = %.2f%% duplicate lines (duplicate types: %d)",
+                    removed_entries, total, 100 * removed_entries / total if total > 0 else 0,
+                    sum(1 for c in counter.values() if c > 1))
         for idx in range(len(infiles)):
             infs[idx].close()
             outfs[idx].close()
@@ -798,8 +787,7 @@ class OpusFilter:
             for idx, line in tqdm(enumerate(inf)):
                 parts = line.split(separator)
                 if len(parts) != len(outfiles):
-                    raise ConfigurationError(
-                        "Number output files do not match the %s parts in line %s" % (len(parts), idx))
+                    raise ConfigurationError(f"Number output files do not match the {len(parts)} parts in line {idx}")
                 for part, outf in zip(parts, outfs):
                     outf.write(part.strip() + '\n')
 
