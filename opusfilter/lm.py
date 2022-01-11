@@ -6,6 +6,7 @@ import copy
 import itertools
 import logging
 import math
+import os
 import tempfile
 
 from . import FilterABC, ConfigurationError
@@ -231,6 +232,15 @@ class LMTokenizer:
         return tokens
 
 
+def join_workdir_to_lm_paths(lm_params, workdir):
+    """Set paths in LM parameter dictionary under workdir"""
+    new = copy.deepcopy(lm_params)
+    new['filename'] = os.path.join(workdir, new['filename'])
+    if new.get('interpolate'):
+        new['interpolate'] = [[os.path.join(workdir, t[0]), t[1]] for t in new['interpolate']]
+    return new
+
+
 class CrossEntropyFilter(FilterABC):
     """Filtering based on language model scores"""
 
@@ -239,6 +249,7 @@ class CrossEntropyFilter(FilterABC):
     def __init__(self, lm_params=None, score_type='entropy',
                  thresholds=None, low_thresholds=None, diff_threshold=10.0,
                  score_for_empty=None, **kwargs):
+        super().__init__(**kwargs)
         if not lm_params:
             raise ConfigurationError("Language model configurations need to be defined")
         if any(param.get('segmentation', {}).get('type', 'char') != 'char' for param in lm_params):
@@ -246,13 +257,12 @@ class CrossEntropyFilter(FilterABC):
         if score_type not in self.score_types:
             raise ConfigurationError(f"Unknown score type {score_type}, should be one of {self.score_types}")
         self.score_type = score_type
-        self.lm_params = lm_params
+        self.lm_params = [join_workdir_to_lm_paths(params, self.workdir) for params in lm_params]
         self.lms = [get_lm(**params) for params in self.lm_params]
         self.thresholds = [50.0] * len(lm_params) if thresholds is None else thresholds
         self.low_thresholds = low_thresholds
         self.diff_threshold = diff_threshold
         self.score_for_empty = score_for_empty
-        super().__init__(**kwargs)
 
     def score(self, pairs):
         tokenizers = [LMTokenizer(**params) for params in self.lm_params]
@@ -290,6 +300,7 @@ class CrossEntropyDifferenceFilter(FilterABC):
     """
 
     def __init__(self, id_lm_params=None, nd_lm_params=None, thresholds=None, score_for_empty=False, **kwargs):
+        super().__init__(**kwargs)
         if not id_lm_params:
             raise ConfigurationError("In-domain language model configurations need to be defined")
         if not nd_lm_params:
@@ -300,13 +311,12 @@ class CrossEntropyDifferenceFilter(FilterABC):
             raise ConfigurationError("Only segmentation type supported currently is 'char'")
         if len(id_lm_params) != len(nd_lm_params):
             raise ConfigurationError("The number of in-domain and non-domain language models should match")
-        self.id_lm_params = id_lm_params
-        self.nd_lm_params = nd_lm_params
+        self.id_lm_params = [join_workdir_to_lm_paths(params, self.workdir) for params in id_lm_params]
+        self.nd_lm_params = [join_workdir_to_lm_paths(params, self.workdir) for params in nd_lm_params]
         self.id_lms = [get_lm(**params) for params in self.id_lm_params]
         self.nd_lms = [get_lm(**params) for params in self.nd_lm_params]
         self.thresholds = [0.0] * len(id_lm_params) if thresholds is None else thresholds
         self.score_for_empty = score_for_empty
-        super().__init__(**kwargs)
 
     @staticmethod
     def _get_ce(sent, model, tokenizer):
@@ -346,6 +356,7 @@ class LMClassifierFilter(FilterABC):
     """
 
     def __init__(self, labels=None, lm_params=None, thresholds=None, relative_score=False, **kwargs):
+        super().__init__(**kwargs)
         if labels is None:
             raise ConfigurationError("A list of correct labels needs to be defined")
         self.labels = labels
@@ -358,12 +369,13 @@ class LMClassifierFilter(FilterABC):
             if label not in lm_params:
                 raise ConfigurationError(f"A model to match label '{label}' not defined in lm_params")
         self.lms = {}
+        self.tokenizers = {}
         for key, params in lm_params.items():
             if params.get('segmentation', {}).get('type', 'char') != 'char':
                 raise ConfigurationError("Only segmentation type supported currently is 'char'")
-            self.lms[key] = get_lm(**params)
-        self.tokenizers = {key: LMTokenizer(**params) for key, params in lm_params.items()}
-        super().__init__(**kwargs)
+            params_with_paths = join_workdir_to_lm_paths(params, self.workdir)
+            self.lms[key] = get_lm(**params_with_paths)
+            self.tokenizers[key] = LMTokenizer(**params_with_paths)
 
     def classify(self, sentence):
         """Return a dictionary of classification probabilities for the sentence"""

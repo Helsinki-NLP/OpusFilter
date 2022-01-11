@@ -1,10 +1,11 @@
 """Corpus filtering"""
 
-import logging
-import string
-import math
 import difflib
 import itertools
+import logging
+import math
+import os
+import string
 from typing import Iterator, List, Tuple
 
 import regex
@@ -194,6 +195,7 @@ class LanguageIDFilter(FilterABC):
     def __init__(self, languages=None, id_method='langid', thresholds=None,
                  fasttext_model_path=None, langid_languages=None, cld2_options=None,
                  **kwargs):
+        super().__init__(**kwargs)
         if languages is None:
             raise ConfigurationError("A list of language codes needs to be defined")
         # fasttext options
@@ -203,7 +205,7 @@ class LanguageIDFilter(FilterABC):
         if id_method != 'fasttext' and fasttext_model_path:
             raise ConfigurationError("FastText language ID method was not choosen but fasttext "
                                      "path to model was set")
-        self.fasttext_model = fasttext.load_model(fasttext_model_path) \
+        self.fasttext_model = fasttext.load_model(os.path.join(self.workdir, fasttext_model_path)) \
             if id_method == 'fasttext' else None
         # langid options
         if id_method == 'langid':
@@ -226,7 +228,6 @@ class LanguageIDFilter(FilterABC):
         self.languages = languages
         self.id_method = id_method
         self.thresholds = [0] * len(self.languages) if thresholds is None else thresholds
-        super().__init__(**kwargs)
 
     def confidence(self, sentence: str, lan: str) -> float:
         """Return confidence of the identifier"""

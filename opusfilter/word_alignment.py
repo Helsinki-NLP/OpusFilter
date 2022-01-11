@@ -101,14 +101,14 @@ class WordAlignFilter(FilterABC):
 
     def __init__(self, src_threshold=0, tgt_threshold=0, priors=None, model=3,
                  src_tokenizer=None, tgt_tokenizer=None, score_for_empty=-100, **kwargs):
+        super().__init__(**kwargs)
         self.src_threshold = src_threshold
         self.tgt_threshold = tgt_threshold
         self.src_tokenizer = src_tokenizer
         self.tgt_tokenizer = tgt_tokenizer
-        self.priors = priors
+        self.priors = os.path.join(self.workdir, priors) if priors else None
         self.model = model
         self.score_for_empty = score_for_empty
-        super().__init__(**kwargs)
 
     def _with_empty_pairs(self, iterator, empty_pairs):
         """Append empty_pair_sentinel to the iterator positions indicated by empty_pairs"""

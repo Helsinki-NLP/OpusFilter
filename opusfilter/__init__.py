@@ -23,10 +23,16 @@ def grouper(iterable, num):
 
 
 class FilterABC(metaclass=abc.ABCMeta):
-    """Abstract base class for sentence pair filters"""
+    """Abstract base class for sentence pair filters
 
-    def __init__(self, name=None, **kwargs):
+    If the filter uses or creates any non-temporary files, they should
+    be located under workdir.
+
+    """
+
+    def __init__(self, name=None, workdir='', **kwargs):
         self.name = name
+        self.workdir = workdir
         self.kwargs = kwargs
         if kwargs:
             logging.warning("Ignoring extra keyword arguments: %s", kwargs)

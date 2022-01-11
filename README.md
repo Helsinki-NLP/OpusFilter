@@ -1222,8 +1222,9 @@ If the filter requires any parameters (e.g. score thresholds for the
 `accept` method), the class should implement also the `__init__`
 method.  Arbitrary keyword arguments should be accepted (with
 `**kwargs`), and the `__init__` method of the base class (`FilterABC`)
-should be called in the end with the remaining keyword arguments. The
-keyword argument `name` is reserved for giving names to the filters.
+should be called with the remaining keyword arguments. The keyword
+argument `name` is reserved for giving names to the filters and
+`workdir` for a location for non-temprary files.
 
 Based on the `score` and `accept` methods, the abstract class
 `FilterABC` implements the following three generators that take
@@ -1284,6 +1285,12 @@ steps:
             threshold: 0.5
           module: customfilter
 ```
+
+If a filter requires external resources files (e.g. for model
+parameters), or stores non-temporary files itself, they should be
+located in the path defined the attribute `workdir`. The
+implementation of the filter should join `workdir` with relative file
+paths using `os.path.join()`.
 
 ## Available preprocessors
 

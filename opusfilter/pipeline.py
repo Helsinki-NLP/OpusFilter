@@ -22,7 +22,7 @@ class FilterPipeline:
         self._chunksize = 100000
 
     @classmethod
-    def from_config(cls, config):
+    def from_config(cls, config, workdir=None):
         """Initilize filter pipeline from configuration dictionary"""
         pipeline = cls()
         for filt in config:
@@ -34,6 +34,8 @@ class FilterPipeline:
                 filter_cls = getattr(mod, name)
             else:
                 filter_cls = getattr(filtermodule, name)
+            if workdir:
+                attributes['workdir'] = workdir
             pipeline.filters.append(filter_cls(**attributes))
         return pipeline
 

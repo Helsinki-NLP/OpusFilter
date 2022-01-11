@@ -228,46 +228,6 @@ class OpusFilter:
         for fobj in files:
             fobj.close()
 
-    def fix_filter_file_paths(self, filter_params):
-        """Fix file paths in filter parameters"""
-        # Make a copy so that the original paths are not modified
-        fixed_params = copy.deepcopy(filter_params)
-        for fdict in fixed_params:
-            filter_name = next(iter(fdict.items()))[0]
-            if filter_name == 'WordAlignFilter' and 'priors' in fdict[filter_name]:
-                fdict[filter_name]['priors'] = os.path.join(
-                    self.output_dir, fdict[filter_name]['priors'])
-            elif filter_name in 'CrossEntropyFilter':
-                for idx, lm_params in enumerate(fdict[filter_name]['lm_params']):
-                    fdict[filter_name]['lm_params'][idx]['filename'] = os.path.join(
-                        self.output_dir, lm_params['filename'])
-                    if lm_params.get('interpolate'):
-                        for idx2 in range(len(lm_params['interpolate'])):
-                            fdict[filter_name]['lm_params'][idx]['interpolate'][idx2][0] = os.path.join(
-                                self.output_dir, lm_params['interpolate'][idx2][0])
-            elif filter_name in 'CrossEntropyDifferenceFilter':
-                for key in ['id_lm_params', 'nd_lm_params']:
-                    for idx, lm_params in enumerate(fdict[filter_name][key]):
-                        fdict[filter_name][key][idx]['filename'] = os.path.join(
-                            self.output_dir, lm_params['filename'])
-                        if lm_params.get('interpolate'):
-                            for idx2 in range(len(lm_params['interpolate'])):
-                                fdict[filter_name][key][idx]['interpolate'][idx2][0] = os.path.join(
-                                    self.output_dir, lm_params['interpolate'][idx2][0])
-            elif filter_name in 'LMClassifierFilter':
-                for key in fdict[filter_name]['lm_params'].keys():
-                    lm_params = fdict[filter_name]['lm_params'][key]
-                    fdict[filter_name]['lm_params'][key]['filename'] = os.path.join(
-                        self.output_dir, lm_params['filename'])
-                    if lm_params.get('interpolate'):
-                        for idx in range(len(lm_params['interpolate'])):
-                            fdict[filter_name]['lm_params'][key]['interpolate'][idx][0] = os.path.join(
-                                self.output_dir, lm_params['interpolate'][idx][0])
-            elif filter_name == 'LanguageIDFilter' and fdict[filter_name].get('fasttext_model_path'):
-                fdict[filter_name]['fasttext_model_path'] = os.path.join(
-                    self.output_dir, fdict[filter_name]['fasttext_model_path'])
-        return fixed_params
-
     def filter_data(self, parameters, overwrite=False):
         """Write sentences to file if they pass given filters"""
         outfiles = [os.path.join(self.output_dir, fname) for fname in parameters['outputs']]
@@ -277,8 +237,7 @@ class OpusFilter:
         if not overwrite and all(os.path.isfile(outfile) for outfile in outfiles):
             logger.info("Output files exists, skipping step")
             return
-        filter_params = self.fix_filter_file_paths(parameters['filters'])
-        filter_pipe = pipeline.FilterPipeline.from_config(filter_params)
+        filter_pipe = pipeline.FilterPipeline.from_config(parameters['filters'], workdir=self.output_dir)
         filter_pipe.chunksize = self.chunksize
         pairs_gen = self.pair_generator(*infiles)
         if parameters.get('filterfalse', False):
@@ -426,8 +385,7 @@ class OpusFilter:
         if not overwrite and os.path.isfile(score_out):
             logger.info("Output file exists, skipping step")
             return
-        filter_params = self.fix_filter_file_paths(parameters['filters'])
-        filter_pipe = pipeline.FilterPipeline.from_config(filter_params)
+        filter_pipe = pipeline.FilterPipeline.from_config(parameters['filters'], workdir=self.output_dir)
         filter_pipe.chunksize = self.chunksize
         scores_gen = filter_pipe.score(self.pair_generator(*infiles))
         self._write_jsonl(scores_gen, score_out)
