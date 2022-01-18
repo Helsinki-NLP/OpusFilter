@@ -41,6 +41,7 @@ def file_open(filename, mode='r', encoding='utf8'):
 
 
 def is_file_empty(filename):
+    """Return whether compressed or plain file is empty"""
     with file_open(filename) as fobj:
         data = fobj.read(1)
     return not data

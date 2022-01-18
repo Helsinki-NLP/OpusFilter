@@ -19,9 +19,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- added `workdir` attribute to the `FilterABC` base class and changed
+- add `workdir` attribute to the `FilterABC` base class and change
   that the filters should use it for any file parameters
-- increased default chunksize in FilterPipeline from 10000 to 100000
+- increase default chunksize in FilterPipeline from 10000 to 100000
+- refactor and clean up code
 
 ## [2.2.0] - 2021-11-23
 

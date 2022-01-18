@@ -68,7 +68,7 @@ def dict_set(key, value, dictionary):
             dictionary[first] = {}
         dictionary = dictionary[first]
 
-
+# pylint: disable=R0904
 class OpusFilter:
     """Apply filters to language data"""
 
@@ -228,6 +228,12 @@ class OpusFilter:
         for fobj in files:
             fobj.close()
 
+    @staticmethod
+    def _close_files(*files):
+        """Close multiple file objects"""
+        for fobj in files:
+            fobj.close()
+
     def filter_data(self, parameters, overwrite=False):
         """Write sentences to file if they pass given filters"""
         outfiles = [os.path.join(self.output_dir, fname) for fname in parameters['outputs']]
@@ -252,8 +258,7 @@ class OpusFilter:
                 fobj.flush()
             if limit and idx >= limit - 1:
                 break
-        for fobj in outfileobjs:
-            fobj.close()
+        self._close_files(*outfileobjs)
 
     def concatenate(self, parameters, overwrite=False):
         """Concatenate files"""
@@ -341,6 +346,7 @@ class OpusFilter:
         data_name = parameters['data']
         tokenizer = lm.LMTokenizer(**parameters['parameters'])
         with tempfile.NamedTemporaryFile('w+b', suffix='.seg.gz') as segfile:
+            num = 0
             with file_open(os.path.join(self.output_dir, data_name), 'r') as infile, \
                  file_open(os.path.join(self.output_dir, segfile.name), 'w') as outfile:
                 for num, line in enumerate(tqdm(infile)):
@@ -596,8 +602,8 @@ class OpusFilter:
                 for line in tmp:
                     outf.write(line)
 
-    @staticmethod
-    def _multipair_gen(lists_of_files):
+    @classmethod
+    def _multipair_gen(cls, lists_of_files):
         """Generator for lines in lists of parallel files"""
         infs = [[file_open(infile) for infile in infiles] for infiles in lists_of_files]
         lines = [[fobj.readline() for fobj in flist] for flist in infs]
@@ -605,8 +611,7 @@ class OpusFilter:
             yield lines
             lines = [[fobj.readline() for fobj in flist] for flist in infs]
         for folist in infs:
-            for fobj in folist:
-                fobj.close()
+            cls._close_files(*folist)
 
     def product(self, parameters, overwrite=False):
         """Sample a product of segments from lists of alternative files"""
@@ -644,6 +649,12 @@ class OpusFilter:
                 for fobj, line in zip(outfs, pair):
                     fobj.write(line)
 
+    @staticmethod
+    def _lines_to_files(lines, outfiles):
+        """Write Nth line to Nth output file"""
+        for idx, line in enumerate(lines):
+            outfiles[idx].write(line)
+
     def split(self, parameters, overwrite=False):
         """Split parallel files to two subsets"""
         outfiles = [os.path.join(self.output_dir, fname) for fname in parameters['outputs']]
@@ -671,18 +682,23 @@ class OpusFilter:
             total += 1
             if hasher.apply(lines) % divisor < threshold:
                 hits += 1
-                for idx, line in enumerate(lines):
-                    outfs[idx].write(line)
+                self._lines_to_files(lines, outfs)
             elif outfs_2:
-                for idx, line in enumerate(lines):
-                    outfs_2[idx].write(line)
+                self._lines_to_files(lines, outfs_2)
         logger.info("Split %d lines to %s (%.2f%%) and %d (%.2f%%) lines",
                     total, hits, 100 * hits / total, total - hits, 100 * (total - hits) / total)
-        for idx in range(len(infiles)):
-            infs[idx].close()
-            outfs[idx].close()
-            if outfs_2:
-                outfs_2[idx].close()
+        self._close_files(*infs)
+        self._close_files(*outfs)
+        if outfs_2:
+            self._close_files(*outfs_2)
+
+    @classmethod
+    def _hash_counter(cls, files, hasher):
+        """Collect hash values from segment pairs in files"""
+        infs = [file_open(infile) for infile in files]
+        counter = collections.Counter(hasher.apply(lines) for lines in tqdm(zip(*infs)))
+        cls._close_files(*infs)
+        return counter
 
     def remove_duplicates(self, parameters, overwrite=False):
         """Remove duplicates from parallel lines in files"""
@@ -704,10 +720,7 @@ class OpusFilter:
         outfs = [file_open(outfile, 'w') for outfile in outfiles]
         overlap = parameters.get('overlap', None)
         if overlap:
-            overlapfs = [file_open(infile) for infile in overlap]
-            overlap_counter = collections.Counter()
-            for lines in tqdm(zip(*overlapfs)):
-                overlap_counter[hasher.apply(lines)] += 1
+            overlap_counter = self._hash_counter(overlap, hasher)
             logger.info("Collected %s types from %s tokens", len(overlap_counter), sum(overlap_counter.values()))
         counter = collections.Counter()
         removed_entries = 0
@@ -725,14 +738,12 @@ class OpusFilter:
                 if counter[key] > 1:
                     removed_entries += 1
                     continue
-            for idx, line in enumerate(lines):
-                outfs[idx].write(line)
+            self._lines_to_files(lines, outfs)
         logger.info("Removed %d / %d = %.2f%% duplicate lines (duplicate types: %d)",
                     removed_entries, total, 100 * removed_entries / total if total > 0 else 0,
                     sum(1 for c in counter.values() if c > 1))
-        for idx in range(len(infiles)):
-            infs[idx].close()
-            outfs[idx].close()
+        self._close_files(*infs)
+        self._close_files(*outfs)
 
     def unzip(self, parameters, overwrite=False):
         """Unzip parallel segments joined in a single file into multiple files"""
@@ -767,8 +778,7 @@ class OpusFilter:
             for item, fobj in zip(pair, outfileobjs):
                 fobj.write(item + '\n')
                 fobj.flush()
-        for fobj in outfileobjs:
-            fobj.close()
+        self._close_files(*outfileobjs)
 
     def download_file(self, parameters, overwrite=False):
         """Download file"""

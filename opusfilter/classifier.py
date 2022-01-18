@@ -3,6 +3,7 @@
 import json
 import logging
 import collections
+import functools
 import math
 import scipy.optimize
 
@@ -303,8 +304,60 @@ class TrainClassifier:
         initial = np.array(initial)
         return features, bounds, initial
 
-    def find_best_model(self, criterion_name, algorithm='default', options=None):
-        """Find the model with the best AIC / BIC / SSE / CE / ROC_AUC"""
+    def _cost(self, qvector, features, criterion):
+        """Return cost of qvector for given features and criterion"""
+        best_quantiles = dict(zip(features, qvector))
+        logger.info('Training logistic regression model with quantiles:\n%s',
+                    '\n'.join(f'* {t[0]}: {t[1]}' for t in best_quantiles.items()))
+        if any(q == 0 for q in best_quantiles.values()):
+            # Remove unused features
+            df_train_copy = self.df_training_data.copy()
+            if self.dev_data is not None:
+                df_dev_copy = self.dev_data.copy()
+            active = set(features)
+            for key, value in best_quantiles.items():
+                if value == 0:
+                    df_train_copy.pop(key)
+                    if self.dev_data is not None:
+                        df_dev_copy.pop(key)
+                    active.remove(key)
+        else:
+            df_train_copy = self.df_training_data
+            df_dev_copy = self.dev_data
+            active = set(features)
+
+        cutoffs = self.get_cutoffs(df_train_copy, best_quantiles, active)
+        labels = self.get_labels(df_train_copy, cutoffs)
+        counts = collections.Counter(labels)
+        logger.info("Label counts in data: %s", counts)
+        if len(counts) > 1:
+            classifier = self.train_classifier(df_train_copy, labels)
+            if criterion['dev']:
+                crit_value = criterion['func'](classifier, df_dev_copy)
+            else:
+                crit_value = criterion['func'](classifier, df_train_copy, labels)
+        else:
+            crit_value = np.inf if criterion['best'] == 'low' else -np.inf
+
+        logger.info('Model criterion value: %s', crit_value)
+        return crit_value if criterion['best'] == 'low' else -crit_value
+
+    def _prune_datasets(self, quantiles, features):
+        """Return datasets without features that have zero value in quantiles"""
+        df_train_copy = self.df_training_data.copy()
+        if self.dev_data is not None:
+            df_dev_copy = self.dev_data.copy()
+        active = set(features)
+        for key, value in quantiles.items():
+            if value == 0:
+                df_train_copy.pop(key)
+                if self.dev_data is not None:
+                    df_dev_copy.pop(key)
+                active.remove(key)
+        return df_train_copy, df_dev_copy, active
+
+    def _get_criterion(self, name):
+        """Return function and specifications for optimization criterion"""
         criteria = {
             'AIC': {'func': self.get_aic, 'best': 'low', 'dev': False},
             'BIC': {'func': self.get_bic, 'best': 'low', 'dev': False},
@@ -312,53 +365,15 @@ class TrainClassifier:
             'CE': {'func': self.get_ce, 'best': 'low', 'dev': False},
             'ROC_AUC': {'func': self.get_roc_auc, 'best': 'high', 'dev': True}
         }
-
-        if criterion_name not in criteria:
+        if name not in criteria:
             raise ValueError(f'Invalid criterion. Expected one of: {", ".join(criteria)}')
-        criterion = criteria[criterion_name]
+        return criteria[name]
 
-        features, bounds, initial = self._load_feature_bounds_and_init(
-            self.feature_config)
-        cutoffs = {key: None for key in features}
-
-        def cost(qvector):
-            best_quantiles = dict(zip(features, qvector))
-            logger.info('Training logistic regression model with quantiles:\n%s',
-                        '\n'.join(f'* {t[0]}: {t[1]}' for t in best_quantiles.items()))
-            if any(q == 0 for q in best_quantiles.values()):
-                # Remove unused features
-                df_train_copy = self.df_training_data.copy()
-                if self.dev_data is not None:
-                    df_dev_copy = self.dev_data.copy()
-                active = set(features)
-                for key, value in best_quantiles.items():
-                    if value == 0:
-                        df_train_copy.pop(key)
-                        if self.dev_data is not None:
-                            df_dev_copy.pop(key)
-                        active.remove(key)
-            else:
-                df_train_copy = self.df_training_data
-                df_dev_copy = self.dev_data
-                active = set(features)
-
-            cutoffs = self.get_cutoffs(
-                df_train_copy, best_quantiles, active)
-            labels = self.get_labels(df_train_copy, cutoffs)
-            counts = collections.Counter(labels)
-            logger.info("Label counts in data: %s", counts)
-            if len(counts) > 1:
-                classifier = self.train_classifier(df_train_copy, labels)
-                if criterion['dev']:
-                    crit_value = criterion['func'](classifier, df_dev_copy)
-                else:
-                    crit_value = criterion['func'](classifier, df_train_copy, labels)
-            else:
-                crit_value = np.inf if criterion['best'] == 'low' else -np.inf
-
-            logger.info('Model %s: %s', criterion_name, crit_value)
-            return crit_value if criterion['best'] == 'low' else -crit_value
-
+    def find_best_model(self, criterion_name, algorithm='default', options=None):
+        """Find the model with the best AIC / BIC / SSE / CE / ROC_AUC"""
+        criterion = self._get_criterion(criterion_name)
+        features, bounds, initial = self._load_feature_bounds_and_init(self.feature_config)
+        cost = functools.partial(self._cost, features=features, criterion=criterion)
         if options is None:
             options = {}
         if algorithm == 'none':
@@ -366,33 +381,17 @@ class TrainClassifier:
             best_quantiles = dict(zip(features, initial))
         elif algorithm == 'default':
             # Default local search with multiplicative updates
-            res = self.default_search(cost, initial, bounds=bounds, **options)
-            best_quantiles = dict(zip(features, res))
+            best_quantiles = dict(zip(features, self.default_search(cost, initial, bounds=bounds, **options)))
         else:
             # Use optimization algorithm from scipy
-            res = scipy.optimize.minimize(
-                cost, initial, method=algorithm, bounds=bounds, options=options)
-            best_quantiles = dict(zip(features, res.x))
-
-        df_train_copy = self.df_training_data.copy()
-        if self.dev_data is not None:
-            df_dev_copy = self.dev_data.copy()
-        active = set(features)
-        for key, value in best_quantiles.items():
-            if value == 0:
-                df_train_copy.pop(key)
-                if self.dev_data is not None:
-                    df_dev_copy.pop(key)
-                active.remove(key)
-        cutoffs = self.get_cutoffs(
-            df_train_copy, best_quantiles, active)
-        labels = self.get_labels(df_train_copy, cutoffs)
+            best_quantiles = dict(zip(features, scipy.optimize.minimize(
+                cost, initial, method=algorithm, bounds=bounds, options=options).x))
+        df_train_copy, df_dev_copy, active = self._prune_datasets(best_quantiles, features)
+        labels = self.get_labels(df_train_copy, self.get_cutoffs(df_train_copy, best_quantiles, active))
         classifier = self.train_classifier(df_train_copy, labels)
         if criterion['dev']:
-            crit_value = criterion['func'](classifier, df_dev_copy)
-        else:
-            crit_value = criterion['func'](classifier, df_train_copy, labels)
-        return classifier, crit_value, best_quantiles
+            return classifier, criterion['func'](classifier, df_dev_copy), best_quantiles
+        return classifier, criterion['func'](classifier, df_train_copy, labels), best_quantiles
 
     @staticmethod
     def default_search(costfunc, initial, bounds=None, step_coef=1.25):

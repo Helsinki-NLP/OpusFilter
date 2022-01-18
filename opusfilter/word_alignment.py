@@ -72,11 +72,19 @@ def _run_eflomal_priors(input_file, scores_fwd_file, scores_rev_file, priors_fil
     return subprocess.run(command.split(), check=True)
 
 
+def eflomal_to_opusfilter_scores(scores_fwd_file, scores_rev_file, output_score_file):
+    """Write OpusFilter score file (JSONLines) from eflomal score files"""
+    with file_open(output_score_file, 'w') as fobj:
+        for score1, score2 in zip(scores_fwd_file, scores_rev_file):
+            obj = {WordAlignFilter.__name__: [float(score1.strip()), float(score2.strip())]}
+            fobj.write(json.dumps(obj, sort_keys=True) + '\n')
+
+
 def make_priors(sentence_pairs, priors_file, model=3, score_file=None):
     """Create alignment priors from clean sentence pairs"""
     input_file, _, _, num = create_align_input_file(sentence_pairs)
     if num == 0:
-        raise OpusFilterRuntimeError(f"No training data available for word alignment priors")
+        raise OpusFilterRuntimeError("No training data available for word alignment priors")
     with tempfile.NamedTemporaryFile('w+') as fwd_file, tempfile.NamedTemporaryFile('w+') as rev_file, \
          tempfile.NamedTemporaryFile('w+') as scores_fwd_file, tempfile.NamedTemporaryFile('w+') as scores_rev_file:
         process = _run_eflomal_align(
@@ -85,10 +93,7 @@ def make_priors(sentence_pairs, priors_file, model=3, score_file=None):
             scores_rev_file=scores_rev_file.name if score_file else None)
         process.check_returncode()
         if score_file:
-            with file_open(score_file, 'w') as fobj:
-                for score1, score2 in zip(scores_fwd_file, scores_rev_file):
-                    obj = {WordAlignFilter.__name__: [float(score1.strip()), float(score2.strip())]}
-                    fobj.write(json.dumps(obj, sort_keys=True) + '\n')
+            eflomal_to_opusfilter_scores(scores_fwd_file, scores_rev_file, score_file)
         process = _run_eflomal_priors(input_file.name, fwd_file.name, rev_file.name, priors_file)
         process.check_returncode()
         input_file.close()
@@ -160,6 +165,7 @@ class WordAlignFilter(FilterABC):
         return score[0] < self.src_threshold and score[1] < self.tgt_threshold
 
     def _filtergen(self, pairs, filterfalse=False, decisions=False):
+        """Filter or yield decisions for filtering"""
         input_file, raw_file, empty_pairs, _ = create_align_input_file(
             pairs, src_tokenizer=self.src_tokenizer, tgt_tokenizer=self.tgt_tokenizer)
         with tempfile.NamedTemporaryFile('w+') as scores_fwd_file, \
@@ -175,15 +181,8 @@ class WordAlignFilter(FilterABC):
             output_file.seek(0)
             scores_fwd_file.seek(0)
             scores_rev_file.seek(0)
-            for item in self._with_empty_pairs(
-                    zip(output_file, scores_fwd_file, scores_rev_file), empty_pairs):
-                if item == self._empty_pair_sentinel:
-                    score = [self.score_for_empty, self.score_for_empty]
-                    sent1, sent2 = '', ''
-                else:
-                    pair, line1, line2 = item
-                    score = [float(line1.strip()), float(line2.strip())]
-                    sent1, sent2 = pair.strip().split(' ||| ')
+            for sent1, sent2, score in self._get_segments_and_score(
+                    output_file, scores_fwd_file, scores_rev_file, empty_pairs):
                 if decisions:
                     yield self.accept(score)
                 elif bool(filterfalse) != bool(self.accept(score)):
@@ -191,6 +190,19 @@ class WordAlignFilter(FilterABC):
             if raw_file:
                 raw_file.close()
             input_file.close()
+
+    def _get_segments_and_score(self, output_file, scores_fwd_file, scores_rev_file, empty_pairs):
+        """Combine input segments and scores with separately collected empty input pairs"""
+        for item in self._with_empty_pairs(
+                zip(output_file, scores_fwd_file, scores_rev_file), empty_pairs):
+            if item == self._empty_pair_sentinel:
+                score = [self.score_for_empty, self.score_for_empty]
+                sent1, sent2 = '', ''
+            else:
+                pair, line1, line2 = item
+                score = [float(line1.strip()), float(line2.strip())]
+                sent1, sent2 = pair.strip().split(' ||| ')
+            yield sent1, sent2, score
 
     def filter(self, pairs):
         return self._filtergen(pairs, decisions=False, filterfalse=False)
