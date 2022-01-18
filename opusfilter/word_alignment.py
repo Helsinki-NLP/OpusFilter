@@ -6,7 +6,7 @@ import os
 import subprocess
 import tempfile
 
-from . import FilterABC
+from . import FilterABC, OpusFilterRuntimeError
 from . import tokenization
 from .util import file_open
 
@@ -26,6 +26,7 @@ def create_align_input_file(sentence_pairs, src_tokenizer=None, tgt_tokenizer=No
     inputfile = tempfile.NamedTemporaryFile('w+')  # pylint: disable=R1732
     rawfile = tempfile.NamedTemporaryFile('w+') if src_tokenizer or tgt_tokenizer else None  # pylint: disable=R1732
     empty = []
+    n_non_empty = 0
     for idx, pair in enumerate(sentence_pairs):
         if len(pair) != 2:
             raise ValueError("Only bilingual input supported by WordAlignFilter")
@@ -36,11 +37,12 @@ def create_align_input_file(sentence_pairs, src_tokenizer=None, tgt_tokenizer=No
         if rawfile:
             rawfile.write(f'{sent1} ||| {sent2}\n')
         inputfile.write(f'{src_tokenize(sent1)} ||| {tgt_tokenize(sent2)}\n')
+        n_non_empty += 1
     if rawfile:
         rawfile.flush()
     inputfile.flush()
     empty.reverse()
-    return inputfile, rawfile, empty
+    return inputfile, rawfile, empty, n_non_empty
 
 
 def _run_eflomal_align(input_file, fwd_file, rev_file, model=3, priors=None,
@@ -72,7 +74,9 @@ def _run_eflomal_priors(input_file, scores_fwd_file, scores_rev_file, priors_fil
 
 def make_priors(sentence_pairs, priors_file, model=3, score_file=None):
     """Create alignment priors from clean sentence pairs"""
-    input_file, _, _ = create_align_input_file(sentence_pairs)
+    input_file, _, _, num = create_align_input_file(sentence_pairs)
+    if num == 0:
+        raise OpusFilterRuntimeError(f"No training data available for word alignment priors")
     with tempfile.NamedTemporaryFile('w+') as fwd_file, tempfile.NamedTemporaryFile('w+') as rev_file, \
          tempfile.NamedTemporaryFile('w+') as scores_fwd_file, tempfile.NamedTemporaryFile('w+') as scores_rev_file:
         process = _run_eflomal_align(
@@ -132,7 +136,7 @@ class WordAlignFilter(FilterABC):
             idx += 1
 
     def score(self, pairs):
-        input_file, raw_file, empty_pairs = create_align_input_file(
+        input_file, raw_file, empty_pairs, _ = create_align_input_file(
             pairs, src_tokenizer=self.src_tokenizer, tgt_tokenizer=self.tgt_tokenizer)
         if raw_file:
             raw_file.close()
@@ -156,7 +160,7 @@ class WordAlignFilter(FilterABC):
         return score[0] < self.src_threshold and score[1] < self.tgt_threshold
 
     def _filtergen(self, pairs, filterfalse=False, decisions=False):
-        input_file, raw_file, empty_pairs = create_align_input_file(
+        input_file, raw_file, empty_pairs, _ = create_align_input_file(
             pairs, src_tokenizer=self.src_tokenizer, tgt_tokenizer=self.tgt_tokenizer)
         with tempfile.NamedTemporaryFile('w+') as scores_fwd_file, \
                 tempfile.NamedTemporaryFile('w+') as scores_rev_file:

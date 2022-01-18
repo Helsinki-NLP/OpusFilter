@@ -17,7 +17,7 @@ from tqdm import tqdm
 
 from opustools import OpusRead
 
-from . import ConfigurationError
+from . import ConfigurationError, OpusFilterRuntimeError
 from . import pipeline
 from . import lm
 from . import word_alignment
@@ -343,9 +343,11 @@ class OpusFilter:
         with tempfile.NamedTemporaryFile('w+b', suffix='.seg.gz') as segfile:
             with file_open(os.path.join(self.output_dir, data_name), 'r') as infile, \
                  file_open(os.path.join(self.output_dir, segfile.name), 'w') as outfile:
-                for line in tqdm(infile):
+                for num, line in enumerate(tqdm(infile)):
                     tokens = tokenizer.tokenize(line.strip())
                     outfile.write(' '.join(tokens) + '\n')
+            if num == 0:
+                raise OpusFilterRuntimeError(f"No training data available in {data_name}")
             lm.train(os.path.join(self.output_dir, segfile.name), model_out,
                      **parameters['parameters'])
 

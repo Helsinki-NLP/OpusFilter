@@ -40,6 +40,12 @@ def file_open(filename, mode='r', encoding='utf8'):
     return open(filename, mode=mode, encoding=encoding)  # pylint: disable=R1732
 
 
+def is_file_empty(filename):
+    with file_open(filename) as fobj:
+        data = fobj.read(1)
+    return not data
+
+
 def file_download(url, localfile=None, chunk_size=None):
     """Download file from URL to a local file"""
     if localfile is None:

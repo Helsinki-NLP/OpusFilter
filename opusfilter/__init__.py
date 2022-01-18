@@ -8,8 +8,16 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class ConfigurationError(Exception):
-    """Configuration error for filters"""
+class OpusFilterError(Exception):
+    """OpusFilter error"""
+
+
+class ConfigurationError(OpusFilterError):
+    """Configuration error for OpusFilter"""
+
+
+class OpusFilterRuntimeError(OpusFilterError):
+    """Runtime error for OpusFilter"""
 
 
 def grouper(iterable, num):

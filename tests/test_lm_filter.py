@@ -5,12 +5,31 @@ import os
 import tempfile
 import unittest
 
-from opusfilter import lm
+from opusfilter import lm, OpusFilterRuntimeError
+
 
 try:
     import varikn
 except ImportError:
     logging.warning("Could not load varikn, language model filtering not supported")
+
+
+
+@unittest.skipIf('varikn' not in globals(), 'varikn package not installed')
+class TestLMTrain(unittest.TestCase):
+
+    def test_train(self):
+        with tempfile.NamedTemporaryFile('w+') as lmdatafile, tempfile.NamedTemporaryFile('w+') as lmfile:
+            for line in range(10):
+                lmdatafile.write('<s> <w> %s</s>\n' % ('a b <w> ' * (line + 1)))
+            lmdatafile.seek(0)
+            lm.train(lmdatafile.name, lmfile.name)
+            self.assertGreater(len(lmfile.readlines()), 40)
+
+    def test_train_empty(self):
+        with self.assertRaises(OpusFilterRuntimeError):
+            with tempfile.NamedTemporaryFile('w+') as lmdatafile, tempfile.NamedTemporaryFile('w+') as lmfile:
+                lm.train(lmdatafile.name, lmfile.name)
 
 
 @unittest.skipIf('varikn' not in globals(), 'varikn package not installed')

@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- new OpusFilterRuntimeError exception for having e.g. empty training data
 - option to save scores from the training data when creating word aligment priors
 - RepetitionFilter for filtering segments with repeated substrings
 - new preprocessor for sentence splitting monolingual data

@@ -9,7 +9,8 @@ import math
 import os
 import tempfile
 
-from . import FilterABC, ConfigurationError
+from . import FilterABC, ConfigurationError, OpusFilterRuntimeError
+from .util import is_file_empty
 
 
 logger = logging.getLogger(__name__)
@@ -56,6 +57,8 @@ def train(datafile, outputfile, **kwargs):
     For details of the algorithm, see :cite:`siivola-etal-2007-growing`
 
     """
+    if is_file_empty(datafile):
+        raise OpusFilterRuntimeError(f"No training data available in {datafile}")
     # pylint: disable=E1101
     args = argparse.Namespace()
     for key, default in _VARIKN_TRAINING_PARAMS.items():
