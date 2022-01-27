@@ -311,20 +311,9 @@ class TrainClassifier:
                     '\n'.join(f'* {t[0]}: {t[1]}' for t in best_quantiles.items()))
         if any(q == 0 for q in best_quantiles.values()):
             # Remove unused features
-            df_train_copy = self.df_training_data.copy()
-            if self.dev_data is not None:
-                df_dev_copy = self.dev_data.copy()
-            active = set(features)
-            for key, value in best_quantiles.items():
-                if value == 0:
-                    df_train_copy.pop(key)
-                    if self.dev_data is not None:
-                        df_dev_copy.pop(key)
-                    active.remove(key)
+            df_train_copy, df_dev_copy, active = self._prune_datasets(best_quantiles, features)
         else:
-            df_train_copy = self.df_training_data
-            df_dev_copy = self.dev_data
-            active = set(features)
+            df_train_copy, df_dev_copy, active = self.df_training_data, self.dev_data, set(features)
 
         cutoffs = self.get_cutoffs(df_train_copy, best_quantiles, active)
         labels = self.get_labels(df_train_copy, cutoffs)
@@ -345,8 +334,7 @@ class TrainClassifier:
     def _prune_datasets(self, quantiles, features):
         """Return datasets without features that have zero value in quantiles"""
         df_train_copy = self.df_training_data.copy()
-        if self.dev_data is not None:
-            df_dev_copy = self.dev_data.copy()
+        df_dev_copy = self.dev_data.copy() if self.dev_data is not None else None
         active = set(features)
         for key, value in quantiles.items():
             if value == 0:
