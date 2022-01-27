@@ -68,6 +68,7 @@ def dict_set(key, value, dictionary):
             dictionary[first] = {}
         dictionary = dictionary[first]
 
+
 # pylint: disable=R0904
 class OpusFilter:
     """Apply filters to language data"""
