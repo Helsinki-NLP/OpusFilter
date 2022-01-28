@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.1] - 2022-01-28
+
 ### Fixed
 
 - fix bug in classifier training without development set
@@ -105,7 +107,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 First tagged version.
 
 
-[Unreleased]: https://github.com/Helsinki-NLP/OpusFilter/compare/2.3.0...develop
+[Unreleased]: https://github.com/Helsinki-NLP/OpusFilter/compare/2.3.1...develop
+[2.3.1]: https://github.com/Helsinki-NLP/OpusFilter/compare/2.3.0...2.3.1
 [2.3.0]: https://github.com/Helsinki-NLP/OpusFilter/compare/2.2.0...2.3.0
 [2.2.0]: https://github.com/Helsinki-NLP/OpusFilter/compare/2.1.2...2.2.0
 [2.1.2]: https://github.com/Helsinki-NLP/OpusFilter/compare/2.1.1...2.1.2
