@@ -6,9 +6,9 @@ import logging
 
 from tqdm import tqdm
 
-from . import grouper
 from . import filters as filtermodule
 from . import preprocessors as preprocessmodule
+from .util import grouper
 
 
 logger = logging.getLogger(__name__)

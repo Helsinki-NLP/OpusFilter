@@ -10,6 +10,73 @@ from opusfilter.filters import *
 from opusfilter.util import file_download
 
 
+class TestLengthFilter(unittest.TestCase):
+
+    def test_words(self):
+        testfilter = LengthFilter(2, 3, 'word')
+        cases = [['a'], ['a dog'], ['a dog went out']]
+        expected = [([1], False), ([2], True), ([4], False)]
+        results = [(x, testfilter.accept(x)) for x in testfilter.score(cases)]
+        for result, correct in zip(results, expected):
+            self.assertSequenceEqual(result, correct)
+
+    def test_chars(self):
+        testfilter = LengthFilter(4, 10, 'character')
+        cases = [['a'], ['a dog'], ['a dog went out']]
+        expected = [([1], False), ([5], True), ([14], False)]
+        results = [(x, testfilter.accept(x)) for x in testfilter.score(cases)]
+        for result, correct in zip(results, expected):
+            self.assertSequenceEqual(result, correct)
+
+    def test_chars_bilingual(self):
+        testfilter = LengthFilter([6, 8], [18, 15], 'char')
+        cases = [['table', 'pyödällä'], ['kitchen table', 'keittiöpöydällä'], ['on the kitchen table', 'keittiöpöydällä']]
+        expected = [([5, 8], False), ([13, 15], True), ([20, 15], False)]
+        results = [(x, testfilter.accept(x)) for x in testfilter.score(cases)]
+        for result, correct in zip(results, expected):
+            self.assertSequenceEqual(result, correct)
+
+    def test_mixed_bilingual(self):
+        testfilter = LengthFilter([2, 8], [4, 15], ['word', 'char'])
+        cases = [['table', 'pyödällä'], ['kitchen table', 'keittiöpöydällä'], ['on the kitchen table', 'keittiöpöydällä']]
+        expected = [([1, 8], False), ([2, 15], True), ([4, 15], True)]
+        results = [(x, testfilter.accept(x)) for x in testfilter.score(cases)]
+        for result, correct in zip(results, expected):
+            self.assertSequenceEqual(result, correct)
+
+
+class TestLengthRatioFilter(unittest.TestCase):
+
+    def test_chars_bilingual(self):
+        testfilter = LengthRatioFilter(2, 'char')
+        cases = [['table', 'keittiöpyödällä'], ['kitchen table', 'keittiöpöydällä'], ['on the kitchen table', 'keittiöpöydällä']]
+        expected = [(len(cases[0][1]) / len(cases[0][0]), False),
+                    (len(cases[1][1]) / len(cases[1][0]), True),
+                    (len(cases[2][0]) / len(cases[2][1]), True)]
+        results = [(x, testfilter.accept(x)) for x in testfilter.score(cases)]
+        for result, correct in zip(results, expected):
+            self.assertSequenceEqual(result, correct)
+
+    def test_mixed_bilingual(self):
+        testfilter = LengthRatioFilter(2, ['word', 'char'])
+        cases = [['table', '桌'], ['table', '厨房的桌子'], ['kitchen table', '厨房的桌子'], ['on the kitchen table', '在厨房的桌子上']]
+        expected = [(1, True), (5, False), (2.5, False), (7 / 4, True)]
+        results = [(x, testfilter.accept(x)) for x in testfilter.score(cases)]
+        for result, correct in zip(results, expected):
+            self.assertSequenceEqual(result, correct)
+
+
+class TestLongWordFilter(unittest.TestCase):
+
+    def test_bilingual(self):
+        testfilter = LongWordFilter(10)
+        cases = [['a bbbbb bbbbbbb', 'c d'], ['aa bbbbbbbbbb', 'c dd e'], ['a bbb aa', 'c ddddddddddd ee'], ['', '']]
+        expected = [([7, 1], True), ([10, 2], False), ([3, 11], False), ([0, 0], True)]
+        results = [(x, testfilter.accept(x)) for x in testfilter.score(cases)]
+        for result, correct in zip(results, expected):
+            self.assertSequenceEqual(result, correct)
+
+
 class TestLongestCommonSubstringFilter(unittest.TestCase):
 
     bi_inputs = [('abcd', 'abcd'), ('abcd', 'efgh'), ('abcd', 'cdgh'), ('abcd', ''), ('', ''),
