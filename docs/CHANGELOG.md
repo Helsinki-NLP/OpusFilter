@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- allow per-language parameters for LengthFilter, LengthRatioFilter, LongWordFilter, and AverageWordLengthFilter
+
 ## [2.3.1] - 2022-01-28
 
 ### Fixed

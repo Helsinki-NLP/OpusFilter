@@ -16,6 +16,7 @@ import fasttext
 
 from . import FilterABC, ConfigurationError
 from .lm import CrossEntropyFilter, CrossEntropyDifferenceFilter, LMClassifierFilter  # pylint: disable=W0611 # noqa: F401
+from .util import check_args_compability
 from .word_alignment import WordAlignFilter  # pylint: disable=W0611 # noqa: F401
 
 
@@ -26,47 +27,49 @@ class LengthFilter(FilterABC):
     """Sentence length filter"""
 
     def __init__(self, min_length=1, max_length=100, unit='word', pass_empty=False, **kwargs):
-        if unit not in ('word', 'char', 'character'):
-            raise ConfigurationError(
-                f"Unit has to be either 'word', 'char', or 'character', not '{unit}'")
+        min_length, max_length, unit = check_args_compability(
+            min_length, max_length, unit,
+            required_types=[int, int, str],
+            choices=[None, None, ('word', 'char', 'character')],
+            names=['min_length', 'max_length', 'unit'])
         self.min_length = min_length
         self.max_length = max_length
         self.unit = unit
         self.pass_empty = pass_empty
         super().__init__(**kwargs)
 
+    def get_length(self, segment, idx):
+        if self.unit[idx] == 'word':
+            return len(segment.split())
+        return len(segment)
+
     def score(self, pairs):
         for pair in pairs:
-            if self.unit == 'word':
-                lengths = [len(sent.split()) for sent in pair]
-            else:
-                lengths = [len(sent) for sent in pair]
-            yield lengths
+            yield [self.get_length(segment, idx) for idx, segment in enumerate(pair)]
 
     def accept(self, score):
         if self.pass_empty and sum(score) == 0:
             return True
-        return all(self.min_length <= length <= self.max_length for length in score)
+        return all(self.min_length[idx] <= length <= self.max_length[idx] for idx, length in enumerate(score))
 
 
 class LengthRatioFilter(FilterABC):
     """Character length ratio"""
 
     def __init__(self, threshold=3, unit='word', **kwargs):
-        if unit not in ('word', 'char', 'character'):
-            raise ConfigurationError(
-                f"Unit has to be either 'word', 'char', or 'character', not '{unit}'")
         self.threshold = threshold
-        self.unit = unit
+        self.unit = check_args_compability(
+            unit, required_types=[str], choices=[('word', 'char', 'character')], names=['unit'])
         super().__init__(**kwargs)
+
+    def get_length(self, segment, idx):
+        if self.unit[idx] == 'word':
+            return len(segment.split())
+        return len(segment)
 
     def score(self, pairs):
         for pair in pairs:
-            if self.unit == 'word':
-                lengths = [len(sent.split()) for sent in pair]
-            else:
-                lengths = [len(sent) for sent in pair]
-            lengths.sort()
+            lengths = sorted(self.get_length(segment, idx) for idx, segment in enumerate(pair))
             if lengths[0] == 0:
                 if lengths[-1] == 0:
                     yield 0
@@ -83,19 +86,15 @@ class LongWordFilter(FilterABC):
     """Word length filter"""
 
     def __init__(self, threshold=40, **kwargs):
-        self.threshold = threshold
+        self.threshold = check_args_compability(threshold, required_types=[int], names=['threshold'])
         super().__init__(**kwargs)
 
     def score(self, pairs):
         for pair in pairs:
-            longest = 0
-            for word in (word for sent in pair for word in sent.split()):
-                if len(word) > longest:
-                    longest = len(word)
-            yield longest
+            yield [max((len(word) for word in segment.split()), default=0) for segment in pair]
 
     def accept(self, score):
-        return score < self.threshold
+        return all(length < self.threshold[idx] for idx, length in enumerate(score))
 
 
 class AverageWordLengthFilter(FilterABC):
@@ -107,6 +106,8 @@ class AverageWordLengthFilter(FilterABC):
     """
 
     def __init__(self, min_length=2, max_length=20, pass_empty=False, **kwargs):
+        min_length, max_length = check_args_compability(
+            min_length, max_length, required_types=[int, int], names=['min_length', 'max_length'])
         self.min_length = min_length
         self.max_length = max_length
         self.pass_empty = pass_empty
@@ -126,7 +127,7 @@ class AverageWordLengthFilter(FilterABC):
     def accept(self, score):
         if self.pass_empty and sum(score) == 0:
             return True
-        return all(self.min_length <= length <= self.max_length for length in score)
+        return all(self.min_length[idx] <= length <= self.max_length[idx] for idx, length in enumerate(score))
 
 
 class HtmlTagFilter(FilterABC):

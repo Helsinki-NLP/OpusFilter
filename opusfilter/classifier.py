@@ -13,8 +13,7 @@ from pandas import json_normalize
 import sklearn.linear_model
 from sklearn.metrics import accuracy_score, confusion_matrix, roc_auc_score, log_loss
 
-from . import grouper
-from .util import file_open
+from .util import grouper, file_open
 
 logger = logging.getLogger(__name__)
 

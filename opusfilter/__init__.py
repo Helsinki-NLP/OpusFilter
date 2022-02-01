@@ -1,7 +1,6 @@
 """Opusfilter package"""
 
 import abc
-import itertools
 import logging
 
 
@@ -18,16 +17,6 @@ class ConfigurationError(OpusFilterError):
 
 class OpusFilterRuntimeError(OpusFilterError):
     """Runtime error for OpusFilter"""
-
-
-def grouper(iterable, num):
-    """Split data into fixed-length chunks"""
-    iterable = iter(iterable)
-    while True:
-        chunk = tuple(itertools.islice(iterable, num))
-        if not chunk:
-            return
-        yield chunk
 
 
 class FilterABC(metaclass=abc.ABCMeta):

@@ -937,6 +937,10 @@ Returned scores are lengths for the source and target segment. In
 filtering, all segments have to be between the minimum and maximum
 length thresholds.
 
+Any of the `min_length`, `max_length`, and `unit` parameters can also
+be given as lists, in which case Nth entry in the list is applied to
+the Nth of the parallel input segments.
+
 #### `LengthRatioFilter`
 
 Filtering based on ratio of the segment lengths.
@@ -949,6 +953,9 @@ Parameters:
 Returned score is the higher length divided by the lower length, or
 infinity of either of the lengths are zero. In filtering, segment
 pairs is accepted of the ratio is below the given threshold.
+
+In order to use different units per language, the `unit` parameter can
+also be given as a list.
 
 #### `AverageWordLengthFilter`
 
@@ -964,6 +971,10 @@ Returned scores are average words lengths for the segments. In
 filtering, all segments have to be between the minimum and maximum
 length thresholds.
 
+The `min_length` and `max_length` parameters can also be given as
+lists, in which case Nth entry in the list is applied to the Nth of
+the parallel input segments.
+
 #### `LongWordFilter`
 
 Filtering based on maximum word length.
@@ -974,6 +985,9 @@ Parameters:
 
 Returned score is the length of the longests words across the
 segments. The length has to below the threshold.
+
+In order to allow have different thresholds per language, the
+threshold parameter can also be given as a list.
 
 ### Script and language identification filters
 
