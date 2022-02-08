@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- an option to write filter scores to a file with `opusfilter-test`
+
 ### Changed
 
 - allow per-language parameters for LengthFilter, LengthRatioFilter, LongWordFilter, and AverageWordLengthFilter

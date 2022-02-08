@@ -30,6 +30,7 @@ parser.add_argument('--yaml', metavar='FILE', help='load YAML configuration file
 parser.add_argument('--add', nargs=2, action='append', default=[], metavar=('CLASS', 'JSON'),
                     help='add filter of CLASS with JSON parameters object to the test')
 parser.add_argument('--removed', metavar='FILE', help='write removed segments to JSONL file')
+parser.add_argument('--scores', metavar='FILE', help='write filter scores to JSONL file')
 
 args = parser.parse_args()
 
@@ -60,8 +61,16 @@ for filter_ in filter_pipe.filters:
             obj = {'filter': name, 'segments': segments}
             removed_fobj.write(json.dumps(obj, sort_keys=True)+'\n')
 
-for inf in infs:
-    inf.close()
-
 for key, value in counter.items():
     print("{}: Removes {} / {} ({:.1f}%)".format(key, value, total, 100 * value / total))
+
+if args.scores:
+    logger.info("Collecting scores")
+    for inf in infs:
+        inf.seek(0)
+    with open(args.scores, 'w') as fobj:
+        for score_obj in filter_pipe.score(read_lines(zip(*infs))):
+            fobj.write(json.dumps(score_obj, sort_keys=True)+'\n')
+
+for inf in infs:
+    inf.close()

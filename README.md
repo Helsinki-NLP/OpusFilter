@@ -1489,4 +1489,5 @@ The scripts first calculates the total number of segments in the input
 files, and then runs the filters on them one by one. The number and
 proportion of removed segments is printed. In addition, it is possible
 to write the removed segments to a file in JSON Lines format
-(`--removed`).
+(`--removed`), and collect the scores from the filters to similarly to
+the score function (`--scores`).
