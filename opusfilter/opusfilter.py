@@ -410,8 +410,8 @@ class OpusFilter:
             if 'dev_scores' in parameters else None
         trainer = classifier.TrainClassifier(
             training_scores=training_scores,
-            dev_scores=dev_scores, model_type=parameters['model_type'],
-            model_parameters=parameters['model_parameters'],
+            dev_scores=dev_scores, model_type=parameters.get('model_type'),
+            model_parameters=parameters.get('model_parameters'),
             features=parameters['features']
         )
         model, value, features = trainer.find_best_model(
