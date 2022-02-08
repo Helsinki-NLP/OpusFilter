@@ -8,7 +8,7 @@ import pickle
 
 from tqdm import tqdm
 
-from . import FilterABC, ConfigurationError
+from . import FilterABC, ConfigurationError, CLEAN_HIGH
 from .util import file_open, grouper
 
 
@@ -66,6 +66,8 @@ class SentenceEmbeddingFilter(FilterABC):
     and :cite:`chaudhary-etal-2019-low`.
 
     """
+
+    score_direction = CLEAN_HIGH
 
     def __init__(self, languages=None, threshold=0.5, nn_model=None, chunksize=200, **kwargs):
         try:

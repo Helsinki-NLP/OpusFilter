@@ -6,7 +6,7 @@ import os
 import subprocess
 import tempfile
 
-from . import FilterABC, OpusFilterRuntimeError
+from . import FilterABC, OpusFilterRuntimeError, CLEAN_LOW
 from . import tokenization
 from .util import file_open
 
@@ -106,6 +106,7 @@ class WordAlignFilter(FilterABC):
 
     """
 
+    score_direction = CLEAN_LOW
     _empty_pair_sentinel = object()
 
     def __init__(self, src_threshold=0, tgt_threshold=0, priors=None, model=3,
