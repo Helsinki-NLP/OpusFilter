@@ -1,7 +1,7 @@
 import logging
 import unittest
 
-from opusfilter import tokenization
+from opusfilter import tokenization, ConfigurationError
 
 try:
     import jieba
@@ -10,6 +10,10 @@ except ImportError:
 
 
 class TestTokenization(unittest.TestCase):
+
+    def test_unknown(self):
+        with self.assertRaises(ConfigurationError):
+            tokenize = tokenization.get_tokenize(('the_best_tokenizer'))
 
     def test_dummy(self):
         tokenize = tokenization.get_tokenize(None)
@@ -23,6 +27,12 @@ class TestTokenization(unittest.TestCase):
         tokenize = tokenization.get_tokenize(('moses', 'en'))
         self.assertEqual(tokenize("Hello, world!"), "Hello , world !")
 
+    def test_moses_fallback(self):
+        with self.assertLogs() as captured:
+            tokenize = tokenization.get_tokenize(('moses', 'xx'))
+        self.assertIn("fall-back to English", captured.records[0].getMessage())
+        self.assertEqual(tokenize("Hello, world!"), "Hello , world !")
+
     def test_moses_detok(self):
         tokenize = tokenization.get_tokenize(('moses', 'en'))
         self.assertEqual(tokenize.detokenize("Hello , world !"), "Hello, world!")
@@ -33,7 +43,7 @@ class TestTokenization(unittest.TestCase):
 
     @unittest.skipIf('jieba' not in globals(), 'jieba not installed')
     def test_jieba(self):
-        tokenize = tokenization.get_tokenize(('jieba', 'en'))
+        tokenize = tokenization.get_tokenize(('jieba', 'zh'))
         text = "同时，祖马革命的一代似乎对领导打破种族隔离制度15年后的南非，还不适应。"
         # The expected word segmentation result is not directly given here, because there is no absolute
         # standard word segmentation result in Chinese.
@@ -44,7 +54,13 @@ class TestTokenization(unittest.TestCase):
 
     @unittest.skipIf('jieba' not in globals(), 'jieba not installed')
     def test_jieba_detok(self):
-        tokenize = tokenization.get_tokenize(('jieba', 'en'))
+        tokenize = tokenization.get_tokenize(('jieba', 'zh'))
         tokens = "同时 ， 祖马 革命 的 一代 似乎 对 领导 打破 种族隔离 制度 15 年 后 的 南非 ， 还 不 适应 。"
         reference = "同时，祖马革命的一代似乎对领导打破种族隔离制度15年后的南非，还不适应。"
         self.assertEqual(tokenize.detokenize(tokens), reference)
+
+    @unittest.skipIf('jieba' not in globals(), 'jieba not installed')
+    def test_jieba_detok_non_zh(self):
+        with self.assertLogs() as captured:
+            tokenize = tokenization.get_tokenize(('jieba', 'en'))
+        self.assertIn("tokenizer only avaliable for Chinese", captured.records[0].getMessage())

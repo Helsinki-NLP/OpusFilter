@@ -5,7 +5,7 @@ import shutil
 import tempfile
 import unittest
 
-from opusfilter import ConfigurationError 
+from opusfilter import ConfigurationError
 from opusfilter.util import *
 
 
@@ -69,3 +69,11 @@ class TestCheckArgsCompability(unittest.TestCase):
         with self.assertRaises(ConfigurationError):
             check_args_compability(*values, required_types=[int, int, int], names=names)
 
+
+class TestYAMLDumps(unittest.TestCase):
+
+    def test_yaml_dumps_list(self):
+        obj = ['a', 'b', 'c', 1, 2, 3]
+        string = yaml_dumps(obj)
+        obj2 = yaml.load(string)
+        self.assertSequenceEqual(obj, obj2)

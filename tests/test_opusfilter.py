@@ -27,65 +27,86 @@ class TestOpusFilter(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         self.tempdir = tempfile.mkdtemp()
-        self.configuration = {'common': {'output_directory': self.tempdir},
-                'steps':
-                [{'type': 'opus_read',
-                    'parameters': {'corpus_name': 'RF',
-                        'source_language': 'en',
-                        'target_language': 'sv',
-                        'release': 'latest',
-                        'preprocessing': 'xml',
-                        'src_output': 'RF1_sents.en',
-                        'tgt_output': 'RF1_sents.sv'}},
-                {'type': 'filter',
-                    'parameters': {
-                        'inputs': ['RF1_sents.en', 'RF1_sents.sv'],
-                        'outputs': ['RF1_filtered.en', 'RF1_filtered.sv'],
-                        'filters': [{'LanguageIDFilter':
-                            {'languages': ['en', 'sv'],
+        self.configuration = {
+            'common': {'output_directory': self.tempdir},
+            'steps':
+            [{'type': 'opus_read',
+              'parameters': {'corpus_name': 'RF',
+                             'source_language': 'en',
+                             'target_language': 'sv',
+                             'release': 'latest',
+                             'preprocessing': 'xml',
+                             'src_output': 'RF1_sents.en',
+                             'tgt_output': 'RF1_sents.sv'}},
+             {'type': 'filter',
+              'parameters': {
+                  'inputs': ['RF1_sents.en', 'RF1_sents.sv'],
+                  'outputs': ['RF1_filtered.en', 'RF1_filtered.sv'],
+                  'filters': [{'LanguageIDFilter':
+                               {'languages': ['en', 'sv'],
                                 'thresholds': [0, 0]}},
-                            {'TerminalPunctuationFilter':
-                                {'threshold': -2}},
-                            {'NonZeroNumeralsFilter': {'threshold': 0.5}},
-                            {'CharacterScoreFilter':
-                                {'scripts': ['Latin', 'Latin'],
-                                    'thresholds': [1, 1]}}]}},
-                {'type': 'train_ngram',
-                    'parameters': {'data': 'RF1_filtered.en',
-                        'parameters': {'norder': 20, 'dscale': 0.001},
-                        'model': 'RF1_en.arpa'}},
-                {'type': 'train_ngram',
-                    'parameters': {'data': 'RF1_filtered.sv',
-                        'parameters': {'norder': 20, 'dscale': 0.001},
-                        'model': 'RF1_sv.arpa'}},
-                {'type': 'train_alignment',
-                    'parameters': {'src_data': 'RF1_filtered.en',
-                        'tgt_data': 'RF1_filtered.sv',
-                        'parameters': {'tokenizer': 'none', 'model': 3},
-                        'output': 'RF1_align.priors'}},
-                {'type': 'score',
-                    'parameters': {
-                        'inputs': ['RF1_sents.en', 'RF1_sents.sv'],
-                        'output': 'RF1_scores.en-sv.jsonl',
-                        'filters': [{'LanguageIDFilter':
-                            {'languages': ['en', 'sv'],
+                              {'TerminalPunctuationFilter':
+                               {'threshold': -2}},
+                              {'NonZeroNumeralsFilter': {'threshold': 0.5}},
+                              {'CharacterScoreFilter':
+                               {'scripts': ['Latin', 'Latin'],
+                                'thresholds': [1, 1]}}]}},
+             {'type': 'train_ngram',
+              'parameters': {'data': 'RF1_filtered.en',
+                             'parameters': {'norder': 20, 'dscale': 0.001},
+                             'model': 'RF1_en.arpa'}},
+             {'type': 'train_ngram',
+              'parameters': {'data': 'RF1_filtered.sv',
+                             'parameters': {'norder': 20, 'dscale': 0.001},
+                             'model': 'RF1_sv.arpa'}},
+             {'type': 'train_alignment',
+              'parameters': {'src_data': 'RF1_filtered.en',
+                             'tgt_data': 'RF1_filtered.sv',
+                             'parameters': {'tokenizer': 'none', 'model': 3},
+                             'output': 'RF1_align.priors'}},
+             {'type': 'score',
+              'parameters': {
+                  'inputs': ['RF1_sents.en', 'RF1_sents.sv'],
+                  'output': 'RF1_scores.en-sv.jsonl',
+                  'filters': [{'LanguageIDFilter':
+                               {'languages': ['en', 'sv'],
                                 'thresholds': [0, 0]}},
-                            {'TerminalPunctuationFilter':
-                                {'threshold': -2}},
-                            {'NonZeroNumeralsFilter': {'threshold': 0.5}},
-                            {'CharacterScoreFilter':
-                                {'scripts': ['Latin', 'Latin'],
-                                    'sthreshold': [1, 1]}},
-                            {'WordAlignFilter': {'tokenizer': 'none',
-                                'priors': 'RF1_align.priors',
-                                'model': 3,
-                                'src_threshold': 0,
-                                'tgt_threshold': 0}},
-                            {'CrossEntropyFilter':
-                                {'lm_params': [{'filename': 'RF1_en.arpa'},
-                                               {'filename': 'RF1_sv.arpa'}],
+                              {'TerminalPunctuationFilter':
+                               {'threshold': -2}},
+                              {'NonZeroNumeralsFilter': {'threshold': 0.5}},
+                              {'CharacterScoreFilter':
+                               {'scripts': ['Latin', 'Latin'],
+                                'sthreshold': [1, 1]}},
+                              {'WordAlignFilter': {'tokenizer': 'none',
+                                                   'priors': 'RF1_align.priors',
+                                                   'model': 3,
+                                                   'src_threshold': 0,
+                                                   'tgt_threshold': 0}},
+                              {'CrossEntropyFilter':
+                               {'lm_params': [{'filename': 'RF1_en.arpa'},
+                                              {'filename': 'RF1_sv.arpa'}],
                                 'thresholds': [50.0, 50.0],
-                                'diff_threshold': 10.0}}]}}]}
+                                'diff_threshold': 10.0}}]}},
+             {'type': 'train_classifier',
+              'parameters': {
+                  'training_scores': 'RF1_scores.en-sv.jsonl',
+                  'model': 'classifier.bin',
+                  'criterion': 'CE',
+                  'features': {
+                      'LanguageIDFilter': {'clean-direction': 'high'},
+                      'TerminalPunctuationFilter': {'clean-direction': 'high'},
+                      'NonZeroNumeralsFilter': {'clean-direction': 'high'},
+                      'CharacterScoreFilter': {'clean-direction': 'high'},
+                      'WordAlignFilter': {'clean-direction': 'low'},
+                      'CrossEntropyFilter': {'clean-direction': 'low'},
+                  }}},
+             {'type': 'classify',
+              'parameters': {
+                  'scores': 'RF1_scores.en-sv.jsonl',
+                  'model': 'classifier.bin',
+                  'output_probabilities': 'RF1_probs.en-sv.txt'
+              }}
+             ]}
 
         OpusGet(directory='RF', source='en', target='sv', release='latest',
             preprocess='xml', suppress_prompts=True, download_dir=self.tempdir
@@ -116,6 +137,7 @@ class TestOpusFilter(unittest.TestCase):
         self.assertTrue(os.path.isfile(os.path.join(self.tempdir, 'RF1_align.priors')))
         self.assertTrue(os.path.isfile(os.path.join(self.tempdir, 'RF1_en.arpa')))
         self.assertTrue(os.path.isfile(os.path.join(self.tempdir, 'RF1_en.arpa')))
+        self.assertTrue(os.path.isfile(os.path.join(self.tempdir, 'classifier.bin')))
 
     def test_score_data(self):
         with open(os.path.join(self.tempdir, 'RF1_scores.en-sv.jsonl')) as scores_file:
@@ -130,6 +152,12 @@ class TestOpusFilter(unittest.TestCase):
             self.assertEqual(score['TerminalPunctuationFilter'], -0.0)
             self.assertEqual(score['NonZeroNumeralsFilter'], [0.0])
             self.assertEqual(type(score['WordAlignFilter']), list)
+
+    def test_classifier_probs(self):
+        self.assertTrue(os.path.isfile(os.path.join(self.tempdir, 'RF1_probs.en-sv.txt')))
+        with open(os.path.join(self.tempdir, 'RF1_probs.en-sv.txt')) as probs_file:
+            probs = [float(p.strip()) for p in probs_file.readlines()]
+            self.assertTrue(all(0 <= p <= 1 for p in probs))
 
     def test_initial_files(self):
         with open(os.path.join(self.tempdir, 'RF1_sents.en')) as sents_file_en:
@@ -620,6 +648,53 @@ class TestProduct(unittest.TestCase):
             self.assertEqual(len(f.read().strip().split('\n')), 8)  # 2 x 3 + 2
         with open(os.path.join(self.tempdir, 'output_c')) as f:
             self.assertEqual(len(f.read().strip().split('\n')), 8)  # 2 x 3 + 2
+
+
+class TestSubset(unittest.TestCase):
+
+    def setUp(self):
+        self.tempdir = tempfile.mkdtemp()
+        self.opus_filter = OpusFilter(
+            {'common': {'output_directory': self.tempdir}, 'steps': []})
+        with open(os.path.join(self.tempdir, 'input_src'), 'w') as f:
+            f.write(''.join('sent_{}\n'.format(idx) for idx in range(100)))
+        with open(os.path.join(self.tempdir, 'input_tgt'), 'w') as f:
+            f.write(''.join('sent_{}\n'.format(idx) for idx in range(100)))
+
+    def tearDown(self):
+        shutil.rmtree(self.tempdir)
+
+    def test_subset(self):
+        parameters = {
+            'inputs': [os.path.join(self.tempdir, 'input_src'),
+                       os.path.join(self.tempdir, 'input_tgt')],
+            'outputs': [os.path.join(self.tempdir, 'output_src'),
+                        os.path.join(self.tempdir, 'output_tgt')],
+            'size': 50}
+        self.opus_filter.get_subset(parameters)
+        with open(os.path.join(self.tempdir, 'output_src')) as fobj1, \
+             open(os.path.join(self.tempdir, 'output_tgt')) as fobj2:
+            lines1 = fobj1.readlines()
+            lines2 = fobj2.readlines()
+            self.assertEqual(len(lines1), 50)
+            self.assertEqual(len(lines2), 50)
+            self.assertSequenceEqual(lines1, lines2)
+
+    def test_subset_shuffle(self):
+        parameters = {
+            'inputs': [os.path.join(self.tempdir, 'input_src'),
+                       os.path.join(self.tempdir, 'input_tgt')],
+            'outputs': [os.path.join(self.tempdir, 'output_src'),
+                        os.path.join(self.tempdir, 'output_tgt')],
+            'size': 20, 'shuffle_subset': True, 'seed': 1223}
+        self.opus_filter.get_subset(parameters)
+        with open(os.path.join(self.tempdir, 'output_src')) as fobj1, \
+             open(os.path.join(self.tempdir, 'output_tgt')) as fobj2:
+            lines1 = fobj1.readlines()
+            lines2 = fobj2.readlines()
+            self.assertEqual(len(lines1), 20)
+            self.assertEqual(len(lines2), 20)
+            self.assertFalse(all(l1 == l2 for l1, l2 in zip(lines1, lines2)))
 
 
 class TestSplit(unittest.TestCase):

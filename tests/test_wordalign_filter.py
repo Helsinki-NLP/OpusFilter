@@ -19,7 +19,7 @@ class TestAlignFilter(unittest.TestCase):
         test could fail with really bad luck.
 
         """
-        data1 = ['%s.' % ('ab ' * (line + 1)) for line in range(10)] * 5 + ['ab ab ab .', ''] * 2
+        data1 = ['%s.' % ('ab ' * (line + 1)) for line in range(10)] * 5 + ['ab ab ab ab ab ab .', ''] * 2
         data2 = ['%s.' % ('AB ' * (line + 1)) for line in range(10)] * 5 + ['AB', ''] * 2
         logging.info(data1)
         logging.info(data2)
@@ -39,7 +39,7 @@ class TestAlignFilter(unittest.TestCase):
         test could fail with really bad luck.
 
         """
-        data1 = ['%s.' % ('ab ' * (line + 1)) for line in range(10)] * 5 + ['ab ab ab .', ''] * 2
+        data1 = ['%s.' % ('ab ' * (line + 1)) for line in range(10)] * 5 + ['ab ab ab ab ab ab .', ''] * 2
         data2 = ['%s.' % ('AB ' * (line + 1)) for line in range(10)] * 5 + ['AB', ''] * 2
         logging.info(data1)
         logging.info(data2)
@@ -95,7 +95,7 @@ class TestAlignFilter(unittest.TestCase):
         """
         prior_data1 = ['%s.' % ('ab ' * (line + 1)) for line in range(10)] * 5
         prior_data2 = ['%s.' % ('AB ' * (line + 1)) for line in range(10)] * 5
-        data1 = ['%s.' % ('ab ' * (line + 1)) for line in range(5)] + ['', 'ab ab ab .']
+        data1 = ['%s.' % ('ab ' * (line + 1)) for line in range(5)] + ['', 'ab ab ab ab ab ab .']
         data2 = ['%s.' % ('AB ' * (line + 1)) for line in range(5)] + ['', 'AB']
         with tempfile.NamedTemporaryFile('w+') as priors_file:
             word_alignment.make_priors(zip(prior_data1, prior_data2), priors_file.name)
@@ -115,7 +115,7 @@ class TestAlignFilter(unittest.TestCase):
         test could fail with really bad luck.
 
         """
-        data1 = ['%s.' % ('ab ' * (line + 1)) for line in range(10)] * 5 + ['ab ab ab .', ''] * 2
+        data1 = ['%s.' % ('ab ' * (line + 1)) for line in range(10)] * 5 + ['ab ab ab ab ab ab .', ''] * 2
         data2 = ['%s.' % ('AB ' * (line + 1)) for line in range(10)] * 5 + ['AB', ''] * 2
         logging.info(data1)
         logging.info(data2)
@@ -133,7 +133,7 @@ class TestAlignFilter(unittest.TestCase):
         test could fail with really bad luck.
 
         """
-        data1 = ['%s.' % ('ab ' * (line + 1)).strip() for line in range(10)] * 5 + ['ab ab ab.', ''] * 2
+        data1 = ['%s.' % ('ab ' * (line + 1)).strip() for line in range(10)] * 5 + ['ab ab ab ab ab ab.', ''] * 2
         data2 = ['%s.' % ('AB ' * (line + 1)).strip() for line in range(10)] * 5 + ['AB.', ''] * 2
         logging.info(data1)
         logging.info(data2)
