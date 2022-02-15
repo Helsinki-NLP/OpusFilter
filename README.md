@@ -878,8 +878,8 @@ Parameters:
    * `src_tokenizer`: tokenizer for source language (optional; default `null`)
    * `tgt_tokenizer`: tokenizer for target language (optional; default `null`)
    * `model`: eflomal model type (optional; default 3)
-   * `scores`: file to write alignment scores from the training data (optional; default `null`)
 * `output`: output file name for the priors
+* `scores`: file to write alignment scores from the training data (optional; default `null`)
 
 See [WordAlignFilter](#wordalignfilter) for details of the training
 parameters.

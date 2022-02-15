@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - allow per-language parameters for LengthFilter, LengthRatioFilter, LongWordFilter, and AverageWordLengthFilter
+- fix documentation for `train_aligment` parameters
 
 ## [2.3.1] - 2022-01-28
 
