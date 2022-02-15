@@ -77,6 +77,26 @@ class TestLongWordFilter(unittest.TestCase):
             self.assertSequenceEqual(result, correct)
 
 
+class TestRegExpFilter(unittest.TestCase):
+
+    def test_bilingual(self):
+        testfilter = RegExpFilter(regexps=['[0-9]', 'a^'], accept_match=False)
+        cases = [['aaa', 'bbbb'], ['123', 'bbb'], ['hi123!!!', 'hey...'], ['', '']]
+        expected = [([False, False], True), ([True, False], False), ([True, False], False), ([False, False], True)]
+        results = [(x, testfilter.accept(x)) for x in testfilter.score(cases)]
+        for result, correct in zip(results, expected):
+            self.assertSequenceEqual(result, correct)
+
+    def test_accept_match(self):
+        testfilter = RegExpFilter(regexps='^[ a-z]*$', accept_match=True)
+        cases = [['aaa'], ['123'], ['hey...'], ['']]
+        expected = [([True], True), ([False], False), ([False], False), ([True], True)]
+        results = [(x, testfilter.accept(x)) for x in testfilter.score(cases)]
+        logger.warning(results)
+        for result, correct in zip(results, expected):
+            self.assertSequenceEqual(result, correct)
+
+
 class TestAlphabetRatioFilter(unittest.TestCase):
 
     def test_bilingual(self):

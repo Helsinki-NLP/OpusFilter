@@ -65,6 +65,7 @@ A changelog is available in [docs/CHANGELOG.md](docs/CHANGELOG.md).
       * [AverageWordLengthFilter](#averagewordlengthfilter)
       * [LongWordFilter](#longwordfilter)
    * [Script and language identification filters](#script-and-language-identification-filters)
+      * [AlphabetRatioFilter](#alphabetratiofilter)
       * [CharacterScoreFilter](#characterscorefilter)
       * [LanguageIDFilter](#languageidfilter)
    * [Special character and similarity filters](#special-character-and-similarity-filters)
@@ -73,6 +74,7 @@ A changelog is available in [docs/CHANGELOG.md](docs/CHANGELOG.md).
       * [NonZeroNumeralsFilter](#nonzeronumeralsfilter)
       * [LongestCommonSubstringFilter](#longestcommonsubstringfilter)
       * [RepetitionFilter](#repetitionfilter)
+      * [RegExpFilter](#regexpfilter)
    * [Language model filters](#language-model-filters)
       * [CrossEntropyFilter](#crossentropyfilter)
       * [CrossEntropyDifferenceFilter](#crossentropydifferencefilter)
@@ -1100,6 +1102,24 @@ repetitions.
 There may be optional space character(s) between the repeated strings
 that are not counted to the length. The repeated string cannot start
 with a whitespace character but is not limited otherwise.
+
+#### `RegExpFilter`
+
+Filter out segments that match (or do not match) a arbitrary regular expression.
+
+Parameters:
+
+* `regexps`: a regular expression or a list of expressions to match
+* `accept_match`: accept matching segments instead of rejecting (default `false`)
+
+You can either provide a single regexp or one for each language in the
+parallel data. If `accept_match` is `false`, the pair is accepted only
+if none of the segment match the corresponding regular experssion. If
+`accept_match` is `true`, the pair is accepted only if all segments
+match the corresponding regular expression.
+
+The [regex](https://pypi.org/project/regex/) module is used for the
+regular expressions.
 
 ### Language model filters
 

@@ -144,6 +144,34 @@ class HtmlTagFilter(FilterABC):
         return not any(score)
 
 
+class RegExpFilter(FilterABC):
+    """Filter out segments that match or do not match a regular expression
+
+    You can either provide a single regexp or one for each language in
+    the parallel data. The regex library is used for the search.
+
+    If accept_match is False, the pair is accepted only if none of the
+    segment match the corresponding regexp. If accept_match is True,
+    the pair is accepted only if all segments match the corresponding
+    regexp.
+
+    """
+
+    def __init__(self, regexps=None, accept_match=False, **kwargs):
+        self.regexps = check_args_compability(regexps, required_types=[str], names=['regexps'])
+        self.accept_match = accept_match
+        super().__init__(**kwargs)
+
+    def score(self, pairs):
+        for pair in pairs:
+            yield [bool(regex.search(self.regexps[idx], segment)) for idx, segment in enumerate(pair)]
+
+    def accept(self, score):
+        if self.accept_match:
+            return all(score)
+        return not any(score)
+
+
 class AlphabetRatioFilter(FilterABC):
     """Proportion of alphabetic characters in the segment"""
 
