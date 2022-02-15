@@ -131,7 +131,7 @@ class AverageWordLengthFilter(FilterABC):
 
 
 class HtmlTagFilter(FilterABC):
-    """Html tag filter"""
+    """HTML tag filter"""
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -142,6 +142,33 @@ class HtmlTagFilter(FilterABC):
 
     def accept(self, score):
         return not any(score)
+
+
+class AlphabetRatioFilter(FilterABC):
+    """Proportion of alphabetic characters in the segment"""
+
+    def __init__(self, threshold=0.75, exclude_whitespace=False, **kwargs):
+        self.threshold = check_args_compability(threshold, required_types=[float], names=['threshold'])
+        self.exclude_whitespace = exclude_whitespace
+        self.re_whitespace = regex.compile(r'\s')
+        self.re_not_alphas = regex.compile(r'\p{Alphabetic=No}')
+        super().__init__(**kwargs)
+
+    def score(self, pairs):
+        for pair in pairs:
+            scores = []
+            for segment in pair:
+                if self.exclude_whitespace:
+                    segment = self.re_whitespace.sub('', segment)
+                alphas = self.re_not_alphas.sub('', segment)
+                if segment:
+                    scores.append(len(alphas) / len(segment))
+                else:
+                    scores.append(1.0)
+            yield scores
+
+    def accept(self, score):
+        return all(ratio >= threshold for ratio, threshold in zip(score, self.threshold))
 
 
 class CharacterScoreFilter(FilterABC):
@@ -171,9 +198,9 @@ class CharacterScoreFilter(FilterABC):
                 raise ValueError(f"Mismatch in number of scripts ({len(self.scripts)}) and sentences ({len(pair)})")
             scores = []
             for idx, sent in enumerate(pair):
-                alphas = regex.sub(self.re_not_alphas, '', sent)
+                alphas = self.re_not_alphas.sub('', sent)
                 if alphas:
-                    script = regex.sub(self.re_not_script[idx], '', alphas)
+                    script = self.re_not_script[idx].sub('', alphas)
                     scores.append(len(script) / len(alphas))
                 else:
                     scores.append(1.0)

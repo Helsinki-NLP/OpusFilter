@@ -991,6 +991,23 @@ threshold parameter can also be given as a list.
 
 ### Script and language identification filters
 
+#### `AlphabetRatioFilter`
+
+Filter segments based on what proportion of the characters are alphabetic characters.
+
+Parameters:
+
+* `threshold`: minimum proportion of alphabets in a segment (default 0.75)
+* `exclude_whitespace`: whether to exclude whitespace characters from the ratio (default `false`)
+
+Returned scores are proportions of alphabetic characters in the
+segments (after removing whitespace if `exclude_whitespace` is
+true). In filtering, all values have to be equal to or greater than
+the minimum threshold.
+
+In order to allow have different thresholds per language, the
+threshold parameter can also be given as a list.
+
 #### `CharacterScoreFilter`
 
 Filter segments based on what proportion of their alphabetic characters are in a given script. For a list of valid scripts, see e.g. https://www.regular-expressions.info/unicode.html

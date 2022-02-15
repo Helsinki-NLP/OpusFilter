@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - an option to write filter scores to a file with `opusfilter-test`
+- new filters: `AlphabetRatioFilter`
 
 ### Changed
 

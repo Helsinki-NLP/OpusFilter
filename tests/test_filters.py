@@ -77,6 +77,25 @@ class TestLongWordFilter(unittest.TestCase):
             self.assertSequenceEqual(result, correct)
 
 
+class TestAlphabetRatioFilter(unittest.TestCase):
+
+    def test_bilingual(self):
+        testfilter = AlphabetRatioFilter(threshold=[0.5, 0.5])
+        cases = [['aaa', 'bbbb'], ['123', 'bbb'], ['hi!!!', 'hey...'], [' a  ', 'b '], ['', '']]
+        expected = [([1, 1], True), ([0, 1], False), ([0.4, 0.5], False), ([0.25, 0.5], False), ([1, 1], True)]
+        results = [(x, testfilter.accept(x)) for x in testfilter.score(cases)]
+        for result, correct in zip(results, expected):
+            self.assertSequenceEqual(result, correct)
+
+    def test_exclude_whitespace(self):
+        testfilter = AlphabetRatioFilter(threshold=0.5, exclude_whitespace=True)
+        cases = [['a    aa'], ['123 '], ['hi !!!'], [' ']]
+        expected = [([1], True), ([0], False), ([0.4], False), ([1], True)]
+        results = [(x, testfilter.accept(x)) for x in testfilter.score(cases)]
+        for result, correct in zip(results, expected):
+            self.assertSequenceEqual(result, correct)
+
+
 class TestLongestCommonSubstringFilter(unittest.TestCase):
 
     bi_inputs = [('abcd', 'abcd'), ('abcd', 'efgh'), ('abcd', 'cdgh'), ('abcd', ''), ('', ''),
