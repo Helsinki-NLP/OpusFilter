@@ -27,11 +27,16 @@ jieba_require = [
     'jieba>=0.42'
 ]
 
+mecab_require = [
+    'mecab-python3>=1.0.0',
+    'unidic-lite'
+]
+
 tests_require = [
     'pytest'
 ]
 
-all_require = jieba_require + tests_require
+all_require = jieba_require + mecab_require + tests_require
 
 setuptools.setup(
     name="opusfilter",
@@ -47,7 +52,7 @@ setuptools.setup(
     scripts=["bin/opusfilter", "bin/opusfilter-cmd", "bin/opusfilter-diagram", "bin/opusfilter-duplicates", "bin/opusfilter-scores", "bin/opusfilter-test"],
     install_requires=install_requires,
     tests_require=tests_require,
-    extras_require={'test': tests_require, 'jieba': jieba_require, 'all': all_require},
+    extras_require={'test': tests_require, 'jieba': jieba_require, 'mecab': mecab_require, 'all': all_require},
     classifiers=(
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",

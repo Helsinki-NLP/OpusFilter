@@ -16,7 +16,12 @@ except ImportError:
 try:
     import jieba
 except ImportError:
-    logger.warning("Could not import jieba, jieba tokenization not supported")
+    logger.warning("Could not import jieba, Chinese tokenization with jieba not supported")
+
+try:
+    import MeCab
+except ImportError:
+    logger.warning("Could not import MeCab, Japanese tokenization with MeCab not supported")
 
 
 class DummyTokenizer:
@@ -103,6 +108,28 @@ class JiebaTokenizer(DummyTokenizer):
         return ''.join(string.split())
 
 
+class MeCabTokenizer(DummyTokenizer):
+    """Wrapper for Japanese tokenization with MeCab"""
+
+    def __init__(self, lang, mecab_args=''):
+        if not lang.startswith('jp'):
+            logger.warning("MeCab tokenizer is for Japanese (jp), requested language %s", lang)
+        try:
+            self.tagger = MeCab.Tagger('-Owakati ' + mecab_args)
+        except NameError as err:
+            logger.error("Install MeCab and unidic-lite or other dictionary to support MeCab tokenization")
+            raise err
+        except RuntimeError as err:
+            logger.error("Install unidic-lite or other dictionary to support MeCab tokenization")
+            raise err
+
+    def tokenize(self, string):
+        return self.tagger.parse(string).strip()
+
+    def detokenize(self, string):
+        return ''.join(string.split())
+
+
 def get_tokenize(specs):
     """Return object that returns a tokenized version of the input string on call"""
     if specs is None:
@@ -119,4 +146,6 @@ def get_tokenize(specs):
         return MosesTokenizer(lang, **options)
     if tokenizer == 'jieba':
         return JiebaTokenizer(lang, **options)
+    if tokenizer == 'mecab':
+        return MeCabTokenizer(lang, **options)
     raise ConfigurationError(f"Tokenizer type '{tokenizer}' not supported")
