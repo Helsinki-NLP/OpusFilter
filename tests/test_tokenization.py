@@ -8,6 +8,11 @@ try:
 except ImportError:
     logging.warning("Could not import jieba")
 
+try:
+    import MeCab
+except ImportError:
+    logging.warning("Could not import MeCab")
+
 
 class TestTokenization(unittest.TestCase):
 
@@ -60,7 +65,19 @@ class TestTokenization(unittest.TestCase):
         self.assertEqual(tokenize.detokenize(tokens), reference)
 
     @unittest.skipIf('jieba' not in globals(), 'jieba not installed')
-    def test_jieba_detok_non_zh(self):
+    def test_jieba_non_zh(self):
         with self.assertLogs() as captured:
             tokenize = tokenization.get_tokenize(('jieba', 'en'))
         self.assertIn("tokenizer only avaliable for Chinese", captured.records[0].getMessage())
+
+    @unittest.skipIf('MeCab' not in globals(), 'MeCab not installed')
+    def test_mecab(self):
+        tokenize = tokenization.get_tokenize(('mecab', 'jp'))
+        text = "これは英語で書く必要はありません。"
+        self.assertEqual(tokenize(text), "これ は 英語 で 書く 必要 は あり ませ ん 。")
+
+    @unittest.skipIf('MeCab' not in globals(), 'MeCab not installed')
+    def test_mecab_non_jp(self):
+        with self.assertLogs() as captured:
+            tokenize = tokenization.get_tokenize(('mecab', 'en'))
+        self.assertIn("tokenizer is for Japanese", captured.records[0].getMessage())

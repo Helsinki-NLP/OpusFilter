@@ -139,6 +139,11 @@ For Chinese tokenization (word segmentation), you can use the
 automatically with pip by including the extras `[jieba]` or `[all]`
 (e.g. `pip install opusfilter[all]`).
 
+For Japanese tokenization (word segmentation), you can use the
+[MeCab](https://github.com/SamuraiT/mecab-python3) library. It can be installed
+automatically with pip by including the extras `[mecab]` or `[all]`
+(e.g. `pip install opusfilter[all]`).
+
 For using n-gram language model filters, you need to install VariKN
 (https://github.com/vsiivola/variKN) and its Python wrapper. Include
 the library files compiled to `build/lib/python` to your Python
@@ -1382,6 +1387,11 @@ Supported tokenizers:
   * Only avaliable for Chinese (zh, zh_CN).
   * Options are passed to `jieba.cut` function; see its documentation for the avaliable options.
   * If you use `jieba`, please install OpusFilter with extras `[jieba]` or `[all]`.
+* `mecab`:
+  * Uses the [MeCab](https://github.com/SamuraiT/mecab-python3) package.
+  * Only avaliable for Japanese (jp).
+  * By default, `unidic-lite` dictionary is installed and used. Other dictionaries can be used by providing appropriate option string in the `mecab_args` option.
+  * If you use `mecab`, please install OpusFilter with extras `[mecab]` or `[all]`.
 
 The list of language codes should match to the languages of the input
 files given in the `preprocess` step. If more than on tokenizer is
