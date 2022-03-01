@@ -219,6 +219,32 @@ class TestOpusFilter(unittest.TestCase):
         shutil.rmtree('test_creating_dir')
 
 
+class TestExtraKeyErrors(unittest.TestCase):
+
+    def test_read_from_opus(self):
+        opusfilter = OpusFilter(
+            {'steps': [
+                {'type': 'opus_read', 'parameters': {
+                    'corpus_name': 'RF', 'source_language': 'en', 'target_language': 'sv', 'relase': 'latest',
+                    'preprocessing': 'xml', 'src_output': 'RF1_sents.en', 'tgt_output': 'RF1_sents.sv'}}
+            ]})
+        with self.assertRaises(ConfigurationError):
+            opusfilter.execute_steps()
+
+    def test_concatenate(self):
+        opusfilter = OpusFilter(
+            {'steps': [{'type': 'concatenate', 'parameters': {'inputs': [], 'outputs': []}}]})
+        with self.assertRaises(ConfigurationError):
+            opusfilter.execute_steps()
+
+    def test_train_alignment(self):
+        opusfilter = OpusFilter(
+            {'steps': [{'type': 'train_alignment', 'parameters': {
+                'src_data': 'foo', 'tgt_data': 'foo', 'parameters': {'mode': 3}}}]})
+        with self.assertRaises(ConfigurationError):
+            opusfilter.execute_steps()
+
+
 class TestSort(unittest.TestCase):
 
     def setUp(self):

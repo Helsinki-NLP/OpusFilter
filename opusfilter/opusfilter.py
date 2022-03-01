@@ -181,6 +181,16 @@ class OpusFilter:
             logger.debug("  parameters: %s", parameters)
             self.step_functions[step['type']](parameters, overwrite=overwrite)
 
+    def _check_extra_parameters(self, valid_keys, parameters):
+        """Warn if parameters dict has keys outside valid_keys"""
+        extra = []
+        for key in parameters:
+            if key not in valid_keys:
+                logger.error(f"Unknown parameter '{key}' with value: {parameters[key]}")
+                extra.append(key)
+        if extra:
+            raise ConfigurationError(f"Unknown parameter keys: {', '.join(extra)}")
+
     def read_from_opus(self, parameters, overwrite=False):
         """Download and read a corpus from OPUS using OpusTools
 
@@ -189,6 +199,9 @@ class OpusFilter:
         * OpusTools :cite:`aulamo-etal-2020-opustools`.
 
         """
+        self._check_extra_parameters(
+            {'src_output', 'tgt_output', 'suppress_prompts', 'release', 'corpus_name',
+             'source_language', 'target_language', 'preprocessing'}, parameters)
         src_out = os.path.join(self.output_dir, parameters['src_output'])
         tgt_out = os.path.join(self.output_dir, parameters['tgt_output'])
         if not overwrite and os.path.isfile(src_out) and os.path.isfile(tgt_out):
@@ -237,6 +250,8 @@ class OpusFilter:
 
     def filter_data(self, parameters, overwrite=False):
         """Write sentences to file if they pass given filters"""
+        self._check_extra_parameters(
+            {'inputs', 'outputs', 'filters', 'filterfalse', 'limit'}, parameters)
         outfiles = [os.path.join(self.output_dir, fname) for fname in parameters['outputs']]
         infiles = [os.path.join(self.output_dir, fname) for fname in parameters['inputs']]
         if len(outfiles) != len(infiles):
@@ -263,6 +278,7 @@ class OpusFilter:
 
     def concatenate(self, parameters, overwrite=False):
         """Concatenate files"""
+        self._check_extra_parameters({'inputs', 'output'}, parameters)
         outfile = os.path.join(self.output_dir, parameters['output'])
         if not overwrite and os.path.isfile(outfile):
             logger.info("Output file exists, skipping step")
@@ -306,6 +322,7 @@ class OpusFilter:
         order.
 
         """
+        self._check_extra_parameters({'inputs', 'outputs', 'seed', 'size', 'shuffle_subset'}, parameters)
         outfiles = [os.path.join(self.output_dir, fname) for fname in parameters['outputs']]
         infiles = [os.path.join(self.output_dir, fname) for fname in parameters['inputs']]
         if len(outfiles) != len(infiles):
@@ -340,6 +357,7 @@ class OpusFilter:
 
     def train_ngram(self, parameters, overwrite=False):
         """Train an n-gram language model"""
+        self._check_extra_parameters({'model', 'data', 'parameters'}, parameters)
         model_out = os.path.join(self.output_dir, parameters['model'])
         if not overwrite and os.path.isfile(model_out):
             logger.info("Output file exists, skipping step")
@@ -360,6 +378,8 @@ class OpusFilter:
 
     def train_alignment(self, parameters, overwrite=False):
         """Train eflomal alignment priors"""
+        self._check_extra_parameters({'src_data', 'tgt_data', 'scores', 'parameters'}, parameters)
+        self._check_extra_parameters({'src_tokenizer', 'tgt_tokenizer', 'model'}, parameters.get('parameters'))
         model_out = os.path.join(self.output_dir, parameters['output'])
         if not overwrite and os.path.isfile(model_out):
             logger.info("Output file exists, skipping step")
@@ -389,6 +409,7 @@ class OpusFilter:
 
     def score_data(self, parameters, overwrite=False):
         """Score language data based on given filters"""
+        self._check_extra_parameters({'inputs', 'output', 'filters'}, parameters)
         infiles = [os.path.join(self.output_dir, fname) for fname in parameters['inputs']]
         score_out = os.path.join(self.output_dir, parameters['output'])
         if not overwrite and os.path.isfile(score_out):
@@ -401,6 +422,9 @@ class OpusFilter:
 
     def train_classifier(self, parameters, overwrite=False):
         """Train classifier for scored sentence pairs"""
+        self._check_extra_parameters(
+            {'model', 'training_scores', 'dev_scores', 'model_type', 'model_parameters',
+             'features', 'optimization', 'criterion'}, parameters)
         model_out = os.path.join(self.output_dir, parameters['model'])
         if not overwrite and os.path.isfile(model_out):
             logger.info("Output file exists, skipping step")
@@ -435,6 +459,8 @@ class OpusFilter:
 
     def classify(self, parameters, overwrite=False):
         """Assign classifier probabilities and/or labels to scored sentence pairs"""
+        self._check_extra_parameters(
+            {'scores', 'model', 'output_labels', 'output_probabilities', 'true_label', 'chunksize'}, parameters)
         labels_out = os.path.join(
             self.output_dir, parameters['output_labels']) \
             if 'output_labels' in parameters else None
@@ -491,6 +517,8 @@ class OpusFilter:
 
     def sort_files(self, parameters, overwrite=False):
         """Sort file(s) by values read from other file"""
+        self._check_extra_parameters(
+            {'inputs', 'outputs', 'key', 'type', 'values', 'combine_operator', 'reverse'}, parameters)
         outfiles = [os.path.join(self.output_dir, fname) for fname in parameters['outputs']]
         infiles = [os.path.join(self.output_dir, fname) for fname in parameters['inputs']]
         if len(outfiles) != len(infiles):
@@ -526,6 +554,7 @@ class OpusFilter:
         the input object and existing keys will be overwritten.
 
         """
+        self._check_extra_parameters({'inputs', 'output', 'keys'}, parameters)
         def _gen(inputs, keys):
             """Generator for output objects"""
             for objects in zip(*inputs):
@@ -550,6 +579,7 @@ class OpusFilter:
 
     def slice(self, parameters, overwrite=False):
         """Take slice from file(s)"""
+        self._check_extra_parameters({'inputs', 'outputs', 'start', 'stop', 'step'}, parameters)
         outfiles = [os.path.join(self.output_dir, fname) for fname in parameters['outputs']]
         infiles = [os.path.join(self.output_dir, fname) for fname in parameters['inputs']]
         if len(outfiles) != len(infiles):
@@ -568,6 +598,7 @@ class OpusFilter:
 
     def head(self, parameters, overwrite=False):
         """Take the first n lines from file(s)"""
+        self._check_extra_parameters({'inputs', 'outputs', 'n'}, parameters)
         outfiles = [os.path.join(self.output_dir, fname) for fname in parameters['outputs']]
         infiles = [os.path.join(self.output_dir, fname) for fname in parameters['inputs']]
         if len(outfiles) != len(infiles):
@@ -584,6 +615,7 @@ class OpusFilter:
 
     def tail(self, parameters, overwrite=False):
         """Take the last n lines from file(s)"""
+        self._check_extra_parameters({'inputs', 'outputs', 'n'}, parameters)
         outfiles = [os.path.join(self.output_dir, fname) for fname in parameters['outputs']]
         infiles = [os.path.join(self.output_dir, fname) for fname in parameters['inputs']]
         if len(outfiles) != len(infiles):
@@ -616,6 +648,7 @@ class OpusFilter:
 
     def product(self, parameters, overwrite=False):
         """Sample a product of segments from lists of alternative files"""
+        self._check_extra_parameters({'inputs', 'outputs', 'k', 'seed', 'skip_empty', 'skip_duplicates'}, parameters)
         infilelists = [
             [os.path.join(self.output_dir, fname) for fname in filelist]
             for filelist in parameters['inputs']
@@ -658,6 +691,8 @@ class OpusFilter:
 
     def split(self, parameters, overwrite=False):
         """Split parallel files to two subsets"""
+        self._check_extra_parameters(
+            {'inputs', 'outputs', 'outputs_2', 'divisor', 'threshold', 'compare', 'hash', 'seed'}, parameters)
         outfiles = [os.path.join(self.output_dir, fname) for fname in parameters['outputs']]
         outfiles_2 = [os.path.join(self.output_dir, fname) for fname in parameters['outputs_2']] \
             if 'outputs_2' in parameters else []
@@ -703,6 +738,8 @@ class OpusFilter:
 
     def remove_duplicates(self, parameters, overwrite=False):
         """Remove duplicates from parallel lines in files"""
+        self._check_extra_parameters(
+            {'inputs', 'outputs', 'compare', 'hash', 'letters_only', 'lowercase', 'overlap'}, parameters)
         outfiles = [os.path.join(self.output_dir, fname) for fname in parameters['outputs']]
         infiles = [os.path.join(self.output_dir, fname) for fname in parameters['inputs']]
         if len(outfiles) != len(infiles):
@@ -748,6 +785,7 @@ class OpusFilter:
 
     def unzip(self, parameters, overwrite=False):
         """Unzip parallel segments joined in a single file into multiple files"""
+        self._check_extra_parameters({'input', 'outputs', 'separator'}, parameters)
         infile = os.path.join(self.output_dir, parameters['input'])
         outfiles = [os.path.join(self.output_dir, fname) for fname in parameters['outputs']]
         if not overwrite and all(os.path.isfile(outfile) for outfile in outfiles):
@@ -765,6 +803,7 @@ class OpusFilter:
 
     def preprocess(self, parameters, overwrite=False):
         """Run preprocessors on text data"""
+        self._check_extra_parameters({'inputs', 'outputs', 'preprocessors'}, parameters)
         outfiles = [os.path.join(self.output_dir, fname) for fname in parameters['outputs']]
         infiles = [os.path.join(self.output_dir, fname) for fname in parameters['inputs']]
         if len(outfiles) != len(infiles):
@@ -783,6 +822,7 @@ class OpusFilter:
 
     def download_file(self, parameters, overwrite=False):
         """Download file"""
+        self._check_extra_parameters({'output', 'url'}, parameters)
         outfile = os.path.join(self.output_dir, parameters['output'])
         if not overwrite and os.path.isfile(outfile):
             logger.info("Output file exists, skipping step")
@@ -791,6 +831,7 @@ class OpusFilter:
 
     def write_to_file(self, parameters, overwrite=False):
         """Write specified data to file"""
+        self._check_extra_parameters({'output', 'data'}, parameters)
         outfile = os.path.join(self.output_dir, parameters['output'])
         if not overwrite and os.path.isfile(outfile):
             logger.info("Output file exists, skipping step")
