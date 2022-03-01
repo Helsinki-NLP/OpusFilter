@@ -147,6 +147,71 @@ class TestLongestCommonSubstringFilter(unittest.TestCase):
         for result, correct in zip(results, expected):
             self.assertSequenceEqual(result, correct)
 
+
+class TestSimilarityFilter(unittest.TestCase):
+
+    bi_inputs = [
+        ('abcd', 'abcd'),
+        ('abcd', 'efgh'),
+        ('abcd', 'ABCD'),
+        ('big hat.', 'big hat.'),
+        ('big hat.', 'Big Hat.'),
+        ('big hat.', 'pig cat.'),
+        ('big hat.', 'hat big.'),
+    ]
+    tri_inputs = [
+        ('abcd', 'abcd', 'abcd'),
+        ('abcd', 'abcd', 'efgh'),
+        ('abcd', 'efgh', 'ijkl')
+    ]
+
+    def test_bilingual(self):
+        testfilter = SimilarityFilter(threshold=0.7)
+        expected = [([1], False), ([0], True), ([0.0], True),
+                    ([1], False), ([0.75], False), ([0.75], False), ([0.25], True)]
+        results = [(x, testfilter.accept(x)) for x in testfilter.score(self.bi_inputs)]
+        for result, correct in zip(results, expected):
+            self.assertSequenceEqual(result, correct)
+
+    def test_bilingual_lowercase(self):
+        testfilter = SimilarityFilter(threshold=0.7, lowercase=True)
+        expected = [([1], False), ([0], True), ([1.0], False),
+                    ([1], False), ([1], False), ([0.75], False), ([0.25], True)]
+        results = [(x, testfilter.accept(x)) for x in testfilter.score(self.bi_inputs)]
+        for result, correct in zip(results, expected):
+            self.assertSequenceEqual(result, correct)
+
+    def test_bilingual_word(self):
+        testfilter = SimilarityFilter(threshold=0.7, unit='word')
+        expected = [([1], False), ([0], True), ([0], True),
+                    ([1], False), ([0], True), ([0], True), ([0], True)]
+        results = [(x, testfilter.accept(x)) for x in testfilter.score(self.bi_inputs)]
+        for result, correct in zip(results, expected):
+            self.assertSequenceEqual(result, correct)
+
+    def test_bilingual_word_lowercase(self):
+        testfilter = SimilarityFilter(threshold=0.7, unit='word', lowercase=True)
+        expected = [([1], False), ([0], True), ([1], False),
+                    ([1], False), ([1], False), ([0], True), ([0], True)]
+        results = [(x, testfilter.accept(x)) for x in testfilter.score(self.bi_inputs)]
+        for result, correct in zip(results, expected):
+            self.assertSequenceEqual(result, correct)
+
+    def test_trilingual(self):
+        testfilter = LongestCommonSubstringFilter(threshold=0.7, require_all=True)
+        expected = [([1, 1, 1], False), ([1, 0, 0], False), ([0, 0, 0], True)]
+        results = [(x, testfilter.accept(x)) for x in testfilter.score(self.tri_inputs)]
+        for result, correct in zip(results, expected):
+            self.assertSequenceEqual(result, correct)
+
+    def test_trilingual_any(self):
+        testfilter = LongestCommonSubstringFilter(threshold=0.7, require_all=False)
+        expected = [([1, 1, 1], False), ([1, 0, 0], True), ([0, 0, 0], True)]
+        results = [(x, testfilter.accept(x)) for x in testfilter.score(self.tri_inputs)]
+        for result, correct in zip(results, expected):
+            self.assertSequenceEqual(result, correct)
+
+
 class TestLangIDMethod(unittest.TestCase):
 
     pairs_inputs = [

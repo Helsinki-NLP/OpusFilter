@@ -73,6 +73,7 @@ A changelog is available in [docs/CHANGELOG.md](docs/CHANGELOG.md).
       * [TerminalPunctuationFilter](#terminalpunctuationfilter)
       * [NonZeroNumeralsFilter](#nonzeronumeralsfilter)
       * [LongestCommonSubstringFilter](#longestcommonsubstringfilter)
+      * [SimilarityFilter](#similarityfilter)
       * [RepetitionFilter](#repetitionfilter)
       * [RegExpFilter](#regexpfilter)
    * [Language model filters](#language-model-filters)
@@ -123,6 +124,7 @@ currently requires a manual install.
 * pandas
 * pycld2
 * pyhash
+* rapidfuzz
 * ruamel.yaml
 * regex
 * scikit-learn
@@ -1073,14 +1075,28 @@ The returned value is a list of similarity scores for all language pairs. For n-
 
 #### `LongestCommonSubstringFilter`
 
-Filter segments based on similarity of the strings.
+Filter segments based on the normalized length of the longest common substring.
 
 Parameters:
 
-* `threshold`: filter segments if the similarity is equal or above the threshold (optional; default 0.9)
+* `threshold`: filter segments if the normalized length is equal or above the threshold (optional; default 0.9)
 * `require_all`: if True, all ratios (for pairs of n segments) have to be below the threshold; otherwise at least one the ratios have to be below the threshold
 
 Returned scores are ratios between the length of the longest common substring and the length of the shorter of the compared strings for all language pairs. For n-lingual input, the scores will include C(n, 2) values.
+
+#### `SimilarityFilter`
+
+Filter segments based on string or word sequence similarity based on Levenshtein distance.
+
+Parameters:
+
+* `threshold`: filter segments if the similarity is equal or above the threshold (optional, default 0.9)
+* `weights`: a list of three integers corresponding to the costs of three edit operations: insertion, deletion, substitution (optional; default `[1, 1, 1]`)
+* `unit`: type of unit for calculating the distance (optional; `word` for words or any whitespace-separated units, and `character` or `char` for characters; the default is `char`)
+* `lowercase`: lowercase strings as preprocessing (default `false`)
+* `require_all`: if True, all similarities (for pairs of n segments) have to be below the threshold; otherwise at least one the similarities have to be below the threshold
+
+The returned scores are normalized similarities (1 - edit distance / max edit distance) between the compared sequences for all language pairs. For n-lingual input, the scores will include C(n, 2) values.
 
 #### `RepetitionFilter`
 
