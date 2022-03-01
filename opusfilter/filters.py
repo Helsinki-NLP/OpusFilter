@@ -40,6 +40,7 @@ class LengthFilter(FilterABC):
         super().__init__(**kwargs)
 
     def get_length(self, segment, idx):
+        """Return length of the segment in index"""
         if self.unit[idx] == 'word':
             return len(segment.split())
         return len(segment)
@@ -64,6 +65,7 @@ class LengthRatioFilter(FilterABC):
         super().__init__(**kwargs)
 
     def get_length(self, segment, idx):
+        """Return length of the segment in index"""
         if self.unit[idx] == 'word':
             return len(segment.split())
         return len(segment)
@@ -456,6 +458,7 @@ class SimilarityFilter(FilterABC):
         super().__init__(**kwargs)
 
     def similarity(self, seq1, seq2):
+        """Return normalized similarity between the sequences"""
         if self.lowercase:
             seq1 = seq1.lower()
             seq2 = seq2.lower()

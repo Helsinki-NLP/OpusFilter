@@ -181,12 +181,13 @@ class OpusFilter:
             logger.debug("  parameters: %s", parameters)
             self.step_functions[step['type']](parameters, overwrite=overwrite)
 
-    def _check_extra_parameters(self, valid_keys, parameters):
+    @staticmethod
+    def _check_extra_parameters(valid_keys, parameters):
         """Warn if parameters dict has keys outside valid_keys"""
         extra = []
         for key in parameters:
             if key not in valid_keys:
-                logger.error(f"Unknown parameter '{key}' with value: {parameters[key]}")
+                logger.error("Unknown parameter '%s' with value: %s", key, parameters[key])
                 extra.append(key)
         if extra:
             raise ConfigurationError(f"Unknown parameter keys: {', '.join(extra)}")
@@ -554,7 +555,6 @@ class OpusFilter:
         the input object and existing keys will be overwritten.
 
         """
-        self._check_extra_parameters({'inputs', 'output', 'keys'}, parameters)
         def _gen(inputs, keys):
             """Generator for output objects"""
             for objects in zip(*inputs):
@@ -566,6 +566,7 @@ class OpusFilter:
                         new.update(obj)
                 yield new
 
+        self._check_extra_parameters({'inputs', 'output', 'keys'}, parameters)
         outfile = os.path.join(self.output_dir, parameters['output'])
         if not overwrite and os.path.isfile(outfile):
             logger.info("Output file exists, skipping step")
