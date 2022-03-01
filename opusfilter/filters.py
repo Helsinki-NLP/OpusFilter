@@ -16,9 +16,10 @@ from bs4 import BeautifulSoup as bs
 import fasttext
 
 from . import FilterABC, ConfigurationError
-from .lm import CrossEntropyFilter, CrossEntropyDifferenceFilter, LMClassifierFilter  # pylint: disable=W0611 # noqa: F401
 from .util import check_args_compability
-from .word_alignment import WordAlignFilter  # pylint: disable=W0611 # noqa: F401
+from .lm import CrossEntropyFilter, CrossEntropyDifferenceFilter, LMClassifierFilter  # pylint: disable=W0611 # noqa: F401
+from .word_alignment import WordAlignFilter      # pylint: disable=W0611 # noqa: F401
+from .embeddings import SentenceEmbeddingFilter  # pylint: disable=W0611 # noqa: F401
 
 
 logger = logging.getLogger(__name__)
