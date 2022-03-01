@@ -145,7 +145,6 @@ class MonolingualSentenceSplitter(PreprocessorABC):
 
     def process(self, pairs):
         for segments in pairs:
-            logger.warning(segments)
             if len(segments) > 1 and not self.enable_parallel:
                 raise ConfigurationError(
                     "MonolingualSentenceSplitter should not be used for parallel data. "

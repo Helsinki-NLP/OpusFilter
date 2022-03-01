@@ -92,7 +92,6 @@ class TestRegExpFilter(unittest.TestCase):
         cases = [['aaa'], ['123'], ['hey...'], ['']]
         expected = [([True], True), ([False], False), ([False], False), ([True], True)]
         results = [(x, testfilter.accept(x)) for x in testfilter.score(cases)]
-        logger.warning(results)
         for result, correct in zip(results, expected):
             self.assertSequenceEqual(result, correct)
 
@@ -263,7 +262,7 @@ class TestCLD2(TestLangIDMethod):
         pair_scores = model.score(self.pairs_inputs)
         pair_expecteds = [True, False, True]
         for pair_score, pair_expected in zip(pair_scores, pair_expecteds):
-            logging.warning('%s %s', pair_score, pair_expected)
+            logging.info('%s %s', pair_score, pair_expected)
             self.assertEqual(model.accept(pair_score), pair_expected)
 
 
