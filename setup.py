@@ -15,6 +15,7 @@ install_requires = [
     "pycld2",
     "pyhash",
     "sentence-splitter",
+    "rapidfuzz",
     "ruamel.yaml>=0.15.0",
     "regex",
     "requests",

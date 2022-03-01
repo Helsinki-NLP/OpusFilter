@@ -8,6 +8,7 @@ fast-mosestokenizer==0.0.8.1
 pandas>=1.0.0
 pycld2==0.31
 pyhash==0.9.3
+rapidfuzz>=2.0.5
 regex>=2019.11.1
 requests>=2.22.0
 ruamel.yaml>=0.15.0

@@ -8,6 +8,7 @@ import os
 import string
 from typing import Iterator, List, Tuple
 
+import rapidfuzz
 import regex
 from langid.langid import LanguageIdentifier, model
 import pycld2
@@ -420,6 +421,53 @@ class LongestCommonSubstringFilter(FilterABC):
                 minlen = min(len(seq1), len(seq2))
                 ratios.append(0 if minlen == 0 else size / minlen)
             yield ratios
+
+    def accept(self, score):
+        if self.require_all:
+            return all(ratio < self.threshold for ratio in score)
+        return any(ratio < self.threshold for ratio in score)
+
+
+class SimilarityFilter(FilterABC):
+    """Filter on string/sequence similarity
+
+    Uses Levenshtein distance implemented in the RapidFuzz library.
+    The weights parameter can be used to change the costs of the three
+    operations (insertion, deletion, substitution).
+
+    If require_all is True, all ratios (for pairs of n segments) have
+    to be below the threshold; otherwise at least one the ratios have
+    to be below the threshold. For bilingual input, it has no effect.
+
+    """
+
+    VALID_UNITS = ('word', 'char', 'character')
+
+    def __init__(self, threshold=0.9, weights=(1, 1, 1), unit='char', lowercase=False,
+                 require_all=True, **kwargs):
+        if unit not in self.VALID_UNITS:
+            raise ConfigurationError(
+                f"Value of 'unit' are not one of the allowed choices {self.VALID_UNITS}: {unit}")
+        self.threshold = threshold
+        self.weights = weights
+        self.unit = unit
+        self.lowercase = lowercase
+        self.require_all = require_all
+        super().__init__(**kwargs)
+
+    def similarity(self, seq1, seq2):
+        if self.lowercase:
+            seq1 = seq1.lower()
+            seq2 = seq2.lower()
+        if self.unit == 'word':
+            seq1 = seq1.split()
+            seq2 = seq2.split()
+        return rapidfuzz.distance.Levenshtein.normalized_similarity(
+            seq1, seq2, weights=self.weights)
+
+    def score(self, pairs):
+        for pair in pairs:
+            yield [self.similarity(seq1, seq2) for seq1, seq2 in itertools.combinations(pair, 2)]
 
     def accept(self, score):
         if self.require_all:
