@@ -55,6 +55,7 @@ A changelog is available in [docs/CHANGELOG.md](docs/CHANGELOG.md).
    * [Training language and alignment models](#training-language-and-alignment-models)
       * [train_ngram](#train_ngram)
       * [train_aligment](#train_aligment)
+      * [train_nearest_neighbors](#train_nearest_neighbors)
    * [Training and using classifiers](#training-and-using-classifiers)
       * [train_classifier](#train_classifier)
       * [classify](#classify)
@@ -82,6 +83,8 @@ A changelog is available in [docs/CHANGELOG.md](docs/CHANGELOG.md).
       * [LMClassifierFilter](#lmclassifierfilter)
    * [Alignment model filters](#alignment-model-filters)
       * [WordAlignFilter](#wordalignfilter)
+   * [Sentence embedding filters](#sentence-embedding-filters)
+      * [SentenceEmbeddingFilter](#sentenceembeddingfilter)
 * [Custom filters](#custom-filters)
 * [Available preprocessors](#available-preprocessors)
    * [Tokenizer](#tokenizer)
@@ -143,6 +146,13 @@ For Japanese tokenization (word segmentation), you can use the
 [MeCab](https://github.com/SamuraiT/mecab-python3) library. It can be installed
 automatically with pip by including the extras `[mecab]` or `[all]`
 (e.g. `pip install opusfilter[all]`).
+
+For using sentence embeddings filters, you need to install
+`laserembeddings` (https://github.com/yannvgn/laserembeddings). It can
+be installed automatically with pip by including the extras `[laser]`
+or `[all]` (e.g. `pip install opusfilter[all]`). The package will also
+require a number of additional libraries, including PyTorch, jieba,
+and MeCab.
 
 For using n-gram language model filters, you need to install VariKN
 (https://github.com/vsiivola/variKN) and its Python wrapper. Include
@@ -893,6 +903,26 @@ Parameters:
 See [WordAlignFilter](#wordalignfilter) for details of the training
 parameters.
 
+#### `train_nearest_neighbors`
+
+Train unsupervised model to search for nearest neighbors of segments using sentence
+embeddings. Can be used in [`SentenceEmbeddingFilter`](#sentenceembeddingfilter).
+
+Parameters:
+
+* `inputs`: a list of input files
+* `languages`: a list of language codes corresponding to the input files
+* `n_neighbors`: the default number neightbors to return from query (optional; default 4)
+* `algorithm`: algorithm used to compute the nearest neighbors (optional; default `brute`)
+* `metric`: distance or similarity metric used by the object (optional; default `cosine`) 
+* `output`: output file name for the model
+
+This is a wrapper for scikit-learn's `NearestNeighbors` class; see more information in it's
+[documentation](https://scikit-learn.org/stable/modules/neighbors.html#unsupervised-neighbors).
+Note that the cosine similarity is required for proper use in `SentenceEmbeddingFilter`,
+and only the brute force algorithm works with cosine similarities. The saved model can be
+very large, so use large input corpora with caution.
+
 ### Training and using classifiers
 
 #### `train_classifier`
@@ -1271,6 +1301,32 @@ for details.
 
 See [train_aligment](#train_aligment) for training priors. Compatible
 tokenizer and model parameters should be used.
+
+### Sentence embedding filters
+
+#### `SentenceEmbeddingFilter`
+
+Filter segments using sentence embeddings.
+
+Parameters:
+* `languages`: a list of language codes corresponding to input files
+* `threshold`: filter out segments with similarity below the threshold (optional; default 0.5)
+* `nn_model`: a nearest neighbor model for normalizing the similarities (optional; default `null`)
+* `chunksize`: the number of segment pairs to process at the same time (optional: default 200)
+
+The current implementation supports the multilingual LASER embeddings
+as proposed by Artetxe & Schwenk (2018) and Chaudhary et al. (2019).
+Cosine similarity is used to calculate the similarity of the embeddings.
+If `nn_model` is provided, the similarities are normalized by the
+average similarity to K nearest neighbors in a reference corpus;
+see [train_nearest_neighbors](#train_nearest_neighbors) for training
+a model. With normalized scores, threshold around 1.0 is likely more
+suitable than the default 0.5.
+
+Especially with the nearest neighbor normalization, this filter can be
+slow to use. Using a small enough corpus for the nearest neighbors,
+enabling GPU computation for PyTorch (used by `laserembeddings`), and
+testing different values for `chunksize` may help.
 
 ## Custom filters
 

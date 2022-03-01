@@ -19,6 +19,7 @@ from opustools import OpusRead
 
 from . import ConfigurationError, OpusFilterRuntimeError
 from . import pipeline
+from . import embeddings
 from . import lm
 from . import word_alignment
 from . import tokenization
@@ -91,6 +92,7 @@ class OpusFilter:
             'subset': self.get_subset,
             'train_ngram': self.train_ngram,
             'train_alignment': self.train_alignment,
+            'train_nearest_neighbors': self.train_nearest_neighbors,
             'score': self.score_data,
             'train_classifier': self.train_classifier,
             'classify': self.classify,
@@ -163,7 +165,6 @@ class OpusFilter:
         logger.info('Running step %s: %s', num, step['type'])
         variables = step.get('variables', {})
         namespace = copy.copy(self.constants)
-        logger.info("%s", namespace)
         namespace.update(step.get('constants', {}))
         if variables:
             num_choices = self._check_variables(variables)
@@ -393,6 +394,20 @@ class OpusFilter:
                         parameters['parameters'].get('tgt_tokenizer', None)]))
         word_alignment.make_priors(
             pair_gen, model_out, model=parameters['parameters'].get('model', 3), score_file=score_file)
+
+    def train_nearest_neighbors(self, parameters, overwrite=False):
+        """Train model for querying nearest neighbors"""
+        model_out = os.path.join(self.output_dir, parameters['output'])
+        if not overwrite and os.path.isfile(model_out):
+            logger.info("Output file exists, skipping step")
+            return
+        infiles = [os.path.join(self.output_dir, fname) for fname in parameters['inputs']]
+        model = embeddings.ParallelNearestNeighbors(
+            input_files=infiles, languages=parameters['languages'],
+            n_neighbors=parameters.get('n_neighbors', 4), algorithm=parameters.get('algorithm', 'brute'),
+            metric=parameters.get('metric', 'cosine'))
+        with open(model_out, 'wb') as model_file:
+            pickle.dump(model, model_file)
 
     @staticmethod
     def _write_jsonl(objects, fname):
