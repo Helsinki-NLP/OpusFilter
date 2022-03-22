@@ -22,6 +22,7 @@ from . import pipeline
 from . import embeddings
 from . import lm
 from . import word_alignment
+from . import subwords
 from . import tokenization
 from . import classifier
 from . import segment_hash
@@ -90,6 +91,8 @@ class OpusFilter:
             'filter': self.filter_data,
             'concatenate': self.concatenate,
             'subset': self.get_subset,
+            'train_bpe': self.train_bpe,
+            'train_morfessor': self.train_morfessor,
             'train_ngram': self.train_ngram,
             'train_alignment': self.train_alignment,
             'train_nearest_neighbors': self.train_nearest_neighbors,
@@ -356,6 +359,35 @@ class OpusFilter:
                      file_open(outfname, 'w') as outf:
                     for line in self._yield_subset(inf, sample):
                         outf.write(line)
+
+    def train_bpe(self, parameters, overwrite=False):
+        """Train morphological segmentation using Byte-Pair Encoding (BPE)"""
+        self._check_extra_parameters({'model', 'input', 'symbols', 'min_frequency', 'num_workers'}, parameters)
+        model_out = os.path.join(self.output_dir, parameters['model'])
+        if not overwrite and os.path.isfile(model_out):
+            logger.info("Output file exists, skipping step")
+            return
+        subwords.BPESegmentation.train(
+            os.path.join(self.output_dir, parameters['input']), model_out, parameters.get('symbols', 10000),
+            min_frequency=parameters.get('min_frequency', 2), num_workers=parameters.get('num_workers', 1))
+
+    def train_morfessor(self, parameters, overwrite=False):
+        """Train morphological segmentation using Morfessor"""
+        self._check_extra_parameters({'model', 'input', 'corpusweight', 'min_frequency', 'dampening', 'seed',
+                                      'use_skips', 'forcesplit_list', 'nosplit_re'}, parameters)
+        model_out = os.path.join(self.output_dir, parameters['model'])
+        if not overwrite and os.path.isfile(model_out):
+            logger.info("Output file exists, skipping step")
+            return
+        subwords.MorfessorSegmentation.train(
+            os.path.join(self.output_dir, parameters['input']), model_out,
+            corpusweight=parameters.get('corpusweight', 1.0),
+            min_frequency=parameters.get('min_frequency', 1),
+            dampening=parameters.get('dampening', 'log'),
+            seed=parameters.get('seed'),
+            use_skips=parameters.get('use_skips', True),
+            forcesplit_list=parameters.get('forcesplit_list'),
+            nosplit_re=parameters.get('nosplit_re'))
 
     def train_ngram(self, parameters, overwrite=False):
         """Train an n-gram language model"""
@@ -827,7 +859,7 @@ class OpusFilter:
         if not overwrite and all(os.path.isfile(outfile) for outfile in outfiles):
             logger.info("Output files exists, skipping step")
             return
-        preprocess_pipe = pipeline.PreprocessorPipeline.from_config(parameters['preprocessors'])
+        preprocess_pipe = pipeline.PreprocessorPipeline.from_config(parameters['preprocessors'], workdir=self.output_dir)
         pairs = preprocess_pipe.process(self.pair_generator(*infiles))
         outfileobjs = [file_open(fname, 'w') for fname in outfiles]
         for pair in tqdm(pairs):

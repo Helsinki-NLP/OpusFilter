@@ -10,6 +10,7 @@ install_requires = [
     "graphviz",
     "langid",
     "matplotlib",
+    "morfessor",
     "fast-mosestokenizer",
     "pandas>=1.0.0",
     "pycld2",
@@ -20,6 +21,7 @@ install_requires = [
     "regex",
     "requests",
     "scikit-learn",
+    "subword_nmt",
     "tqdm"
 ]
 

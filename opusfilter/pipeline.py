@@ -8,6 +8,7 @@ from tqdm import tqdm
 
 from . import filters as filtermodule
 from . import preprocessors as preprocessmodule
+from . import subwords as subwordsmodule
 from .util import grouper
 
 
@@ -130,16 +131,20 @@ class PreprocessorPipeline:
         self.preprocessors = [] if preprocessors is None else preprocessors
 
     @classmethod
-    def from_config(cls, config):
+    def from_config(cls, config, workdir=None):
         """Initilize filter pipeline from configuration dictionary"""
         pipeline = cls()
         for processor in config:
             custom_module = processor.pop('module') if 'module' in processor else None
             name = next(iter(processor.keys()))
             attributes = processor[name]
+            if workdir:
+                attributes['workdir'] = workdir
             if custom_module:
                 mod = importlib.import_module(custom_module)
                 processor_cls = getattr(mod, name)
+            elif hasattr(subwordsmodule, name):
+                processor_cls = getattr(subwordsmodule, name)
             else:
                 processor_cls = getattr(preprocessmodule, name)
             pipeline.preprocessors.append(processor_cls(**attributes))
