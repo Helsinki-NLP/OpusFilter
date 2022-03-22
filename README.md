@@ -56,6 +56,8 @@ A changelog is available in [docs/CHANGELOG.md](docs/CHANGELOG.md).
       * [train_ngram](#train_ngram)
       * [train_aligment](#train_aligment)
       * [train_nearest_neighbors](#train_nearest_neighbors)
+      * [train_bpe](#train_bpe)
+      * [train_morfessor](#train_morfessor)
    * [Training and using classifiers](#training-and-using-classifiers)
       * [train_classifier](#train_classifier)
       * [classify](#classify)
@@ -92,6 +94,8 @@ A changelog is available in [docs/CHANGELOG.md](docs/CHANGELOG.md).
    * [WhitespaceNormalizer](#whitespacenormalizer)
    * [RegExpSub](#regexpsub)
    * [MonolingualSentenceSplitter](#monolingualsentencesplitter)
+   * [BPESegmentation](#bpesegmentation)
+   * [MorfessorSegmentation](#morfessorsegmentation)
 * [Custom preprocessors](#custom-preprocessors)
 * [Other tools](#other-tools)
    * [opusfilter-diagram](#opusfilter-diagram)
@@ -923,6 +927,40 @@ Note that the cosine similarity is required for proper use in `SentenceEmbedding
 and only the brute force algorithm works with cosine similarities. The saved model can be
 very large, so use large input corpora with caution.
 
+#### `train_bpe`
+
+Train subword segmentation model with BPE (Sennrich et al., 2016).
+
+Parameters:
+
+* `input`: input file name for training data
+* `model`: output file name for the model
+* `symbols`: create this many new symbols (each representing a character n-gram) (optional; default 10000)
+* `min_frequency`: stop if no symbol pair has frequency equal or above the threshold (optional; default 2)
+* `num_workers`: number of processors to process texts; if -1, set `multiprocessing.cpu_count()` (optional; default 1)
+
+See [subword-nmt documentation](https://github.com/rsennrich/subword-nmt) for details.
+The trained model can be used by the [`BPESegmentation`](#bpesegmentation) preprocessor.
+
+#### `train_morfessor`
+
+Train subword segmentation model with Morfessor 2.0 (Virpioja et al., 2013).
+
+Parameters:
+
+* `input`: input file name for training data
+* `model`: output file name for the model
+* `corpusweight`: corpus weight parameter (optional; default 1.0)
+* `min_frequency`: frequency threshold for words to include in training (optional; default 1)
+* `dampening`: frequency dampening for training data: `none` = tokens, `log` = logarithmic dampening, or `ones` = types (optional; default `"log"`)
+* `seed`: seed for random number generator used in training (optional; default `null`)
+* `use_skips`: use random skips for frequently seen compounds to speed up training (optional; default `true`)
+* `forcesplit_list`: force segmentations on the characters in the given list (optional; default `null`)
+* `nosplit_re`: if the regular expression matches the two surrounding characters, do not allow splitting (optional; default `null`)
+
+See [Morfessor 2.0 documentation](https://morfessor.readthedocs.io/en/latest/) for details.
+The trained model can be used by the [`MorfessorSegmentation`](#morfessorsegmentation) preprocessor.
+
 ### Training and using classifiers
 
 #### `train_classifier`
@@ -1520,6 +1558,37 @@ match. Because of this, you can define only a single language, and an
 exception is raised if multiple input files are provided. The
 exception can be disabled with the `enable_parallel` option for
 special cases.
+
+### `BPESegmentation`
+
+Split words into subword units using BPE model (see Sennrich et al., 2016).
+
+Parameters:
+
+* `model`: a model file with BPE codes
+* `merges`: use this many BPE operations (optional; default -1 = use all learned operations)
+* `separator` separator between non-final subword units (optional; default `"@@"`)
+* `vocab`: vocabulary file; if provided, reverts any merge operations that produce an OOV (optional; default `null`)
+* `glossaries`: words matching any of the words/regex provided in glossaries will not be affected (optional; default `null`)
+* `dropout`: dropout BPE merge operations with the probability (optional; default 0)
+
+See [train_bpe](#train_bpe) for training a model and
+[subword-nmt documentation](https://github.com/rsennrich/subword-nmt)
+for details of the parameters.
+
+### `MorfessorSegmentation`
+
+Split words into subword units using Morfessor model (see Virpioja et al., 2013).
+
+* `model`: a Morfessor binary model file
+* `separator`: (optional; default `"@@ "`)
+* `lowercase`: lowercase all text prior to segmentation (optional; default `false`)
+* `viterbi_max_len`: (optional; default 30)
+* `viterbi_smoothing`: (optional; default 0)
+
+See [train_morfessor](#train_morfessor) for training a model and 
+[Morfessor 2.0 documentation](https://morfessor.readthedocs.io/en/latest/)
+for details of the parameters.
 
 ## Custom preprocessors
 
