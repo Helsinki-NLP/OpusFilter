@@ -127,6 +127,8 @@ currently requires a manual install.
 * langid
 * fast-mosestokenizer
 * fasttext
+* matplotlib
+* morfessor
 * OpusTools
 * pandas
 * pycld2
@@ -134,7 +136,10 @@ currently requires a manual install.
 * rapidfuzz
 * ruamel.yaml
 * regex
+* requests
+* sentence-splitter
 * scikit-learn
+* subword_nmt
 * tqdm
 
 See `setup.py` for possible version requirements.
@@ -869,6 +874,7 @@ Parameters:
    * `use_3nzer`: use 3 discounts per order instead of one (optional; default `false`)
    * `absolute`: use absolute discounting instead of Kneser-Ney smoothing (optional; default `false`)
    * `cutoffs`: use the specified cutoffs (optional; default `"0 0 1"`). The last value is used for all higher order n-grams.
+   * `segmentation`: subword segmentation options (optional; default `{}`)
    * `mb`: word-internal boundary marking (optional; default `""`)
    * `wb`: word boundary tag (optional; default `"<w>"`)
 
@@ -882,8 +888,27 @@ balance between the model size and accuracy at the cost of longer
 training time; a suitable rule of thumb is double the value of
 `dscale`.
 
-The default boundary settings are suitable for character-based models
-and are not recommended to edit.
+The `segmentation` parameter is a dictionary that should contain at
+least the key `type`, which defines the subword segmentation type.
+The default is character segmentation (`type: char`). Other options
+are no segmentation (`type: none`), and BPE (`type: bpe`) or Morfessor
+(`type: morfessor`) segmentations. For the latter two, a file for a
+trained segmentation model needs to be defined using the key `model`.
+Additional parameters in the dictionary are passed as options for the
+specified model; see [`BPESegmentation`](#bpesegmentation) and
+[`MorfessorSegmentation`](#morfessorsegmentation) for those. The BPE
+and Morfessor models can be trained using the [`train_bpe`](#train_bpe)
+and [`train_morfessor`](#train_morfessor) commands.
+
+The default boundary settings (a separate word boundary tag) are
+suitable for character-based models. For other subword models, you
+may consider using the word-internal boundary marking (`mb`)
+instead. Either prefix or postfix string can be used: Prefix strings
+start with `^` and postfix strings end with `$`. For example,
+`mb: "^#"` means that a token starting with `#` is not preceeded by a
+word break (e.g. `sub #word segment #tation`). The postfix marking
+used by `subword-nmt` (e.g. `sub@@ word segment@@ ation`) can be set
+by `mb: "@@$"`.
 
 See [VariKN](https://github.com/vsiivola/variKN) documentation for
 details.
@@ -1232,15 +1257,16 @@ Language model parameters for `lm_params`:
 * `unk`: unknown token symbol (optional; default `<UNK>`, case sensitive)
 * `include_unks`: include unknown tokens in perplexity calculations (optional; default `false`)
 * `ccs`: list of context cues ignored in perplexity calculations (optional; default `null`)
+* `segmentation`: subword segmentation options (optional; default `{}`)
 * `mb`: morph boundary marking (optional; default `""`)
 * `wb`: word boundary tag (optional; default `"<w>"`)
 * `init_hist`: ignore n first tokens after the end-of-sentence tag `</s>` in perplexity calculations (optional; default 2)
 * `interpolate`: list of language models (in ARPA format) and interpolation weights (optional; default `null`)
 
 See [train_ngram](#train_ngram) for training the models. Note that the
-format, perplexity calculation, and boundary marking options should
-match the parameters used in model training; do not change them unless
-you know what you are doing.
+format, perplexity calculation, segmentation, and boundary marking
+options should match the parameters used in model training; do not
+change them unless you know what you are doing.
 
 Separate scores (entropy, perplexity, or negative log-probability) are
 returned for the source and target segment. In filtering, the segment

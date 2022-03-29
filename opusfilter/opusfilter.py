@@ -397,7 +397,8 @@ class OpusFilter:
             logger.info("Output file exists, skipping step")
             return
         data_name = parameters['data']
-        tokenizer = lm.LMTokenizer(**parameters['parameters'])
+        lmtoken_params = lm.join_workdir_to_lm_paths(parameters['parameters'], self.output_dir)
+        tokenizer = lm.LMTokenizer(**lmtoken_params)
         with tempfile.NamedTemporaryFile('w+b', suffix='.seg.gz') as segfile:
             num = 0
             with file_open(os.path.join(self.output_dir, data_name), 'r') as infile, \

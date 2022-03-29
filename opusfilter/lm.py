@@ -10,6 +10,7 @@ import os
 import tempfile
 
 from . import FilterABC, ConfigurationError, OpusFilterRuntimeError
+from .subwords import BPESegmentation, MorfessorSegmentation
 from .util import is_file_empty
 
 
@@ -193,6 +194,7 @@ def get_lm(**kwargs):
 class LMTokenizer:
     """Tokenizer for subword language models"""
 
+    VALID_SEGMENTATION_TYPES = ['char', 'bpe', 'morfessor', 'none']
     s_beg = '<s>'
     s_end = '</s>'
 
@@ -200,8 +202,7 @@ class LMTokenizer:
         """Map sentences to tokens processed by language models
 
         Keyword arguments:
-          segmentation -- Word segmentation parameters; currently only {'type': 'char'} is
-            supported (default: None)
+          segmentation -- subword segmentation parameters (default: None)
           mb -- Morph boundary marking (default '')
           wb -- Word boundary tag (default '<w>')
 
@@ -212,6 +213,7 @@ class LMTokenizer:
             segmentation = {'type': 'char'}
         self.check_segmentation_params(segmentation)
         self.segmentation = segmentation
+        self.model = self.load_segmentation_model(segmentation)
         self.mb = mb
         self.wb = wb
         if kwargs:
@@ -220,14 +222,31 @@ class LMTokenizer:
     @staticmethod
     def check_segmentation_params(segmentation):
         """Check that segmentation paramters are valid"""
-        if segmentation.get('type', 'char') != 'char':
-            raise ConfigurationError("Only segmentation type supported currently is 'char'")
+        type_ = segmentation.get('type', 'char').lower()
+        if type_ not in LMTokenizer.VALID_SEGMENTATION_TYPES:
+            raise ConfigurationError(f"Segmentation type '{type_}' not supported")
+
+    @staticmethod
+    def load_segmentation_model(segmentation):
+        """Load and return segmentation model if such is needed"""
+        options = copy.copy(segmentation)
+        method = options.pop('type', 'char').lower()
+        modelfile = options.pop('model', None)
+        model = None
+        if method == 'bpe':
+            model = BPESegmentation(modelfile, **options)
+        elif method == 'morfessor':
+            model = MorfessorSegmentation(modelfile, **options)
+        return model
 
     def subwords(self, word):
         """Return subwords for the word"""
-        if self.segmentation['type'] == 'char':
-            return list(word)
-        raise ConfigurationError("Only segmentation type supported currently is 'char'")
+        method = self.segmentation.get('type', 'char').lower()
+        if method == 'none':
+            return [word]
+        if method in {'bpe', 'morfessor'}:
+            return self.model.get_subwords(word)
+        return list(word)
 
     def tokenize(self, sent):
         """Tokenize single sentence"""
@@ -253,9 +272,12 @@ class LMTokenizer:
 def join_workdir_to_lm_paths(lm_params, workdir):
     """Set paths in LM parameter dictionary under workdir"""
     new = copy.deepcopy(lm_params)
-    new['filename'] = os.path.join(workdir, new['filename'])
+    if new.get('filename'):
+        new['filename'] = os.path.join(workdir, new['filename'])
     if new.get('interpolate'):
         new['interpolate'] = [[os.path.join(workdir, t[0]), t[1]] for t in new['interpolate']]
+    if new.get('segmentation', {}).get('model'):
+        new['segmentation']['model'] = os.path.join(workdir, new['segmentation']['model'])
     return new
 
 
