@@ -208,12 +208,26 @@ class LMTokenizer:
         Any extra keyword arguments are ignored.
 
         """
-        if segmentation and segmentation.get('type', 'char') != 'char':
-            raise ConfigurationError("Only segmentation type supported currently is 'char'")
+        if segmentation is None:
+            segmentation = {'type': 'char'}
+        self.check_segmentation_params(segmentation)
+        self.segmentation = segmentation
         self.mb = mb
         self.wb = wb
         if kwargs:
             logger.debug("Ignoring extra keyword arguments: %s", ', '.join(kwargs))
+
+    @staticmethod
+    def check_segmentation_params(segmentation):
+        """Check that segmentation paramters are valid"""
+        if segmentation.get('type', 'char') != 'char':
+            raise ConfigurationError("Only segmentation type supported currently is 'char'")
+
+    def subwords(self, word):
+        """Return subwords for the word"""
+        if self.segmentation['type'] == 'char':
+            return list(word)
+        raise ConfigurationError("Only segmentation type supported currently is 'char'")
 
     def tokenize(self, sent):
         """Tokenize single sentence"""
@@ -221,14 +235,15 @@ class LMTokenizer:
         if self.wb:
             tokens.append(self.wb)
         for word in sent.strip().split():
+            subwords = self.subwords(word)
             if self.mb and self.mb.endswith('$'):
-                for char in word.replace('', self.mb[:-1] + ' '):
-                    tokens.append(char)
+                for idx, subword in enumerate(subwords):
+                    tokens.append(subword if idx == len(subwords) - 1 else subword + self.mb[:-1])
             elif self.mb and self.mb.startswith('^'):
-                for char in word.replace('', ' ' + self.mb[1:]):
-                    tokens.append(char)
+                for idx, subword in enumerate(subwords):
+                    tokens.append(subword if idx == 0 else self.mb[1:] + subword)
             else:
-                tokens += list(word)
+                tokens += subwords
             if self.wb:
                 tokens.append(self.wb)
         tokens.append(self.s_end)
@@ -255,8 +270,8 @@ class CrossEntropyFilter(FilterABC):
         super().__init__(**kwargs)
         if not lm_params:
             raise ConfigurationError("Language model configurations need to be defined")
-        if any(param.get('segmentation', {}).get('type', 'char') != 'char' for param in lm_params):
-            raise ConfigurationError("Only segmentation type supported currently is 'char'")
+        for param in lm_params:
+            LMTokenizer.check_segmentation_params(param.get('segmentation', {}))
         if score_type not in self.score_types:
             raise ConfigurationError(f"Unknown score type {score_type}, should be one of {self.score_types}")
         self.score_type = score_type
@@ -308,10 +323,8 @@ class CrossEntropyDifferenceFilter(FilterABC):
             raise ConfigurationError("In-domain language model configurations need to be defined")
         if not nd_lm_params:
             raise ConfigurationError("Non-domain language model configurations need to be defined")
-        if any(param.get('segmentation', {}).get('type', 'char') != 'char' for param in id_lm_params):
-            raise ConfigurationError("Only segmentation type supported currently is 'char'")
-        if any(param.get('segmentation', {}).get('type', 'char') != 'char' for param in nd_lm_params):
-            raise ConfigurationError("Only segmentation type supported currently is 'char'")
+        for param in id_lm_params + nd_lm_params:
+            LMTokenizer.check_segmentation_params(param.get('segmentation', {}))
         if len(id_lm_params) != len(nd_lm_params):
             raise ConfigurationError("The number of in-domain and non-domain language models should match")
         self.id_lm_params = [join_workdir_to_lm_paths(params, self.workdir) for params in id_lm_params]
@@ -374,8 +387,7 @@ class LMClassifierFilter(FilterABC):
         self.lms = {}
         self.tokenizers = {}
         for key, params in lm_params.items():
-            if params.get('segmentation', {}).get('type', 'char') != 'char':
-                raise ConfigurationError("Only segmentation type supported currently is 'char'")
+            LMTokenizer.check_segmentation_params(params.get('segmentation', {}))
             params_with_paths = join_workdir_to_lm_paths(params, self.workdir)
             self.lms[key] = get_lm(**params_with_paths)
             self.tokenizers[key] = LMTokenizer(**params_with_paths)

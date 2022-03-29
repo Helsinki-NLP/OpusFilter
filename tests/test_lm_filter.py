@@ -5,7 +5,7 @@ import os
 import tempfile
 import unittest
 
-from opusfilter import lm, OpusFilterRuntimeError
+from opusfilter import lm, OpusFilterRuntimeError, ConfigurationError
 
 
 try:
@@ -13,6 +13,31 @@ try:
 except ImportError:
     logging.warning("Could not load varikn, language model filtering not supported")
 
+
+
+class TestLMTokenizer(unittest.TestCase):
+
+    def test_bad_type(self):
+        with self.assertRaises(ConfigurationError):
+            tokenizer = lm.LMTokenizer({'type': 'test'})
+
+    def test_char_default(self):
+        tokenizer = lm.LMTokenizer()
+        tokens = tokenizer.tokenize('Hello, world! ')
+        self.assertSequenceEqual(
+            tokens, ['<s>', '<w>', 'H', 'e', 'l', 'l', 'o', ',', '<w>', 'w', 'o', 'r', 'l', 'd', '!', '<w>', '</s>'])
+
+    def test_char_mb_postfix(self):
+        tokenizer = lm.LMTokenizer({'type': 'char'}, mb='#$', wb='')
+        tokens = tokenizer.tokenize('Hi there! ')
+        self.assertSequenceEqual(
+            tokens, ['<s>', 'H#', 'i', 't#', 'h#', 'e#', 'r#', 'e#', '!', '</s>'])
+
+    def test_char_mb_prefix(self):
+        tokenizer = lm.LMTokenizer({'type': 'char'}, mb='^#', wb='')
+        tokens = tokenizer.tokenize('Hi there! ')
+        self.assertSequenceEqual(
+            tokens, ['<s>', 'H', '#i', 't', '#h', '#e', '#r', '#e', '#!', '</s>'])
 
 
 @unittest.skipIf('varikn' not in globals(), 'varikn package not installed')
