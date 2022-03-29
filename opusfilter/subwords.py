@@ -28,6 +28,11 @@ class DummySegmentation(PreprocessorABC):
         super().__init__(**kwargs)
 
     @staticmethod
+    def get_subwords(word):
+        """Return subwords for a single word (without boundary markings)"""
+        return [word]
+
+    @staticmethod
     def split(string):
         """Return input string with words splitted"""
         return string
@@ -52,7 +57,13 @@ class BPESegmentation(DummySegmentation):
 
     def __init__(self, model, merges=-1, separator='@@', vocab=None, glossaries=None, dropout=0, **kwargs):
         super().__init__(**kwargs)
-        with codecs.open(os.path.join(self.workdir, model), encoding='utf-8') as codes:
+        try:
+            modelfile = os.path.join(self.workdir, model)
+        except TypeError as err:
+            raise ConfigurationError(f"Model path expected, got: {model}") from err
+        if not os.path.isfile(modelfile):
+            raise ConfigurationError(f"File does not exist: {modelfile}")
+        with codecs.open(modelfile, encoding='utf-8') as codes:
             if vocab is not None:
                 with codecs.open(os.path.join(self.workdir, vocab), encoding='utf-8') as vocabfile:
                     self.model = BPE(codes, merges=merges, separator=separator, vocab=vocabfile, glossaries=glossaries)
@@ -66,6 +77,12 @@ class BPESegmentation(DummySegmentation):
         with file_open(datafilename) as infile, file_open(modelfilename, 'w') as outfile:
             learn_bpe(infile, outfile, symbols, min_frequency=min_frequency, verbose=False, is_dict=False,
                       total_symbols=False, num_workers=num_workers)
+
+    def get_subwords(self, word):
+        """Return subwords for a single word (without boundary markings)"""
+        subwords = self.model.segment_tokens([word], self.dropout)
+        return [subword.replace(self.model.separator, '') if idx < len(subwords) - 1 else subword
+                for idx, subword in enumerate(subwords)]
 
     def split(self, string):
         """Return input string with words splitted"""
@@ -94,7 +111,13 @@ class MorfessorSegmentation(DummySegmentation):
         self.morfessor_io = morfessor.io.MorfessorIO(
             encoding='utf-8', construction_separator=separator, comment_start='#', compound_separator=r'\s+',
             atom_separator=None, lowercase=lowercase)
-        self.model = self.morfessor_io.read_binary_model_file(os.path.join(self.workdir, model))
+        try:
+            modelfile = os.path.join(self.workdir, model)
+        except TypeError as err:
+            raise ConfigurationError(f"Model path expected, got: {model}") from err
+        if not os.path.isfile(modelfile):
+            raise ConfigurationError(f"File does not exist: {modelfile}")
+        self.model = self.morfessor_io.read_binary_model_file(modelfile)
         self.max_len = viterbi_max_len
         self.addcount = viterbi_smoothing
 
@@ -121,14 +144,18 @@ class MorfessorSegmentation(DummySegmentation):
         model.train_batch()
         morfessor_io.write_binary_model_file(modelfilename, model)
 
+    def get_subwords(self, word):
+        """Return subwords for a single word (without boundary markings)"""
+        if self.morfessor_io.lowercase:
+            word = word.lower()
+        return cached_viterbi_segment(self.model, word, self.addcount, self.max_len)[0]
+
     def split(self, string):
         """Return input string with words splitted"""
-
-        def _split_word(word):
-            constructions, _ = cached_viterbi_segment(self.model, word, self.addcount, self.max_len)
-            return self.morfessor_io.format_constructions(constructions, csep=self.morfessor_io.construction_separator)
-
-        return ' '.join(_split_word(word) for word in string.split())
+        return ' '.join(
+            self.morfessor_io.format_constructions(
+                self.get_subwords(word), csep=self.morfessor_io.construction_separator)
+            for word in string.split())
 
     def join(self, string):
         """Return input string with words joined"""

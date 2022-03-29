@@ -5,7 +5,7 @@ import os
 import tempfile
 import unittest
 
-from opusfilter import lm, OpusFilterRuntimeError, ConfigurationError
+from opusfilter import lm, subwords, OpusFilterRuntimeError, ConfigurationError
 
 
 try:
@@ -16,6 +16,26 @@ except ImportError:
 
 
 class TestLMTokenizer(unittest.TestCase):
+
+    traindata = ['koira jahtasi kissaa',
+                 'kissa kiipesi puuhun',
+                 'puu huojui tuulessa',
+                 'koira haukkui maassa ja kissa sähisi puussa',
+                 'melu peittyi tuuleen']
+
+    def _train_bpe_model(self, modelfile):
+        with tempfile.NamedTemporaryFile('w+') as datafile:
+            for line in self.traindata:
+                datafile.write(line + '\n')
+            datafile.seek(0)
+            subwords.BPESegmentation.train(datafile.name, modelfile)
+
+    def _train_morfessor_model(self, modelfile):
+        with tempfile.NamedTemporaryFile('w+') as datafile:
+            for line in self.traindata:
+                datafile.write(line + '\n')
+            datafile.seek(0)
+            subwords.MorfessorSegmentation.train(datafile.name, modelfile)
 
     def test_bad_type(self):
         with self.assertRaises(ConfigurationError):
@@ -38,6 +58,28 @@ class TestLMTokenizer(unittest.TestCase):
         tokens = tokenizer.tokenize('Hi there! ')
         self.assertSequenceEqual(
             tokens, ['<s>', 'H', '#i', 't', '#h', '#e', '#r', '#e', '#!', '</s>'])
+
+    def test_bpe_mb_postfix(self):
+        with tempfile.NamedTemporaryFile('w+') as modelfile:
+            self._train_bpe_model(modelfile.name)
+            tokenizer = lm.LMTokenizer({'type': 'bpe', 'model': modelfile.name}, mb='@@$', wb='')
+            tokens = tokenizer.tokenize('koira puussa')
+            self.assertSequenceEqual(
+                tokens, ['<s>', 'koira', 'puu@@', 'ssa', '</s>'])
+
+    def test_morfessor_mb_prefix(self):
+        with tempfile.NamedTemporaryFile('w+') as modelfile:
+            self._train_morfessor_model(modelfile.name)
+            tokenizer = lm.LMTokenizer({'type': 'morfessor', 'model': modelfile.name}, mb='^#', wb='')
+            tokens = tokenizer.tokenize('koira puussa')
+            self.assertSequenceEqual(
+                tokens, ['<s>', 'koira', 'puu', '#ssa', '</s>'])
+
+    def test_words(self):
+        tokenizer = lm.LMTokenizer({'type': 'none'}, mb='', wb='')
+        tokens = tokenizer.tokenize('Hello, world! ')
+        self.assertSequenceEqual(
+            tokens, ['<s>', 'Hello,', 'world!', '</s>'])
 
 
 @unittest.skipIf('varikn' not in globals(), 'varikn package not installed')

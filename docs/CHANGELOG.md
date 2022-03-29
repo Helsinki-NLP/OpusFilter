@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - an option to write filter scores to a file with `opusfilter-test`
 - new filters: `AlphabetRatioFilter`, `RegExpFilter`, `SimilarityFilter`, `SentenceEmbeddingFilter`
 - support for Japanese word segmentation using `MeCab` as a tokenizer
+- preprocessing methods for subword segmentation (`BPESegmentation`, `MorfessorSegmentation`)
+- subword segmentation support for the n-gram language models and language model filters
 
 ### Changed
 

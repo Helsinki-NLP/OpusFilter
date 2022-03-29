@@ -20,9 +20,11 @@ class TestBPESegmentation(unittest.TestCase):
             datafile.seek(0)
             subwords.BPESegmentation.train(datafile.name, modelfile.name, 20, min_frequency=1, num_workers=1)
             return subwords.BPESegmentation(modelfile.name)
-    
+
     def test_segmentation(self):
         segmenter = self._get_segmenter()
+        self.assertEqual(segmenter.get_subwords('koira'), ['koira'])
+        self.assertEqual(segmenter.get_subwords('vai'), ['v', 'a', 'i'])
         output = []
         for segment in self.data:
             out = segmenter.split(segment)
@@ -40,5 +42,5 @@ class TestMorfessorSegmentation(TestBPESegmentation):
                 datafile.write(line + '\n')
             datafile.seek(0)
             subwords.MorfessorSegmentation.train(
-                datafile.name, modelfile.name, corpusweight=1.0, min_frequency=1, dampening=None)
+                datafile.name, modelfile.name, corpusweight=1.0, min_frequency=1, dampening=None, seed=0)
             return subwords.MorfessorSegmentation(modelfile.name)
