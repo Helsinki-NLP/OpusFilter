@@ -7,12 +7,11 @@ corpora in raw text format.
 
 Features:
 
-* Preprocessing pipelines configured with [YAML](https://yaml.org/)
+* Corpus preprocessing pipelines configured with [YAML](https://yaml.org/)
 * Simple downloading of parallel corpora from [OPUS](http://opus.nlpl.eu/) with [OpusTools](https://github.com/Helsinki-NLP/OpusTools)
 * Implementations for many common text file operations on parallel files
 * Memory-efficient processing of large files
-* Implemented filters based e.g. on language identification, word
-  aligment, and n-gram language models
+* Implemented filters based e.g. on language identification, word aligment, n-gram language models, and multilingual sentence embeddings
 * Extendable with your own filters written in Python
 
 OpusFilter has been presented in [ACL 2020 system demonstrations](https://www.aclweb.org/anthology/2020.acl-demos.20).
