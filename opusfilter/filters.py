@@ -140,9 +140,17 @@ class HtmlTagFilter(FilterABC):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
+    def check(self, segment):
+        try:
+            found = bool(bs(segment, 'html.parser').find())
+        except TypeError as err:
+            logger.warning("BeautifulSoup parsing failed for %s: %s", repr(segment), err)
+            found = True
+        return found
+
     def score(self, pairs):
         for pair in pairs:
-            yield [bool(bs(sent, 'html.parser').find()) for sent in pair]
+            yield [self.check(sent) for sent in pair]
 
     def accept(self, score):
         return not any(score)

@@ -77,6 +77,32 @@ class TestLongWordFilter(unittest.TestCase):
             self.assertSequenceEqual(result, correct)
 
 
+class TestHtmlTagFilter(unittest.TestCase):
+
+    def test_bilingual(self):
+        testfilter = HtmlTagFilter()
+        cases = [['aaa bee', 'cee dee'], ['aa <br> bee', 'cee deee'],
+                 ['<p>aaa bee</p>', '<p>cee dee</p>'], ['', '']]
+        expected = [([False, False], True), ([True, False], False),
+                    ([True, True], False), ([False, False], True)]
+        results = [(x, testfilter.accept(x)) for x in testfilter.score(cases)]
+        for result, correct in zip(results, expected):
+            self.assertSequenceEqual(result, correct)
+
+    def test_broken(self):
+        testfilter = HtmlTagFilter()
+        cases = [['<aaa bee', 'cee dee'], ['aa br> bee', 'cee deee'],
+                 ['<p aaa bee</p', 'p>cee dee /p>'], ['', ''],
+                 ['<![ foo', 'foo']]
+        expected = [([False, False], True), ([False, False], True),
+                    ([False, False], True), ([False, False], True),
+                    ([True, False], False)]
+        results = [(x, testfilter.accept(x)) for x in testfilter.score(cases)]
+        logging.warning(results)
+        for result, correct in zip(results, expected):
+            self.assertSequenceEqual(result, correct)
+
+
 class TestRegExpFilter(unittest.TestCase):
 
     def test_bilingual(self):
