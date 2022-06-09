@@ -413,7 +413,7 @@ class OpusFilter:
 
     def train_alignment(self, parameters, overwrite=False):
         """Train eflomal alignment priors"""
-        self._check_extra_parameters({'src_data', 'tgt_data', 'scores', 'parameters'}, parameters)
+        self._check_extra_parameters({'src_data', 'tgt_data', 'scores', 'parameters', 'output'}, parameters)
         self._check_extra_parameters({'src_tokenizer', 'tgt_tokenizer', 'model'}, parameters.get('parameters'))
         model_out = os.path.join(self.output_dir, parameters['output'])
         if not overwrite and os.path.isfile(model_out):
