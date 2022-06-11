@@ -1,6 +1,7 @@
 """Tokenization tools"""
 
 import logging
+import re
 
 from . import ConfigurationError
 
@@ -105,7 +106,8 @@ class JiebaTokenizer(DummyTokenizer):
         return ' '.join(self.jieba.cut(string, **self.options))
 
     def detokenize(self, string):
-        return ''.join(string.split())
+        segments = ["".join(item.split(" ")) for item in string.split("   ")]
+        return " ".join(segments)
 
 
 class MeCabTokenizer(DummyTokenizer):
