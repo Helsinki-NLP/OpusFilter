@@ -60,8 +60,8 @@ class TestTokenization(unittest.TestCase):
     @unittest.skipIf('jieba' not in globals(), 'jieba not installed')
     def test_jieba_detok(self):
         tokenize = tokenization.get_tokenize(('jieba', 'zh'))
-        tokens = "同时 ， 祖马 革命 的 一代 似乎 对 领导 打破 种族隔离 制度 15 年 后 的 南非 ， 还 不 适应 。"
-        reference = "同时，祖马革命的一代似乎对领导打破种族隔离制度15年后的南非，还不适应。"
+        tokens = "同时 ， 祖马 革命 的 一代 似乎 对 领导 打破 种族隔离 制度 15 年 后 的 南非 （ South   Africa ) ， 还 不 适应 。"
+        reference = "同时，祖马革命的一代似乎对领导打破种族隔离制度15年后的南非（South Africa)，还不适应。"
         self.assertEqual(tokenize.detokenize(tokens), reference)
 
     @unittest.skipIf('jieba' not in globals(), 'jieba not installed')
