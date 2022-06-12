@@ -185,3 +185,9 @@ def yaml_dumps(obj):
         yaml.dump(obj, iostream)
         iostream.seek(0)
         return iostream.read()
+
+
+def count_lines(filename):
+    """Count lines in a file"""
+    with file_open(filename) as fobj:
+        return sum(1 for _ in fobj)
