@@ -1,7 +1,6 @@
 """Tokenization tools"""
 
 import logging
-import re
 
 from . import ConfigurationError
 
