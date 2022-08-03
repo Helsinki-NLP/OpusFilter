@@ -59,10 +59,16 @@ class TestTokenization(unittest.TestCase):
 
     @unittest.skipIf('jieba' not in globals(), 'jieba not installed')
     def test_jieba_detok(self):
-        tokenize = tokenization.get_tokenize(('jieba', 'zh'))
-        tokens = "同时 ， 祖马 革命 的 一代 似乎 对 领导 打破 种族隔离 制度 15 年 后 的 南非 （ South   Africa ) ， 还 不 适应 。"
+        tokenize = tokenization.get_tokenize(('jieba', 'zh', {'map_space_to': '␣'}))
+        tokens = "同时 ， 祖马 革命 的 一代 似乎 对 领导 打破 种族隔离 制度 15 年 后 的 南非 （ South ␣ Africa ) ， 还 不 适应 。"
         reference = "同时，祖马革命的一代似乎对领导打破种族隔离制度15年后的南非（South Africa)，还不适应。"
         self.assertEqual(tokenize.detokenize(tokens), reference)
+
+    @unittest.skipIf('jieba' not in globals(), 'jieba not installed')
+    def test_jieba_tok_and_detok(self):
+        tokenize = tokenization.get_tokenize(('jieba', 'zh', {'map_space_to': '␣'}))
+        text = " 年后的南非（South Africa)，还不适应。 "
+        self.assertEqual(tokenize.detokenize(tokenize(text)), text)
 
     @unittest.skipIf('jieba' not in globals(), 'jieba not installed')
     def test_jieba_non_zh(self):
@@ -75,6 +81,19 @@ class TestTokenization(unittest.TestCase):
         tokenize = tokenization.get_tokenize(('mecab', 'jp'))
         text = "これは英語で書く必要はありません。"
         self.assertEqual(tokenize(text), "これ は 英語 で 書く 必要 は あり ませ ん 。")
+
+    @unittest.skipIf('MeCab' not in globals(), 'MeCab not installed')
+    def test_mecab_detok(self):
+        tokenize = tokenization.get_tokenize(('mecab', 'jp', {'map_space_to': '␣'}))
+        tokens = "これ は 英語 ␣ ( not ␣ here ) ␣ で 書く 必要 は あり ませ ん 。"
+        reference = "これは英語 (not here) で書く必要はありません。"
+        self.assertEqual(tokenize.detokenize(tokens), reference)
+
+    @unittest.skipIf('MeCab' not in globals(), 'MeCab not installed')
+    def test_mecab_tok_and_detok(self):
+        tokenize = tokenization.get_tokenize(('mecab', 'jp', {'map_space_to': '␣'}))
+        text = " これは英語 (not here) で書く必要はありません。 "
+        self.assertEqual(tokenize.detokenize(tokenize(text)), text)
 
     @unittest.skipIf('MeCab' not in globals(), 'MeCab not installed')
     def test_mecab_non_jp(self):
