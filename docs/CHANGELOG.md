@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `map_space_to` option for Jieba and MeCab tokenizers to preserve
+  existing space characters in input
+
 ### Fixed
 
 - catch TypeError exceptions from BeautifulSoup in HtmlTagFilter
