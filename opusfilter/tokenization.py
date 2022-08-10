@@ -91,7 +91,7 @@ class MosesTokenizer(DummyTokenizer):
 class JiebaTokenizer(DummyTokenizer):
     """Wrapper for popular Chinese tokenizer jieba"""
 
-    def __init__(self, lang, **options):
+    def __init__(self, lang, map_space_to='␣', **options):
         if not lang.startswith('zh'):
             logger.warning("Jieba tokenizer only avaliable for Chinese (zh), requested language %s", lang)
         try:
@@ -99,19 +99,25 @@ class JiebaTokenizer(DummyTokenizer):
         except NameError as err:
             logger.error("Install jieba to support jieba tokenization")
             raise err
+        self.map_space_to = map_space_to
         self.options = options
 
     def tokenize(self, string):
+        if self.map_space_to:
+            string = string.replace(' ', self.map_space_to)
         return ' '.join(self.jieba.cut(string, **self.options))
 
     def detokenize(self, string):
-        return ''.join(string.split())
+        output = ''.join(string.split())
+        if self.map_space_to:
+            output = output.replace(self.map_space_to, ' ')
+        return output
 
 
 class MeCabTokenizer(DummyTokenizer):
     """Wrapper for Japanese tokenization with MeCab"""
 
-    def __init__(self, lang, mecab_args=''):
+    def __init__(self, lang, map_space_to='␣', mecab_args=''):
         if not lang.startswith('jp'):
             logger.warning("MeCab tokenizer is for Japanese (jp), requested language %s", lang)
         try:
@@ -122,12 +128,18 @@ class MeCabTokenizer(DummyTokenizer):
         except RuntimeError as err:
             logger.error("Install unidic-lite or other dictionary to support MeCab tokenization")
             raise err
+        self.map_space_to = map_space_to
 
     def tokenize(self, string):
+        if self.map_space_to:
+            string = string.replace(' ', self.map_space_to)
         return self.tagger.parse(string).strip()
 
     def detokenize(self, string):
-        return ''.join(string.split())
+        output = ''.join(string.split())
+        if self.map_space_to:
+            output = output.replace(self.map_space_to, ' ')
+        return output
 
 
 def get_tokenize(specs):
