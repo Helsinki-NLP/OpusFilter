@@ -62,7 +62,7 @@ class TestOpusFilter(unittest.TestCase):
              {'type': 'train_alignment',
               'parameters': {'src_data': 'RF1_filtered.en',
                              'tgt_data': 'RF1_filtered.sv',
-                             'parameters': {'tokenizer': 'none', 'model': 3},
+                             'parameters': {'model': 3},
                              'output': 'RF1_align.priors'}},
              {'type': 'score',
               'parameters': {
@@ -77,8 +77,7 @@ class TestOpusFilter(unittest.TestCase):
                               {'CharacterScoreFilter':
                                {'scripts': ['Latin', 'Latin'],
                                 'sthreshold': [1, 1]}},
-                              {'WordAlignFilter': {'tokenizer': 'none',
-                                                   'priors': 'RF1_align.priors',
+                              {'WordAlignFilter': {'priors': 'RF1_align.priors',
                                                    'model': 3,
                                                    'src_threshold': 0,
                                                    'tgt_threshold': 0}},
