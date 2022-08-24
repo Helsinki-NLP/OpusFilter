@@ -1,4 +1,3 @@
-import argparse
 import copy
 import json
 import logging
@@ -7,13 +6,14 @@ import requests
 import shutil
 import tempfile
 import unittest
+from argparse import Namespace
 from unittest import mock
 
 from opustools import OpusGet
 
 from opusfilter import ConfigurationError
-from opusfilter.opusfilter import OpusFilter
-from opusfilter.util import Var, VarStr
+from opusfilter.opusfilter import OpusFilter, ParallelWrapper
+from opusfilter.util import Var, VarStr, count_lines, file_open
 
 try:
     import varikn
@@ -1125,3 +1125,184 @@ class TestVariables(unittest.TestCase):
         for case in [Var('unk'), VarStr('{}'), VarStr('{unk}'), VarStr('{mystr}-{unk}')]:
             with self.assertRaises(ConfigurationError):
                 self.of._expand_parameters(case, variables)
+
+
+@unittest.skipIf('varikn' not in globals() or os.environ.get('EFLOMAL_PATH') is None, 'varikn or eflomal not found')
+class TestParallel(unittest.TestCase):
+    @classmethod
+    def setUpClass(self):
+        self.tempdir = tempfile.mkdtemp()
+        self.configuration = {
+            'common': {'output_directory': self.tempdir},
+            'steps':
+            [{'type': 'opus_read',
+              'parameters': {'corpus_name': 'RF',
+                             'source_language': 'en',
+                             'target_language': 'sv',
+                             'release': 'latest',
+                             'preprocessing': 'xml',
+                             'src_output': 'RF1_sents.en',
+                             'tgt_output': 'RF1_sents.sv'}},
+             {'type': 'preprocess',
+              'parameters': {
+                    'inputs': ['RF1_sents.en', 'RF1_sents.sv'],
+                    'outputs': ['RF1_preprocessed.en', 'RF1_preprocessed.sv'],
+                    'n_jobs': 5,
+                    'preprocessors': [{'Tokenizer':
+                                      {'languages': ['en', 'sv'],
+                                       'tokenizer': 'moses'}}]}},
+             {'type': 'filter',
+              'parameters': {
+                  'inputs': ['RF1_preprocessed.en', 'RF1_preprocessed.sv'],
+                  'outputs': ['RF1_filtered.en', 'RF1_filtered.sv'],
+                  'n_jobs': 5,
+                  'filters': [{'LanguageIDFilter':
+                               {'languages': ['en', 'sv'],
+                                'thresholds': [0, 0]}},
+                              {'TerminalPunctuationFilter':
+                               {'threshold': -2}},
+                              {'NonZeroNumeralsFilter': {'threshold': 0.5}},
+                              {'CharacterScoreFilter':
+                               {'scripts': ['Latin', 'Latin'],
+                                'thresholds': [1, 1]}}]}},
+             {'type': 'train_ngram',
+              'parameters': {'data': 'RF1_filtered.en',
+                             'parameters': {'norder': 20, 'dscale': 0.001},
+                             'model': 'RF1_en.arpa'}},
+             {'type': 'train_ngram',
+              'parameters': {'data': 'RF1_filtered.sv',
+                             'parameters': {'norder': 20, 'dscale': 0.001},
+                             'model': 'RF1_sv.arpa'}},
+             {'type': 'train_alignment',
+              'parameters': {'src_data': 'RF1_filtered.en',
+                             'tgt_data': 'RF1_filtered.sv',
+                             'parameters': {'src_tokenizer': None, 'tgt_tokenizer': None, 'model': 3},
+                             'output': 'RF1_align.priors'}},
+             {'type': 'score',
+              'parameters': {
+                  'inputs': ['RF1_sents.en', 'RF1_sents.sv'],
+                  'output': 'RF1_scores.en-sv.jsonl',
+                  'n_jobs': 5,
+                  'filters': [{'LanguageIDFilter':
+                               {'languages': ['en', 'sv'],
+                                'thresholds': [0, 0]}},
+                              {'TerminalPunctuationFilter':
+                               {'threshold': -2}},
+                              {'NonZeroNumeralsFilter': {'threshold': 0.5}},
+                              {'CharacterScoreFilter':
+                               {'scripts': ['Latin', 'Latin'],
+                                'sthreshold': [1, 1]}},
+                              {'WordAlignFilter': {'priors': 'RF1_align.priors',
+                                                   'model': 3,
+                                                   'src_threshold': 0,
+                                                   'tgt_threshold': 0}},
+                              {'CrossEntropyFilter':
+                               {'lm_params': [{'filename': 'RF1_en.arpa'},
+                                              {'filename': 'RF1_sv.arpa'}],
+                                'thresholds': [50.0, 50.0],
+                                'diff_threshold': 10.0}}]}},
+             ]}
+        OpusGet(directory='RF', source='en', target='sv', release='latest',
+                preprocess='xml', suppress_prompts=True, download_dir=self.tempdir
+                ).get_files()
+        self.opus_filter = OpusFilter(self.configuration)
+        self.opus_filter.execute_steps()
+
+    def test_parallel_preprocess(self):
+        assert os.path.exists(os.path.join(self.tempdir, 'RF1_preprocessed.en'))
+        assert os.path.exists(os.path.join(self.tempdir, 'RF1_preprocessed.sv'))
+        assert count_lines(os.path.join(self.tempdir, 'RF1_preprocessed.en')) == \
+            count_lines(os.path.join(self.tempdir, 'RF1_sents.en'))
+        assert count_lines(os.path.join(self.tempdir, 'RF1_preprocessed.sv')) == \
+            count_lines(os.path.join(self.tempdir, 'RF1_sents.sv'))
+
+    def test_parallel_filter(self):
+        assert os.path.exists(os.path.join(self.tempdir, 'RF1_filtered.en'))
+        assert os.path.exists(os.path.join(self.tempdir, 'RF1_filtered.sv'))
+        assert count_lines(os.path.join(self.tempdir, 'RF1_filtered.en')) < \
+            count_lines(os.path.join(self.tempdir, 'RF1_preprocessed.en'))
+        assert count_lines(os.path.join(self.tempdir, 'RF1_filtered.sv')) < \
+            count_lines(os.path.join(self.tempdir, 'RF1_preprocessed.sv'))
+
+    def test_parallel_score(self):
+        assert os.path.exists(os.path.join(self.tempdir, 'RF1_scores.en-sv.jsonl'))
+        assert count_lines(os.path.join(self.tempdir, 'RF1_scores.en-sv.jsonl')) == \
+            count_lines(os.path.join(self.tempdir, 'RF1_sents.en'))
+
+
+class TestParallelWrapper(unittest.TestCase):
+    def setUp(self):
+        self.parameters = [
+            {"num_lines": 1, "n_jobs": 5, 'limit': None, 'format': None},  # Test edge condition， n_jobs greater than num_lines
+            {"num_lines": 100, "n_jobs": 1, 'limit': None, 'format': None},
+            {"num_lines": 200, "n_jobs": 9, 'limit': None, 'format': None},
+            {"num_lines": 200, "n_jobs": 10, 'limit': None, 'format': ".gz"},  # Test gzip format inputs and outputs
+            {"num_lines": 50, "n_jobs": 10, 'limit': 20, 'format': None},
+        ]
+
+    def test_split_merge(self):
+        for param in self.parameters:
+            format = param.get('format', None)
+            inputs = [tempfile.mkstemp(suffix=format)[1], tempfile.mkstemp(suffix=format)[1]]
+            outputs = [tempfile.mkstemp(suffix=format)[1], tempfile.mkstemp(suffix=format)[1]]
+
+            for input_ in inputs:
+                fin = file_open(input_, 'w')
+                for i in range(param["num_lines"]):
+                    fin.write("{}\n".format(i))
+                fin.close()
+
+            in_chunked_files, out_chunked_files = ParallelWrapper.split(inputs, outputs, param["n_jobs"])
+            assert len(in_chunked_files) == min(param["n_jobs"], param["num_lines"])
+            assert len(out_chunked_files) == min(param["n_jobs"], param["num_lines"])
+            for files in in_chunked_files:
+                num_lines = [count_lines(f) for f in files]
+                assert all(n == num_lines[0] for n in num_lines)
+            # just copy the files
+            for in_files, out_files in zip(in_chunked_files, out_chunked_files):
+                for fin, fout in zip(in_files, out_files):
+                    shutil.copyfile(fin, fout)
+            ParallelWrapper.merge(in_chunked_files, outputs, out_chunked_files, param.get("limit", None))
+            for output in outputs:
+                if param.get("limit", None) is not None:
+                    assert count_lines(output) == param["limit"]
+                else:
+                    assert count_lines(output) == param["num_lines"]
+
+    def test_parallelize(self):
+        mock_obj = Namespace()
+        mock_obj.output_dir = tempfile.mkdtemp()
+        mock_obj.default_n_jobs = 1
+        mock_obj._check_extra_parameters = OpusFilter._check_extra_parameters
+
+        @ParallelWrapper({'inputs', 'outputs', 'limit'})
+        def func(self, parameters, overwrite=False):
+            inputs = parameters['inputs']
+            outputs = parameters['outputs']
+            for input_, output in zip(inputs, outputs):
+                input_ = os.path.join(self.output_dir, input_)
+                output = os.path.join(self.output_dir, output)
+                shutil.copyfile(input_, output)
+
+        for param in self.parameters:
+            format = param.get('format', None)
+            inputs = [tempfile.mkstemp(dir=mock_obj.output_dir, suffix=format)[1],
+                      tempfile.mkstemp(dir=mock_obj.output_dir, suffix=format)[1]]
+            rel_inputs = [os.path.basename(path) for path in inputs]
+            outputs = [tempfile.mkstemp(dir=mock_obj.output_dir, suffix=format)[1],
+                       tempfile.mkstemp(dir=mock_obj.output_dir, suffix=format)[1]]
+            rel_outputs = [os.path.basename(path) for path in outputs]
+
+            for input_ in inputs:
+                fin = file_open(input_, 'w')
+                for i in range(param["num_lines"]):
+                    fin.write("{}\n".format(i))
+                fin.close()
+            n_jobs = param["n_jobs"]
+            func(mock_obj, {'inputs': rel_inputs, 'outputs': rel_outputs, "n_jobs": n_jobs,
+                            "limit": param.get('limit', None)}, overwrite=True)
+            for output in outputs:
+                if param.get("limit", None) is not None:
+                    assert count_lines(output) == param["limit"]
+                else:
+                    assert count_lines(output) == param["num_lines"]

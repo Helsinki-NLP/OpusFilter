@@ -210,7 +210,7 @@ sections:
 
 The syntax for the `opusfilter` is
 ```
-opusfilter [--overwrite] [--last LAST] [--single SINGLE] CONFIG
+opusfilter [--overwrite] [--last LAST] [--single SINGLE] [--n-jobs N_JOBS] CONFIG
 ```
 where `CONFIG` is path to the configuration file.
 The script will run the steps one by one and stops when the final step
@@ -219,7 +219,9 @@ options for setting the last step to run (`--last`) and running
 only a single step (`--single`). It the latter, the user has to
 make sure that all input files for the step already exist. The first
 step has number 1, and -1 points to the last step, -2 to the second to
-last, and so on.
+last, and so on. The `--n-jobs` option indicate number of processes to
+use when running `score`, `filter` and `preprocess` steps. This value will 
+overwrite `default_n_jobs` in the `common` section.
 
 By default, existing output files will be re-used, and the steps
 producing them skipped. The `--overwrite` option will force overwrite
@@ -233,6 +235,8 @@ The valid options for the `common` section includes:
   (with `filterfalse` option) and `score` steps. Increasing the value
   from the default 100000 may speed up things at the cost of increased
   memory use.
+* `default_n_jobs` for defining the number of parallel processes to use
+  for `score`, `filter`, and `preprocess` steps. The default value is 1.
 * `constants` for setting constants; see
   [Variables and constants](#variables-and-constants).
 
@@ -662,12 +666,13 @@ Useful mostly for testing.
 
 #### `preprocess`
 
-Filter parallel data with a combination of filters.
+Preprocess text with a combination of preprocessors.
 
 Parameters:
 
 * `inputs`: input files for segments to preprocess
 * `outputs`: output files for preprocessed segments
+* `n_jobs`: number of sub processes to parallel run jobs. If not set, the default value is `default_n_jobs` in `common` section.
 * `preprocessors`: a list of preprocessors to apply; see below
 
 The preprocessors parameter is a list of dictionaries, each
@@ -730,6 +735,7 @@ Parameters:
 
 * `inputs`: input files for segments to filter
 * `outputs`: output files for filtered sentences
+* `n_jobs`: number of sub processes to parallel run jobs. If not set, the default value is `default_n_jobs` in `common` section.
 * `filters`: a list of filters to apply; see below
 * `filterfalse`: yield segment pairs that do not pass at least one of the filters (optional; default `false`)
 
@@ -759,6 +765,7 @@ Parameters:
 
 * `inputs`: input files for segments to score
 * `output`: output file for the scores
+* `n_jobs`: number of sub processes to parallel run jobs. If not set, the default value is `default_n_jobs` in `common` section.
 * `filters`: a list of filters to apply; see below
 
 The filters are defined in the same manner as in the `filter`

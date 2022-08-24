@@ -15,6 +15,7 @@ except ImportError:
 
 try:
     import jieba
+    jieba.setLogLevel(logging.INFO)
 except ImportError:
     logger.warning("Could not import jieba, Chinese tokenization with jieba not supported")
 

@@ -5,11 +5,14 @@ import copy
 import functools
 import itertools
 import logging
+import math
+import multiprocessing
 import operator
 import os
 import pickle
 import random
 import tempfile
+from itertools import chain
 
 import json
 import numpy as np
@@ -26,7 +29,7 @@ from . import subwords
 from . import tokenization
 from . import classifier
 from . import segment_hash
-from .util import file_open, file_download, Var, VarStr
+from .util import file_open, file_download, Var, VarStr, count_lines
 
 
 logger = logging.getLogger(__name__)
@@ -71,6 +74,105 @@ def dict_set(key, value, dictionary):
         dictionary = dictionary[first]
 
 
+class ParallelWrapper:
+    """
+    Decorator for parallelizing 'filter_data', 'score_data' and 'preprocess' methods.
+    This decorator will split "inputs" and "outputs" (or "output") into shareds and process them in parallel.
+    Finally, all the intermediate result will be merged into a single file $name. All the intermediate files will be deleted.
+    """
+
+    def __init__(self, extra_parameters):
+        if "inputs" not in extra_parameters:
+            raise ConfigurationError("'inputs' is required in extra_parameters to parallelize.")
+        if "outputs" not in extra_parameters and "output" not in extra_parameters:
+            raise ConfigurationError("'outputs' or 'output' is required in extra_parameters to parallelize.")
+        self.extra_parameters = extra_parameters
+        self.func = None
+
+    def __call__(self, func):
+        self.func = func
+
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            return self.parallelize(*args, **kwargs)
+        return wrapper
+
+    @staticmethod
+    def split(infiles, outfiles, n_jobs):
+        """split files into parts, and write them to temporary files"""
+        chunk_size = int(math.ceil(count_lines(infiles[0]) / n_jobs))
+        in_chunked_files = []
+        out_chunked_files = []
+        infileobjs = [file_open(infile) for infile in infiles]
+        for i, lines in enumerate(zip(*infileobjs)):
+            if i % chunk_size == 0:
+                intmpfiles = [tempfile.mkstemp(dir=os.path.dirname(infile),
+                              suffix=f".part{str(i // chunk_size)}.{os.path.basename(infile)}")[1] for infile in infiles]
+                in_chunked_files.append(intmpfiles)
+                intmpfiles_objs = [file_open(intmpfile, mode="w") for intmpfile in intmpfiles]
+                outtmpfiles = [tempfile.mktemp(dir=os.path.dirname(outfile),
+                               suffix=f".part{str(i // chunk_size)}.{os.path.basename(outfile)}") for outfile in outfiles]
+                out_chunked_files.append(outtmpfiles)
+
+            for line, tmpfile in zip(lines, intmpfiles_objs):
+                tmpfile.write(line)
+        return in_chunked_files, out_chunked_files
+
+    @staticmethod
+    def merge(in_chunked_files, outfiles, out_chunked_files, limit):
+        """merge temporary files into final files and delete temporary files"""
+        for outfile, parts in zip(outfiles, zip(*out_chunked_files)):
+            with file_open(outfile, 'w') as out:
+                finput = chain.from_iterable(file_open(part) for part in parts)
+                for i, line in enumerate(finput):
+                    out.write(line)
+                    if limit and i >= limit - 1:
+                        break
+            for part in parts:
+                os.unlink(part)
+        for parts in in_chunked_files:
+            for part in parts:
+                os.unlink(part)
+
+    def parallelize(self, obj, parameters, overwrite=False):
+        """Wrapper for parallelizing a function"""
+        # check if parameters are valid
+        n_jobs = parameters.pop('n_jobs', obj.default_n_jobs)
+        if n_jobs <= 1:
+            self.func(obj, parameters, overwrite)
+            return
+        # pylint: disable=W0212
+        obj._check_extra_parameters(self.extra_parameters, parameters)
+        infiles = [os.path.join(obj.output_dir, fname) for fname in parameters['inputs']]
+        if "outputs" in parameters:
+            outfiles = [os.path.join(obj.output_dir, fname) for fname in parameters['outputs']]
+        elif "output" in parameters:  # function `score` use `output` instead of `outputs`
+            outfiles = [os.path.join(obj.output_dir, parameters['output'])]
+        if len(outfiles) != len(infiles) and "outputs" in parameters:
+            raise ConfigurationError("Number of input and output files should match in sort")
+        if not overwrite and all(os.path.isfile(outfile) for outfile in outfiles):
+            logger.info("Output files exists, skipping step")
+            return
+        in_chunked_files, out_chunked_files = self.split(infiles, outfiles, n_jobs)
+        # run jobs in parallel
+        sub_processes = []
+        for intmpfiles, outtmpfiles in zip(in_chunked_files, out_chunked_files):
+            parameters_i = copy.deepcopy(parameters)
+            parameters_i["inputs"] = intmpfiles
+            if "outputs" in parameters:
+                parameters_i["outputs"] = [os.path.relpath(path, obj.output_dir) for path in outtmpfiles]
+            elif "output" in parameters:  # function `score` use `output` instead of `outputs`
+                parameters_i["output"] = os.path.relpath(outtmpfiles[0], obj.output_dir)
+            process = multiprocessing.Process(target=self.func, args=(obj, parameters_i, overwrite))
+            process.daemon = True
+            process.start()
+            sub_processes.append(process)
+        for process in sub_processes:
+            process.join()
+        limit = parameters.get('limit', None)
+        self.merge(in_chunked_files, outfiles, out_chunked_files, limit)
+
+
 # pylint: disable=R0904
 class OpusFilter:
     """Apply filters to language data"""
@@ -86,6 +188,7 @@ class OpusFilter:
             os.mkdir(self.output_dir)
         self.constants = configuration.get('common', {}).get('constants', {})
         self.chunksize = configuration.get('common', {}).get('chunksize', 100000)
+        self.default_n_jobs = configuration.get('common', {}).get('default_n_jobs', 1)
         self.step_functions = {
             'opus_read': self.read_from_opus,
             'filter': self.filter_data,
@@ -253,10 +356,10 @@ class OpusFilter:
         for fobj in files:
             fobj.close()
 
+    @ParallelWrapper({'inputs', 'outputs', 'filters', 'filterfalse', 'limit'})
     def filter_data(self, parameters, overwrite=False):
         """Write sentences to file if they pass given filters"""
-        self._check_extra_parameters(
-            {'inputs', 'outputs', 'filters', 'filterfalse', 'limit'}, parameters)
+        # no need to check extra parameters, they are checked in the parallel wrapper
         outfiles = [os.path.join(self.output_dir, fname) for fname in parameters['outputs']]
         infiles = [os.path.join(self.output_dir, fname) for fname in parameters['inputs']]
         if len(outfiles) != len(infiles):
@@ -456,9 +559,10 @@ class OpusFilter:
             for line in fobj:
                 yield json.loads(line)
 
+    @ParallelWrapper({'inputs', 'output', "filters"})
     def score_data(self, parameters, overwrite=False):
         """Score language data based on given filters"""
-        self._check_extra_parameters({'inputs', 'output', 'filters'}, parameters)
+        # no need to check extra parameters, they are checked in the parallel wrapper
         infiles = [os.path.join(self.output_dir, fname) for fname in parameters['inputs']]
         score_out = os.path.join(self.output_dir, parameters['output'])
         if not overwrite and os.path.isfile(score_out):
@@ -850,9 +954,10 @@ class OpusFilter:
                 for part, outf in zip(parts, outfs):
                     outf.write(part.strip() + '\n')
 
+    @ParallelWrapper({'inputs', 'outputs', 'preprocessors'})
     def preprocess(self, parameters, overwrite=False):
         """Run preprocessors on text data"""
-        self._check_extra_parameters({'inputs', 'outputs', 'preprocessors'}, parameters)
+        # no need to check extra parameters, they are checked in the parallel wrapper
         outfiles = [os.path.join(self.output_dir, fname) for fname in parameters['outputs']]
         infiles = [os.path.join(self.output_dir, fname) for fname in parameters['inputs']]
         if len(outfiles) != len(infiles):
