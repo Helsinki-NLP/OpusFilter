@@ -1192,8 +1192,7 @@ class TestParallel(unittest.TestCase):
                               {'CharacterScoreFilter':
                                {'scripts': ['Latin', 'Latin'],
                                 'sthreshold': [1, 1]}},
-                              {'WordAlignFilter': {'tokenizer': 'none',
-                                                   'priors': 'RF1_align.priors',
+                              {'WordAlignFilter': {'priors': 'RF1_align.priors',
                                                    'model': 3,
                                                    'src_threshold': 0,
                                                    'tgt_threshold': 0}},

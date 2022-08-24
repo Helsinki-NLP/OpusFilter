@@ -107,11 +107,11 @@ class ParallelWrapper:
         for i, lines in enumerate(zip(*infileobjs)):
             if i % chunk_size == 0:
                 intmpfiles = [tempfile.mkstemp(dir=os.path.dirname(infile),
-                              suffix=f"part{str(i // chunk_size)}.{os.path.basename(infile)}")[1] for infile in infiles]
+                              suffix=f".part{str(i // chunk_size)}.{os.path.basename(infile)}")[1] for infile in infiles]
                 in_chunked_files.append(intmpfiles)
                 intmpfiles_objs = [file_open(intmpfile, mode="w") for intmpfile in intmpfiles]
                 outtmpfiles = [tempfile.mktemp(dir=os.path.dirname(outfile),
-                               suffix=f"part{str(i // chunk_size)}.{os.path.basename(outfile)}") for outfile in outfiles]
+                               suffix=f".part{str(i // chunk_size)}.{os.path.basename(outfile)}") for outfile in outfiles]
                 out_chunked_files.append(outtmpfiles)
 
             for line, tmpfile in zip(lines, intmpfiles_objs):
