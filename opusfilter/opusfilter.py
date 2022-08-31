@@ -75,10 +75,13 @@ def dict_set(key, value, dictionary):
 
 
 class ParallelWrapper:
-    """
-    Decorator for parallelizing 'filter_data', 'score_data' and 'preprocess' methods.
-    This decorator will split "inputs" and "outputs" (or "output") into shareds and process them in parallel.
-    Finally, all the intermediate result will be merged into a single file $name. All the intermediate files will be deleted.
+    """Decorator for parallelizing OpusFilter steps
+
+    This decorator will split "inputs" and "outputs" (or "output")
+    into shareds and process them in parallel. Finally, all the
+    intermediate result will be merged into a single file. All the
+    intermediate files will be deleted.
+
     """
 
     def __init__(self, extra_parameters):

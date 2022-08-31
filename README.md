@@ -1372,6 +1372,22 @@ for details.
 See [train_aligment](#train_aligment) for training priors. Compatible
 tokenizer and model parameters should be used.
 
+**Caveats:**
+
+`eflomal` is a stochastic method and two runs will not produce exactly
+the same result. Thus, if you include it in your pipeline, full
+replicability of the end result is not possible.
+
+Moreover, `eflomal` estimates the model parameters using the input
+data, even if you provide the priors file. In consequence, the size of
+the input matters, and aligning the same data in chunks will not
+provide the same results as aligning all at once. Thus the following
+*may* give worse results than expected:
+
+* Using `score` if input size is larger than `chunksize` (default 100000)
+* Using `filter` with `filterfalse` on if input size is larger than `chunksize` (default 100000)
+* Using parallel processing (`n_jobs` > 1) for `score` or `filter` regardless of the other options
+
 ### Sentence embedding filters
 
 #### `SentenceEmbeddingFilter`
