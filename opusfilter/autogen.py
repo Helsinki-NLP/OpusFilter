@@ -38,6 +38,7 @@ class FilterArgumentFailure(OpusFilterError):
 class GenericFilterAdjuster:
     """Class for guessing suitable parameters for a filter"""
 
+    # Lists of possible filter threshold arguments
     SINGLE_THRESHOLD_ARGUMENTS = ['threshold']
     MULTI_THRESHOLD_ARGUMENTS = ['threshold', 'thresholds']
     MIN_MAX_ARGUMENTS = [('min_length', 'max_length')]
@@ -47,7 +48,12 @@ class GenericFilterAdjuster:
         self.default_parameters = self.get_default_parameters()
 
     def get_default_parameters(self):
-        """Find default parameters for the filter"""
+        """Get default parameters for the filter
+
+        Uses the signature of the class. Arguments without default
+        values are ignored and will cause a failure.
+
+        """
         filter_cls = getattr(filtermodule, self.filterclass)
         default_parameters = {}
         sig = inspect.signature(filter_cls)
@@ -62,7 +68,12 @@ class GenericFilterAdjuster:
 
     @staticmethod
     def _locate_arguments(candidates, arguments):
-        """Return first matching candidate key / tuple of keys from arguments"""
+        """Return first matching candidate key / tuple of keys from arguments
+
+        For tuples in candidates, all keys in the tuple must be found
+        from arguments.
+
+        """
         for candidate in candidates:
             if isinstance(candidate, str):
                 if candidate in arguments:
@@ -73,10 +84,20 @@ class GenericFilterAdjuster:
         return None
 
     def get_adjusted_parameters(self, data, excluded_percentile=0.01):
-        """Estimate parameters for the filter using data"""
-        # TODO: Some filters should have minimum/maximum for the
-        # threshold, depending on the condition (e.g. greater than
-        # vs. greater or equal).
+        """Estimate parameters for the filter using data
+
+        Assumes that excluded_percentile amount of the data should be
+        excluded by the filter. Depending on filter's score_direction,
+        they might be the lowest values, the highest values, or both
+        the lowest and highest values.
+
+        """
+        # TODO: It should be checked that the selected threshold does
+        # not remove too much data. E.g. if the clean values are high,
+        # excluded_percentile is 1%, and the highest 99.1% of the
+        # values are 1, the selected threshold 1 might remove all data
+        # if the condition for accepting the value is being greater
+        # than the threshold.
         parameters = copy.deepcopy(self.default_parameters)
         filter_cls = getattr(filtermodule, self.filterclass)
         score_dir = filter_cls.score_direction
@@ -150,6 +171,16 @@ class GenericFilterAdjuster:
 class ConfigurationGenerator:
     """OpusFilter configuration generator"""
 
+    # TODO:
+    # - Check likely languages from the data for LanguageIDFilter
+    # - Check likely character sets from the data for CharacterScoreFilter
+    # - Add options to override the automatically generated filter parameters
+    # - Separate input files to filter from those used for setting the thresholds
+    # - Specify input data from OPUS instead of providing files
+    # - Optional train/devel/test data splits
+    # - Duplicate filtering
+    # - ...
+
     def __init__(self, files, workdir='work', excluded_percentile=0.001):
         self.files = files
         self.workdir = workdir
@@ -160,7 +191,6 @@ class ConfigurationGenerator:
             'TerminalPunctuationFilter', 'NonZeroNumeralsFilter',
             'LongestCommonSubstringFilter', 'SimilarityFilter', 'RepetitionFilter'
         ]
-        # TODO: Not working using default arguments: 'CharacterScoreFilter', 'LanguageIDFilter'
         self.filters = []
         for filterclass in self.filters_to_add:
             try:
@@ -191,7 +221,8 @@ class ConfigurationGenerator:
 
     def get_filenames(self, prefix, ext='gz'):
         """Return filenames with given prefix and extension"""
-        # TODO: Try to find language codes from input files and use them instead of indices
+        # TODO: Try to find language codes or other changing parts
+        # from the input files and use them instead of indices
         num = len(self.files)
         return [f'{prefix}.{i}.{ext}' for i in range(1, num + 1)]
 
