@@ -1,31 +1,18 @@
 """Processor for filter configurations"""
 
-import collections
 import copy
-import functools
 import inspect
-import itertools
 import logging
-import operator
-import os
-import pickle
-import random
-import tempfile
 
-import json
-import numpy as np
 from pandas import json_normalize
 from tqdm import tqdm
 
 from . import CLEAN_LOW, CLEAN_HIGH, CLEAN_BETWEEN, CLEAN_TRUE, CLEAN_FALSE
-from . import OpusFilterError, ConfigurationError, OpusFilterRuntimeError
+from . import OpusFilterError, ConfigurationError
 from . import filters as filtermodule
 from . import pipeline
-from . import lm
-from . import word_alignment
-from . import tokenization
 from .classifier import lists_to_dicts
-from .util import file_open, file_download
+from .util import file_open
 
 
 logger = logging.getLogger(__name__)
@@ -134,9 +121,9 @@ class GenericFilterAdjuster:
                 return parameters
             values = []
             for column in df.columns:
-               stats = df[column].describe(percentiles=percentiles)
-               logger.info(stats)
-               values.append(stats.loc[pct_keys[0]].item())
+                stats = df[column].describe(percentiles=percentiles)
+                logger.info(stats)
+                values.append(stats.loc[pct_keys[0]].item())
             if score_dim == 1:
                 values = values[0]
             logger.info("Selected value %s for %s", values, threshold_key)
@@ -149,10 +136,10 @@ class GenericFilterAdjuster:
                 return parameters
             min_values, max_values = [], []
             for column in df.columns:
-               stats = df[column].describe(percentiles=percentiles)
-               logger.info(stats)
-               min_values.append(stats.loc[pct_keys[0]].item())
-               max_values.append(stats.loc[pct_keys[1]].item())
+                stats = df[column].describe(percentiles=percentiles)
+                logger.info(stats)
+                min_values.append(stats.loc[pct_keys[0]].item())
+                max_values.append(stats.loc[pct_keys[1]].item())
             if score_dim == 1:
                 min_values = min_values[0]
                 max_values = max_values[0]
