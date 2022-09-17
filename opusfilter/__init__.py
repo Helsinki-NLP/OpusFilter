@@ -3,7 +3,6 @@
 import abc
 import logging
 
-__version__ = "2.4"
 
 logger = logging.getLogger(__name__)
 
