@@ -17,7 +17,7 @@ Parameters:
 A segment pair is accepted if scores for both directions are lower
 than the corresponding thresholds.
 
-The supported tokenizers are listed in [Tokenizer](tokenizer.md). For
+The supported tokenizers are listed in [Tokenizer](Tokenizer). For
 example, to enable Moses tokenizer, provide a tuple containing `moses`
 and an appropriate two-letter language code, e.g. `[moses, en]` for
 English.
@@ -26,7 +26,7 @@ The eflomal model types are 1 for IBM1, 2 for IBM1 + HMM, and 3 for
 IBM1 + HMM + fertility. See https://github.com/robertostling/eflomal
 for details.
 
-See [train_aligment](training_language_and_alignment_models.md) for training priors. Compatible
+See [train_aligment](train_aligment) for training priors. Compatible
 tokenizer and model parameters should be used.
 
 **Caveats:**
