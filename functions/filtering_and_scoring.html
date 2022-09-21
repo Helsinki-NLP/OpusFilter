@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Filtering and scoring &mdash; OpusFilter latest documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Using score files" href="using_score_files.html" />
+    <link rel="prev" title="Preprocessing text" href="preprocessing_text.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> OpusFilter
+          </a>
+              <div class="version">
+                latest
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Get started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../command_line_tools.html">Other command line tools</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Available functions</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="downloading_and_selecting_data.html">Downloading and selecting data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preprocessing_text.html">Preprocessing text</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Filtering and scoring</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#remove-duplicates">remove_duplicates</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#filter">filter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#score">score</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="using_score_files.html">Using score files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="training_language_and_alignment_models.html">Training language and alignment models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="training_and_using_classifiers.html">Training and using classifiers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Available filters</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../filters/length_filters.html">Length filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../filters/script_and_language_identification_filters.html">Script and language identification filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../filters/special_character_and_similarity_filters.html">Special character and similarity filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../filters/language_model_filters.html">Language model filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../filters/alignment_model_filters.html">Alignment model filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../filters/sentence_embedding_filters.html">Sentence embedding filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../filters/custom_filters.html">Custom filters</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Other information</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../CONTRIBUTING.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CHANGELOG.html">Changelog</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">OpusFilter</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Filtering and scoring</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="filtering-and-scoring">
+<h1>Filtering and scoring<a class="headerlink" href="#filtering-and-scoring" title="Permalink to this headline"></a></h1>
+<section id="remove-duplicates">
+<h2>remove_duplicates<a class="headerlink" href="#remove-duplicates" title="Permalink to this headline"></a></h2>
+<p>Filter out duplicate lines from parallel corpus files.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">inputs</span></code>: input file(s)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">outputs</span></code>: output file(s)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">compare</span></code>: select files for duplicate comparison (optional; default <code class="docutils literal notranslate"><span class="pre">all</span></code> or a list of indices)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">hash</span></code>: select hash algorithm from pyhash (optional; default <code class="docutils literal notranslate"><span class="pre">xx_64</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">overlap</span></code>: remove overlap with a second set of files (optional; default <code class="docutils literal notranslate"><span class="pre">null</span></code>)</p></li>
+</ul>
+<p>Duplicate filtering is recommended as a first step especially if you
+combine different corpus collections (e.g. data crawled from web) and
+cannot be sure that the same data sources have not been used in many
+of them.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">remove_duplicates</span></code> function works for any number of files. The
+<code class="docutils literal notranslate"><span class="pre">compare</span></code> parameter can be used to select which input files are used
+to generate the key for duplicate comparison. For example, if you have
+source and target language files, and you want that each source or
+target sentence occurs only once, set <code class="docutils literal notranslate"><span class="pre">compare</span></code> to <code class="docutils literal notranslate"><span class="pre">[0]</span></code> or <code class="docutils literal notranslate"><span class="pre">[1]</span></code>,
+respectively.</p>
+<p>Instead of removing duplicates from a single set, the optional
+<code class="docutils literal notranslate"><span class="pre">overlap</span></code> argument can be used to remove all segments from <code class="docutils literal notranslate"><span class="pre">inputs</span></code>
+that match the segments in <code class="docutils literal notranslate"><span class="pre">overlap</span></code>. For example, you can remove
+exact duplicates of the test data from your training data.</p>
+<p>Non-cryptographic hashing is used to reduce memory consumption for the
+case that the files are very large. The lines defined by the <code class="docutils literal notranslate"><span class="pre">compare</span></code>
+option are concatenated together, and the hash algorithm is applied on
+the result to produce the final key for storing the counts. You can
+use any of the hash algorithms implemented in the pyhash library. The
+default 64-bit XXHash algorithm should be fine for any practical data
+sizes, but if do not care about memory use and want to be extra sure
+there are no collisions, you can disable hashing by setting the <code class="docutils literal notranslate"><span class="pre">hash</span></code>
+parameter as empty string or null.</p>
+</section>
+<section id="filter">
+<h2>filter<a class="headerlink" href="#filter" title="Permalink to this headline"></a></h2>
+<p>Filter parallel data with a combination of filters.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">inputs</span></code>: input files for segments to filter</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">outputs</span></code>: output files for filtered sentences</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">n_jobs</span></code>: number of sub processes to parallel run jobs. If not set, the default value is <code class="docutils literal notranslate"><span class="pre">default_n_jobs</span></code> in <code class="docutils literal notranslate"><span class="pre">common</span></code> section.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">filters</span></code>: a list of filters to apply; see below</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">filterfalse</span></code>: yield segment pairs that do not pass at least one of the filters (optional; default <code class="docutils literal notranslate"><span class="pre">false</span></code>)</p></li>
+</ul>
+<p>The filters parameter is a list of dictionaries, each representing one
+filter. The top level should typically include a single key that
+defines the class name for the filter (e.g. <code class="docutils literal notranslate"><span class="pre">LenghtFilter</span></code>).
+Additionally it can include a special key <code class="docutils literal notranslate"><span class="pre">module</span></code> for defining module
+name for <a class="reference internal" href="../filters/custom_filters.html"><span class="doc std std-doc">custom filters</span></a>.</p>
+<p>Under the class name there is a dictionary the defines the parameters
+of the filters. The are mostly specific to the filter class; see
+<a class="reference internal" href="../index.html#filters"><span class="std std-ref">Available filters</span></a> for ready-made
+filters. An exception is a parameter <code class="docutils literal notranslate"><span class="pre">name</span></code> that is available for all
+filters. It has no effect for the filter function, but is useful for
+the score function below.</p>
+<p>The output of the step is only those segment pairs that are accepted
+by all the filters, unless <code class="docutils literal notranslate"><span class="pre">filterfalse</span></code> is set true, in which case
+the output is the opposite (i.e., those segment pairs that are
+rejected by at least one filter).</p>
+</section>
+<section id="score">
+<h2>score<a class="headerlink" href="#score" title="Permalink to this headline"></a></h2>
+<p>Calculate filtering scores for the lines of parallel data.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">inputs</span></code>: input files for segments to score</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">output</span></code>: output file for the scores</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">n_jobs</span></code>: number of sub processes to parallel run jobs. If not set, the default value is <code class="docutils literal notranslate"><span class="pre">default_n_jobs</span></code> in <code class="docutils literal notranslate"><span class="pre">common</span></code> section.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">filters</span></code>: a list of filters to apply; see below</p></li>
+</ul>
+<p>The filters are defined in the same manner as in the <code class="docutils literal notranslate"><span class="pre">filter</span></code>
+function. The possible accept threshold parameters of the filters do
+not have an effect in scoring; each filter simply outputs one or more
+numerical values.</p>
+<p>The scores are written in the JSON Lines format: each line contains a
+single JSON object. The top level of the object contains class names
+for the filters. If there is only of filter of the specific class, and
+its score is a single number, the value of the score is simply below
+the class name. The the filter outputs more scores, they are
+represented in a list or dictionary. Typically there is one score
+for each segment (language) if there are multiple scores.</p>
+<p>The filters may contain the same filter class multiple times so that
+the same filter can be used with different parameters (e.g. both words
+and characters as units for length-based filters). In this case, under
+the top-level filter class key there is another dictionary that
+separates the filter instances. The keys for the instances can be
+defined by using the <code class="docutils literal notranslate"><span class="pre">name</span></code> parameter that is available for all
+filters. If the name is not defined, the first filter of the class is
+given key <code class="docutils literal notranslate"><span class="pre">&quot;1&quot;</span></code>, the second <code class="docutils literal notranslate"><span class="pre">&quot;2&quot;</span></code>, and so on. (Note: make sure to give a
+name to either all or none of the filters, or at least do not manually
+give integers as names.)</p>
+<p>The output can be used e.g. for analyzing the distribution of the
+scores or training a classifier for filtering. The JSON Lines data is
+easy to load as a <a class="reference external" href="https://pandas.pydata.org/">pandas</a> DataFrame using
+the <a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.io.json.json_normalize.html"><code class="docutils literal notranslate"><span class="pre">json_normalize</span></code></a>
+method.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="preprocessing_text.html" class="btn btn-neutral float-left" title="Preprocessing text" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="using_score_files.html" class="btn btn-neutral float-right" title="Using score files" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p></p>
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

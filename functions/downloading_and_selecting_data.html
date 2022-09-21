@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Downloading and selecting data &mdash; OpusFilter latest documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Preprocessing text" href="preprocessing_text.html" />
+    <link rel="prev" title="Other command line tools" href="../command_line_tools.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> OpusFilter
+          </a>
+              <div class="version">
+                latest
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Get started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../command_line_tools.html">Other command line tools</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Available functions</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Downloading and selecting data</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#opus-read">opus_read</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#concatenate">concatenate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#download">download</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#head">head</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#tail">tail</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#slice">slice</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#split">split</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#subset">subset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#product">product</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#unzip">unzip</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#write">write</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="preprocessing_text.html">Preprocessing text</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filtering_and_scoring.html">Filtering and scoring</a></li>
+<li class="toctree-l1"><a class="reference internal" href="using_score_files.html">Using score files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="training_language_and_alignment_models.html">Training language and alignment models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="training_and_using_classifiers.html">Training and using classifiers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Available filters</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../filters/length_filters.html">Length filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../filters/script_and_language_identification_filters.html">Script and language identification filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../filters/special_character_and_similarity_filters.html">Special character and similarity filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../filters/language_model_filters.html">Language model filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../filters/alignment_model_filters.html">Alignment model filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../filters/sentence_embedding_filters.html">Sentence embedding filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../filters/custom_filters.html">Custom filters</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Other information</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../CONTRIBUTING.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CHANGELOG.html">Changelog</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">OpusFilter</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Downloading and selecting data</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="downloading-and-selecting-data">
+<h1>Downloading and selecting data<a class="headerlink" href="#downloading-and-selecting-data" title="Permalink to this headline"></a></h1>
+<section id="opus-read">
+<h2>opus_read<a class="headerlink" href="#opus-read" title="Permalink to this headline"></a></h2>
+<p>Read a corpus from the OPUS corpus collection <span id="id1">[]</span> using
+the OpusTools <span id="id2">[]</span> interface.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">corpus_name</span></code>: name of the corpus in OPUS</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">source_language</span></code>: language code for the source language</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">target_language</span></code>: language code for the target language</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">release</span></code>: version of the corpus in OPUS</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">preprocessing</span></code>: <code class="docutils literal notranslate"><span class="pre">raw</span></code> for untokenized and <code class="docutils literal notranslate"><span class="pre">xml</span></code> for tokenized segments</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">src_output</span></code>: output file for source language</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tgt_output</span></code>: output file for target language</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">suppress_prompts</span></code>: <code class="docutils literal notranslate"><span class="pre">false</span></code> (default) prompts user to confirm before download, <code class="docutils literal notranslate"><span class="pre">true</span></code> to download without prompting</p></li>
+</ul>
+</section>
+<section id="concatenate">
+<h2>concatenate<a class="headerlink" href="#concatenate" title="Permalink to this headline"></a></h2>
+<p>Concatenate two or more text files.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">inputs</span></code>: a list of input files</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">output</span></code>: output file</p></li>
+</ul>
+</section>
+<section id="download">
+<h2>download<a class="headerlink" href="#download" title="Permalink to this headline"></a></h2>
+<p>Download a file from URL.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">url</span></code>: URL for the file to download</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">output</span></code>: output file</p></li>
+</ul>
+</section>
+<section id="head">
+<h2>head<a class="headerlink" href="#head" title="Permalink to this headline"></a></h2>
+<p>Take the first n lines from files.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">inputs</span></code>: a list of input files</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">outputs</span></code>: a list of output files</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">n</span></code>: number of output lines</p></li>
+</ul>
+</section>
+<section id="tail">
+<h2>tail<a class="headerlink" href="#tail" title="Permalink to this headline"></a></h2>
+<p>Take the last n lines from files.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">inputs</span></code>: a list of input files</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">outputs</span></code>: a list of output files</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">n</span></code>: number of output lines</p></li>
+</ul>
+<p>Note: The memory requirement of <code class="docutils literal notranslate"><span class="pre">tail</span></code> is proportional to n. Use
+<code class="docutils literal notranslate"><span class="pre">slice</span></code> if you need all except the first n lines.</p>
+</section>
+<section id="slice">
+<h2>slice<a class="headerlink" href="#slice" title="Permalink to this headline"></a></h2>
+<p>Take slice of lines from files.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">inputs</span></code>: a list of input files</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">outputs</span></code>: a list of output files</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">start</span></code>: start index (optional; default 0)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">stop</span></code>: stop index (optional; default <code class="docutils literal notranslate"><span class="pre">null</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">step</span></code>: step size (optional; default 1)</p></li>
+</ul>
+<p>Either <code class="docutils literal notranslate"><span class="pre">start</span></code>, <code class="docutils literal notranslate"><span class="pre">stop</span></code>, or both of them should be given. If <code class="docutils literal notranslate"><span class="pre">stop</span></code> is
+not given, reads until the end of the file.</p>
+</section>
+<section id="split">
+<h2>split<a class="headerlink" href="#split" title="Permalink to this headline"></a></h2>
+<p>Split files to two parts giving the approximative proportions as
+fractions.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">inputs</span></code>: input file(s)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">outputs</span></code>: output file(s) for selected lines</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">outputs_2</span></code>: output file(s) for the rest of the lines (optional)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">divisor</span></code>: divisor for the modulo operation (e.g. 2 for splitting to equal sized parts)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">threshold</span></code>: threshold for the output of the modulo operation (optional; default 1)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">compare</span></code>: select files to use for hash operation (optional; default <code class="docutils literal notranslate"><span class="pre">all</span></code> or a list of indices)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">hash</span></code>: select hash algorithm from pyhash (optional; default <code class="docutils literal notranslate"><span class="pre">xx_64</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">seed</span></code>: integer seed for the hash algorithm (optional; default 0)</p></li>
+</ul>
+<p>Input files are processed line by line in parallel. If the condition
+<code class="docutils literal notranslate"><span class="pre">hash(content)</span> <span class="pre">%</span> <span class="pre">divisor</span> <span class="pre">&lt;</span> <span class="pre">threshold</span></code>, where the content is a
+concatenation of the input lines and the hash function returns an
+integer, holds, the lines are written to the <code class="docutils literal notranslate"><span class="pre">outputs</span></code>. If the
+condition does not hold, and <code class="docutils literal notranslate"><span class="pre">outputs_2</span></code> are defined, the lines are
+written there.</p>
+<p>Compared to random splitting (see <a class="reference internal" href="#subset"><span class="std std-ref">subset</span></a>) or using the
+modulo operation on the line number, the benefit of the hash-based
+approach is that the decision is fully deterministic and based only on
+the <em>content</em> of the lines. Consequently, identical content always
+goes to the the same output file(s). For example, if you split a
+parallel corpus into test and training sets, and you can be sure that
+your test data does not contain exactly same samples as the training
+data even if the original data has duplicates.</p>
+<p>The downside is that you need to be careful if you use several splits
+for the same data. The divisors used in consecutive splits should not
+themselves have common divisors, or the proportion of the data in the
+output files may be unexpected. Distinct prime numbers are good
+choices. Also setting a different <code class="docutils literal notranslate"><span class="pre">seed</span></code> value for the hash functions
+prevents the issue.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">compare</span></code> parameter can be used to select which input files are
+used to generate the content for the hash function. For example, if
+you have source and target language files, and you want that the split
+depends only on the source or target sentence, set <code class="docutils literal notranslate"><span class="pre">compare</span></code> to <code class="docutils literal notranslate"><span class="pre">[0]</span></code>
+or <code class="docutils literal notranslate"><span class="pre">[1]</span></code>, respectively.</p>
+</section>
+<section id="subset">
+<h2>subset<a class="headerlink" href="#subset" title="Permalink to this headline"></a></h2>
+<p>Take a random subset from parallel corpus files.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">inputs</span></code>: input files</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">outputs</span></code>: output files for storing the subset</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">size</span></code>: number of lines to select for the subset</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">seed</span></code>: seed for the random generator; set to ensure that two runs select the same lines (optional; default <code class="docutils literal notranslate"><span class="pre">null</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">shuffle_subset</span></code>: shuffle the order of the selected lines for each language except for the first; can be used to produce noisy examples for training a corpus filtering model (optional; default <code class="docutils literal notranslate"><span class="pre">false</span></code>)</p></li>
+</ul>
+</section>
+<section id="product">
+<h2>product<a class="headerlink" href="#product" title="Permalink to this headline"></a></h2>
+<p>Create a Cartesian product of parallel segments and optionally sample from them.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">inputs</span></code>: a list of input files lists</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">outputs</span></code>: a list of output files</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">skip_empty</span></code>: skip empty lines (optional, default <code class="docutils literal notranslate"><span class="pre">true</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">skip_duplicates</span></code>: skip duplicate lines per language (optional, default <code class="docutils literal notranslate"><span class="pre">true</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">k</span></code>: sample at most k random items per product (optional, default <code class="docutils literal notranslate"><span class="pre">null</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">seed</span></code>: seed for the random generator; set to ensure that two runs produce the same lines (optional; default <code class="docutils literal notranslate"><span class="pre">null</span></code>)</p></li>
+</ul>
+<p>Can be used to combine parallel files of the same language that
+contain alternative translations or other meaningful variation
+(e.g. alternative subword segmenatations). For example, if you have
+the same text translated to language A by N translators and to
+language B by M translators, you can combine the N + M files into two
+files having N x M lines for each original line.</p>
+</section>
+<section id="unzip">
+<h2>unzip<a class="headerlink" href="#unzip" title="Permalink to this headline"></a></h2>
+<p>Unzip parallel segments joined in a single file into multiple files.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">input</span></code>: input file</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">outputs</span></code>: a list of output files</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">separator</span></code>: a string separator in the input file</p></li>
+</ul>
+<p>Can be used to split e.g. Moses-style (<code class="docutils literal notranslate"><span class="pre">|||</span></code>) or tab-separated parallel text files into parts.</p>
+</section>
+<section id="write">
+<h2>write<a class="headerlink" href="#write" title="Permalink to this headline"></a></h2>
+<p>Write a specified string into a file.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">output</span></code>: output file</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">data</span></code>: input data to write to the output (converted to a string if not already)</p></li>
+</ul>
+<p>Useful mostly for testing.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../command_line_tools.html" class="btn btn-neutral float-left" title="Other command line tools" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="preprocessing_text.html" class="btn btn-neutral float-right" title="Preprocessing text" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p></p>
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

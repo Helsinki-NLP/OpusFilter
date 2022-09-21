@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Using score files &mdash; OpusFilter latest documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Training language and alignment models" href="training_language_and_alignment_models.html" />
+    <link rel="prev" title="Filtering and scoring" href="filtering_and_scoring.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> OpusFilter
+          </a>
+              <div class="version">
+                latest
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Get started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../command_line_tools.html">Other command line tools</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Available functions</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="downloading_and_selecting_data.html">Downloading and selecting data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preprocessing_text.html">Preprocessing text</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filtering_and_scoring.html">Filtering and scoring</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Using score files</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#join">join</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#sort">sort</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="training_language_and_alignment_models.html">Training language and alignment models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="training_and_using_classifiers.html">Training and using classifiers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Available filters</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../filters/length_filters.html">Length filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../filters/script_and_language_identification_filters.html">Script and language identification filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../filters/special_character_and_similarity_filters.html">Special character and similarity filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../filters/language_model_filters.html">Language model filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../filters/alignment_model_filters.html">Alignment model filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../filters/sentence_embedding_filters.html">Sentence embedding filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../filters/custom_filters.html">Custom filters</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Other information</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../CONTRIBUTING.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CHANGELOG.html">Changelog</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">OpusFilter</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Using score files</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="using-score-files">
+<h1>Using score files<a class="headerlink" href="#using-score-files" title="Permalink to this headline"></a></h1>
+<section id="join">
+<h2>join<a class="headerlink" href="#join" title="Permalink to this headline"></a></h2>
+<p>Join two or more score files.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">inputs</span></code>: input files containing scores in JSON Lines format</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">output</span></code>: output file for joined scores</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">keys</span></code>: a list containing dictionary keys for each input file (optional; default <code class="docutils literal notranslate"><span class="pre">null</span></code>)</p></li>
+</ul>
+<p>If the list of keys is provided, the input objects are inserted under
+the corresponding key. The objects can also be inserted deeper in a
+hierarchical score dictionary by using a key that has dot-separated
+parts. For example, <code class="docutils literal notranslate"><span class="pre">x.y</span></code> means setting key <code class="docutils literal notranslate"><span class="pre">y</span></code> under the key <code class="docutils literal notranslate"><span class="pre">x</span></code>. If
+the keys are not provided, or the key corresponding to the input file
+is <code class="docutils literal notranslate"><span class="pre">null</span></code>, output object will be updated with the input object and
+existing keys will be overwritten.</p>
+<p>For example, if you have scores for the source and target sentences
+created by external tools (<code class="docutils literal notranslate"><span class="pre">myscores.src</span></code> and <code class="docutils literal notranslate"><span class="pre">myscores.tgt</span></code>
+containing one number per line), and you want to join them with an
+existing score file created by OpusFilter (<code class="docutils literal notranslate"><span class="pre">scores.jsonl.gz</span></code>), you can
+do it like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="o">-</span> <span class="nb">type</span><span class="p">:</span> <span class="n">join</span>
+    <span class="n">parameters</span><span class="p">:</span>
+      <span class="n">inputs</span><span class="p">:</span>
+      <span class="o">-</span> <span class="n">scores</span><span class="o">.</span><span class="n">jsonl</span><span class="o">.</span><span class="n">gz</span>
+      <span class="o">-</span> <span class="n">myscores</span><span class="o">.</span><span class="n">src</span>
+      <span class="o">-</span> <span class="n">myscores</span><span class="o">.</span><span class="n">tgt</span>
+      <span class="n">keys</span><span class="p">:</span>
+      <span class="o">-</span> <span class="n">null</span>
+      <span class="o">-</span> <span class="n">MyScore</span><span class="o">.</span><span class="n">src</span>
+      <span class="o">-</span> <span class="n">MyScore</span><span class="o">.</span><span class="n">tgt</span>
+      <span class="n">output</span><span class="p">:</span> <span class="n">scores</span><span class="o">-</span><span class="n">joined</span><span class="o">.</span><span class="n">jsonl</span><span class="o">.</span><span class="n">gz</span>
+</pre></div>
+</div>
+<p>Apart from the old scores from <code class="docutils literal notranslate"><span class="pre">scores.jsonl.gz</span></code>, each line should now
+contain <code class="docutils literal notranslate"><span class="pre">{&quot;MyScore&quot;:</span> <span class="pre">{&quot;src&quot;:</span> <span class="pre">...,</span> <span class="pre">&quot;tgt&quot;:</span> <span class="pre">...}}</span></code>.</p>
+</section>
+<section id="sort">
+<h2>sort<a class="headerlink" href="#sort" title="Permalink to this headline"></a></h2>
+<p>Sort files based on score values.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">inputs</span></code>: input files to sort</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">outputs</span></code>: sorted output files</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">values</span></code>: input file for values used in sorting</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">reverse</span></code>: <code class="docutils literal notranslate"><span class="pre">true</span></code> for descending sort (optional; default <code class="docutils literal notranslate"><span class="pre">false</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">key</span></code>: if values file contain JSON objects, use the key to select field (optional; default <code class="docutils literal notranslate"><span class="pre">null</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">type</span></code>: force type conversion for the value (optional; <code class="docutils literal notranslate"><span class="pre">float</span></code>, <code class="docutils literal notranslate"><span class="pre">int</span></code>, <code class="docutils literal notranslate"><span class="pre">str</span></code>, or default <code class="docutils literal notranslate"><span class="pre">null</span></code>)</p></li>
+</ul>
+<p>The values file should contain one JSON object per line. If a line
+cannot be interpreted as a JSON object, it is read as a plain unicode
+string. Dots (<code class="docutils literal notranslate"><span class="pre">.</span></code>) in the key are interpreted as multiple get operations
+(e.g. <code class="docutils literal notranslate"><span class="pre">x.y</span></code> expects that there is key <code class="docutils literal notranslate"><span class="pre">x</span></code> under the key <code class="docutils literal notranslate"><span class="pre">y</span></code>). List items
+can be accessed with integer keys. The type conversion can be used e.g.
+for forcing numerical values to be compared as strings.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="filtering_and_scoring.html" class="btn btn-neutral float-left" title="Filtering and scoring" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="training_language_and_alignment_models.html" class="btn btn-neutral float-right" title="Training language and alignment models" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p></p>
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

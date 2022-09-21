@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Special character and similarity filters &mdash; OpusFilter latest documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Language model filters" href="language_model_filters.html" />
+    <link rel="prev" title="Script and language identification filters" href="script_and_language_identification_filters.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> OpusFilter
+          </a>
+              <div class="version">
+                latest
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Get started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../command_line_tools.html">Other command line tools</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Available functions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../functions/downloading_and_selecting_data.html">Downloading and selecting data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../functions/preprocessing_text.html">Preprocessing text</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../functions/filtering_and_scoring.html">Filtering and scoring</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../functions/using_score_files.html">Using score files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../functions/training_language_and_alignment_models.html">Training language and alignment models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../functions/training_and_using_classifiers.html">Training and using classifiers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Available filters</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="length_filters.html">Length filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="script_and_language_identification_filters.html">Script and language identification filters</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Special character and similarity filters</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#htmltagfilter">HtmlTagFilter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#terminalpunctuationfilter">TerminalPunctuationFilter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#nonzeronumeralsfilter">NonZeroNumeralsFilter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#longestcommonsubstringfilter">LongestCommonSubstringFilter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#similarityfilter">SimilarityFilter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#repetitionfilter">RepetitionFilter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#regexpfilter">RegExpFilter</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="language_model_filters.html">Language model filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="alignment_model_filters.html">Alignment model filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sentence_embedding_filters.html">Sentence embedding filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="custom_filters.html">Custom filters</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Other information</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../CONTRIBUTING.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CHANGELOG.html">Changelog</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">OpusFilter</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Special character and similarity filters</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="special-character-and-similarity-filters">
+<h1>Special character and similarity filters<a class="headerlink" href="#special-character-and-similarity-filters" title="Permalink to this headline"></a></h1>
+<section id="htmltagfilter">
+<h2>HtmlTagFilter<a class="headerlink" href="#htmltagfilter" title="Permalink to this headline"></a></h2>
+<p>Filter segments based on whether they contain HTML tags or not.</p>
+<p>The returned scores are two boolean values indicating whether the
+segments contain HTML tags. In filtering, a segment pair is accepted
+if none of the segments contains HTML tags.</p>
+</section>
+<section id="terminalpunctuationfilter">
+<h2>TerminalPunctuationFilter<a class="headerlink" href="#terminalpunctuationfilter" title="Permalink to this headline"></a></h2>
+<p>Filter segments based on a penalty score with respect to the
+co-occurrence of therminal punctuation marks (‘.’, ‘…’, ‘?’, ‘!’) in
+source and target segments <span id="id1">[]</span>. The
+score is formulated as follows: the initial score is the absolute
+difference in source and target terminal punctuation counts, the score
+is then incremented by the number of terminal punctuation beyond the
+first occurence in both segments, and finally, the score is updated
+with <code class="docutils literal notranslate"><span class="pre">score=-log(score+1)</span></code>. The score of the greatest co-occurrence is
+0 and smaller values indicate greater penalty.</p>
+<p>This filter works only for bilingual input.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">threshold</span></code>: minimum score threshold (default -2)</p></li>
+</ul>
+<p>The returned score is a single terminal punctuation score. In
+filtering, the score has to equal to of be greater than the minimum
+threshold.</p>
+</section>
+<section id="nonzeronumeralsfilter">
+<h2>NonZeroNumeralsFilter<a class="headerlink" href="#nonzeronumeralsfilter" title="Permalink to this headline"></a></h2>
+<p>Filter segments based on a similarity measure of numerals between the
+segments with zeros removed <span id="id2">[]</span>.
+Non-zero numerals are extracted from all segments preserving the
+relative order of the numerals. The similarity score between the
+numeral sequences is produced with <code class="docutils literal notranslate"><span class="pre">SequenceMatcher.ratio()</span></code> from
+Python’s <code class="docutils literal notranslate"><span class="pre">difflib</span></code> library.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">threshold</span></code>: minimum score threshold (default 0.5)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">require_all</span></code>: if True, all scores (for pairs of n segments) have to be reach threshold; otherwise at least one the ratios has to reach the threshold</p></li>
+</ul>
+<p>The returned value is a list of similarity scores for all language
+pairs. For n-lingual input, the scores will include C(n, 2) values. In
+filtering, all pairwise scores has to equal to or be greater than the
+minimum threshold.</p>
+</section>
+<section id="longestcommonsubstringfilter">
+<h2>LongestCommonSubstringFilter<a class="headerlink" href="#longestcommonsubstringfilter" title="Permalink to this headline"></a></h2>
+<p>Filter segments based on the normalized length of the longest common substring.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">threshold</span></code>: filter segments if the normalized length is equal or above the threshold (optional; default 0.9)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">require_all</span></code>: if True, all ratios (for pairs of n segments) have to be below the threshold; otherwise at least one the ratios have to be below the threshold</p></li>
+</ul>
+<p>Returned scores are ratios between the length of the longest common
+substring and the length of the shorter of the compared strings for
+all language pairs. For n-lingual input, the scores will include C(n,
+2) values.</p>
+</section>
+<section id="similarityfilter">
+<h2>SimilarityFilter<a class="headerlink" href="#similarityfilter" title="Permalink to this headline"></a></h2>
+<p>Filter segments based on string or word sequence similarity based on Levenshtein distance.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">threshold</span></code>: filter segments if the similarity is equal or above the threshold (optional, default 0.9)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">weights</span></code>: a list of three integers corresponding to the costs of three edit operations: insertion, deletion, substitution (optional; default <code class="docutils literal notranslate"><span class="pre">[1,</span> <span class="pre">1,</span> <span class="pre">1]</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">unit</span></code>: type of unit for calculating the distance (optional; <code class="docutils literal notranslate"><span class="pre">word</span></code> for words or any whitespace-separated units, and <code class="docutils literal notranslate"><span class="pre">character</span></code> or <code class="docutils literal notranslate"><span class="pre">char</span></code> for characters; the default is <code class="docutils literal notranslate"><span class="pre">char</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lowercase</span></code>: lowercase strings as preprocessing (default <code class="docutils literal notranslate"><span class="pre">false</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">require_all</span></code>: if True, all similarities (for pairs of n segments) have to be below the threshold; otherwise at least one the similarities have to be below the threshold</p></li>
+</ul>
+<p>The returned scores are normalized similarities (1 - edit distance /
+max edit distance) between the compared sequences for all language
+pairs. For n-lingual input, the scores will include C(n, 2) values.</p>
+</section>
+<section id="repetitionfilter">
+<h2>RepetitionFilter<a class="headerlink" href="#repetitionfilter" title="Permalink to this headline"></a></h2>
+<p>Filter segments with repeated content. Useful e.g. for filtering data
+generated by a low-quality NMT model.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">threshold</span></code>: number of repetitions required to activate the filter (optional, default 2)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">min_length</span></code>: minimum number of characters in the repeated sequence (optional, default 3)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">max_length</span></code>: maximum number of characters in the repeated sequence (optional, default 100)</p></li>
+</ul>
+<p>The returned scores are the numbers of repetitions if at least
+threshold repetitions were found (first occurrence of the string is
+not counted), or zero if no repetitions were found, or all were below
+the threshold. The returned number of repetitions is for the first
+match, and it is possible that the segment contains longer
+repetitions.</p>
+<p>There may be optional space character(s) between the repeated strings
+that are not counted to the length. The repeated string cannot start
+with a whitespace character but is not limited otherwise.</p>
+</section>
+<section id="regexpfilter">
+<h2>RegExpFilter<a class="headerlink" href="#regexpfilter" title="Permalink to this headline"></a></h2>
+<p>Filter out segments that match (or do not match) a arbitrary regular expression.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">regexps</span></code>: a regular expression or a list of expressions to match</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">accept_match</span></code>: accept matching segments instead of rejecting (default <code class="docutils literal notranslate"><span class="pre">false</span></code>)</p></li>
+</ul>
+<p>You can either provide a single regexp or one for each language in the
+parallel data. If <code class="docutils literal notranslate"><span class="pre">accept_match</span></code> is <code class="docutils literal notranslate"><span class="pre">false</span></code>, the pair is accepted only
+if none of the segment match the corresponding regular experssion. If
+<code class="docutils literal notranslate"><span class="pre">accept_match</span></code> is <code class="docutils literal notranslate"><span class="pre">true</span></code>, the pair is accepted only if all segments
+match the corresponding regular expression.</p>
+<p>The <a class="reference external" href="https://pypi.org/project/regex/">regex</a> module is used for the
+regular expressions.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="script_and_language_identification_filters.html" class="btn btn-neutral float-left" title="Script and language identification filters" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="language_model_filters.html" class="btn btn-neutral float-right" title="Language model filters" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p></p>
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

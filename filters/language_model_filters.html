@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Language model filters &mdash; OpusFilter latest documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Alignment model filters" href="alignment_model_filters.html" />
+    <link rel="prev" title="Special character and similarity filters" href="special_character_and_similarity_filters.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> OpusFilter
+          </a>
+              <div class="version">
+                latest
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Get started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../command_line_tools.html">Other command line tools</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Available functions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../functions/downloading_and_selecting_data.html">Downloading and selecting data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../functions/preprocessing_text.html">Preprocessing text</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../functions/filtering_and_scoring.html">Filtering and scoring</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../functions/using_score_files.html">Using score files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../functions/training_language_and_alignment_models.html">Training language and alignment models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../functions/training_and_using_classifiers.html">Training and using classifiers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Available filters</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="length_filters.html">Length filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="script_and_language_identification_filters.html">Script and language identification filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="special_character_and_similarity_filters.html">Special character and similarity filters</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Language model filters</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#crossentropyfilter">CrossEntropyFilter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#crossentropydifferencefilter">CrossEntropyDifferenceFilter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#lmclassifierfilter">LMClassifierFilter</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="alignment_model_filters.html">Alignment model filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sentence_embedding_filters.html">Sentence embedding filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="custom_filters.html">Custom filters</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Other information</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../CONTRIBUTING.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CHANGELOG.html">Changelog</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">OpusFilter</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Language model filters</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="language-model-filters">
+<h1>Language model filters<a class="headerlink" href="#language-model-filters" title="Permalink to this headline"></a></h1>
+<section id="crossentropyfilter">
+<h2>CrossEntropyFilter<a class="headerlink" href="#crossentropyfilter" title="Permalink to this headline"></a></h2>
+<p>Filter segments by n-gram language model probabilities.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">lm_params</span></code>: a list of dictionaries for the parameters of the language models; see below</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">score_type</span></code>: select whether to calculate cross-entropy (<code class="docutils literal notranslate"><span class="pre">entropy</span></code>; default), perplixty (<code class="docutils literal notranslate"><span class="pre">perplexity</span></code>) or negative log-probability (<code class="docutils literal notranslate"><span class="pre">logprob</span></code>) scores</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">thresholds</span></code>: upper thresholds for scores when filtering (optional; default is 50.0 for all languages)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">low_thresholds</span></code>: lower thresholds for scores when filtering (optional; default is no threshold)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">diff_threshold</span></code>: upper threshold for absolute difference of source and target language scores when filtering (optional; default 10.0)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">score_for_empty</span></code>: set score values manually for empty input pairs (default <code class="docutils literal notranslate"><span class="pre">null</span></code>)</p></li>
+</ul>
+<p>Language model parameters for <code class="docutils literal notranslate"><span class="pre">lm_params</span></code>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">filename</span></code>: filename for the language model to use</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">arpa</span></code>: LM is in ARPA format instead of binary LM (optional; default <code class="docutils literal notranslate"><span class="pre">true</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">unk</span></code>: unknown token symbol (optional; default <code class="docutils literal notranslate"><span class="pre">&lt;UNK&gt;</span></code>, case sensitive)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">include_unks</span></code>: include unknown tokens in perplexity calculations (optional; default <code class="docutils literal notranslate"><span class="pre">false</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ccs</span></code>: list of context cues ignored in perplexity calculations (optional; default <code class="docutils literal notranslate"><span class="pre">null</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">segmentation</span></code>: subword segmentation options (optional; default <code class="docutils literal notranslate"><span class="pre">{}</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mb</span></code>: morph boundary marking (optional; default <code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wb</span></code>: word boundary tag (optional; default <code class="docutils literal notranslate"><span class="pre">&quot;&lt;w&gt;&quot;</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">init_hist</span></code>: ignore n first tokens after the end-of-sentence tag <code class="docutils literal notranslate"><span class="pre">&lt;/s&gt;</span></code> in perplexity calculations (optional; default 2)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">interpolate</span></code>: list of language models (in ARPA format) and interpolation weights (optional; default <code class="docutils literal notranslate"><span class="pre">null</span></code>)</p></li>
+</ul>
+<p>See <a class="reference internal" href="../functions/training_language_and_alignment_models.html#train-ngram"><span class="std std-ref">train_ngram</span></a> for training the models. Note that the
+format, perplexity calculation, segmentation, and boundary marking
+options should match the parameters used in model training; do not
+change them unless you know what you are doing.</p>
+<p>Separate scores (entropy, perplexity, or negative log-probability) are
+returned for the source and target segment. In filtering, the segment
+pair is accepted if all values are below the respective thresholds,
+and their absolute differences are below the difference threshold.</p>
+</section>
+<section id="crossentropydifferencefilter">
+<h2>CrossEntropyDifferenceFilter<a class="headerlink" href="#crossentropydifferencefilter" title="Permalink to this headline"></a></h2>
+<p>Filter segments by using cross-entropy difference method by
+<span id="id1"></span>.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">id_lm_params</span></code>: a list of dictionaries for the parameters of the in-domain language models</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nd_lm_params</span></code>: a list of dictionaries for the parameters of the non-domain language models</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">thresholds</span></code>: upper thresholds for scores when filtering (optional; default is 0.0 for all languages)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">score_for_empty</span></code>: set score values manually for empty input pairs (default <code class="docutils literal notranslate"><span class="pre">null</span></code>)</p></li>
+</ul>
+<p>For contents of the <code class="docutils literal notranslate"><span class="pre">id_lm_params</span></code> and <code class="docutils literal notranslate"><span class="pre">nd_lm_params</span></code>, see
+<a class="reference internal" href="#crossentropyfilter"><span class="std std-ref">CrossEntropyFilter</span></a>.</p>
+<p>See <a class="reference internal" href="../functions/training_language_and_alignment_models.html#train-ngram"><span class="std std-ref">train_ngram</span></a> for training the models. Note that the
+format, perplexity calculation, and boundary marking options should
+match the parameters used in model training; do not change them unless
+you know what you are doing.</p>
+<p>The filter returns difference between the in-domain LM and non-domain
+LM cross-entropy.</p>
+</section>
+<section id="lmclassifierfilter">
+<h2>LMClassifierFilter<a class="headerlink" href="#lmclassifierfilter" title="Permalink to this headline"></a></h2>
+<p>Filter segments by using classification probability from a naive Bayes
+classifier using a set class-specific language models.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">labels</span></code>: expected class labels for the segments</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lm_params</span></code>: a dictionary that maps labels to language model parameter dictionaries</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">thresholds</span></code>: minimum thresholds for probability of the expected label when filtering (optional; default is 0.5)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">relative_score</span></code>: normalize probabilities by the largest probability (optional; default <code class="docutils literal notranslate"><span class="pre">false</span></code>)</p></li>
+</ul>
+<p>Each of the labels should have a corresponding language model in
+<code class="docutils literal notranslate"><span class="pre">lm_params</span></code>. The likelihood of the segment is calculated for all the
+language models. If <code class="docutils literal notranslate"><span class="pre">relative_score</span></code> is false, the likelihoods are
+normalized to probabilities that sum up to one over the labels, and
+the probability of the expected label is returned as a score. If
+<code class="docutils literal notranslate"><span class="pre">relative_score</span></code> is true, the probability values are first divided by
+the largest probability (i.e. one of the labels will always get one as
+the score).</p>
+<p>For contents of the language model parameters in <code class="docutils literal notranslate"><span class="pre">lm_params</span></code>, see
+<a class="reference internal" href="#crossentropyfilter"><span class="std std-ref">CrossEntropyFilter</span></a>.</p>
+<p>See <a class="reference internal" href="../functions/training_language_and_alignment_models.html#train-ngram"><span class="std std-ref">train_ngram</span></a> for training the models. Note that the
+format, perplexity calculation, and boundary marking options should
+match the parameters used in model training; do not change them unless
+you know what you are doing.</p>
+<p>A possible use case for this filter is creating a custom language
+identifier similar to Vatanen et al. (2010): Train a character-based
+n-gram model for each of the languages from clean corpora, and use the
+language codes as labels. Vatanen et al. (2010) recommend using
+absolute discounting and maximum n-gram length 4 or 5 for the
+models. Note that unknown tokens are ignored in the language model
+likelihoods, so it is a good idea to train a small (e.g. unigram)
+background model that includes data from all languages, and
+interpolate the language-specific models with it using a small
+interpolation coefficient. An example configuration is found at
+<a class="reference external" href="https://github.com/Helsinki-NLP/OpusFilter/blob/develop/example_configs/qed_lm_langid.yaml">example_configs/qed_lm_langid.yaml</a>.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="special_character_and_similarity_filters.html" class="btn btn-neutral float-left" title="Special character and similarity filters" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="alignment_model_filters.html" class="btn btn-neutral float-right" title="Alignment model filters" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p></p>
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

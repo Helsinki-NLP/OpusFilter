@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Training language and alignment models &mdash; OpusFilter latest documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Training and using classifiers" href="training_and_using_classifiers.html" />
+    <link rel="prev" title="Using score files" href="using_score_files.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> OpusFilter
+          </a>
+              <div class="version">
+                latest
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Get started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../command_line_tools.html">Other command line tools</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Available functions</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="downloading_and_selecting_data.html">Downloading and selecting data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preprocessing_text.html">Preprocessing text</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filtering_and_scoring.html">Filtering and scoring</a></li>
+<li class="toctree-l1"><a class="reference internal" href="using_score_files.html">Using score files</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Training language and alignment models</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#train-ngram">train_ngram</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#train-aligment">train_aligment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#train-nearest-neighbors">train_nearest_neighbors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#train-bpe">train_bpe</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#train-morfessor">train_morfessor</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="training_and_using_classifiers.html">Training and using classifiers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Available filters</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../filters/length_filters.html">Length filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../filters/script_and_language_identification_filters.html">Script and language identification filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../filters/special_character_and_similarity_filters.html">Special character and similarity filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../filters/language_model_filters.html">Language model filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../filters/alignment_model_filters.html">Alignment model filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../filters/sentence_embedding_filters.html">Sentence embedding filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../filters/custom_filters.html">Custom filters</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Other information</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../CONTRIBUTING.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CHANGELOG.html">Changelog</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">OpusFilter</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Training language and alignment models</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="training-language-and-alignment-models">
+<h1>Training language and alignment models<a class="headerlink" href="#training-language-and-alignment-models" title="Permalink to this headline"></a></h1>
+<section id="train-ngram">
+<h2>train_ngram<a class="headerlink" href="#train-ngram" title="Permalink to this headline"></a></h2>
+<p>Train a character-based varigram language model with VariKN
+<span id="id1">[]</span>. Can be used for
+<a class="reference internal" href="../filters/language_model_filters.html#crossentropyfilter"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">CrossEntropyFilter</span></code></span></a> and
+<a class="reference internal" href="../filters/language_model_filters.html#crossentropydifferencefilter"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">CrossEntropyDifferenceFilter</span></code></span></a>.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">data</span></code>: input file name for training data</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">model</span></code>: output file name for the model</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">parameters</span></code>: training options for VariKN and tokenization</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">optdata</span></code>: filename for optimization data (optional; default empty string <code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code> = use leave-one-out estimation instead)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">norder</span></code>: limit model order (optional; default 0 = no limit)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dscale</span></code>: model size scale factor (optional; smaller value gives a larger model; default 0.001)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dscale2</span></code>: model size scaling during pruning step (optional; default 0 = no pruning)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">arpa</span></code>: output ARPA instead of binary LM (optional; default <code class="docutils literal notranslate"><span class="pre">true</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">use_3nzer</span></code>: use 3 discounts per order instead of one (optional; default <code class="docutils literal notranslate"><span class="pre">false</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">absolute</span></code>: use absolute discounting instead of Kneser-Ney smoothing (optional; default <code class="docutils literal notranslate"><span class="pre">false</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cutoffs</span></code>: use the specified cutoffs (optional; default <code class="docutils literal notranslate"><span class="pre">&quot;0</span> <span class="pre">0</span> <span class="pre">1&quot;</span></code>). The last value is used for all higher order n-grams.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">segmentation</span></code>: subword segmentation options (optional; default <code class="docutils literal notranslate"><span class="pre">{}</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mb</span></code>: word-internal boundary marking (optional; default <code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wb</span></code>: word boundary tag (optional; default <code class="docutils literal notranslate"><span class="pre">&quot;&lt;w&gt;&quot;</span></code>)</p></li>
+</ul>
+</li>
+</ul>
+<p>Apart from the scale, cutoff, and order parameters the size of the
+model depends on the size of the training data. Typically you want to
+at least change the <code class="docutils literal notranslate"><span class="pre">dscale</span></code> value to get a model of a reasonable
+size. If unsure, start with high values, look at the number of the
+n-grams in the output file, and divide by 10 if it looks too small.
+The <code class="docutils literal notranslate"><span class="pre">dscale2</span></code> option is useful mostly if you want to optimize the
+balance between the model size and accuracy at the cost of longer
+training time; a suitable rule of thumb is double the value of
+<code class="docutils literal notranslate"><span class="pre">dscale</span></code>.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">segmentation</span></code> parameter is a dictionary that should contain at
+least the key <code class="docutils literal notranslate"><span class="pre">type</span></code>, which defines the subword segmentation type.
+The default is character segmentation (<code class="docutils literal notranslate"><span class="pre">type:</span> <span class="pre">char</span></code>). Other options
+are no segmentation (<code class="docutils literal notranslate"><span class="pre">type:</span> <span class="pre">none</span></code>), and BPE (<code class="docutils literal notranslate"><span class="pre">type:</span> <span class="pre">bpe</span></code>) or Morfessor
+(<code class="docutils literal notranslate"><span class="pre">type:</span> <span class="pre">morfessor</span></code>) segmentations. For the latter two, a file for a
+trained segmentation model needs to be defined using the key <code class="docutils literal notranslate"><span class="pre">model</span></code>.
+Additional parameters in the dictionary are passed as options for the
+specified model; see <span class="xref myst"><code class="docutils literal notranslate"><span class="pre">BPESegmentation</span></code></span> and
+<span class="xref myst"><code class="docutils literal notranslate"><span class="pre">MorfessorSegmentation</span></code></span> for those. The BPE
+and Morfessor models can be trained using the <a class="reference internal" href="#train-bpe"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">train_bpe</span></code></span></a>
+and <a class="reference internal" href="#train-morfessor"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">train_morfessor</span></code></span></a> commands.</p>
+<p>The default boundary settings (a separate word boundary tag) are
+suitable for character-based models. For other subword models, you
+may consider using the word-internal boundary marking (<code class="docutils literal notranslate"><span class="pre">mb</span></code>)
+instead. Either prefix or postfix string can be used: Prefix strings
+start with <code class="docutils literal notranslate"><span class="pre">^</span></code> and postfix strings end with <code class="docutils literal notranslate"><span class="pre">$</span></code>. For example,
+<code class="docutils literal notranslate"><span class="pre">mb:</span> <span class="pre">&quot;^#&quot;</span></code> means that a token starting with <code class="docutils literal notranslate"><span class="pre">#</span></code> is not preceeded by a
+word break (e.g. <code class="docutils literal notranslate"><span class="pre">sub</span> <span class="pre">#word</span> <span class="pre">segment</span> <span class="pre">#tation</span></code>). The postfix marking
+used by <code class="docutils literal notranslate"><span class="pre">subword-nmt</span></code> (e.g. <code class="docutils literal notranslate"><span class="pre">sub&#64;&#64;</span> <span class="pre">word</span> <span class="pre">segment&#64;&#64;</span> <span class="pre">ation</span></code>) can be set
+by <code class="docutils literal notranslate"><span class="pre">mb:</span> <span class="pre">&quot;&#64;&#64;$&quot;</span></code>.</p>
+<p>See <a class="reference external" href="https://github.com/vsiivola/variKN">VariKN</a> documentation for
+details.</p>
+</section>
+<section id="train-aligment">
+<h2>train_aligment<a class="headerlink" href="#train-aligment" title="Permalink to this headline"></a></h2>
+<p>Train word alignment priors for eflomal <span id="id2">[]</span>.
+Can be used in <a class="reference internal" href="../filters/alignment_model_filters.html#wordalignfilter"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">WordAlignFilter</span></code></span></a>.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">src_data</span></code>: input file for the source language</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tgt_data</span></code>: input file for the target language</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">parameters</span></code>: training options for the aligment and tokenization</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">src_tokenizer</span></code>: tokenizer for source language (optional; default <code class="docutils literal notranslate"><span class="pre">null</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tgt_tokenizer</span></code>: tokenizer for target language (optional; default <code class="docutils literal notranslate"><span class="pre">null</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">model</span></code>: eflomal model type (optional; default 3)</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">output</span></code>: output file name for the priors</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">scores</span></code>: file to write alignment scores from the training data (optional; default <code class="docutils literal notranslate"><span class="pre">null</span></code>)</p></li>
+</ul>
+<p>See <a class="reference internal" href="../filters/alignment_model_filters.html#wordalignfilter"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">WordAlignFilter</span></code></span></a> for details of the training
+parameters.</p>
+</section>
+<section id="train-nearest-neighbors">
+<h2>train_nearest_neighbors<a class="headerlink" href="#train-nearest-neighbors" title="Permalink to this headline"></a></h2>
+<p>Train unsupervised model to search for nearest neighbors of segments using sentence
+embeddings. Can be used in <a class="reference internal" href="../filters/sentence_embedding_filters.html#sentenceembeddingfilter"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">SentenceEmbeddingFilter</span></code></span></a>.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">inputs</span></code>: a list of input files</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">languages</span></code>: a list of language codes corresponding to the input files</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">n_neighbors</span></code>: the default number neightbors to return from query (optional; default 4)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">algorithm</span></code>: algorithm used to compute the nearest neighbors (optional; default <code class="docutils literal notranslate"><span class="pre">brute</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">metric</span></code>: distance or similarity metric used by the object (optional; default <code class="docutils literal notranslate"><span class="pre">cosine</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">output</span></code>: output file name for the model</p></li>
+</ul>
+<p>This is a wrapper for scikit-learn’s <code class="docutils literal notranslate"><span class="pre">NearestNeighbors</span></code> class; see more information in it’s
+<a class="reference external" href="https://scikit-learn.org/stable/modules/neighbors.html#unsupervised-neighbors">documentation</a>.
+Note that the cosine similarity is required for proper use in <code class="docutils literal notranslate"><span class="pre">SentenceEmbeddingFilter</span></code>,
+and only the brute force algorithm works with cosine similarities. The saved model can be
+very large, so use large input corpora with caution.</p>
+</section>
+<section id="train-bpe">
+<h2>train_bpe<a class="headerlink" href="#train-bpe" title="Permalink to this headline"></a></h2>
+<p>Train subword segmentation model with BPE <span id="id3">[]</span>.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">input</span></code>: input file name for training data</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">model</span></code>: output file name for the model</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">symbols</span></code>: create this many new symbols (each representing a character n-gram) (optional; default 10000)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">min_frequency</span></code>: stop if no symbol pair has frequency equal or above the threshold (optional; default 2)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">num_workers</span></code>: number of processors to process texts; if -1, set <code class="docutils literal notranslate"><span class="pre">multiprocessing.cpu_count()</span></code> (optional; default 1)</p></li>
+</ul>
+<p>See <a class="reference external" href="https://github.com/rsennrich/subword-nmt">subword-nmt documentation</a> for details.
+The trained model can be used by the <span class="xref myst"><code class="docutils literal notranslate"><span class="pre">BPESegmentation</span></code></span> preprocessor.</p>
+</section>
+<section id="train-morfessor">
+<h2>train_morfessor<a class="headerlink" href="#train-morfessor" title="Permalink to this headline"></a></h2>
+<p>Train subword segmentation model with Morfessor 2.0 <span id="id4">[]</span>.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">input</span></code>: input file name for training data</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">model</span></code>: output file name for the model</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">corpusweight</span></code>: corpus weight parameter (optional; default 1.0)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">min_frequency</span></code>: frequency threshold for words to include in training (optional; default 1)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dampening</span></code>: frequency dampening for training data: <code class="docutils literal notranslate"><span class="pre">none</span></code> = tokens, <code class="docutils literal notranslate"><span class="pre">log</span></code> = logarithmic dampening, or <code class="docutils literal notranslate"><span class="pre">ones</span></code> = types (optional; default <code class="docutils literal notranslate"><span class="pre">&quot;log&quot;</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">seed</span></code>: seed for random number generator used in training (optional; default <code class="docutils literal notranslate"><span class="pre">null</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">use_skips</span></code>: use random skips for frequently seen compounds to speed up training (optional; default <code class="docutils literal notranslate"><span class="pre">true</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">forcesplit_list</span></code>: force segmentations on the characters in the given list (optional; default <code class="docutils literal notranslate"><span class="pre">null</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nosplit_re</span></code>: if the regular expression matches the two surrounding characters, do not allow splitting (optional; default <code class="docutils literal notranslate"><span class="pre">null</span></code>)</p></li>
+</ul>
+<p>See <a class="reference external" href="https://morfessor.readthedocs.io/en/latest/">Morfessor 2.0 documentation</a> for details.
+The trained model can be used by the <span class="xref myst"><code class="docutils literal notranslate"><span class="pre">MorfessorSegmentation</span></code></span> preprocessor.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="using_score_files.html" class="btn btn-neutral float-left" title="Using score files" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="training_and_using_classifiers.html" class="btn btn-neutral float-right" title="Training and using classifiers" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p></p>
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

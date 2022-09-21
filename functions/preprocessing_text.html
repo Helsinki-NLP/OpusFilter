@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Preprocessing text &mdash; OpusFilter latest documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Filtering and scoring" href="filtering_and_scoring.html" />
+    <link rel="prev" title="Downloading and selecting data" href="downloading_and_selecting_data.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> OpusFilter
+          </a>
+              <div class="version">
+                latest
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Get started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../command_line_tools.html">Other command line tools</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Available functions</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="downloading_and_selecting_data.html">Downloading and selecting data</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Preprocessing text</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#preprocess">preprocess</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="filtering_and_scoring.html">Filtering and scoring</a></li>
+<li class="toctree-l1"><a class="reference internal" href="using_score_files.html">Using score files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="training_language_and_alignment_models.html">Training language and alignment models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="training_and_using_classifiers.html">Training and using classifiers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Available filters</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../filters/length_filters.html">Length filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../filters/script_and_language_identification_filters.html">Script and language identification filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../filters/special_character_and_similarity_filters.html">Special character and similarity filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../filters/language_model_filters.html">Language model filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../filters/alignment_model_filters.html">Alignment model filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../filters/sentence_embedding_filters.html">Sentence embedding filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../filters/custom_filters.html">Custom filters</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Other information</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../CONTRIBUTING.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CHANGELOG.html">Changelog</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">OpusFilter</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Preprocessing text</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="preprocessing-text">
+<h1>Preprocessing text<a class="headerlink" href="#preprocessing-text" title="Permalink to this headline"></a></h1>
+<section id="preprocess">
+<h2>preprocess<a class="headerlink" href="#preprocess" title="Permalink to this headline"></a></h2>
+<p>Preprocess text with a combination of preprocessors.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">inputs</span></code>: input files for segments to preprocess</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">outputs</span></code>: output files for preprocessed segments</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">n_jobs</span></code>: number of sub processes to parallel run jobs. If not set, the default value is <code class="docutils literal notranslate"><span class="pre">default_n_jobs</span></code> in <code class="docutils literal notranslate"><span class="pre">common</span></code> section.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">preprocessors</span></code>: a list of preprocessors to apply; see below</p></li>
+</ul>
+<p>The preprocessors parameter is a list of dictionaries, each
+representing one preprocessor. The top level should typically include
+a single key that defines the class name for the preprocessor
+(e.g. <code class="docutils literal notranslate"><span class="pre">WhitespaceNormalizer</span></code>). Additionally it can include a special
+key <code class="docutils literal notranslate"><span class="pre">module</span></code> for defining module name for
+<span class="xref myst">custom preprocessors</span>.</p>
+<p>Under the class name there is a dictionary the defines the parameters
+of the preprocessors. The are mostly specific to the preprocessor
+class; see <a class="reference internal" href="../index.html#preprocessors"><span class="std std-ref">Available preprocessors</span></a> for ready-made preprocessors.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="downloading_and_selecting_data.html" class="btn btn-neutral float-left" title="Downloading and selecting data" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="filtering_and_scoring.html" class="btn btn-neutral float-right" title="Filtering and scoring" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p></p>
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
