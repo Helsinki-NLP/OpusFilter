@@ -6,9 +6,13 @@
 OpusFilter
 ==========
 
-Welcome to Opusfilter's documentation!
+Welcome to OpusFilter's documentation!
 
-OpusFilter is a tool for filtering and combining parallel corpora. It uses the OpusTools library (Aulamo et al., 2020) to download data from the OPUS corpus collection (Tiedemann, 2012), but can be used with any corpora in raw text format.
+OpusFilter is a tool for filtering and combining parallel corpora. It
+uses the OpusTools library :cite:p:`aulamo-etal-2020-opustools` to
+download data from the OPUS corpus collection
+:cite:p:`tiedemann-2012-parallel`, but can be used with any corpora in
+raw text format.
 
 Features:
 
@@ -68,7 +72,6 @@ OpusFilter has been presented in `ACL 2020 system demonstrations <https://www.ac
    preprocessors/bpe_segmentation.md
    preprocessors/morfessor_segmentation.md
    preprocessors/custom_preprocessors.md
-
 
 .. toctree::
    :caption: Other information
