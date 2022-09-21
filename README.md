@@ -1,6 +1,8 @@
 # OpusFilter
 
-OpusFilter is a tool for filtering and combining parallel corpora. Features:
+OpusFilter is a tool for filtering and combining parallel corpora.
+
+Features:
 
 * Corpus preprocessing pipelines configured with [YAML](https://yaml.org/)
 * Simple downloading of parallel corpora from [OPUS](http://opus.nlpl.eu/) with [OpusTools](https://github.com/Helsinki-NLP/OpusTools)
@@ -21,11 +23,11 @@ Install from source:
 
 * `pip install .` or `python setup.py install`
 
-## Manual
+## Documentation
 
-The OpusFilter manual is available from [helsinki-nlp.github.io/OpusFilter](https://helsinki-nlp.github.io/OpusFilter/).
+The complete OpusFilter documentation is available from [helsinki-nlp.github.io/OpusFilter](https://helsinki-nlp.github.io/OpusFilter/).
 
-You can also build it from source:
+You can also build the documents from the source:
 
 * `pip install -r docs/requirements.txt` or  `pip install .[docs]`
 * `sphinx-build docs docs-html`
