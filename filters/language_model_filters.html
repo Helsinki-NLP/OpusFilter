@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Language model filters &mdash; OpusFilter 0.1.dev1+g616df62 documentation</title>
+  <title>Language model filters &mdash; OpusFilter 0.1.dev1+g542fcde documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -14,6 +14,7 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -112,9 +113,9 @@
            <div itemprop="articleBody">
              
   <section id="language-model-filters">
-<h1>Language model filters<a class="headerlink" href="#language-model-filters" title="Permalink to this headline"></a></h1>
+<h1>Language model filters<a class="headerlink" href="#language-model-filters" title="Permalink to this heading"></a></h1>
 <section id="crossentropyfilter">
-<h2>CrossEntropyFilter<a class="headerlink" href="#crossentropyfilter" title="Permalink to this headline"></a></h2>
+<h2>CrossEntropyFilter<a class="headerlink" href="#crossentropyfilter" title="Permalink to this heading"></a></h2>
 <p>Filter segments by n-gram language model probabilities.</p>
 <p>Parameters:</p>
 <ul class="simple">
@@ -148,7 +149,7 @@ pair is accepted if all values are below the respective thresholds,
 and their absolute differences are below the difference threshold.</p>
 </section>
 <section id="crossentropydifferencefilter">
-<h2>CrossEntropyDifferenceFilter<a class="headerlink" href="#crossentropydifferencefilter" title="Permalink to this headline"></a></h2>
+<h2>CrossEntropyDifferenceFilter<a class="headerlink" href="#crossentropydifferencefilter" title="Permalink to this heading"></a></h2>
 <p>Filter segments by using cross-entropy difference method by
 <span id="id1">Moore and Lewis [<a class="reference internal" href="../references.html#cite-moore-lewis-2010-intelligent" title="Robert C. Moore and William Lewis. Intelligent selection of language model training data. In Proceedings of the ACL 2010 Conference Short Papers, 220–224. Uppsala, Sweden, July 2010. Association for Computational Linguistics. URL: https://aclanthology.org/P10-2041.">2010</a>]</span>.</p>
 <p>Parameters:</p>
@@ -168,7 +169,7 @@ you know what you are doing.</p>
 LM cross-entropy.</p>
 </section>
 <section id="lmclassifierfilter">
-<h2>LMClassifierFilter<a class="headerlink" href="#lmclassifierfilter" title="Permalink to this headline"></a></h2>
+<h2>LMClassifierFilter<a class="headerlink" href="#lmclassifierfilter" title="Permalink to this heading"></a></h2>
 <p>Filter segments by using classification probability from a naive Bayes
 classifier using a set class-specific language models.</p>
 <p>Parameters:</p>

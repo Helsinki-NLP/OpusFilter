@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Training language and alignment models &mdash; OpusFilter 0.1.dev1+g616df62 documentation</title>
+  <title>Training language and alignment models &mdash; OpusFilter 0.1.dev1+g542fcde documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -14,6 +14,7 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -114,9 +115,9 @@
            <div itemprop="articleBody">
              
   <section id="training-language-and-alignment-models">
-<h1>Training language and alignment models<a class="headerlink" href="#training-language-and-alignment-models" title="Permalink to this headline"></a></h1>
+<h1>Training language and alignment models<a class="headerlink" href="#training-language-and-alignment-models" title="Permalink to this heading"></a></h1>
 <section id="train-ngram">
-<h2>train_ngram<a class="headerlink" href="#train-ngram" title="Permalink to this headline"></a></h2>
+<h2>train_ngram<a class="headerlink" href="#train-ngram" title="Permalink to this heading"></a></h2>
 <p>Train a character-based varigram language model with VariKN
 <span id="id1">[<a class="reference internal" href="../references.html#cite-siivola-etal-2007-growing" title="Vesa Siivola, Teemu Hirsimäki, and Sami Virpioja. On growing and pruning Kneser-Ney smoothed n-gram models. IEEE Transactions on Audio, Speech and Language Processing, 15(5):1617–1624, 2007. URL: https://doi.org/10.1109/TASL.2007.896666.">Siivola <em>et al.</em>, 2007</a>]</span>. Can be used for
 <a class="reference internal" href="../filters/language_model_filters.html#crossentropyfilter"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">CrossEntropyFilter</span></code></span></a> and
@@ -174,7 +175,7 @@ by <code class="docutils literal notranslate"><span class="pre">mb:</span> <span
 details.</p>
 </section>
 <section id="train-aligment">
-<h2>train_aligment<a class="headerlink" href="#train-aligment" title="Permalink to this headline"></a></h2>
+<h2>train_aligment<a class="headerlink" href="#train-aligment" title="Permalink to this heading"></a></h2>
 <p>Train word alignment priors for eflomal <span id="id2">[<a class="reference internal" href="../references.html#cite-ostling-tiedemann-2016-efficient" title="Robert Östling and Jörg Tiedemann. Efficient word alignment with Markov Chain Monte Carlo. Prague Bulletin of Mathematical Linguistics, 106:125–146, October 2016. URL: http://ufal.mff.cuni.cz/pbml/106/art-ostling-tiedemann.pdf.">Östling and Tiedemann, 2016</a>]</span>.
 Can be used in <a class="reference internal" href="../filters/alignment_model_filters.html#wordalignfilter"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">WordAlignFilter</span></code></span></a>.</p>
 <p>Parameters:</p>
@@ -195,7 +196,7 @@ Can be used in <a class="reference internal" href="../filters/alignment_model_fi
 parameters.</p>
 </section>
 <section id="train-nearest-neighbors">
-<h2>train_nearest_neighbors<a class="headerlink" href="#train-nearest-neighbors" title="Permalink to this headline"></a></h2>
+<h2>train_nearest_neighbors<a class="headerlink" href="#train-nearest-neighbors" title="Permalink to this heading"></a></h2>
 <p>Train unsupervised model to search for nearest neighbors of segments using sentence
 embeddings. Can be used in <a class="reference internal" href="../filters/sentence_embedding_filters.html#sentenceembeddingfilter"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">SentenceEmbeddingFilter</span></code></span></a>.</p>
 <p>Parameters:</p>
@@ -214,7 +215,7 @@ and only the brute force algorithm works with cosine similarities. The saved mod
 very large, so use large input corpora with caution.</p>
 </section>
 <section id="train-bpe">
-<h2>train_bpe<a class="headerlink" href="#train-bpe" title="Permalink to this headline"></a></h2>
+<h2>train_bpe<a class="headerlink" href="#train-bpe" title="Permalink to this heading"></a></h2>
 <p>Train subword segmentation model with BPE <span id="id3">[<a class="reference internal" href="../references.html#cite-sennrich-etal-2016-neural" title="Rico Sennrich, Barry Haddow, and Alexandra Birch. Neural machine translation of rare words with subword units. In Proceedings of the 54th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers), 1715–1725. Berlin, Germany, August 2016. Association for Computational Linguistics. URL: https://aclanthology.org/P16-1162, doi:10.18653/v1/P16-1162.">Sennrich <em>et al.</em>, 2016</a>]</span>.</p>
 <p>Parameters:</p>
 <ul class="simple">
@@ -228,7 +229,7 @@ very large, so use large input corpora with caution.</p>
 The trained model can be used by the <a class="reference internal" href="../preprocessors/bpe_segmentation.html#bpesegmentation"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">BPESegmentation</span></code></span></a> preprocessor.</p>
 </section>
 <section id="train-morfessor">
-<h2>train_morfessor<a class="headerlink" href="#train-morfessor" title="Permalink to this headline"></a></h2>
+<h2>train_morfessor<a class="headerlink" href="#train-morfessor" title="Permalink to this heading"></a></h2>
 <p>Train subword segmentation model with Morfessor 2.0 <span id="id4">[<a class="reference internal" href="../references.html#cite-virpioja-etal-2013-morfessor" title="Sami Virpioja, Peter Smit, Stig-Arne Grönroos, and Mikko Kurimo. Morfessor 2.0: python implementation and extensions for Morfessor Baseline. Report 25/2013 in Aalto University publication series SCIENCE + TECHNOLOGY, Department of Signal Processing and Acoustics, Aalto University, Helsinki, Finland, 2013.">Virpioja <em>et al.</em>, 2013</a>]</span>.</p>
 <p>Parameters:</p>
 <ul class="simple">

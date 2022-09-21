@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Special character and similarity filters &mdash; OpusFilter 0.1.dev1+g616df62 documentation</title>
+  <title>Special character and similarity filters &mdash; OpusFilter 0.1.dev1+g542fcde documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -14,6 +14,7 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -116,16 +117,16 @@
            <div itemprop="articleBody">
              
   <section id="special-character-and-similarity-filters">
-<h1>Special character and similarity filters<a class="headerlink" href="#special-character-and-similarity-filters" title="Permalink to this headline"></a></h1>
+<h1>Special character and similarity filters<a class="headerlink" href="#special-character-and-similarity-filters" title="Permalink to this heading"></a></h1>
 <section id="htmltagfilter">
-<h2>HtmlTagFilter<a class="headerlink" href="#htmltagfilter" title="Permalink to this headline"></a></h2>
+<h2>HtmlTagFilter<a class="headerlink" href="#htmltagfilter" title="Permalink to this heading"></a></h2>
 <p>Filter segments based on whether they contain HTML tags or not.</p>
 <p>The returned scores are two boolean values indicating whether the
 segments contain HTML tags. In filtering, a segment pair is accepted
 if none of the segments contains HTML tags.</p>
 </section>
 <section id="terminalpunctuationfilter">
-<h2>TerminalPunctuationFilter<a class="headerlink" href="#terminalpunctuationfilter" title="Permalink to this headline"></a></h2>
+<h2>TerminalPunctuationFilter<a class="headerlink" href="#terminalpunctuationfilter" title="Permalink to this heading"></a></h2>
 <p>Filter segments based on a penalty score with respect to the
 co-occurrence of therminal punctuation marks (‘.’, ‘…’, ‘?’, ‘!’) in
 source and target segments <span id="id1">[<a class="reference internal" href="../references.html#cite-vazquez-etal-2019-university" title="Raúl Vázquez, Umut Sulubacak, and Jörg Tiedemann. The University of Helsinki submission to the WMT19 parallel corpus filtering task. In Proceedings of the Fourth Conference on Machine Translation (Volume 3: Shared Task Papers, Day 2), 294–300. Florence, Italy, August 2019. Association for Computational Linguistics. URL: https://aclanthology.org/W19-5441, doi:10.18653/v1/W19-5441.">Vázquez <em>et al.</em>, 2019</a>]</span>. The
@@ -145,7 +146,7 @@ filtering, the score has to equal to of be greater than the minimum
 threshold.</p>
 </section>
 <section id="nonzeronumeralsfilter">
-<h2>NonZeroNumeralsFilter<a class="headerlink" href="#nonzeronumeralsfilter" title="Permalink to this headline"></a></h2>
+<h2>NonZeroNumeralsFilter<a class="headerlink" href="#nonzeronumeralsfilter" title="Permalink to this heading"></a></h2>
 <p>Filter segments based on a similarity measure of numerals between the
 segments with zeros removed <span id="id2">[<a class="reference internal" href="../references.html#cite-vazquez-etal-2019-university" title="Raúl Vázquez, Umut Sulubacak, and Jörg Tiedemann. The University of Helsinki submission to the WMT19 parallel corpus filtering task. In Proceedings of the Fourth Conference on Machine Translation (Volume 3: Shared Task Papers, Day 2), 294–300. Florence, Italy, August 2019. Association for Computational Linguistics. URL: https://aclanthology.org/W19-5441, doi:10.18653/v1/W19-5441.">Vázquez <em>et al.</em>, 2019</a>]</span>.
 Non-zero numerals are extracted from all segments preserving the
@@ -163,7 +164,7 @@ filtering, all pairwise scores has to equal to or be greater than the
 minimum threshold.</p>
 </section>
 <section id="longestcommonsubstringfilter">
-<h2>LongestCommonSubstringFilter<a class="headerlink" href="#longestcommonsubstringfilter" title="Permalink to this headline"></a></h2>
+<h2>LongestCommonSubstringFilter<a class="headerlink" href="#longestcommonsubstringfilter" title="Permalink to this heading"></a></h2>
 <p>Filter segments based on the normalized length of the longest common substring.</p>
 <p>Parameters:</p>
 <ul class="simple">
@@ -176,7 +177,7 @@ all language pairs. For n-lingual input, the scores will include C(n,
 2) values.</p>
 </section>
 <section id="similarityfilter">
-<h2>SimilarityFilter<a class="headerlink" href="#similarityfilter" title="Permalink to this headline"></a></h2>
+<h2>SimilarityFilter<a class="headerlink" href="#similarityfilter" title="Permalink to this heading"></a></h2>
 <p>Filter segments based on string or word sequence similarity based on Levenshtein distance.</p>
 <p>Parameters:</p>
 <ul class="simple">
@@ -191,7 +192,7 @@ max edit distance) between the compared sequences for all language
 pairs. For n-lingual input, the scores will include C(n, 2) values.</p>
 </section>
 <section id="repetitionfilter">
-<h2>RepetitionFilter<a class="headerlink" href="#repetitionfilter" title="Permalink to this headline"></a></h2>
+<h2>RepetitionFilter<a class="headerlink" href="#repetitionfilter" title="Permalink to this heading"></a></h2>
 <p>Filter segments with repeated content. Useful e.g. for filtering data
 generated by a low-quality NMT model.</p>
 <p>Parameters:</p>
@@ -211,7 +212,7 @@ that are not counted to the length. The repeated string cannot start
 with a whitespace character but is not limited otherwise.</p>
 </section>
 <section id="regexpfilter">
-<h2>RegExpFilter<a class="headerlink" href="#regexpfilter" title="Permalink to this headline"></a></h2>
+<h2>RegExpFilter<a class="headerlink" href="#regexpfilter" title="Permalink to this heading"></a></h2>
 <p>Filter out segments that match (or do not match) a arbitrary regular expression.</p>
 <p>Parameters:</p>
 <ul class="simple">

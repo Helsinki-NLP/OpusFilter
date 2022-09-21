@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Training and using classifiers &mdash; OpusFilter 0.1.dev1+g616df62 documentation</title>
+  <title>Training and using classifiers &mdash; OpusFilter 0.1.dev1+g542fcde documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -14,6 +14,7 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -111,9 +112,9 @@
            <div itemprop="articleBody">
              
   <section id="training-and-using-classifiers">
-<h1>Training and using classifiers<a class="headerlink" href="#training-and-using-classifiers" title="Permalink to this headline"></a></h1>
+<h1>Training and using classifiers<a class="headerlink" href="#training-and-using-classifiers" title="Permalink to this heading"></a></h1>
 <section id="train-classifier">
-<h2>train_classifier<a class="headerlink" href="#train-classifier" title="Permalink to this headline"></a></h2>
+<h2>train_classifier<a class="headerlink" href="#train-classifier" title="Permalink to this heading"></a></h2>
 <p>Train an <code class="docutils literal notranslate"><span class="pre">sklearn</span></code> classifier to produce a cleanness score for sentence pairs.</p>
 <p>Parameters:</p>
 <ul class="simple">
@@ -137,7 +138,7 @@
 <p>The classifier is optimized by training multiple classifier model with the training data divided differently into positive and negative examples based on the quantile boundaries specified in each feature. The model that achieves the highest criterion score is then saved in the output file.</p>
 </section>
 <section id="classify">
-<h2>classify<a class="headerlink" href="#classify" title="Permalink to this headline"></a></h2>
+<h2>classify<a class="headerlink" href="#classify" title="Permalink to this heading"></a></h2>
 <p>Use a classifier model trained with <code class="docutils literal notranslate"><span class="pre">train_classifier</span></code> to assign a cleanness score or label to sentence pairs that have been scored with <code class="docutils literal notranslate"><span class="pre">score</span></code>.</p>
 <p>Parameters:</p>
 <ul class="simple">

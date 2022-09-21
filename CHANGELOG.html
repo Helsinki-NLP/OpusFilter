@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Changelog &mdash; OpusFilter 0.1.dev1+g616df62 documentation</title>
+  <title>Changelog &mdash; OpusFilter 0.1.dev1+g542fcde documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -14,6 +14,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -157,14 +158,14 @@
            <div itemprop="articleBody">
              
   <section id="changelog">
-<h1>Changelog<a class="headerlink" href="#changelog" title="Permalink to this headline"></a></h1>
+<h1>Changelog<a class="headerlink" href="#changelog" title="Permalink to this heading"></a></h1>
 <p>All notable changes to this project will be documented in this file.</p>
 <p>The format is based on <a class="reference external" href="https://keepachangelog.com/en/1.0.0/">Keep a Changelog</a>,
 and this project adheres to <a class="reference external" href="https://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
 <section id="unreleased">
-<h2><a class="reference external" href="https://github.com/Helsinki-NLP/OpusFilter/compare/2.4.0...develop">Unreleased</a><a class="headerlink" href="#unreleased" title="Permalink to this headline"></a></h2>
+<h2><a class="reference external" href="https://github.com/Helsinki-NLP/OpusFilter/compare/2.4.0...develop">Unreleased</a><a class="headerlink" href="#unreleased" title="Permalink to this heading"></a></h2>
 <section id="added">
-<h3>Added<a class="headerlink" href="#added" title="Permalink to this headline"></a></h3>
+<h3>Added<a class="headerlink" href="#added" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">map_space_to</span></code> option for Jieba and MeCab tokenizers to preserve
 existing space characters in input</p></li>
@@ -172,16 +173,16 @@ existing space characters in input</p></li>
 </ul>
 </section>
 <section id="fixed">
-<h3>Fixed<a class="headerlink" href="#fixed" title="Permalink to this headline"></a></h3>
+<h3>Fixed<a class="headerlink" href="#fixed" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>catch TypeError exceptions from BeautifulSoup in HtmlTagFilter</p></li>
 </ul>
 </section>
 </section>
 <section id="id1">
-<h2><a class="reference external" href="https://github.com/Helsinki-NLP/OpusFilter/compare/2.3.1...2.4.0">2.4.0</a> - 2022-04-05<a class="headerlink" href="#id1" title="Permalink to this headline"></a></h2>
+<h2><a class="reference external" href="https://github.com/Helsinki-NLP/OpusFilter/compare/2.3.1...2.4.0">2.4.0</a> - 2022-04-05<a class="headerlink" href="#id1" title="Permalink to this heading"></a></h2>
 <section id="id2">
-<h3>Added<a class="headerlink" href="#id2" title="Permalink to this headline"></a></h3>
+<h3>Added<a class="headerlink" href="#id2" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>an option to write filter scores to a file with <code class="docutils literal notranslate"><span class="pre">opusfilter-test</span></code></p></li>
 <li><p>new filters: <code class="docutils literal notranslate"><span class="pre">AlphabetRatioFilter</span></code>, <code class="docutils literal notranslate"><span class="pre">RegExpFilter</span></code>, <code class="docutils literal notranslate"><span class="pre">SimilarityFilter</span></code>, <code class="docutils literal notranslate"><span class="pre">SentenceEmbeddingFilter</span></code></p></li>
@@ -191,7 +192,7 @@ existing space characters in input</p></li>
 </ul>
 </section>
 <section id="changed">
-<h3>Changed<a class="headerlink" href="#changed" title="Permalink to this headline"></a></h3>
+<h3>Changed<a class="headerlink" href="#changed" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>allow per-language parameters for LengthFilter, LengthRatioFilter, LongWordFilter, and AverageWordLengthFilter</p></li>
 <li><p>fix documentation for <code class="docutils literal notranslate"><span class="pre">train_aligment</span></code> parameters</p></li>
@@ -199,18 +200,18 @@ existing space characters in input</p></li>
 </section>
 </section>
 <section id="id3">
-<h2><a class="reference external" href="https://github.com/Helsinki-NLP/OpusFilter/compare/2.3.0...2.3.1">2.3.1</a> - 2022-01-28<a class="headerlink" href="#id3" title="Permalink to this headline"></a></h2>
+<h2><a class="reference external" href="https://github.com/Helsinki-NLP/OpusFilter/compare/2.3.0...2.3.1">2.3.1</a> - 2022-01-28<a class="headerlink" href="#id3" title="Permalink to this heading"></a></h2>
 <section id="id4">
-<h3>Fixed<a class="headerlink" href="#id4" title="Permalink to this headline"></a></h3>
+<h3>Fixed<a class="headerlink" href="#id4" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>fix bug in classifier training without development set</p></li>
 </ul>
 </section>
 </section>
 <section id="id5">
-<h2><a class="reference external" href="https://github.com/Helsinki-NLP/OpusFilter/compare/2.2.0...2.3.0">2.3.0</a> - 2022-01-18<a class="headerlink" href="#id5" title="Permalink to this headline"></a></h2>
+<h2><a class="reference external" href="https://github.com/Helsinki-NLP/OpusFilter/compare/2.2.0...2.3.0">2.3.0</a> - 2022-01-18<a class="headerlink" href="#id5" title="Permalink to this heading"></a></h2>
 <section id="id6">
-<h3>Added<a class="headerlink" href="#id6" title="Permalink to this headline"></a></h3>
+<h3>Added<a class="headerlink" href="#id6" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>new OpusFilterRuntimeError exception for having e.g. empty training data</p></li>
 <li><p>option to save scores from the training data when creating word aligment priors</p></li>
@@ -222,7 +223,7 @@ existing space characters in input</p></li>
 </ul>
 </section>
 <section id="id7">
-<h3>Changed<a class="headerlink" href="#id7" title="Permalink to this headline"></a></h3>
+<h3>Changed<a class="headerlink" href="#id7" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>add <code class="docutils literal notranslate"><span class="pre">workdir</span></code> attribute to the <code class="docutils literal notranslate"><span class="pre">FilterABC</span></code> base class and change
 that the filters should use it for any file parameters</p></li>
@@ -232,33 +233,33 @@ that the filters should use it for any file parameters</p></li>
 </section>
 </section>
 <section id="id8">
-<h2><a class="reference external" href="https://github.com/Helsinki-NLP/OpusFilter/compare/2.1.2...2.2.0">2.2.0</a> - 2021-11-23<a class="headerlink" href="#id8" title="Permalink to this headline"></a></h2>
+<h2><a class="reference external" href="https://github.com/Helsinki-NLP/OpusFilter/compare/2.1.2...2.2.0">2.2.0</a> - 2021-11-23<a class="headerlink" href="#id8" title="Permalink to this heading"></a></h2>
 <section id="id9">
-<h3>Added<a class="headerlink" href="#id9" title="Permalink to this headline"></a></h3>
+<h3>Added<a class="headerlink" href="#id9" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>support for Chinese word segmentation using <code class="docutils literal notranslate"><span class="pre">jieba</span></code> as a tokenizer (https://github.com/Helsinki-NLP/OpusFilter/pull/27)</p></li>
 </ul>
 </section>
 </section>
 <section id="id10">
-<h2><a class="reference external" href="https://github.com/Helsinki-NLP/OpusFilter/compare/2.1.1...2.1.2">2.1.2</a> - 2021-11-11<a class="headerlink" href="#id10" title="Permalink to this headline"></a></h2>
+<h2><a class="reference external" href="https://github.com/Helsinki-NLP/OpusFilter/compare/2.1.1...2.1.2">2.1.2</a> - 2021-11-11<a class="headerlink" href="#id10" title="Permalink to this heading"></a></h2>
 <section id="id11">
-<h3>Fixed<a class="headerlink" href="#id11" title="Permalink to this headline"></a></h3>
+<h3>Fixed<a class="headerlink" href="#id11" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>fix wrong keyword argument name in opusfilter-duplicates</p></li>
 </ul>
 </section>
 </section>
 <section id="id12">
-<h2><a class="reference external" href="https://github.com/Helsinki-NLP/OpusFilter/compare/2.1.0...2.1.1">2.1.1</a> - 2021-10-19<a class="headerlink" href="#id12" title="Permalink to this headline"></a></h2>
+<h2><a class="reference external" href="https://github.com/Helsinki-NLP/OpusFilter/compare/2.1.0...2.1.1">2.1.1</a> - 2021-10-19<a class="headerlink" href="#id12" title="Permalink to this heading"></a></h2>
 <section id="id13">
-<h3>Changed<a class="headerlink" href="#id13" title="Permalink to this headline"></a></h3>
+<h3>Changed<a class="headerlink" href="#id13" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>move “How to contribute” to docs/CONTRIBUTING.md</p></li>
 </ul>
 </section>
 <section id="id14">
-<h3>Fixed<a class="headerlink" href="#id14" title="Permalink to this headline"></a></h3>
+<h3>Fixed<a class="headerlink" href="#id14" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>fix setuptools requirement (https://github.com/Helsinki-NLP/OpusFilter/issues/21)</p></li>
 <li><p>fix version requirement for pandas (&gt;=1.0.0)</p></li>
@@ -266,15 +267,15 @@ that the filters should use it for any file parameters</p></li>
 </section>
 </section>
 <section id="id15">
-<h2><a class="reference external" href="https://github.com/Helsinki-NLP/OpusFilter/compare/2.0.0...2.1.0">2.1.0</a> - 2021-08-31<a class="headerlink" href="#id15" title="Permalink to this headline"></a></h2>
+<h2><a class="reference external" href="https://github.com/Helsinki-NLP/OpusFilter/compare/2.0.0...2.1.0">2.1.0</a> - 2021-08-31<a class="headerlink" href="#id15" title="Permalink to this heading"></a></h2>
 <section id="id16">
-<h3>Changed<a class="headerlink" href="#id16" title="Permalink to this headline"></a></h3>
+<h3>Changed<a class="headerlink" href="#id16" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>replace PyYAML with ruamel.yaml</p></li>
 </ul>
 </section>
 <section id="id17">
-<h3>Added<a class="headerlink" href="#id17" title="Permalink to this headline"></a></h3>
+<h3>Added<a class="headerlink" href="#id17" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>support for variables in the YAML configuration (https://github.com/Helsinki-NLP/OpusFilter/pull/13)</p></li>
 <li><p>support to <code class="docutils literal notranslate"><span class="pre">fasttext</span></code> based for language detection (https://github.com/Helsinki-NLP/OpusFilter/pull/20)</p></li>
@@ -287,16 +288,16 @@ that the filters should use it for any file parameters</p></li>
 </section>
 </section>
 <section id="id18">
-<h2><a class="reference external" href="https://github.com/Helsinki-NLP/OpusFilter/compare/1.0.1...2.0.0">2.0.0</a> - 2021-06-01<a class="headerlink" href="#id18" title="Permalink to this headline"></a></h2>
+<h2><a class="reference external" href="https://github.com/Helsinki-NLP/OpusFilter/compare/1.0.1...2.0.0">2.0.0</a> - 2021-06-01<a class="headerlink" href="#id18" title="Permalink to this heading"></a></h2>
 <section id="id19">
-<h3>Changed<a class="headerlink" href="#id19" title="Permalink to this headline"></a></h3>
+<h3>Changed<a class="headerlink" href="#id19" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>extend to n-lingual parallel data instead of just bilingual data</p></li>
 <li><p>switch tokenizer to <code class="docutils literal notranslate"><span class="pre">fast-mosestokenizer</span></code></p></li>
 </ul>
 </section>
 <section id="id20">
-<h3>Added<a class="headerlink" href="#id20" title="Permalink to this headline"></a></h3>
+<h3>Added<a class="headerlink" href="#id20" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>new commands: <code class="docutils literal notranslate"><span class="pre">opusfilter-diagram</span></code>, <code class="docutils literal notranslate"><span class="pre">opusfilter-duplicates</span></code>, <code class="docutils literal notranslate"><span class="pre">opusfilter-test</span></code></p></li>
 <li><p>new filters: <code class="docutils literal notranslate"><span class="pre">LongestCommonSubstringFilter</span></code>, <code class="docutils literal notranslate"><span class="pre">AverageWordLengthFilter</span></code></p></li>
@@ -308,29 +309,29 @@ that the filters should use it for any file parameters</p></li>
 </ul>
 </section>
 <section id="id21">
-<h3>Fixed<a class="headerlink" href="#id21" title="Permalink to this headline"></a></h3>
+<h3>Fixed<a class="headerlink" href="#id21" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>behaviour of simple filters on empty segments</p></li>
 </ul>
 </section>
 </section>
 <section id="id22">
-<h2><a class="reference external" href="https://github.com/Helsinki-NLP/OpusFilter/compare/1.0.0...1.0.1">1.0.1</a> - 2020-05-25<a class="headerlink" href="#id22" title="Permalink to this headline"></a></h2>
+<h2><a class="reference external" href="https://github.com/Helsinki-NLP/OpusFilter/compare/1.0.0...1.0.1">1.0.1</a> - 2020-05-25<a class="headerlink" href="#id22" title="Permalink to this heading"></a></h2>
 <section id="id23">
-<h3>Added<a class="headerlink" href="#id23" title="Permalink to this headline"></a></h3>
+<h3>Added<a class="headerlink" href="#id23" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>improved logging, documentation, and project files</p></li>
 </ul>
 </section>
 <section id="id24">
-<h3>Fixed<a class="headerlink" href="#id24" title="Permalink to this headline"></a></h3>
+<h3>Fixed<a class="headerlink" href="#id24" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>prevent <code class="docutils literal notranslate"><span class="pre">UnboundLocalError</span></code> for empty output after filter</p></li>
 </ul>
 </section>
 </section>
 <section id="id25">
-<h2><a class="reference external" href="https://github.com/Helsinki-NLP/OpusFilter/tree/1.0.0">1.0.0</a> - 2020-04-10<a class="headerlink" href="#id25" title="Permalink to this headline"></a></h2>
+<h2><a class="reference external" href="https://github.com/Helsinki-NLP/OpusFilter/tree/1.0.0">1.0.0</a> - 2020-04-10<a class="headerlink" href="#id25" title="Permalink to this heading"></a></h2>
 <p>First tagged version.</p>
 </section>
 </section>

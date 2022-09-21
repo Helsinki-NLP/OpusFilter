@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Overview &mdash; OpusFilter 0.1.dev1+g616df62 documentation</title>
+  <title>Overview &mdash; OpusFilter 0.1.dev1+g542fcde documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -14,6 +14,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -113,9 +114,9 @@
            <div itemprop="articleBody">
              
   <section id="overview">
-<h1>Overview<a class="headerlink" href="#overview" title="Permalink to this headline"></a></h1>
+<h1>Overview<a class="headerlink" href="#overview" title="Permalink to this heading"></a></h1>
 <section id="opusfilter-tool">
-<h2>Opusfilter tool<a class="headerlink" href="#opusfilter-tool" title="Permalink to this headline"></a></h2>
+<h2>Opusfilter tool<a class="headerlink" href="#opusfilter-tool" title="Permalink to this heading"></a></h2>
 <p>The main script provided by the package is <code class="docutils literal notranslate"><span class="pre">opusfilter</span></code>, which takes
 a configuration file as an input. The configuration files are in
 <a class="reference external" href="https://yaml.org/">YAML</a> format. At the top level, they have to
@@ -160,7 +161,7 @@ should be run, and parameters is a dictionary with keys that depend on
 the function; at minimum the output files are defined there.</p>
 </section>
 <section id="configuration-examples">
-<h2>Configuration examples<a class="headerlink" href="#configuration-examples" title="Permalink to this headline"></a></h2>
+<h2>Configuration examples<a class="headerlink" href="#configuration-examples" title="Permalink to this heading"></a></h2>
 <p>A very simple configuration file that downloads a parallel corpus
 (here Finnish-English ParaCrawl v4) from OPUS and stores its segments
 to the files <code class="docutils literal notranslate"><span class="pre">paracrawl.fi.gz</span></code> and <code class="docutils literal notranslate"><span class="pre">paracrawl.en.gz</span></code> looks like this:</p>
@@ -274,7 +275,7 @@ WMT-News data, you can have:</p>
 </div>
 </section>
 <section id="variables-and-constants">
-<h2>Variables and constants<a class="headerlink" href="#variables-and-constants" title="Permalink to this headline"></a></h2>
+<h2>Variables and constants<a class="headerlink" href="#variables-and-constants" title="Permalink to this heading"></a></h2>
 <p>If you have for example multiple bitexts, for which you want to use
 the same preprocessing steps, writing separate steps for each of them
 requires a lot of manually written configuration. While generating the
@@ -343,7 +344,7 @@ same lists of variable values in multiple steps, you can exploit
 the standard YAML node anchors and references.</p>
 </section>
 <section id="running-a-single-command">
-<h2>Running a single command<a class="headerlink" href="#running-a-single-command" title="Permalink to this headline"></a></h2>
+<h2>Running a single command<a class="headerlink" href="#running-a-single-command" title="Permalink to this heading"></a></h2>
 <p>If you need to run a single OpusFilter function wihtout the need of
 writing a complete configuration, the script <code class="docutils literal notranslate"><span class="pre">opusfilter-cmd</span></code> is
 provided for convenience. With the command, you can define a
