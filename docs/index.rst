@@ -26,51 +26,54 @@ OpusFilter has been presented in `ACL 2020 system demonstrations <https://www.ac
    :maxdepth: 1
 
    installation.md
-   quickstart.md
-   
+   overview.md
+   command_line_tools.md
 
 .. toctree::
    :caption: Available functions
+   :name: functions
    :maxdepth: 1
 
-   avaliable_functions/downloading_and_selecting_data.md
-   avaliable_functions/preprocessing_text.md
-   avaliable_functions/filtering_and_scoring.md
-   avaliable_functions/using_score_files.md
-   avaliable_functions/training_language_and_alignment_models.md
-   avaliable_functions/training_and_using_classifiers.md
+   functions/downloading_and_selecting_data.md
+   functions/preprocessing_text.md
+   functions/filtering_and_scoring.md
+   functions/using_score_files.md
+   functions/training_language_and_alignment_models.md
+   functions/training_and_using_classifiers.md
 
 .. toctree::
-   :caption: Avaliable Filters
+   :caption: Available filters
+   :name: filters
    :maxdepth: 1
    :glob:
 
-   avaliable_filters/length_filters.md
-   avaliable_filters/script_and_language_identification_filters.md
-   avaliable_filters/special_character_and_similarity_filters.md
-   avaliable_filters/language_model_filters.md
-   avaliable_filters/alignment_model_filters.md
-   avaliable_filters/sentence_embedding_filters.md
-   avaliable_filters/custom_filters.md
+   filters/length_filters.md
+   filters/script_and_language_identification_filters.md
+   filters/special_character_and_similarity_filters.md
+   filters/language_model_filters.md
+   filters/alignment_model_filters.md
+   filters/sentence_embedding_filters.md
+   filters/custom_filters.md
 
 .. toctree::
-   :caption: Avaliable Preprocessors
+   :caption: Available preprocessors
+   :name: preprocessors
    :maxdepth: 1
 
-   avaliable_preprocessors/tokenizer.md
-   avaliable_preprocessors/detokenizer.md
-   avaliable_preprocessors/whitespaceNormalizer.md
-   avaliable_preprocessors/reg_exp_sub.md
-   avaliable_preprocessors/monolingual_sentence_splitter.md
-   avaliable_preprocessors/bpe_segmentation.md
-   avaliable_preprocessors/morfessor_segmentation.md
-   avaliable_preprocessors/custom_preprocessors.md
+   preprocessors/tokenizer.md
+   preprocessors/detokenizer.md
+   preprocessors/whitespaceNormalizer.md
+   preprocessors/reg_exp_sub.md
+   preprocessors/monolingual_sentence_splitter.md
+   preprocessors/bpe_segmentation.md
+   preprocessors/morfessor_segmentation.md
+   preprocessors/custom_preprocessors.md
 
 
 .. toctree::
    :caption: Other information
    :maxdepth: 1
    
-   other_tools.md
+   references.rst
    CONTRIBUTING.md
    CHANGELOG.md

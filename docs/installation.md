@@ -1,4 +1,5 @@
 # Installation
+
 Install the latest release from PyPI:
 * `pip install opusfilter`
 

@@ -19,7 +19,7 @@ threshold parameter can also be given as a list.
 
 ## CharacterScoreFilter
 
-Filter segments based on what proportion of their alphabetic characters are in a given script. For a list of valid scripts, see e.g. https://www.regular-expressions.info/unicode.html
+Filter segments based on what proportion of their alphabetic characters are in a given script. For a list of valid scripts, see e.g. [www.regular-expressions.info/unicode.html](https://www.regular-expressions.info/unicode.html).
 
 Parameters:
 
@@ -43,6 +43,7 @@ Parameters:
 
 Returned scores are the language identification confidence scores from a given identification method for the segments. The scores range from 0 to 1. In filtering, all values have to be greater than the minimum thresholds. Negative threshold can be used to skip filtering for a language.
 
-See [langid.py](https://github.com/saffsd/langid.py) and [pycld2](https://github.com/aboSamoor/pycld2) for the method-specific options.
-
-A pretrained `fasttext` model can be downloaded from https://fasttext.cc/docs/en/language-identification.html
+See [langid.py](https://github.com/saffsd/langid.py) and
+[pycld2](https://github.com/aboSamoor/pycld2) for the method-specific
+options. A pretrained `fasttext` model can be downloaded from
+[fasttext.cc/docs/en/language-identification.html](https://fasttext.cc/docs/en/language-identification.html).

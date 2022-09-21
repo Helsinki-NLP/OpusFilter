@@ -2,8 +2,8 @@
 
 ## opus_read
 
-Read a corpus from the OPUS corpus collection (Tiedemann, 2012) using
-the OpusTools (Aulamo et al., 2020a) interface.
+Read a corpus from the OPUS corpus collection {cite:p}`tiedemann-2012-parallel` using
+the OpusTools {cite:p}`aulamo-etal-2020-opustools` interface.
 
 Parameters:
 

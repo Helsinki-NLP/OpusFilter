@@ -4,11 +4,21 @@
 
 Filter segments based on whether they contain HTML tags or not.
 
-The returned scores are two boolean values indicating whether the segments contain HTML tags. In filtering, a segment pair is accepted if none of the segments contains HTML tags.
+The returned scores are two boolean values indicating whether the
+segments contain HTML tags. In filtering, a segment pair is accepted
+if none of the segments contains HTML tags.
 
 ## TerminalPunctuationFilter
 
-Filter segments based on a penalty score with respect to the co-occurrence of therminal punctuation marks ('.', '...', '?', '!') in source and target segments (Vázquez et al., 2019). The score is formulated as follows: the initial score is the absolute difference in source and target terminal punctuation counts, the score is then incremented by the number of terminal punctuation beyond the first occurence in both segments, and finally, the score is updated with `score=-log(score+1)`. The score of the greatest co-occurrence is 0 and smaller values indicate greater penalty.
+Filter segments based on a penalty score with respect to the
+co-occurrence of therminal punctuation marks ('.', '...', '?', '!') in
+source and target segments {cite:p}`vazquez-etal-2019-university`. The
+score is formulated as follows: the initial score is the absolute
+difference in source and target terminal punctuation counts, the score
+is then incremented by the number of terminal punctuation beyond the
+first occurence in both segments, and finally, the score is updated
+with `score=-log(score+1)`. The score of the greatest co-occurrence is
+0 and smaller values indicate greater penalty.
 
 This filter works only for bilingual input.
 
@@ -16,18 +26,28 @@ Parameters:
 
 * `threshold`: minimum score threshold (default -2)
 
-The returned score is a single terminal punctuation score. In filtering, the score has to equal to of be greater than the minimum threshold.
+The returned score is a single terminal punctuation score. In
+filtering, the score has to equal to of be greater than the minimum
+threshold.
 
 ## NonZeroNumeralsFilter
 
-Filter segments based on a similarity measure of numerals between the segments with zeros removed (Vázquez et al., 2019). Non-zero numerals are extracted from all segments preserving the relative order of the numerals. The similarity score between the numeral sequences is produced with `SequenceMatcher.ratio()` from Python's `difflib` library.
+Filter segments based on a similarity measure of numerals between the
+segments with zeros removed {cite:p}`vazquez-etal-2019-university`.
+Non-zero numerals are extracted from all segments preserving the
+relative order of the numerals. The similarity score between the
+numeral sequences is produced with `SequenceMatcher.ratio()` from
+Python's `difflib` library.
 
 Parameters:
 
 * `threshold`: minimum score threshold (default 0.5)
 * `require_all`: if True, all scores (for pairs of n segments) have to be reach threshold; otherwise at least one the ratios has to reach the threshold
 
-The returned value is a list of similarity scores for all language pairs. For n-lingual input, the scores will include C(n, 2) values. In filtering, all pairwise scores has to equal to or be greater than the minimum threshold.
+The returned value is a list of similarity scores for all language
+pairs. For n-lingual input, the scores will include C(n, 2) values. In
+filtering, all pairwise scores has to equal to or be greater than the
+minimum threshold.
 
 ## LongestCommonSubstringFilter
 
@@ -38,7 +58,10 @@ Parameters:
 * `threshold`: filter segments if the normalized length is equal or above the threshold (optional; default 0.9)
 * `require_all`: if True, all ratios (for pairs of n segments) have to be below the threshold; otherwise at least one the ratios have to be below the threshold
 
-Returned scores are ratios between the length of the longest common substring and the length of the shorter of the compared strings for all language pairs. For n-lingual input, the scores will include C(n, 2) values.
+Returned scores are ratios between the length of the longest common
+substring and the length of the shorter of the compared strings for
+all language pairs. For n-lingual input, the scores will include C(n,
+2) values.
 
 ## SimilarityFilter
 
@@ -52,11 +75,14 @@ Parameters:
 * `lowercase`: lowercase strings as preprocessing (default `false`)
 * `require_all`: if True, all similarities (for pairs of n segments) have to be below the threshold; otherwise at least one the similarities have to be below the threshold
 
-The returned scores are normalized similarities (1 - edit distance / max edit distance) between the compared sequences for all language pairs. For n-lingual input, the scores will include C(n, 2) values.
+The returned scores are normalized similarities (1 - edit distance /
+max edit distance) between the compared sequences for all language
+pairs. For n-lingual input, the scores will include C(n, 2) values.
 
 ## RepetitionFilter
 
-Filter segments with repeated content. Useful e.g. for filtering data generated by a low-quality NMT model.
+Filter segments with repeated content. Useful e.g. for filtering data
+generated by a low-quality NMT model.
 
 Parameters:
 

@@ -1,4 +1,6 @@
-# Quick start
+# Overview
+
+## Opusfilter tool
 
 The main script provided by the package is `opusfilter`, which takes
 a configuration file as an input. The configuration files are in
@@ -38,14 +40,14 @@ The valid options for the `common` section includes:
 * `default_n_jobs` for defining the number of parallel processes to use
   for `score`, `filter`, and `preprocess` steps. The default value is 1.
 * `constants` for setting constants; see
-  [Variables and constants](Variables and constants).
+  [Variables and constants](#variables-and-constants).
 
 Each step in `steps` is a dictionary (mapping) with two keys: `type`
 and `parameters`. Type is a string that defines the function that
 should be run, and parameters is a dictionary with keys that depend on
 the function; at minimum the output files are defined there.
 
-## Examples
+## Configuration examples
 
 A very simple configuration file that downloads a parallel corpus
 (here Finnish-English ParaCrawl v4) from OPUS and stores its segments
@@ -194,7 +196,7 @@ section of the configuration, having a scope in all steps, or in
 individual steps, having a local scope within the step. In either
 case, the definitions are placed in a dictionary under the `constants`
 key, with variable names as keys. For example,
-```
+```yaml
 common:
   constants:
     source: en
@@ -216,7 +218,7 @@ Another possibility is to define multiple choices for the variable(s)
 within a single step. The definitions are placed in a dictionary under
 the `variables` key, with variable names as keys and a list of
 intended variable values as values. For example,
-```
+```yaml
 common:
   constants:
     source: en

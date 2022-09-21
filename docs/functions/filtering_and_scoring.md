@@ -55,11 +55,11 @@ The filters parameter is a list of dictionaries, each representing one
 filter. The top level should typically include a single key that
 defines the class name for the filter (e.g. `LenghtFilter`).
 Additionally it can include a special key `module` for defining module
-name for [custom filters](Custom filters).
+name for [custom filters](../filters/custom_filters.md).
 
 Under the class name there is a dictionary the defines the parameters
 of the filters. The are mostly specific to the filter class; see
-section [Available filters](Available filters) for ready-made
+[Available filters](filters) for ready-made
 filters. An exception is a parameter `name` that is available for all
 filters. It has no effect for the filter function, but is useful for
 the score function below.
@@ -105,6 +105,7 @@ name to either all or none of the filters, or at least do not manually
 give integers as names.)
 
 The output can be used e.g. for analyzing the distribution of the
-scores or training a classifier for filtering. The JSON Lines data
-is easy to load as a [pandas](https://pandas.pydata.org/) DataFrame using the [`json_normalize`](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.io.json.json_normalize.html)
+scores or training a classifier for filtering. The JSON Lines data is
+easy to load as a [pandas](https://pandas.pydata.org/) DataFrame using
+the [`json_normalize`](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.io.json.json_normalize.html)
 method.

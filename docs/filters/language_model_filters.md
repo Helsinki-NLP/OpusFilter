@@ -38,7 +38,8 @@ and their absolute differences are below the difference threshold.
 
 ## CrossEntropyDifferenceFilter
 
-Filter segments by using cross-entropy difference method by Moore and Lewis (2010).
+Filter segments by using cross-entropy difference method by
+{cite:t}`moore-lewis-2010-intelligent`.
 
 Parameters:
 

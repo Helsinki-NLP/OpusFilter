@@ -42,7 +42,14 @@ tests_require = [
     'pytest'
 ]
 
-all_require = jieba_require + mecab_require + laser_require + tests_require
+docs_require = [
+    'myst-parser',
+    'sphinx',
+    'sphinx-rtd-theme',
+    'sphinxcontrib-bibtex'
+]
+
+all_require = jieba_require + mecab_require + laser_require + tests_require + docs_require
 
 setuptools.setup(
     name="opusfilter",
@@ -55,10 +62,12 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/Helsinki-NLP/OpusFilter",
     packages=setuptools.find_packages(),
-    scripts=["bin/opusfilter", "bin/opusfilter-cmd", "bin/opusfilter-diagram", "bin/opusfilter-duplicates", "bin/opusfilter-scores", "bin/opusfilter-test"],
+    scripts=["bin/opusfilter", "bin/opusfilter-cmd", "bin/opusfilter-diagram", "bin/opusfilter-duplicates",
+             "bin/opusfilter-scores", "bin/opusfilter-test"],
     install_requires=install_requires,
     tests_require=tests_require,
-    extras_require={'test': tests_require, 'jieba': jieba_require, 'mecab': mecab_require, 'laser': laser_require, 'all': all_require},
+    extras_require={'test': tests_require, 'jieba': jieba_require, 'mecab': mecab_require, 'laser': laser_require,
+                    'docs': docs_require, 'all': all_require},
     classifiers=(
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",

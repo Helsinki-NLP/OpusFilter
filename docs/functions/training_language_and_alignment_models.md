@@ -2,8 +2,10 @@
 
 ## train_ngram
 
-Train a character-based varigram language model with VariKN (Siivola et al. 2007).
-Can be used for `CrossEntropyFilter` and `CrossEntropyDifferenceFilter`.
+Train a character-based varigram language model with VariKN
+{cite:p}`siivola-etal-2007-growing`. Can be used for
+[`CrossEntropyFilter`](CrossEntropyFilter) and
+[`CrossEntropyDifferenceFilter`](CrossEntropyDifferenceFilter).
 
 Parameters:
 
@@ -59,8 +61,8 @@ details.
 
 ## train_aligment
 
-Train word alignment priors for eflomal (Östling and Tiedemann, 2016).
-Can be used in `WordAlignFilter`.
+Train word alignment priors for eflomal {cite:p}`ostling-tiedemann-2016-efficient`.
+Can be used in [`WordAlignFilter`](WordAlignFilter).
 
 Parameters:
 
@@ -73,7 +75,7 @@ Parameters:
 * `output`: output file name for the priors
 * `scores`: file to write alignment scores from the training data (optional; default `null`)
 
-See [WordAlignFilter](WordAlignFilter) for details of the training
+See [`WordAlignFilter`](WordAlignFilter) for details of the training
 parameters.
 
 ## train_nearest_neighbors
@@ -98,7 +100,7 @@ very large, so use large input corpora with caution.
 
 ## train_bpe
 
-Train subword segmentation model with BPE (Sennrich et al., 2016).
+Train subword segmentation model with BPE {cite:p}`sennrich-etal-2016-neural`.
 
 Parameters:
 
@@ -113,7 +115,7 @@ The trained model can be used by the [`BPESegmentation`](BPESegmentation) prepro
 
 ## train_morfessor
 
-Train subword segmentation model with Morfessor 2.0 (Virpioja et al., 2013).
+Train subword segmentation model with Morfessor 2.0 {cite:p}`virpioja-etal-2013-morfessor`.
 
 Parameters:
 

@@ -12,12 +12,13 @@ Parameters:
 * `chunksize`: the number of segment pairs to process at the same time (optional: default 200)
 
 The current implementation supports the multilingual LASER embeddings
-as proposed by Artetxe & Schwenk (2018) and Chaudhary et al. (2019).
-Cosine similarity is used to calculate the similarity of the embeddings.
-If `nn_model` is provided, the similarities are normalized by the
-average similarity to K nearest neighbors in a reference corpus;
-see [train_nearest_neighbors](train_nearest_neighbors) for training
-a model. With normalized scores, threshold around 1.0 is likely more
+as proposed by {cite:t}`artetxe-schwenk-2018-margin` and
+{cite:t}`chaudhary-etal-2019-low`. Cosine similarity is used to
+calculate the similarity of the embeddings.  If `nn_model` is
+provided, the similarities are normalized by the average similarity to
+K nearest neighbors in a reference corpus; see
+[train_nearest_neighbors](train_nearest_neighbors) for training a
+model. With normalized scores, threshold around 1.0 is likely more
 suitable than the default 0.5.
 
 Especially with the nearest neighbor normalization, this filter can be

@@ -2,7 +2,8 @@
 
 ## WordAlignFilter
 
-Filter segments by word aligment scores using eflomal (Östling and Tiedemann, 2016).
+Filter segments by word aligment scores using eflomal
+{cite:p}`ostling-tiedemann-2016-efficient`.
 
 Parameters:
 
@@ -23,7 +24,7 @@ and an appropriate two-letter language code, e.g. `[moses, en]` for
 English.
 
 The eflomal model types are 1 for IBM1, 2 for IBM1 + HMM, and 3 for
-IBM1 + HMM + fertility. See https://github.com/robertostling/eflomal
+IBM1 + HMM + fertility. See [github.com/robertostling/eflomal](https://github.com/robertostling/eflomal)
 for details.
 
 See [train_aligment](train_aligment) for training priors. Compatible
