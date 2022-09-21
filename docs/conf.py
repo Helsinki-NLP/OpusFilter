@@ -1,3 +1,5 @@
+from pkg_resources import get_distribution
+
 from pybtex.style.formatting.unsrt import Style as UnsrtStyle
 from pybtex.style.labels import BaseLabelStyle
 from pybtex.plugin import register_plugin
@@ -7,9 +9,10 @@ project = "OpusFilter"
 author = "Helsinki-NLP"
 language = "en"
 
-version = "latest"  # The short X.Y version.
 # The full version, including alpha/beta/rc tags.
-release = "latest"
+release = get_distribution('opusfilter').version
+# The short X.Y version.
+version = '.'.join(release.split('.')[:2])
 
 extensions = [
     "myst_parser",
