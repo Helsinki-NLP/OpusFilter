@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tokenizer &mdash; OpusFilter latest documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Detokenizer" href="detokenizer.html" />
+    <link rel="prev" title="Custom filters" href="../filters/custom_filters.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> OpusFilter
+          </a>
+              <div class="version">
+                latest
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Get started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../command_line_tools.html">Other command line tools</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Available functions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../functions/downloading_and_selecting_data.html">Downloading and selecting data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../functions/preprocessing_text.html">Preprocessing text</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../functions/filtering_and_scoring.html">Filtering and scoring</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../functions/using_score_files.html">Using score files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../functions/training_language_and_alignment_models.html">Training language and alignment models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../functions/training_and_using_classifiers.html">Training and using classifiers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Available filters</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../filters/length_filters.html">Length filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../filters/script_and_language_identification_filters.html">Script and language identification filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../filters/special_character_and_similarity_filters.html">Special character and similarity filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../filters/language_model_filters.html">Language model filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../filters/alignment_model_filters.html">Alignment model filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../filters/sentence_embedding_filters.html">Sentence embedding filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../filters/custom_filters.html">Custom filters</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Available preprocessors</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Tokenizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="detokenizer.html">Detokenizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="whitespaceNormalizer.html">WhitespaceNormalizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reg_exp_sub.html">RegExpSub</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monolingual_sentence_splitter.html">MonolingualSentenceSplitter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bpe_segmentation.html">BPESegmentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="morfessor_segmentation.html">MorfessorSegmentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="custom_preprocessors.html">Custom preprocessors</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Other information</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">Citing and references</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CONTRIBUTING.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CHANGELOG.html">Changelog</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">OpusFilter</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Tokenizer</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="tokenizer">
+<h1>Tokenizer<a class="headerlink" href="#tokenizer" title="Permalink to this headline"></a></h1>
+<p>Tokenize parallel texts.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">tokenizer</span></code>: tokenizer type or a list of types for each input</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">languages</span></code>: a list of language codes for each input</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">options</span></code>: tokenizer options dictionary, or a list of tokenizer
+dictionaries for multiple tokenziers (optional)</p></li>
+</ul>
+<p>Supported tokenizers:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">moses</span></code>:</p>
+<ul>
+<li><p>Uses the <a class="reference external" href="https://github.com/mingruimingrui/fast-mosestokenizer">fast-mosestokenizer</a> package.</p></li>
+<li><p>Avaliable for most languages.</p></li>
+<li><p>Options are passed to the <code class="docutils literal notranslate"><span class="pre">mosestokenizer.MosesTokenizer</span></code> class;
+see its documentation for the available options.</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">jieba</span></code>:</p>
+<ul>
+<li><p>Uses the <a class="reference external" href="https://github.com/fxsjy/jieba">jieba</a> package.</p></li>
+<li><p>Only avaliable for Chinese (zh, zh_CN).</p></li>
+<li><p>In order to keep track of original space characters, they are by
+default converted to “␣” before tokenization. The character can be
+changed with the <code class="docutils literal notranslate"><span class="pre">map_space_to</span></code> option, or the feature disabled by
+giving <code class="docutils literal notranslate"><span class="pre">null</span></code> or an empty string as the value.</p></li>
+<li><p>Other options are passed to <code class="docutils literal notranslate"><span class="pre">jieba.cut</span></code> function; see its
+documentation for the avaliable options.</p></li>
+<li><p>If you use <code class="docutils literal notranslate"><span class="pre">jieba</span></code>, please install OpusFilter with extras <code class="docutils literal notranslate"><span class="pre">[jieba]</span></code> or <code class="docutils literal notranslate"><span class="pre">[all]</span></code>.</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mecab</span></code>:</p>
+<ul>
+<li><p>Uses the <a class="reference external" href="https://github.com/SamuraiT/mecab-python3">MeCab</a> package.</p></li>
+<li><p>Only avaliable for Japanese (jp).</p></li>
+<li><p>In order to keep track of original space characters, they are by
+default converted to “␣” before tokenization. The character can be
+changed with the <code class="docutils literal notranslate"><span class="pre">map_space_to</span></code> option, or the feature disabled by
+giving <code class="docutils literal notranslate"><span class="pre">null</span></code> or an empty string as the value.</p></li>
+<li><p>By default, <code class="docutils literal notranslate"><span class="pre">unidic-lite</span></code> dictionary is installed and used. Other
+dictionaries can be used by providing appropriate option string in
+the <code class="docutils literal notranslate"><span class="pre">mecab_args</span></code> option.</p></li>
+<li><p>If you use <code class="docutils literal notranslate"><span class="pre">mecab</span></code>, please install OpusFilter with extras <code class="docutils literal notranslate"><span class="pre">[mecab]</span></code> or <code class="docutils literal notranslate"><span class="pre">[all]</span></code>.</p></li>
+</ul>
+</li>
+</ul>
+<p>The list of language codes should match to the languages of the input
+files given in the <code class="docutils literal notranslate"><span class="pre">preprocess</span></code> step. If more than on tokenizer is
+provided, the length of the list should match the number of the
+languages. If more than one tokenizer options are provided, the length
+should again match the number of the languages.</p>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../filters/custom_filters.html" class="btn btn-neutral float-left" title="Custom filters" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="detokenizer.html" class="btn btn-neutral float-right" title="Detokenizer" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p></p>
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -74,8 +74,20 @@
 <li class="toctree-l1"><a class="reference internal" href="sentence_embedding_filters.html">Sentence embedding filters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="custom_filters.html">Custom filters</a></li>
 </ul>
+<p class="caption" role="heading"><span class="caption-text">Available preprocessors</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../preprocessors/tokenizer.html">Tokenizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../preprocessors/detokenizer.html">Detokenizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../preprocessors/whitespaceNormalizer.html">WhitespaceNormalizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../preprocessors/reg_exp_sub.html">RegExpSub</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../preprocessors/monolingual_sentence_splitter.html">MonolingualSentenceSplitter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../preprocessors/bpe_segmentation.html">BPESegmentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../preprocessors/morfessor_segmentation.html">MorfessorSegmentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../preprocessors/custom_preprocessors.html">Custom preprocessors</a></li>
+</ul>
 <p class="caption" role="heading"><span class="caption-text">Other information</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">Citing and references</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../CONTRIBUTING.html">Contributing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../CHANGELOG.html">Changelog</a></li>
 </ul>
@@ -116,7 +128,7 @@ if none of the segments contains HTML tags.</p>
 <h2>TerminalPunctuationFilter<a class="headerlink" href="#terminalpunctuationfilter" title="Permalink to this headline"></a></h2>
 <p>Filter segments based on a penalty score with respect to the
 co-occurrence of therminal punctuation marks (‘.’, ‘…’, ‘?’, ‘!’) in
-source and target segments <span id="id1">[]</span>. The
+source and target segments <span id="id1">[<a class="reference internal" href="../references.html#cite-vazquez-etal-2019-university" title="Raúl Vázquez, Umut Sulubacak, and Jörg Tiedemann. The University of Helsinki submission to the WMT19 parallel corpus filtering task. In Proceedings of the Fourth Conference on Machine Translation (Volume 3: Shared Task Papers, Day 2), 294–300. Florence, Italy, August 2019. Association for Computational Linguistics. URL: https://aclanthology.org/W19-5441, doi:10.18653/v1/W19-5441.">Vázquez <em>et al.</em>, 2019</a>]</span>. The
 score is formulated as follows: the initial score is the absolute
 difference in source and target terminal punctuation counts, the score
 is then incremented by the number of terminal punctuation beyond the
@@ -135,7 +147,7 @@ threshold.</p>
 <section id="nonzeronumeralsfilter">
 <h2>NonZeroNumeralsFilter<a class="headerlink" href="#nonzeronumeralsfilter" title="Permalink to this headline"></a></h2>
 <p>Filter segments based on a similarity measure of numerals between the
-segments with zeros removed <span id="id2">[]</span>.
+segments with zeros removed <span id="id2">[<a class="reference internal" href="../references.html#cite-vazquez-etal-2019-university" title="Raúl Vázquez, Umut Sulubacak, and Jörg Tiedemann. The University of Helsinki submission to the WMT19 parallel corpus filtering task. In Proceedings of the Fourth Conference on Machine Translation (Volume 3: Shared Task Papers, Day 2), 294–300. Florence, Italy, August 2019. Association for Computational Linguistics. URL: https://aclanthology.org/W19-5441, doi:10.18653/v1/W19-5441.">Vázquez <em>et al.</em>, 2019</a>]</span>.
 Non-zero numerals are extracted from all segments preserving the
 relative order of the numerals. The similarity score between the
 numeral sequences is produced with <code class="docutils literal notranslate"><span class="pre">SequenceMatcher.ratio()</span></code> from

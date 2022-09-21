@@ -68,8 +68,20 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="custom_filters.html">Custom filters</a></li>
 </ul>
+<p class="caption" role="heading"><span class="caption-text">Available preprocessors</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../preprocessors/tokenizer.html">Tokenizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../preprocessors/detokenizer.html">Detokenizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../preprocessors/whitespaceNormalizer.html">WhitespaceNormalizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../preprocessors/reg_exp_sub.html">RegExpSub</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../preprocessors/monolingual_sentence_splitter.html">MonolingualSentenceSplitter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../preprocessors/bpe_segmentation.html">BPESegmentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../preprocessors/morfessor_segmentation.html">MorfessorSegmentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../preprocessors/custom_preprocessors.html">Custom preprocessors</a></li>
+</ul>
 <p class="caption" role="heading"><span class="caption-text">Other information</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">Citing and references</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../CONTRIBUTING.html">Contributing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../CHANGELOG.html">Changelog</a></li>
 </ul>
@@ -110,8 +122,8 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">chunksize</span></code>: the number of segment pairs to process at the same time (optional: default 200)</p></li>
 </ul>
 <p>The current implementation supports the multilingual LASER embeddings
-as proposed by <span id="id1"></span> and
-<span id="id2"></span>. Cosine similarity is used to
+as proposed by <span id="id1">Artetxe and Schwenk [<a class="reference internal" href="../references.html#cite-artetxe-schwenk-2018-margin" title="Mikel Artetxe and Holger Schwenk. Margin-based parallel corpus mining with multilingual sentence embeddings. CoRR, 2018. URL: http://arxiv.org/abs/1811.01136, arXiv:1811.01136.">2018</a>]</span> and
+<span id="id2">Chaudhary <em>et al.</em> [<a class="reference internal" href="../references.html#cite-chaudhary-etal-2019-low" title="Vishrav Chaudhary, Yuqing Tang, Francisco Guzmán, Holger Schwenk, and Philipp Koehn. Low-resource corpus filtering using multilingual sentence embeddings. In Proceedings of the Fourth Conference on Machine Translation (Volume 3: Shared Task Papers, Day 2), 261–266. Florence, Italy, August 2019. Association for Computational Linguistics. URL: https://aclanthology.org/W19-5435, doi:10.18653/v1/W19-5435.">2019</a>]</span>. Cosine similarity is used to
 calculate the similarity of the embeddings.  If <code class="docutils literal notranslate"><span class="pre">nn_model</span></code> is
 provided, the similarities are normalized by the average similarity to
 K nearest neighbors in a reference corpus; see

@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Citing and references &mdash; OpusFilter latest documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Contributing" href="CONTRIBUTING.html" />
+    <link rel="prev" title="Custom preprocessors" href="preprocessors/custom_preprocessors.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> OpusFilter
+          </a>
+              <div class="version">
+                latest
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Get started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="command_line_tools.html">Other command line tools</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Available functions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="functions/downloading_and_selecting_data.html">Downloading and selecting data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/preprocessing_text.html">Preprocessing text</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/filtering_and_scoring.html">Filtering and scoring</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/using_score_files.html">Using score files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/training_language_and_alignment_models.html">Training language and alignment models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/training_and_using_classifiers.html">Training and using classifiers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Available filters</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="filters/length_filters.html">Length filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filters/script_and_language_identification_filters.html">Script and language identification filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filters/special_character_and_similarity_filters.html">Special character and similarity filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filters/language_model_filters.html">Language model filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filters/alignment_model_filters.html">Alignment model filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filters/sentence_embedding_filters.html">Sentence embedding filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filters/custom_filters.html">Custom filters</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Available preprocessors</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="preprocessors/tokenizer.html">Tokenizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preprocessors/detokenizer.html">Detokenizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preprocessors/whitespaceNormalizer.html">WhitespaceNormalizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preprocessors/reg_exp_sub.html">RegExpSub</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preprocessors/monolingual_sentence_splitter.html">MonolingualSentenceSplitter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preprocessors/bpe_segmentation.html">BPESegmentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preprocessors/morfessor_segmentation.html">MorfessorSegmentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preprocessors/custom_preprocessors.html">Custom preprocessors</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Other information</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Citing and references</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#citing">Citing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#references">References</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#references-as-bibtex">References as BibTeX</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="CONTRIBUTING.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CHANGELOG.html">Changelog</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">OpusFilter</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Citing and references</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="citing-and-references">
+<h1>Citing and references<a class="headerlink" href="#citing-and-references" title="Permalink to this headline"></a></h1>
+<section id="citing">
+<h2>Citing<a class="headerlink" href="#citing" title="Permalink to this headline"></a></h2>
+<p>If you use OpusFilter in your research, please cite our <a class="reference external" href="https://www.aclweb.org/anthology/2020.acl-demos.20">ACL 2020
+paper</a>
+<span id="id1">[<a class="reference internal" href="#cite-aulamo-etal-2020-opusfilter" title="Mikko Aulamo, Sami Virpioja, and Jörg Tiedemann. OpusFilter: a configurable parallel corpus filtering toolbox. In Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics: System Demonstrations, 150–156. Association for Computational Linguistics, July 2020. URL: https://aclanthology.org/2020.acl-demos.20, doi:10.18653/v1/2020.acl-demos.20.">Aulamo <em>et al.</em>, 2020</a>]</span>:</p>
+<div class="highlight-BibTeX notranslate"><div class="highlight"><pre><span></span><span class="nc">@inproceedings</span><span class="p">{</span><span class="nl">aulamo-etal-2020-opusfilter</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="na">title</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">&quot;{O}pus{F}ilter: A Configurable Parallel Corpus Filtering Toolbox&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="na">author</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{Aulamo, Mikko and Virpioja, Sami and Tiedemann, J{\&quot;o}rg}</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="na">booktitle</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">&quot;Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics: System Demonstrations&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="na">month</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nv">jul</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="na">year</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">&quot;2020&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="na">publisher</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">&quot;Association for Computational Linguistics&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="na">url</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">&quot;https://www.aclweb.org/anthology/2020.acl-demos.20&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="na">doi</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">&quot;10.18653/v1/2020.acl-demos.20&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="na">pages</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">&quot;150--156&quot;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Permalink to this headline"></a></h2>
+<p>A full bibliography of papers cited in the documentation and code:</p>
+<div class="docutils container" id="id2">
+<dl class="citation">
+<dt class="label" id="cite-artetxe-schwenk-2018-margin"><span class="brackets">artetxe-schwenk-2018-margin</span></dt>
+<dd><p>Mikel Artetxe and Holger Schwenk. Margin-based parallel corpus mining with multilingual sentence embeddings. <em>CoRR</em>, 2018. URL: <a class="reference external" href="http://arxiv.org/abs/1811.01136">http://arxiv.org/abs/1811.01136</a>, <a class="reference external" href="https://arxiv.org/abs/1811.01136">arXiv:1811.01136</a>.</p>
+</dd>
+<dt class="label" id="cite-aulamo-etal-2020-opustools"><span class="brackets">aulamo-etal-2020-opustools</span></dt>
+<dd><p>Mikko Aulamo, Umut Sulubacak, Sami Virpioja, and Jörg Tiedemann. OpusTools and parallel corpus diagnostics. In <em>Proceedings of the 12th Language Resources and Evaluation Conference</em>, 3782–3789. Marseille, France, May 2020. European Language Resources Association. URL: <a class="reference external" href="https://aclanthology.org/2020.lrec-1.467">https://aclanthology.org/2020.lrec-1.467</a>.</p>
+</dd>
+<dt class="label" id="cite-aulamo-etal-2020-opusfilter"><span class="brackets"><a class="fn-backref" href="#id1">aulamo-etal-2020-opusfilter</a></span></dt>
+<dd><p>Mikko Aulamo, Sami Virpioja, and Jörg Tiedemann. OpusFilter: a configurable parallel corpus filtering toolbox. In <em>Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics: System Demonstrations</em>, 150–156. Association for Computational Linguistics, July 2020. URL: <a class="reference external" href="https://aclanthology.org/2020.acl-demos.20">https://aclanthology.org/2020.acl-demos.20</a>, <a class="reference external" href="https://doi.org/10.18653/v1/2020.acl-demos.20">doi:10.18653/v1/2020.acl-demos.20</a>.</p>
+</dd>
+<dt class="label" id="cite-chaudhary-etal-2019-low"><span class="brackets">chaudhary-etal-2019-low</span></dt>
+<dd><p>Vishrav Chaudhary, Yuqing Tang, Francisco Guzmán, Holger Schwenk, and Philipp Koehn. Low-resource corpus filtering using multilingual sentence embeddings. In <em>Proceedings of the Fourth Conference on Machine Translation (Volume 3: Shared Task Papers, Day 2)</em>, 261–266. Florence, Italy, August 2019. Association for Computational Linguistics. URL: <a class="reference external" href="https://aclanthology.org/W19-5435">https://aclanthology.org/W19-5435</a>, <a class="reference external" href="https://doi.org/10.18653/v1/W19-5435">doi:10.18653/v1/W19-5435</a>.</p>
+</dd>
+<dt class="label" id="cite-joulin-etal-2016-fasttext"><span class="brackets">joulin-etal-2016-fasttext</span></dt>
+<dd><p>Armand Joulin, Edouard Grave, Piotr Bojanowski, Matthijs Douze, Hervé Jégou, and Tomás Mikolov. Fasttext.zip: compressing text classification models. <em>CoRR</em>, 2016. URL: <a class="reference external" href="http://arxiv.org/abs/1612.03651">http://arxiv.org/abs/1612.03651</a>, <a class="reference external" href="https://arxiv.org/abs/1612.03651">arXiv:1612.03651</a>.</p>
+</dd>
+<dt class="label" id="cite-joulin-etal-2017-bag"><span class="brackets">joulin-etal-2017-bag</span></dt>
+<dd><p>Armand Joulin, Edouard Grave, Piotr Bojanowski, and Tomas Mikolov. Bag of tricks for efficient text classification. In <em>Proceedings of the 15th Conference of the European Chapter of the Association for Computational Linguistics: Volume 2, Short Papers</em>, 427–431. Valencia, Spain, April 2017. Association for Computational Linguistics. URL: <a class="reference external" href="https://aclanthology.org/E17-2068">https://aclanthology.org/E17-2068</a>.</p>
+</dd>
+<dt class="label" id="cite-koehn-2005-europarl"><span class="brackets">koehn-2005-europarl</span></dt>
+<dd><p>Philipp Koehn. Europarl: a parallel corpus for statistical machine translation. In <em>Proceedings of Machine Translation Summit X: Papers</em>, 79–86. Phuket, Thailand, September 2005. URL: <a class="reference external" href="https://aclanthology.org/2005.mtsummit-papers.11">https://aclanthology.org/2005.mtsummit-papers.11</a>.</p>
+</dd>
+<dt class="label" id="cite-lui-baldwin-2012-langid"><span class="brackets">lui-baldwin-2012-langid</span></dt>
+<dd><p>Marco Lui and Timothy Baldwin. Langid.py: an off-the-shelf language identification tool. In <em>Proceedings of the ACL 2012 System Demonstrations</em>, 25–30. Jeju Island, Korea, July 2012. Association for Computational Linguistics. URL: <a class="reference external" href="https://aclanthology.org/P12-3005">https://aclanthology.org/P12-3005</a>.</p>
+</dd>
+<dt class="label" id="cite-moore-lewis-2010-intelligent"><span class="brackets">moore-lewis-2010-intelligent</span></dt>
+<dd><p>Robert C. Moore and William Lewis. Intelligent selection of language model training data. In <em>Proceedings of the ACL 2010 Conference Short Papers</em>, 220–224. Uppsala, Sweden, July 2010. Association for Computational Linguistics. URL: <a class="reference external" href="https://aclanthology.org/P10-2041">https://aclanthology.org/P10-2041</a>.</p>
+</dd>
+<dt class="label" id="cite-sennrich-etal-2016-neural"><span class="brackets">sennrich-etal-2016-neural</span></dt>
+<dd><p>Rico Sennrich, Barry Haddow, and Alexandra Birch. Neural machine translation of rare words with subword units. In <em>Proceedings of the 54th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)</em>, 1715–1725. Berlin, Germany, August 2016. Association for Computational Linguistics. URL: <a class="reference external" href="https://aclanthology.org/P16-1162">https://aclanthology.org/P16-1162</a>, <a class="reference external" href="https://doi.org/10.18653/v1/P16-1162">doi:10.18653/v1/P16-1162</a>.</p>
+</dd>
+<dt class="label" id="cite-siivola-etal-2007-growing"><span class="brackets">siivola-etal-2007-growing</span></dt>
+<dd><p>Vesa Siivola, Teemu Hirsimäki, and Sami Virpioja. On growing and pruning Kneser-Ney smoothed n-gram models. <em>IEEE Transactions on Audio, Speech and Language Processing</em>, 15(5):1617–1624, 2007. URL: <a class="reference external" href="https://doi.org/10.1109/TASL.2007.896666">https://doi.org/10.1109/TASL.2007.896666</a>.</p>
+</dd>
+<dt class="label" id="cite-tiedemann-2012-parallel"><span class="brackets">tiedemann-2012-parallel</span></dt>
+<dd><p>Jörg Tiedemann. Parallel data, tools and interfaces in OPUS. In <em>Proceedings of the Eighth International Conference on Language Resources and Evaluation (LREC'12)</em>, 2214–2218. Istanbul, Turkey, May 2012. European Language Resources Association (ELRA). URL: <a class="reference external" href="http://www.lrec-conf.org/proceedings/lrec2012/pdf/463_Paper.pdf">http://www.lrec-conf.org/proceedings/lrec2012/pdf/463_Paper.pdf</a>.</p>
+</dd>
+<dt class="label" id="cite-vatanen-etal-2010-language"><span class="brackets">vatanen-etal-2010-language</span></dt>
+<dd><p>Tommi Vatanen, Jaakko J. Väyrynen, and Sami Virpioja. Language identification of short text segments with n-gram models. In Nicoletta Calzolari, Khalid Choukri, Bente Maegaard, Joseph Mariani, Jan Odjik, Stelios Piperidis, Mike Rosner, and Daniel Tapias, editors, <em>Proceedings of the Seventh conference on International Language Resources and Evaluation (LREC'10)</em>. European Language Resources Association (ELRA), May 2010.</p>
+</dd>
+<dt class="label" id="cite-virpioja-etal-2013-morfessor"><span class="brackets">virpioja-etal-2013-morfessor</span></dt>
+<dd><p>Sami Virpioja, Peter Smit, Stig-Arne Grönroos, and Mikko Kurimo. Morfessor 2.0: python implementation and extensions for Morfessor Baseline. Report 25/2013 in Aalto University publication series SCIENCE + TECHNOLOGY, Department of Signal Processing and Acoustics, Aalto University, Helsinki, Finland, 2013.</p>
+</dd>
+<dt class="label" id="cite-vazquez-etal-2019-university"><span class="brackets">vazquez-etal-2019-university</span></dt>
+<dd><p>Raúl Vázquez, Umut Sulubacak, and Jörg Tiedemann. The University of Helsinki submission to the WMT19 parallel corpus filtering task. In <em>Proceedings of the Fourth Conference on Machine Translation (Volume 3: Shared Task Papers, Day 2)</em>, 294–300. Florence, Italy, August 2019. Association for Computational Linguistics. URL: <a class="reference external" href="https://aclanthology.org/W19-5441">https://aclanthology.org/W19-5441</a>, <a class="reference external" href="https://doi.org/10.18653/v1/W19-5441">doi:10.18653/v1/W19-5441</a>.</p>
+</dd>
+<dt class="label" id="cite-ostling-tiedemann-2016-efficient"><span class="brackets">ostling-tiedemann-2016-efficient</span></dt>
+<dd><p>Robert Östling and Jörg Tiedemann. Efficient word alignment with Markov Chain Monte Carlo. <em>Prague Bulletin of Mathematical Linguistics</em>, 106:125–146, October 2016. URL: <a class="reference external" href="http://ufal.mff.cuni.cz/pbml/106/art-ostling-tiedemann.pdf">http://ufal.mff.cuni.cz/pbml/106/art-ostling-tiedemann.pdf</a>.</p>
+</dd>
+</dl>
+</div>
+</section>
+<section id="references-as-bibtex">
+<h2>References as BibTeX<a class="headerlink" href="#references-as-bibtex" title="Permalink to this headline"></a></h2>
+<p>Finally, here are BibTeX entries for all the references:</p>
+<div class="code BibTeX highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">%</span> <span class="n">Artetxe</span> <span class="o">&amp;</span> <span class="n">Schwenk</span> <span class="p">(</span><span class="mi">2018</span><span class="p">)</span>
+<span class="nd">@article</span><span class="p">{</span><span class="n">artetxe</span><span class="o">-</span><span class="n">schwenk</span><span class="o">-</span><span class="mi">2018</span><span class="o">-</span><span class="n">margin</span><span class="p">,</span>
+  <span class="n">author</span>    <span class="o">=</span> <span class="p">{</span><span class="n">Mikel</span> <span class="n">Artetxe</span> <span class="ow">and</span> <span class="n">Holger</span> <span class="n">Schwenk</span><span class="p">},</span>
+  <span class="n">title</span>     <span class="o">=</span> <span class="p">{</span><span class="n">Margin</span><span class="o">-</span><span class="n">based</span> <span class="n">Parallel</span> <span class="n">Corpus</span> <span class="n">Mining</span> <span class="k">with</span> <span class="n">Multilingual</span> <span class="n">Sentence</span> <span class="n">Embeddings</span><span class="p">},</span>
+  <span class="n">journal</span>   <span class="o">=</span> <span class="p">{</span><span class="n">CoRR</span><span class="p">},</span>
+  <span class="n">volume</span>    <span class="o">=</span> <span class="p">{</span><span class="nb">abs</span><span class="o">/</span><span class="mf">1811.01136</span><span class="p">},</span>
+  <span class="n">year</span>      <span class="o">=</span> <span class="p">{</span><span class="mi">2018</span><span class="p">},</span>
+  <span class="n">url</span>       <span class="o">=</span> <span class="p">{</span><span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">arxiv</span><span class="o">.</span><span class="n">org</span><span class="o">/</span><span class="nb">abs</span><span class="o">/</span><span class="mf">1811.01136</span><span class="p">},</span>
+  <span class="n">eprinttype</span> <span class="o">=</span> <span class="p">{</span><span class="n">arXiv</span><span class="p">},</span>
+  <span class="n">eprint</span>    <span class="o">=</span> <span class="p">{</span><span class="mf">1811.01136</span><span class="p">},</span>
+  <span class="n">timestamp</span> <span class="o">=</span> <span class="p">{</span><span class="n">Thu</span><span class="p">,</span> <span class="mi">22</span> <span class="n">Nov</span> <span class="mi">2018</span> <span class="mi">17</span><span class="p">:</span><span class="mi">58</span><span class="p">:</span><span class="mi">30</span> <span class="o">+</span><span class="mi">0100</span><span class="p">},</span>
+  <span class="n">biburl</span>    <span class="o">=</span> <span class="p">{</span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">dblp</span><span class="o">.</span><span class="n">org</span><span class="o">/</span><span class="n">rec</span><span class="o">/</span><span class="n">journals</span><span class="o">/</span><span class="n">corr</span><span class="o">/</span><span class="nb">abs</span><span class="o">-</span><span class="mi">1811</span><span class="o">-</span><span class="mf">01136.</span><span class="n">bib</span><span class="p">},</span>
+  <span class="n">bibsource</span> <span class="o">=</span> <span class="p">{</span><span class="n">dblp</span> <span class="n">computer</span> <span class="n">science</span> <span class="n">bibliography</span><span class="p">,</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">dblp</span><span class="o">.</span><span class="n">org</span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="o">%</span> <span class="n">Aulamo</span> <span class="n">et</span> <span class="n">al</span><span class="o">.</span> <span class="p">(</span><span class="mi">2020</span><span class="n">a</span><span class="p">)</span>
+<span class="nd">@inproceedings</span><span class="p">{</span><span class="n">aulamo</span><span class="o">-</span><span class="n">etal</span><span class="o">-</span><span class="mi">2020</span><span class="o">-</span><span class="n">opustools</span><span class="p">,</span>
+    <span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{O}</span><span class="s2">pus</span><span class="si">{T}</span><span class="s2">ools and Parallel Corpus Diagnostics&quot;</span><span class="p">,</span>
+    <span class="n">author</span> <span class="o">=</span> <span class="p">{</span><span class="n">Aulamo</span><span class="p">,</span> <span class="n">Mikko</span> <span class="ow">and</span> <span class="n">Sulubacak</span><span class="p">,</span> <span class="n">Umut</span> <span class="ow">and</span> <span class="n">Virpioja</span><span class="p">,</span> <span class="n">Sami</span> <span class="ow">and</span> <span class="n">Tiedemann</span><span class="p">,</span> <span class="n">J</span><span class="p">{</span>\<span class="s2">&quot;o}rg},</span>
+    <span class="n">booktitle</span> <span class="o">=</span> <span class="s2">&quot;Proceedings of the 12th Language Resources and Evaluation Conference&quot;</span><span class="p">,</span>
+    <span class="n">month</span> <span class="o">=</span> <span class="n">may</span><span class="p">,</span>
+    <span class="n">year</span> <span class="o">=</span> <span class="s2">&quot;2020&quot;</span><span class="p">,</span>
+    <span class="n">address</span> <span class="o">=</span> <span class="s2">&quot;Marseille, France&quot;</span><span class="p">,</span>
+    <span class="n">publisher</span> <span class="o">=</span> <span class="s2">&quot;European Language Resources Association&quot;</span><span class="p">,</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;https://aclanthology.org/2020.lrec-1.467&quot;</span><span class="p">,</span>
+    <span class="n">pages</span> <span class="o">=</span> <span class="s2">&quot;3782--3789&quot;</span><span class="p">,</span>
+    <span class="n">language</span> <span class="o">=</span> <span class="s2">&quot;English&quot;</span><span class="p">,</span>
+    <span class="n">ISBN</span> <span class="o">=</span> <span class="s2">&quot;979-10-95546-34-4&quot;</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="o">%</span> <span class="n">Aulamo</span> <span class="n">et</span> <span class="n">al</span><span class="o">.</span> <span class="p">(</span><span class="mi">2020</span><span class="n">b</span><span class="p">)</span>
+<span class="nd">@inproceedings</span><span class="p">{</span><span class="n">aulamo</span><span class="o">-</span><span class="n">etal</span><span class="o">-</span><span class="mi">2020</span><span class="o">-</span><span class="n">opusfilter</span><span class="p">,</span>
+    <span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{O}</span><span class="s2">pus</span><span class="si">{F}</span><span class="s2">ilter: A Configurable Parallel Corpus Filtering Toolbox&quot;</span><span class="p">,</span>
+    <span class="n">author</span> <span class="o">=</span> <span class="p">{</span><span class="n">Aulamo</span><span class="p">,</span> <span class="n">Mikko</span> <span class="ow">and</span> <span class="n">Virpioja</span><span class="p">,</span> <span class="n">Sami</span> <span class="ow">and</span> <span class="n">Tiedemann</span><span class="p">,</span> <span class="n">J</span><span class="p">{</span>\<span class="s2">&quot;o}rg},</span>
+    <span class="n">booktitle</span> <span class="o">=</span> <span class="s2">&quot;Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics: System Demonstrations&quot;</span><span class="p">,</span>
+    <span class="n">month</span> <span class="o">=</span> <span class="n">jul</span><span class="p">,</span>
+    <span class="n">year</span> <span class="o">=</span> <span class="s2">&quot;2020&quot;</span><span class="p">,</span>
+    <span class="n">publisher</span> <span class="o">=</span> <span class="s2">&quot;Association for Computational Linguistics&quot;</span><span class="p">,</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;https://aclanthology.org/2020.acl-demos.20&quot;</span><span class="p">,</span>
+    <span class="n">doi</span> <span class="o">=</span> <span class="s2">&quot;10.18653/v1/2020.acl-demos.20&quot;</span><span class="p">,</span>
+    <span class="n">pages</span> <span class="o">=</span> <span class="s2">&quot;150--156&quot;</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="o">%</span> <span class="n">Chaudhary</span> <span class="n">et</span> <span class="n">al</span><span class="o">.</span> <span class="p">(</span><span class="mi">2019</span><span class="p">)</span>
+<span class="nd">@inproceedings</span><span class="p">{</span><span class="n">chaudhary</span><span class="o">-</span><span class="n">etal</span><span class="o">-</span><span class="mi">2019</span><span class="o">-</span><span class="n">low</span><span class="p">,</span>
+    <span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;Low-Resource Corpus Filtering Using Multilingual Sentence Embeddings&quot;</span><span class="p">,</span>
+    <span class="n">author</span> <span class="o">=</span> <span class="s2">&quot;Chaudhary, Vishrav and Tang, Yuqing and Guzm{</span><span class="se">\&#39;</span><span class="s2">a}n, Francisco and Schwenk, Holger and Koehn, Philipp&quot;</span><span class="p">,</span>
+    <span class="n">booktitle</span> <span class="o">=</span> <span class="s2">&quot;Proceedings of the Fourth Conference on Machine Translation (Volume 3: Shared Task Papers, Day 2)&quot;</span><span class="p">,</span>
+    <span class="n">month</span> <span class="o">=</span> <span class="n">aug</span><span class="p">,</span>
+    <span class="n">year</span> <span class="o">=</span> <span class="s2">&quot;2019&quot;</span><span class="p">,</span>
+    <span class="n">address</span> <span class="o">=</span> <span class="s2">&quot;Florence, Italy&quot;</span><span class="p">,</span>
+    <span class="n">publisher</span> <span class="o">=</span> <span class="s2">&quot;Association for Computational Linguistics&quot;</span><span class="p">,</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;https://aclanthology.org/W19-5435&quot;</span><span class="p">,</span>
+    <span class="n">doi</span> <span class="o">=</span> <span class="s2">&quot;10.18653/v1/W19-5435&quot;</span><span class="p">,</span>
+    <span class="n">pages</span> <span class="o">=</span> <span class="s2">&quot;261--266&quot;</span>
+<span class="p">}</span>
+
+<span class="o">%</span> <span class="n">Joulin</span> <span class="n">et</span> <span class="n">al</span><span class="o">.</span> <span class="p">(</span><span class="mi">2016</span><span class="p">)</span>
+<span class="nd">@article</span><span class="p">{</span><span class="n">joulin</span><span class="o">-</span><span class="n">etal</span><span class="o">-</span><span class="mi">2016</span><span class="o">-</span><span class="n">fasttext</span><span class="p">,</span>
+    <span class="n">author</span>    <span class="o">=</span> <span class="p">{</span><span class="n">Armand</span> <span class="n">Joulin</span> <span class="ow">and</span> <span class="n">Edouard</span> <span class="n">Grave</span> <span class="ow">and</span> <span class="n">Piotr</span> <span class="n">Bojanowski</span> <span class="ow">and</span> <span class="n">Matthijs</span> <span class="n">Douze</span> <span class="ow">and</span> <span class="n">Herv</span><span class="p">{</span>\<span class="s1">&#39;</span><span class="si">{e}</span><span class="s1">} J{</span><span class="se">\&#39;</span><span class="si">{e}</span><span class="s1">}gou and Tom{</span><span class="se">\&#39;</span><span class="si">{a}</span><span class="s1">}s Mikolov},</span>
+    <span class="n">title</span>     <span class="o">=</span> <span class="p">{</span><span class="n">FastText</span><span class="o">.</span><span class="n">zip</span><span class="p">:</span> <span class="n">Compressing</span> <span class="n">text</span> <span class="n">classification</span> <span class="n">models</span><span class="p">},</span>
+    <span class="n">journal</span>   <span class="o">=</span> <span class="p">{</span><span class="n">CoRR</span><span class="p">},</span>
+    <span class="n">volume</span>    <span class="o">=</span> <span class="p">{</span><span class="nb">abs</span><span class="o">/</span><span class="mf">1612.03651</span><span class="p">},</span>
+    <span class="n">year</span>      <span class="o">=</span> <span class="p">{</span><span class="mi">2016</span><span class="p">},</span>
+    <span class="n">url</span>       <span class="o">=</span> <span class="p">{</span><span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">arxiv</span><span class="o">.</span><span class="n">org</span><span class="o">/</span><span class="nb">abs</span><span class="o">/</span><span class="mf">1612.03651</span><span class="p">},</span>
+    <span class="n">archivePrefix</span> <span class="o">=</span> <span class="p">{</span><span class="n">arXiv</span><span class="p">},</span>
+    <span class="n">eprint</span>    <span class="o">=</span> <span class="p">{</span><span class="mf">1612.03651</span><span class="p">},</span>
+    <span class="n">timestamp</span> <span class="o">=</span> <span class="p">{</span><span class="n">Mon</span><span class="p">,</span> <span class="mi">28</span> <span class="n">Dec</span> <span class="mi">2020</span> <span class="mi">11</span><span class="p">:</span><span class="mi">31</span><span class="p">:</span><span class="mi">02</span> <span class="o">+</span><span class="mi">0100</span><span class="p">},</span>
+    <span class="n">biburl</span>    <span class="o">=</span> <span class="p">{</span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">dblp</span><span class="o">.</span><span class="n">org</span><span class="o">/</span><span class="n">rec</span><span class="o">/</span><span class="n">journals</span><span class="o">/</span><span class="n">corr</span><span class="o">/</span><span class="n">JoulinGBDJM16</span><span class="o">.</span><span class="n">bib</span><span class="p">},</span>
+    <span class="n">bibsource</span> <span class="o">=</span> <span class="p">{</span><span class="n">dblp</span> <span class="n">computer</span> <span class="n">science</span> <span class="n">bibliography</span><span class="p">,</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">dblp</span><span class="o">.</span><span class="n">org</span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="o">%</span> <span class="n">Joulin</span> <span class="n">et</span> <span class="n">al</span><span class="o">.</span> <span class="p">(</span><span class="mi">2017</span><span class="p">)</span>
+<span class="nd">@inproceedings</span><span class="p">{</span><span class="n">joulin</span><span class="o">-</span><span class="n">etal</span><span class="o">-</span><span class="mi">2017</span><span class="o">-</span><span class="n">bag</span><span class="p">,</span>
+    <span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;Bag of Tricks for Efficient Text Classification&quot;</span><span class="p">,</span>
+    <span class="n">author</span> <span class="o">=</span> <span class="s2">&quot;Joulin, Armand and Grave, Edouard and Bojanowski, Piotr and Mikolov, Tomas&quot;</span><span class="p">,</span>
+    <span class="n">booktitle</span> <span class="o">=</span> <span class="s2">&quot;Proceedings of the 15th Conference of the </span><span class="si">{E}</span><span class="s2">uropean Chapter of the Association for Computational Linguistics: Volume 2, Short Papers&quot;</span><span class="p">,</span>
+    <span class="n">month</span> <span class="o">=</span> <span class="n">apr</span><span class="p">,</span>
+    <span class="n">year</span> <span class="o">=</span> <span class="s2">&quot;2017&quot;</span><span class="p">,</span>
+    <span class="n">address</span> <span class="o">=</span> <span class="s2">&quot;Valencia, Spain&quot;</span><span class="p">,</span>
+    <span class="n">publisher</span> <span class="o">=</span> <span class="s2">&quot;Association for Computational Linguistics&quot;</span><span class="p">,</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;https://aclanthology.org/E17-2068&quot;</span><span class="p">,</span>
+    <span class="n">pages</span> <span class="o">=</span> <span class="s2">&quot;427--431&quot;</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="o">%</span> <span class="n">Koehn</span> <span class="p">(</span><span class="mi">2005</span><span class="p">)</span>
+<span class="nd">@inproceedings</span><span class="p">{</span><span class="n">koehn</span><span class="o">-</span><span class="mi">2005</span><span class="o">-</span><span class="n">europarl</span><span class="p">,</span>
+    <span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{E}</span><span class="s2">uroparl: A Parallel Corpus for Statistical Machine Translation&quot;</span><span class="p">,</span>
+    <span class="n">author</span> <span class="o">=</span> <span class="s2">&quot;Koehn, Philipp&quot;</span><span class="p">,</span>
+    <span class="n">booktitle</span> <span class="o">=</span> <span class="s2">&quot;Proceedings of Machine Translation Summit X: Papers&quot;</span><span class="p">,</span>
+    <span class="n">month</span> <span class="o">=</span> <span class="n">sep</span><span class="p">,</span>
+    <span class="n">year</span> <span class="o">=</span> <span class="s2">&quot;2005&quot;</span><span class="p">,</span>
+    <span class="n">address</span> <span class="o">=</span> <span class="s2">&quot;Phuket, Thailand&quot;</span><span class="p">,</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;https://aclanthology.org/2005.mtsummit-papers.11&quot;</span><span class="p">,</span>
+    <span class="n">pages</span> <span class="o">=</span> <span class="s2">&quot;79--86&quot;</span>
+<span class="p">}</span>
+
+<span class="o">%</span> <span class="n">Lui</span> <span class="ow">and</span> <span class="n">Baldwin</span> <span class="p">(</span><span class="mi">2012</span><span class="p">)</span>
+<span class="nd">@inproceedings</span><span class="p">{</span><span class="n">lui</span><span class="o">-</span><span class="n">baldwin</span><span class="o">-</span><span class="mi">2012</span><span class="o">-</span><span class="n">langid</span><span class="p">,</span>
+    <span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;langid.py: An Off-the-shelf Language Identification Tool&quot;</span><span class="p">,</span>
+    <span class="n">author</span> <span class="o">=</span> <span class="s2">&quot;Lui, Marco and Baldwin, Timothy&quot;</span><span class="p">,</span>
+    <span class="n">booktitle</span> <span class="o">=</span> <span class="s2">&quot;Proceedings of the </span><span class="si">{ACL}</span><span class="s2"> 2012 System Demonstrations&quot;</span><span class="p">,</span>
+    <span class="n">month</span> <span class="o">=</span> <span class="n">jul</span><span class="p">,</span>
+    <span class="n">year</span> <span class="o">=</span> <span class="s2">&quot;2012&quot;</span><span class="p">,</span>
+    <span class="n">address</span> <span class="o">=</span> <span class="s2">&quot;Jeju Island, Korea&quot;</span><span class="p">,</span>
+    <span class="n">publisher</span> <span class="o">=</span> <span class="s2">&quot;Association for Computational Linguistics&quot;</span><span class="p">,</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;https://aclanthology.org/P12-3005&quot;</span><span class="p">,</span>
+    <span class="n">pages</span> <span class="o">=</span> <span class="s2">&quot;25--30&quot;</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="o">%</span> <span class="n">Moore</span> <span class="ow">and</span> <span class="n">Lewis</span> <span class="p">(</span><span class="mi">2010</span><span class="p">)</span>
+<span class="nd">@inproceedings</span><span class="p">{</span><span class="n">moore</span><span class="o">-</span><span class="n">lewis</span><span class="o">-</span><span class="mi">2010</span><span class="o">-</span><span class="n">intelligent</span><span class="p">,</span>
+    <span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;Intelligent Selection of Language Model Training Data&quot;</span><span class="p">,</span>
+    <span class="n">author</span> <span class="o">=</span> <span class="s2">&quot;Moore, Robert C. and Lewis, William&quot;</span><span class="p">,</span>
+    <span class="n">booktitle</span> <span class="o">=</span> <span class="s2">&quot;Proceedings of the </span><span class="si">{ACL}</span><span class="s2"> 2010 Conference Short Papers&quot;</span><span class="p">,</span>
+    <span class="n">month</span> <span class="o">=</span> <span class="n">jul</span><span class="p">,</span>
+    <span class="n">year</span> <span class="o">=</span> <span class="s2">&quot;2010&quot;</span><span class="p">,</span>
+    <span class="n">address</span> <span class="o">=</span> <span class="s2">&quot;Uppsala, Sweden&quot;</span><span class="p">,</span>
+    <span class="n">publisher</span> <span class="o">=</span> <span class="s2">&quot;Association for Computational Linguistics&quot;</span><span class="p">,</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;https://aclanthology.org/P10-2041&quot;</span><span class="p">,</span>
+    <span class="n">pages</span> <span class="o">=</span> <span class="s2">&quot;220--224&quot;</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="o">%</span> <span class="n">Östling</span> <span class="ow">and</span> <span class="n">Tiedemann</span> <span class="p">(</span><span class="mi">2016</span><span class="p">)</span>
+<span class="nd">@article</span><span class="p">{</span><span class="n">ostling</span><span class="o">-</span><span class="n">tiedemann</span><span class="o">-</span><span class="mi">2016</span><span class="o">-</span><span class="n">efficient</span><span class="p">,</span>
+    <span class="n">title</span> <span class="o">=</span> <span class="p">{</span><span class="n">Efficient</span> <span class="n">word</span> <span class="n">alignment</span> <span class="k">with</span> <span class="p">{</span><span class="n">M</span><span class="p">}</span><span class="n">arkov</span> <span class="p">{</span><span class="n">C</span><span class="p">}</span><span class="n">hain</span> <span class="p">{</span><span class="n">M</span><span class="p">}</span><span class="n">onte</span> <span class="p">{</span><span class="n">C</span><span class="p">}</span><span class="n">arlo</span><span class="p">},</span>
+    <span class="n">author</span> <span class="o">=</span> <span class="p">{</span><span class="n">Robert</span> <span class="p">{</span>\<span class="s2">&quot;O}stling and J{</span><span class="se">\&quot;</span><span class="s2">o}rg Tiedemann},</span>
+    <span class="n">journal</span> <span class="o">=</span> <span class="p">{</span><span class="n">Prague</span> <span class="n">Bulletin</span> <span class="n">of</span> <span class="n">Mathematical</span> <span class="n">Linguistics</span><span class="p">},</span>
+    <span class="n">year</span> <span class="o">=</span> <span class="p">{</span><span class="mi">2016</span><span class="p">},</span>
+    <span class="n">month</span> <span class="o">=</span> <span class="p">{</span><span class="n">October</span><span class="p">},</span>
+    <span class="n">pages</span> <span class="o">=</span> <span class="p">{</span><span class="mi">125</span><span class="o">--</span><span class="mi">146</span><span class="p">},</span>
+    <span class="n">volume</span> <span class="o">=</span> <span class="p">{</span><span class="mi">106</span><span class="p">},</span>
+    <span class="n">owner</span> <span class="o">=</span> <span class="p">{</span><span class="n">robert</span><span class="p">},</span>
+    <span class="n">timestamp</span> <span class="o">=</span> <span class="p">{</span><span class="mf">2016.08.26</span><span class="p">},</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="p">{</span><span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">ufal</span><span class="o">.</span><span class="n">mff</span><span class="o">.</span><span class="n">cuni</span><span class="o">.</span><span class="n">cz</span><span class="o">/</span><span class="n">pbml</span><span class="o">/</span><span class="mi">106</span><span class="o">/</span><span class="n">art</span><span class="o">-</span><span class="n">ostling</span><span class="o">-</span><span class="n">tiedemann</span><span class="o">.</span><span class="n">pdf</span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="o">%</span> <span class="n">Sennrich</span> <span class="n">et</span> <span class="n">al</span><span class="o">.</span> <span class="p">(</span><span class="mi">2016</span><span class="p">)</span>
+<span class="nd">@inproceedings</span><span class="p">{</span><span class="n">sennrich</span><span class="o">-</span><span class="n">etal</span><span class="o">-</span><span class="mi">2016</span><span class="o">-</span><span class="n">neural</span><span class="p">,</span>
+    <span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;Neural Machine Translation of Rare Words with Subword Units&quot;</span><span class="p">,</span>
+    <span class="n">author</span> <span class="o">=</span> <span class="s2">&quot;Sennrich, Rico and Haddow, Barry and Birch, Alexandra&quot;</span><span class="p">,</span>
+    <span class="n">booktitle</span> <span class="o">=</span> <span class="s2">&quot;Proceedings of the 54th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)&quot;</span><span class="p">,</span>
+    <span class="n">month</span> <span class="o">=</span> <span class="n">aug</span><span class="p">,</span>
+    <span class="n">year</span> <span class="o">=</span> <span class="s2">&quot;2016&quot;</span><span class="p">,</span>
+    <span class="n">address</span> <span class="o">=</span> <span class="s2">&quot;Berlin, Germany&quot;</span><span class="p">,</span>
+    <span class="n">publisher</span> <span class="o">=</span> <span class="s2">&quot;Association for Computational Linguistics&quot;</span><span class="p">,</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;https://aclanthology.org/P16-1162&quot;</span><span class="p">,</span>
+    <span class="n">doi</span> <span class="o">=</span> <span class="s2">&quot;10.18653/v1/P16-1162&quot;</span><span class="p">,</span>
+    <span class="n">pages</span> <span class="o">=</span> <span class="s2">&quot;1715--1725&quot;</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="o">%</span> <span class="n">Siivola</span> <span class="n">et</span> <span class="n">al</span><span class="o">.</span> <span class="p">(</span><span class="mi">2007</span><span class="p">)</span>
+<span class="nd">@article</span><span class="p">{</span><span class="n">siivola</span><span class="o">-</span><span class="n">etal</span><span class="o">-</span><span class="mi">2007</span><span class="o">-</span><span class="n">growing</span><span class="p">,</span>
+    <span class="n">author</span> <span class="o">=</span> <span class="p">{</span><span class="n">Vesa</span> <span class="n">Siivola</span> <span class="ow">and</span> <span class="n">Teemu</span> <span class="n">Hirsim</span>\<span class="s2">&quot;aki and Sami Virpioja},</span>
+    <span class="n">title</span> <span class="o">=</span> <span class="p">{</span><span class="n">On</span> <span class="n">Growing</span> <span class="ow">and</span> <span class="n">Pruning</span> <span class="p">{</span><span class="n">K</span><span class="p">}</span><span class="n">neser</span><span class="o">-</span><span class="p">{</span><span class="n">N</span><span class="p">}</span><span class="n">ey</span> <span class="n">Smoothed</span> <span class="n">N</span><span class="o">-</span><span class="n">Gram</span> <span class="n">Models</span><span class="p">},</span>
+    <span class="n">journal</span> <span class="o">=</span> <span class="p">{</span><span class="n">IEEE</span> <span class="n">Transactions</span> <span class="n">on</span> <span class="n">Audio</span><span class="p">,</span> <span class="n">Speech</span> <span class="ow">and</span> <span class="n">Language</span> <span class="n">Processing</span><span class="p">},</span>
+    <span class="n">volume</span> <span class="o">=</span> <span class="p">{</span><span class="mi">15</span><span class="p">},</span>
+    <span class="n">number</span> <span class="o">=</span> <span class="p">{</span><span class="mi">5</span><span class="p">},</span>
+    <span class="n">pages</span> <span class="o">=</span> <span class="p">{</span><span class="mi">1617</span><span class="o">--</span><span class="mi">1624</span><span class="p">},</span>
+    <span class="n">year</span> <span class="o">=</span> <span class="p">{</span><span class="mi">2007</span><span class="p">},</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="p">{</span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">doi</span><span class="o">.</span><span class="n">org</span><span class="o">/</span><span class="mf">10.1109</span><span class="o">/</span><span class="n">TASL</span><span class="mf">.2007.896666</span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="o">%</span> <span class="n">Tiedemann</span> <span class="p">(</span><span class="mi">2012</span><span class="p">)</span>
+<span class="nd">@inproceedings</span><span class="p">{</span><span class="n">tiedemann</span><span class="o">-</span><span class="mi">2012</span><span class="o">-</span><span class="n">parallel</span><span class="p">,</span>
+    <span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;Parallel Data, Tools and Interfaces in </span><span class="si">{OPUS}</span><span class="s2">&quot;</span><span class="p">,</span>
+    <span class="n">author</span> <span class="o">=</span> <span class="p">{</span><span class="n">Tiedemann</span><span class="p">,</span> <span class="n">J</span><span class="p">{</span>\<span class="s2">&quot;o}rg},</span>
+    <span class="n">booktitle</span> <span class="o">=</span> <span class="s2">&quot;Proceedings of the Eighth International Conference on Language Resources and Evaluation (</span><span class="si">{LREC}</span><span class="s2">&#39;12)&quot;</span><span class="p">,</span>
+    <span class="n">month</span> <span class="o">=</span> <span class="n">may</span><span class="p">,</span>
+    <span class="n">year</span> <span class="o">=</span> <span class="s2">&quot;2012&quot;</span><span class="p">,</span>
+    <span class="n">address</span> <span class="o">=</span> <span class="s2">&quot;Istanbul, Turkey&quot;</span><span class="p">,</span>
+    <span class="n">publisher</span> <span class="o">=</span> <span class="s2">&quot;European Language Resources Association (ELRA)&quot;</span><span class="p">,</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;http://www.lrec-conf.org/proceedings/lrec2012/pdf/463_Paper.pdf&quot;</span><span class="p">,</span>
+    <span class="n">pages</span> <span class="o">=</span> <span class="s2">&quot;2214--2218&quot;</span>
+<span class="p">}</span>
+
+<span class="o">%</span> <span class="n">Vatanen</span> <span class="n">et</span> <span class="n">al</span><span class="o">.</span> <span class="p">(</span><span class="mi">2010</span><span class="p">)</span>
+<span class="nd">@inproceedings</span><span class="p">{</span><span class="n">vatanen</span><span class="o">-</span><span class="n">etal</span><span class="o">-</span><span class="mi">2010</span><span class="o">-</span><span class="n">language</span><span class="p">,</span>
+    <span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;Language Identification of Short Text Segments with N-gram Models&quot;</span><span class="p">,</span>
+    <span class="n">author</span> <span class="o">=</span> <span class="s2">&quot;Tommi Vatanen and V{</span><span class="se">\&quot;</span><span class="s2">a}yrynen, {Jaakko J.} and Sami Virpioja&quot;</span><span class="p">,</span>
+    <span class="n">year</span> <span class="o">=</span> <span class="s2">&quot;2010&quot;</span><span class="p">,</span>
+    <span class="n">month</span> <span class="o">=</span> <span class="n">may</span><span class="p">,</span>
+    <span class="n">editor</span> <span class="o">=</span> <span class="s2">&quot;Nicoletta Calzolari and Khalid Choukri and Bente Maegaard and Joseph Mariani and Jan Odjik and Stelios Piperidis and Mike Rosner and Daniel Tapias&quot;</span><span class="p">,</span>
+    <span class="n">booktitle</span> <span class="o">=</span> <span class="s2">&quot;Proceedings of the Seventh conference on International Language Resources and Evaluation (LREC&#39;10)&quot;</span><span class="p">,</span>
+    <span class="n">publisher</span> <span class="o">=</span> <span class="s2">&quot;European Language Resources Association (ELRA)&quot;</span>
+<span class="p">}</span>
+
+<span class="o">%</span> <span class="n">Vázquez</span> <span class="n">et</span> <span class="n">al</span><span class="o">.</span> <span class="p">(</span><span class="mi">2019</span><span class="p">)</span>
+<span class="nd">@inproceedings</span><span class="p">{</span><span class="n">vazquez</span><span class="o">-</span><span class="n">etal</span><span class="o">-</span><span class="mi">2019</span><span class="o">-</span><span class="n">university</span><span class="p">,</span>
+    <span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;The </span><span class="si">{U}</span><span class="s2">niversity of </span><span class="si">{H}</span><span class="s2">elsinki Submission to the </span><span class="si">{WMT}</span><span class="s2">19 Parallel Corpus Filtering Task&quot;</span><span class="p">,</span>
+    <span class="n">author</span> <span class="o">=</span> <span class="p">{</span><span class="n">V</span><span class="p">{</span>\<span class="s1">&#39;a}zquez, Ra{</span><span class="se">\&#39;</span><span class="s1">u}l and Sulubacak, Umut and Tiedemann, J{</span><span class="se">\&quot;</span><span class="s1">o}rg},</span>
+    <span class="n">booktitle</span> <span class="o">=</span> <span class="s2">&quot;Proceedings of the Fourth Conference on Machine Translation (Volume 3: Shared Task Papers, Day 2)&quot;</span><span class="p">,</span>
+    <span class="n">month</span> <span class="o">=</span> <span class="n">aug</span><span class="p">,</span>
+    <span class="n">year</span> <span class="o">=</span> <span class="s2">&quot;2019&quot;</span><span class="p">,</span>
+    <span class="n">address</span> <span class="o">=</span> <span class="s2">&quot;Florence, Italy&quot;</span><span class="p">,</span>
+    <span class="n">publisher</span> <span class="o">=</span> <span class="s2">&quot;Association for Computational Linguistics&quot;</span><span class="p">,</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;https://aclanthology.org/W19-5441&quot;</span><span class="p">,</span>
+    <span class="n">doi</span> <span class="o">=</span> <span class="s2">&quot;10.18653/v1/W19-5441&quot;</span><span class="p">,</span>
+    <span class="n">pages</span> <span class="o">=</span> <span class="s2">&quot;294--300&quot;</span>
+<span class="p">}</span>
+
+<span class="o">%</span> <span class="n">Virpioja</span> <span class="n">et</span> <span class="n">al</span><span class="o">.</span> <span class="p">(</span><span class="mi">2013</span><span class="p">)</span>
+<span class="nd">@techreport</span><span class="p">{</span><span class="n">virpioja</span><span class="o">-</span><span class="n">etal</span><span class="o">-</span><span class="mi">2013</span><span class="o">-</span><span class="n">morfessor</span><span class="p">,</span>
+    <span class="n">address</span> <span class="o">=</span> <span class="p">{</span><span class="n">Helsinki</span><span class="p">,</span> <span class="n">Finland</span><span class="p">},</span>
+    <span class="n">author</span> <span class="o">=</span> <span class="p">{</span><span class="n">Virpioja</span><span class="p">,</span> <span class="n">Sami</span> <span class="ow">and</span> <span class="n">Smit</span><span class="p">,</span> <span class="n">Peter</span> <span class="ow">and</span> <span class="n">Gr</span>\<span class="s2">&quot;</span><span class="si">{o}</span><span class="s2">nroos, Stig-Arne and Kurimo, Mikko},</span>
+    <span class="n">institution</span> <span class="o">=</span> <span class="p">{</span><span class="n">Department</span> <span class="n">of</span> <span class="n">Signal</span> <span class="n">Processing</span> <span class="ow">and</span> <span class="n">Acoustics</span><span class="p">,</span> <span class="n">Aalto</span> <span class="n">University</span><span class="p">},</span>
+    <span class="n">language</span> <span class="o">=</span> <span class="p">{</span><span class="n">eng</span><span class="p">},</span>
+    <span class="n">number</span> <span class="o">=</span> <span class="p">{</span><span class="mi">25</span><span class="o">/</span><span class="mi">2013</span> <span class="ow">in</span> <span class="n">Aalto</span> <span class="n">University</span> <span class="n">publication</span> <span class="n">series</span> <span class="n">SCIENCE</span> <span class="o">+</span> <span class="n">TECHNOLOGY</span><span class="p">},</span>
+    <span class="n">pages</span> <span class="o">=</span> <span class="p">{</span><span class="mi">38</span><span class="p">},</span>
+    <span class="n">series</span> <span class="o">=</span> <span class="p">{</span><span class="n">Aalto</span> <span class="n">University</span> <span class="n">publication</span> <span class="n">series</span> <span class="n">SCIENCE</span> <span class="o">+</span> <span class="n">TECHNOLOGY</span><span class="p">},</span>
+    <span class="n">title</span> <span class="o">=</span> <span class="p">{</span><span class="n">Morfessor</span> <span class="mf">2.0</span><span class="p">:</span> <span class="n">Python</span> <span class="n">Implementation</span> <span class="ow">and</span> <span class="n">Extensions</span> <span class="k">for</span> <span class="p">{</span><span class="n">M</span><span class="p">}</span><span class="n">orfessor</span> <span class="p">{</span><span class="n">B</span><span class="p">}</span><span class="n">aseline</span><span class="p">},</span>
+    <span class="nb">type</span> <span class="o">=</span> <span class="p">{</span><span class="n">Report</span><span class="p">},</span>
+    <span class="n">year</span> <span class="o">=</span> <span class="p">{</span><span class="mi">2013</span><span class="p">},</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="preprocessors/custom_preprocessors.html" class="btn btn-neutral float-left" title="Custom preprocessors" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="CONTRIBUTING.html" class="btn btn-neutral float-right" title="Contributing" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p></p>
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

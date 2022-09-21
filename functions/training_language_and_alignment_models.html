@@ -72,8 +72,20 @@
 <li class="toctree-l1"><a class="reference internal" href="../filters/sentence_embedding_filters.html">Sentence embedding filters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../filters/custom_filters.html">Custom filters</a></li>
 </ul>
+<p class="caption" role="heading"><span class="caption-text">Available preprocessors</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../preprocessors/tokenizer.html">Tokenizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../preprocessors/detokenizer.html">Detokenizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../preprocessors/whitespaceNormalizer.html">WhitespaceNormalizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../preprocessors/reg_exp_sub.html">RegExpSub</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../preprocessors/monolingual_sentence_splitter.html">MonolingualSentenceSplitter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../preprocessors/bpe_segmentation.html">BPESegmentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../preprocessors/morfessor_segmentation.html">MorfessorSegmentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../preprocessors/custom_preprocessors.html">Custom preprocessors</a></li>
+</ul>
 <p class="caption" role="heading"><span class="caption-text">Other information</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">Citing and references</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../CONTRIBUTING.html">Contributing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../CHANGELOG.html">Changelog</a></li>
 </ul>
@@ -106,7 +118,7 @@
 <section id="train-ngram">
 <h2>train_ngram<a class="headerlink" href="#train-ngram" title="Permalink to this headline"></a></h2>
 <p>Train a character-based varigram language model with VariKN
-<span id="id1">[]</span>. Can be used for
+<span id="id1">[<a class="reference internal" href="../references.html#cite-siivola-etal-2007-growing" title="Vesa Siivola, Teemu Hirsimäki, and Sami Virpioja. On growing and pruning Kneser-Ney smoothed n-gram models. IEEE Transactions on Audio, Speech and Language Processing, 15(5):1617–1624, 2007. URL: https://doi.org/10.1109/TASL.2007.896666.">Siivola <em>et al.</em>, 2007</a>]</span>. Can be used for
 <a class="reference internal" href="../filters/language_model_filters.html#crossentropyfilter"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">CrossEntropyFilter</span></code></span></a> and
 <a class="reference internal" href="../filters/language_model_filters.html#crossentropydifferencefilter"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">CrossEntropyDifferenceFilter</span></code></span></a>.</p>
 <p>Parameters:</p>
@@ -145,8 +157,8 @@ are no segmentation (<code class="docutils literal notranslate"><span class="pre
 (<code class="docutils literal notranslate"><span class="pre">type:</span> <span class="pre">morfessor</span></code>) segmentations. For the latter two, a file for a
 trained segmentation model needs to be defined using the key <code class="docutils literal notranslate"><span class="pre">model</span></code>.
 Additional parameters in the dictionary are passed as options for the
-specified model; see <span class="xref myst"><code class="docutils literal notranslate"><span class="pre">BPESegmentation</span></code></span> and
-<span class="xref myst"><code class="docutils literal notranslate"><span class="pre">MorfessorSegmentation</span></code></span> for those. The BPE
+specified model; see <a class="reference internal" href="../preprocessors/bpe_segmentation.html#bpesegmentation"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">BPESegmentation</span></code></span></a> and
+<a class="reference internal" href="../preprocessors/morfessor_segmentation.html#morfessorsegmentation"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">MorfessorSegmentation</span></code></span></a> for those. The BPE
 and Morfessor models can be trained using the <a class="reference internal" href="#train-bpe"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">train_bpe</span></code></span></a>
 and <a class="reference internal" href="#train-morfessor"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">train_morfessor</span></code></span></a> commands.</p>
 <p>The default boundary settings (a separate word boundary tag) are
@@ -163,7 +175,7 @@ details.</p>
 </section>
 <section id="train-aligment">
 <h2>train_aligment<a class="headerlink" href="#train-aligment" title="Permalink to this headline"></a></h2>
-<p>Train word alignment priors for eflomal <span id="id2">[]</span>.
+<p>Train word alignment priors for eflomal <span id="id2">[<a class="reference internal" href="../references.html#cite-ostling-tiedemann-2016-efficient" title="Robert Östling and Jörg Tiedemann. Efficient word alignment with Markov Chain Monte Carlo. Prague Bulletin of Mathematical Linguistics, 106:125–146, October 2016. URL: http://ufal.mff.cuni.cz/pbml/106/art-ostling-tiedemann.pdf.">Östling and Tiedemann, 2016</a>]</span>.
 Can be used in <a class="reference internal" href="../filters/alignment_model_filters.html#wordalignfilter"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">WordAlignFilter</span></code></span></a>.</p>
 <p>Parameters:</p>
 <ul class="simple">
@@ -203,7 +215,7 @@ very large, so use large input corpora with caution.</p>
 </section>
 <section id="train-bpe">
 <h2>train_bpe<a class="headerlink" href="#train-bpe" title="Permalink to this headline"></a></h2>
-<p>Train subword segmentation model with BPE <span id="id3">[]</span>.</p>
+<p>Train subword segmentation model with BPE <span id="id3">[<a class="reference internal" href="../references.html#cite-sennrich-etal-2016-neural" title="Rico Sennrich, Barry Haddow, and Alexandra Birch. Neural machine translation of rare words with subword units. In Proceedings of the 54th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers), 1715–1725. Berlin, Germany, August 2016. Association for Computational Linguistics. URL: https://aclanthology.org/P16-1162, doi:10.18653/v1/P16-1162.">Sennrich <em>et al.</em>, 2016</a>]</span>.</p>
 <p>Parameters:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">input</span></code>: input file name for training data</p></li>
@@ -213,11 +225,11 @@ very large, so use large input corpora with caution.</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">num_workers</span></code>: number of processors to process texts; if -1, set <code class="docutils literal notranslate"><span class="pre">multiprocessing.cpu_count()</span></code> (optional; default 1)</p></li>
 </ul>
 <p>See <a class="reference external" href="https://github.com/rsennrich/subword-nmt">subword-nmt documentation</a> for details.
-The trained model can be used by the <span class="xref myst"><code class="docutils literal notranslate"><span class="pre">BPESegmentation</span></code></span> preprocessor.</p>
+The trained model can be used by the <a class="reference internal" href="../preprocessors/bpe_segmentation.html#bpesegmentation"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">BPESegmentation</span></code></span></a> preprocessor.</p>
 </section>
 <section id="train-morfessor">
 <h2>train_morfessor<a class="headerlink" href="#train-morfessor" title="Permalink to this headline"></a></h2>
-<p>Train subword segmentation model with Morfessor 2.0 <span id="id4">[]</span>.</p>
+<p>Train subword segmentation model with Morfessor 2.0 <span id="id4">[<a class="reference internal" href="../references.html#cite-virpioja-etal-2013-morfessor" title="Sami Virpioja, Peter Smit, Stig-Arne Grönroos, and Mikko Kurimo. Morfessor 2.0: python implementation and extensions for Morfessor Baseline. Report 25/2013 in Aalto University publication series SCIENCE + TECHNOLOGY, Department of Signal Processing and Acoustics, Aalto University, Helsinki, Finland, 2013.">Virpioja <em>et al.</em>, 2013</a>]</span>.</p>
 <p>Parameters:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">input</span></code>: input file name for training data</p></li>
@@ -231,7 +243,7 @@ The trained model can be used by the <span class="xref myst"><code class="docuti
 <li><p><code class="docutils literal notranslate"><span class="pre">nosplit_re</span></code>: if the regular expression matches the two surrounding characters, do not allow splitting (optional; default <code class="docutils literal notranslate"><span class="pre">null</span></code>)</p></li>
 </ul>
 <p>See <a class="reference external" href="https://morfessor.readthedocs.io/en/latest/">Morfessor 2.0 documentation</a> for details.
-The trained model can be used by the <span class="xref myst"><code class="docutils literal notranslate"><span class="pre">MorfessorSegmentation</span></code></span> preprocessor.</p>
+The trained model can be used by the <a class="reference internal" href="../preprocessors/morfessor_segmentation.html#morfessorsegmentation"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">MorfessorSegmentation</span></code></span></a> preprocessor.</p>
 </section>
 </section>
 

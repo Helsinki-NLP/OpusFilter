@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Preprocessing text &mdash; OpusFilter latest documentation</title>
+  <title>WhitespaceNormalizer &mdash; OpusFilter latest documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -18,8 +18,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Filtering and scoring" href="filtering_and_scoring.html" />
-    <link rel="prev" title="Downloading and selecting data" href="downloading_and_selecting_data.html" /> 
+    <link rel="next" title="RegExpSub" href="reg_exp_sub.html" />
+    <link rel="prev" title="Detokenizer" href="detokenizer.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -47,16 +47,13 @@
 <li class="toctree-l1"><a class="reference internal" href="../command_line_tools.html">Other command line tools</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Available functions</span></p>
-<ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="downloading_and_selecting_data.html">Downloading and selecting data</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Preprocessing text</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#preprocess">preprocess</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="filtering_and_scoring.html">Filtering and scoring</a></li>
-<li class="toctree-l1"><a class="reference internal" href="using_score_files.html">Using score files</a></li>
-<li class="toctree-l1"><a class="reference internal" href="training_language_and_alignment_models.html">Training language and alignment models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="training_and_using_classifiers.html">Training and using classifiers</a></li>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../functions/downloading_and_selecting_data.html">Downloading and selecting data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../functions/preprocessing_text.html">Preprocessing text</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../functions/filtering_and_scoring.html">Filtering and scoring</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../functions/using_score_files.html">Using score files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../functions/training_language_and_alignment_models.html">Training language and alignment models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../functions/training_and_using_classifiers.html">Training and using classifiers</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Available filters</span></p>
 <ul>
@@ -69,15 +66,15 @@
 <li class="toctree-l1"><a class="reference internal" href="../filters/custom_filters.html">Custom filters</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Available preprocessors</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../preprocessors/tokenizer.html">Tokenizer</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../preprocessors/detokenizer.html">Detokenizer</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../preprocessors/whitespaceNormalizer.html">WhitespaceNormalizer</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../preprocessors/reg_exp_sub.html">RegExpSub</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../preprocessors/monolingual_sentence_splitter.html">MonolingualSentenceSplitter</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../preprocessors/bpe_segmentation.html">BPESegmentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../preprocessors/morfessor_segmentation.html">MorfessorSegmentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../preprocessors/custom_preprocessors.html">Custom preprocessors</a></li>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="tokenizer.html">Tokenizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="detokenizer.html">Detokenizer</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">WhitespaceNormalizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reg_exp_sub.html">RegExpSub</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monolingual_sentence_splitter.html">MonolingualSentenceSplitter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bpe_segmentation.html">BPESegmentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="morfessor_segmentation.html">MorfessorSegmentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="custom_preprocessors.html">Custom preprocessors</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Other information</span></p>
 <ul>
@@ -100,7 +97,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>Preprocessing text</li>
+      <li>WhitespaceNormalizer</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -109,36 +106,21 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="preprocessing-text">
-<h1>Preprocessing text<a class="headerlink" href="#preprocessing-text" title="Permalink to this headline"></a></h1>
-<section id="preprocess">
-<h2>preprocess<a class="headerlink" href="#preprocess" title="Permalink to this headline"></a></h2>
-<p>Preprocess text with a combination of preprocessors.</p>
-<p>Parameters:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">inputs</span></code>: input files for segments to preprocess</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">outputs</span></code>: output files for preprocessed segments</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">n_jobs</span></code>: number of sub processes to parallel run jobs. If not set, the default value is <code class="docutils literal notranslate"><span class="pre">default_n_jobs</span></code> in <code class="docutils literal notranslate"><span class="pre">common</span></code> section.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">preprocessors</span></code>: a list of preprocessors to apply; see below</p></li>
-</ul>
-<p>The preprocessors parameter is a list of dictionaries, each
-representing one preprocessor. The top level should typically include
-a single key that defines the class name for the preprocessor
-(e.g. <code class="docutils literal notranslate"><span class="pre">WhitespaceNormalizer</span></code>). Additionally it can include a special
-key <code class="docutils literal notranslate"><span class="pre">module</span></code> for defining module name for
-<a class="reference internal" href="../preprocessors/custom_preprocessors.html"><span class="doc std std-doc">custom preprocessors</span></a>.</p>
-<p>Under the class name there is a dictionary the defines the parameters
-of the preprocessors. The are mostly specific to the preprocessor
-class; see <a class="reference internal" href="../index.html#preprocessors"><span class="std std-ref">Available preprocessors</span></a> for ready-made preprocessors.</p>
-</section>
+  <section id="whitespacenormalizer">
+<h1>WhitespaceNormalizer<a class="headerlink" href="#whitespacenormalizer" title="Permalink to this headline"></a></h1>
+<p>Normalizes whitespace characters.</p>
+<p>The whitespace normalization consists of two steps: First, any
+sequence of one or more unicode whitespace characters (as matched by
+<code class="docutils literal notranslate"><span class="pre">\s</span></code> in the <code class="docutils literal notranslate"><span class="pre">re</span></code> standard library) are replaced by a single space
+character. Second, any leading and trailing whitespace is removed.</p>
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="downloading_and_selecting_data.html" class="btn btn-neutral float-left" title="Downloading and selecting data" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="filtering_and_scoring.html" class="btn btn-neutral float-right" title="Filtering and scoring" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="detokenizer.html" class="btn btn-neutral float-left" title="Detokenizer" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="reg_exp_sub.html" class="btn btn-neutral float-right" title="RegExpSub" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
