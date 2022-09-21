@@ -23,7 +23,7 @@ Install from source:
 
 ## Manual
 
-The OpusFilter manual is available from [xyz](https://github.com/).
+The OpusFilter manual is available from [helsinki-nlp.github.io/OpusFilter](https://helsinki-nlp.github.io/OpusFilter/).
 
 You can also build it from source:
 
