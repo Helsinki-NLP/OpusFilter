@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   existing space characters in input
 - parallel processing options for filter, score, and preprocess steps
 
+### Changed
+
+- re-organize documentation and support building it with sphinx
+
 ### Fixed
 
 - catch TypeError exceptions from BeautifulSoup in HtmlTagFilter
