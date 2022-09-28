@@ -30,7 +30,7 @@ OpusFilter has been presented in `ACL 2020 system demonstrations <https://www.ac
    :maxdepth: 1
 
    installation.md
-   overview.md
+   usage.md
    command_line_tools.md
 
 .. toctree::

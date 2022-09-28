@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Changelog &mdash; OpusFilter 0.1.dev1+g542fcde documentation</title>
+  <title>Changelog &mdash; OpusFilter 2.5.0 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -16,6 +16,7 @@
         <script src="_static/underscore.js"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -30,7 +31,7 @@
             <a href="index.html" class="icon icon-home"> OpusFilter
           </a>
               <div class="version">
-                0.1
+                2.5
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -43,8 +44,7 @@
               <p class="caption" role="heading"><span class="caption-text">Get started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
-<li class="toctree-l1"><a class="reference internal" href="command_line_tools.html">Other command line tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="command_line_tools.html">Additional command line tools</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Available functions</span></p>
 <ul>
@@ -81,55 +81,57 @@
 <li class="toctree-l1"><a class="reference internal" href="references.html">Citing and references</a></li>
 <li class="toctree-l1"><a class="reference internal" href="CONTRIBUTING.html">Contributing</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Changelog</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#unreleased">Unreleased</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#unreleased">Unreleased</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id1">2.5.0 - 2022-09-28</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#added">Added</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#changed">Changed</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#fixed">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#id1">2.4.0 - 2022-04-05</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id2">Added</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#changed">Changed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id2">2.4.0 - 2022-04-05</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id3">Added</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id4">Changed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#id3">2.3.1 - 2022-01-28</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id4">Fixed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id5">2.3.1 - 2022-01-28</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id6">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#id5">2.3.0 - 2022-01-18</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id6">Added</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id7">Changed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id7">2.3.0 - 2022-01-18</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id8">Added</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id9">Changed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#id8">2.2.0 - 2021-11-23</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id9">Added</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id10">2.2.0 - 2021-11-23</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id11">Added</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#id10">2.1.2 - 2021-11-11</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id11">Fixed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id12">2.1.2 - 2021-11-11</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id13">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#id12">2.1.1 - 2021-10-19</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id13">Changed</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id14">Fixed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id14">2.1.1 - 2021-10-19</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id15">Changed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id16">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#id15">2.1.0 - 2021-08-31</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id16">Changed</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id17">Added</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id17">2.1.0 - 2021-08-31</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id18">Changed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id19">Added</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#id18">2.0.0 - 2021-06-01</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id19">Changed</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id20">Added</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id21">Fixed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id20">2.0.0 - 2021-06-01</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id21">Changed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id22">Added</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id23">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#id22">1.0.1 - 2020-05-25</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id23">Added</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id24">Fixed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id24">1.0.1 - 2020-05-25</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id25">Added</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id26">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#id25">1.0.0 - 2020-04-10</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id27">1.0.0 - 2020-04-10</a></li>
 </ul>
 </li>
 </ul>
@@ -163,13 +165,22 @@
 <p>The format is based on <a class="reference external" href="https://keepachangelog.com/en/1.0.0/">Keep a Changelog</a>,
 and this project adheres to <a class="reference external" href="https://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
 <section id="unreleased">
-<h2><a class="reference external" href="https://github.com/Helsinki-NLP/OpusFilter/compare/2.4.0...develop">Unreleased</a><a class="headerlink" href="#unreleased" title="Permalink to this heading"></a></h2>
+<h2><a class="reference external" href="https://github.com/Helsinki-NLP/OpusFilter/compare/2.5.0...develop">Unreleased</a><a class="headerlink" href="#unreleased" title="Permalink to this heading"></a></h2>
+</section>
+<section id="id1">
+<h2><a class="reference external" href="https://github.com/Helsinki-NLP/OpusFilter/compare/2.4.0...2.5.0">2.5.0</a> - 2022-09-28<a class="headerlink" href="#id1" title="Permalink to this heading"></a></h2>
 <section id="added">
 <h3>Added<a class="headerlink" href="#added" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">map_space_to</span></code> option for Jieba and MeCab tokenizers to preserve
 existing space characters in input</p></li>
 <li><p>parallel processing options for filter, score, and preprocess steps</p></li>
+</ul>
+</section>
+<section id="changed">
+<h3>Changed<a class="headerlink" href="#changed" title="Permalink to this heading"></a></h3>
+<ul class="simple">
+<li><p>re-organize documentation and support building it with sphinx</p></li>
 </ul>
 </section>
 <section id="fixed">
@@ -179,10 +190,10 @@ existing space characters in input</p></li>
 </ul>
 </section>
 </section>
-<section id="id1">
-<h2><a class="reference external" href="https://github.com/Helsinki-NLP/OpusFilter/compare/2.3.1...2.4.0">2.4.0</a> - 2022-04-05<a class="headerlink" href="#id1" title="Permalink to this heading"></a></h2>
 <section id="id2">
-<h3>Added<a class="headerlink" href="#id2" title="Permalink to this heading"></a></h3>
+<h2><a class="reference external" href="https://github.com/Helsinki-NLP/OpusFilter/compare/2.3.1...2.4.0">2.4.0</a> - 2022-04-05<a class="headerlink" href="#id2" title="Permalink to this heading"></a></h2>
+<section id="id3">
+<h3>Added<a class="headerlink" href="#id3" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>an option to write filter scores to a file with <code class="docutils literal notranslate"><span class="pre">opusfilter-test</span></code></p></li>
 <li><p>new filters: <code class="docutils literal notranslate"><span class="pre">AlphabetRatioFilter</span></code>, <code class="docutils literal notranslate"><span class="pre">RegExpFilter</span></code>, <code class="docutils literal notranslate"><span class="pre">SimilarityFilter</span></code>, <code class="docutils literal notranslate"><span class="pre">SentenceEmbeddingFilter</span></code></p></li>
@@ -191,27 +202,27 @@ existing space characters in input</p></li>
 <li><p>subword segmentation support for the n-gram language models and language model filters</p></li>
 </ul>
 </section>
-<section id="changed">
-<h3>Changed<a class="headerlink" href="#changed" title="Permalink to this heading"></a></h3>
+<section id="id4">
+<h3>Changed<a class="headerlink" href="#id4" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>allow per-language parameters for LengthFilter, LengthRatioFilter, LongWordFilter, and AverageWordLengthFilter</p></li>
 <li><p>fix documentation for <code class="docutils literal notranslate"><span class="pre">train_aligment</span></code> parameters</p></li>
 </ul>
 </section>
 </section>
-<section id="id3">
-<h2><a class="reference external" href="https://github.com/Helsinki-NLP/OpusFilter/compare/2.3.0...2.3.1">2.3.1</a> - 2022-01-28<a class="headerlink" href="#id3" title="Permalink to this heading"></a></h2>
-<section id="id4">
-<h3>Fixed<a class="headerlink" href="#id4" title="Permalink to this heading"></a></h3>
+<section id="id5">
+<h2><a class="reference external" href="https://github.com/Helsinki-NLP/OpusFilter/compare/2.3.0...2.3.1">2.3.1</a> - 2022-01-28<a class="headerlink" href="#id5" title="Permalink to this heading"></a></h2>
+<section id="id6">
+<h3>Fixed<a class="headerlink" href="#id6" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>fix bug in classifier training without development set</p></li>
 </ul>
 </section>
 </section>
-<section id="id5">
-<h2><a class="reference external" href="https://github.com/Helsinki-NLP/OpusFilter/compare/2.2.0...2.3.0">2.3.0</a> - 2022-01-18<a class="headerlink" href="#id5" title="Permalink to this heading"></a></h2>
-<section id="id6">
-<h3>Added<a class="headerlink" href="#id6" title="Permalink to this heading"></a></h3>
+<section id="id7">
+<h2><a class="reference external" href="https://github.com/Helsinki-NLP/OpusFilter/compare/2.2.0...2.3.0">2.3.0</a> - 2022-01-18<a class="headerlink" href="#id7" title="Permalink to this heading"></a></h2>
+<section id="id8">
+<h3>Added<a class="headerlink" href="#id8" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>new OpusFilterRuntimeError exception for having e.g. empty training data</p></li>
 <li><p>option to save scores from the training data when creating word aligment priors</p></li>
@@ -222,8 +233,8 @@ existing space characters in input</p></li>
 <li><p>LMClassifierFilter for classification based on n-gram language models</p></li>
 </ul>
 </section>
-<section id="id7">
-<h3>Changed<a class="headerlink" href="#id7" title="Permalink to this heading"></a></h3>
+<section id="id9">
+<h3>Changed<a class="headerlink" href="#id9" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>add <code class="docutils literal notranslate"><span class="pre">workdir</span></code> attribute to the <code class="docutils literal notranslate"><span class="pre">FilterABC</span></code> base class and change
 that the filters should use it for any file parameters</p></li>
@@ -232,50 +243,50 @@ that the filters should use it for any file parameters</p></li>
 </ul>
 </section>
 </section>
-<section id="id8">
-<h2><a class="reference external" href="https://github.com/Helsinki-NLP/OpusFilter/compare/2.1.2...2.2.0">2.2.0</a> - 2021-11-23<a class="headerlink" href="#id8" title="Permalink to this heading"></a></h2>
-<section id="id9">
-<h3>Added<a class="headerlink" href="#id9" title="Permalink to this heading"></a></h3>
+<section id="id10">
+<h2><a class="reference external" href="https://github.com/Helsinki-NLP/OpusFilter/compare/2.1.2...2.2.0">2.2.0</a> - 2021-11-23<a class="headerlink" href="#id10" title="Permalink to this heading"></a></h2>
+<section id="id11">
+<h3>Added<a class="headerlink" href="#id11" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>support for Chinese word segmentation using <code class="docutils literal notranslate"><span class="pre">jieba</span></code> as a tokenizer (https://github.com/Helsinki-NLP/OpusFilter/pull/27)</p></li>
 </ul>
 </section>
 </section>
-<section id="id10">
-<h2><a class="reference external" href="https://github.com/Helsinki-NLP/OpusFilter/compare/2.1.1...2.1.2">2.1.2</a> - 2021-11-11<a class="headerlink" href="#id10" title="Permalink to this heading"></a></h2>
-<section id="id11">
-<h3>Fixed<a class="headerlink" href="#id11" title="Permalink to this heading"></a></h3>
+<section id="id12">
+<h2><a class="reference external" href="https://github.com/Helsinki-NLP/OpusFilter/compare/2.1.1...2.1.2">2.1.2</a> - 2021-11-11<a class="headerlink" href="#id12" title="Permalink to this heading"></a></h2>
+<section id="id13">
+<h3>Fixed<a class="headerlink" href="#id13" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>fix wrong keyword argument name in opusfilter-duplicates</p></li>
 </ul>
 </section>
 </section>
-<section id="id12">
-<h2><a class="reference external" href="https://github.com/Helsinki-NLP/OpusFilter/compare/2.1.0...2.1.1">2.1.1</a> - 2021-10-19<a class="headerlink" href="#id12" title="Permalink to this heading"></a></h2>
-<section id="id13">
-<h3>Changed<a class="headerlink" href="#id13" title="Permalink to this heading"></a></h3>
+<section id="id14">
+<h2><a class="reference external" href="https://github.com/Helsinki-NLP/OpusFilter/compare/2.1.0...2.1.1">2.1.1</a> - 2021-10-19<a class="headerlink" href="#id14" title="Permalink to this heading"></a></h2>
+<section id="id15">
+<h3>Changed<a class="headerlink" href="#id15" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>move “How to contribute” to docs/CONTRIBUTING.md</p></li>
 </ul>
 </section>
-<section id="id14">
-<h3>Fixed<a class="headerlink" href="#id14" title="Permalink to this heading"></a></h3>
+<section id="id16">
+<h3>Fixed<a class="headerlink" href="#id16" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>fix setuptools requirement (https://github.com/Helsinki-NLP/OpusFilter/issues/21)</p></li>
 <li><p>fix version requirement for pandas (&gt;=1.0.0)</p></li>
 </ul>
 </section>
 </section>
-<section id="id15">
-<h2><a class="reference external" href="https://github.com/Helsinki-NLP/OpusFilter/compare/2.0.0...2.1.0">2.1.0</a> - 2021-08-31<a class="headerlink" href="#id15" title="Permalink to this heading"></a></h2>
-<section id="id16">
-<h3>Changed<a class="headerlink" href="#id16" title="Permalink to this heading"></a></h3>
+<section id="id17">
+<h2><a class="reference external" href="https://github.com/Helsinki-NLP/OpusFilter/compare/2.0.0...2.1.0">2.1.0</a> - 2021-08-31<a class="headerlink" href="#id17" title="Permalink to this heading"></a></h2>
+<section id="id18">
+<h3>Changed<a class="headerlink" href="#id18" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>replace PyYAML with ruamel.yaml</p></li>
 </ul>
 </section>
-<section id="id17">
-<h3>Added<a class="headerlink" href="#id17" title="Permalink to this heading"></a></h3>
+<section id="id19">
+<h3>Added<a class="headerlink" href="#id19" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>support for variables in the YAML configuration (https://github.com/Helsinki-NLP/OpusFilter/pull/13)</p></li>
 <li><p>support to <code class="docutils literal notranslate"><span class="pre">fasttext</span></code> based for language detection (https://github.com/Helsinki-NLP/OpusFilter/pull/20)</p></li>
@@ -287,17 +298,17 @@ that the filters should use it for any file parameters</p></li>
 </ul>
 </section>
 </section>
-<section id="id18">
-<h2><a class="reference external" href="https://github.com/Helsinki-NLP/OpusFilter/compare/1.0.1...2.0.0">2.0.0</a> - 2021-06-01<a class="headerlink" href="#id18" title="Permalink to this heading"></a></h2>
-<section id="id19">
-<h3>Changed<a class="headerlink" href="#id19" title="Permalink to this heading"></a></h3>
+<section id="id20">
+<h2><a class="reference external" href="https://github.com/Helsinki-NLP/OpusFilter/compare/1.0.1...2.0.0">2.0.0</a> - 2021-06-01<a class="headerlink" href="#id20" title="Permalink to this heading"></a></h2>
+<section id="id21">
+<h3>Changed<a class="headerlink" href="#id21" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>extend to n-lingual parallel data instead of just bilingual data</p></li>
 <li><p>switch tokenizer to <code class="docutils literal notranslate"><span class="pre">fast-mosestokenizer</span></code></p></li>
 </ul>
 </section>
-<section id="id20">
-<h3>Added<a class="headerlink" href="#id20" title="Permalink to this heading"></a></h3>
+<section id="id22">
+<h3>Added<a class="headerlink" href="#id22" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>new commands: <code class="docutils literal notranslate"><span class="pre">opusfilter-diagram</span></code>, <code class="docutils literal notranslate"><span class="pre">opusfilter-duplicates</span></code>, <code class="docutils literal notranslate"><span class="pre">opusfilter-test</span></code></p></li>
 <li><p>new filters: <code class="docutils literal notranslate"><span class="pre">LongestCommonSubstringFilter</span></code>, <code class="docutils literal notranslate"><span class="pre">AverageWordLengthFilter</span></code></p></li>
@@ -308,30 +319,30 @@ that the filters should use it for any file parameters</p></li>
 <li><p>github CI workflow for flake8 and unittests</p></li>
 </ul>
 </section>
-<section id="id21">
-<h3>Fixed<a class="headerlink" href="#id21" title="Permalink to this heading"></a></h3>
+<section id="id23">
+<h3>Fixed<a class="headerlink" href="#id23" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>behaviour of simple filters on empty segments</p></li>
 </ul>
 </section>
 </section>
-<section id="id22">
-<h2><a class="reference external" href="https://github.com/Helsinki-NLP/OpusFilter/compare/1.0.0...1.0.1">1.0.1</a> - 2020-05-25<a class="headerlink" href="#id22" title="Permalink to this heading"></a></h2>
-<section id="id23">
-<h3>Added<a class="headerlink" href="#id23" title="Permalink to this heading"></a></h3>
+<section id="id24">
+<h2><a class="reference external" href="https://github.com/Helsinki-NLP/OpusFilter/compare/1.0.0...1.0.1">1.0.1</a> - 2020-05-25<a class="headerlink" href="#id24" title="Permalink to this heading"></a></h2>
+<section id="id25">
+<h3>Added<a class="headerlink" href="#id25" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>improved logging, documentation, and project files</p></li>
 </ul>
 </section>
-<section id="id24">
-<h3>Fixed<a class="headerlink" href="#id24" title="Permalink to this heading"></a></h3>
+<section id="id26">
+<h3>Fixed<a class="headerlink" href="#id26" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>prevent <code class="docutils literal notranslate"><span class="pre">UnboundLocalError</span></code> for empty output after filter</p></li>
 </ul>
 </section>
 </section>
-<section id="id25">
-<h2><a class="reference external" href="https://github.com/Helsinki-NLP/OpusFilter/tree/1.0.0">1.0.0</a> - 2020-04-10<a class="headerlink" href="#id25" title="Permalink to this heading"></a></h2>
+<section id="id27">
+<h2><a class="reference external" href="https://github.com/Helsinki-NLP/OpusFilter/tree/1.0.0">1.0.0</a> - 2020-04-10<a class="headerlink" href="#id27" title="Permalink to this heading"></a></h2>
 <p>First tagged version.</p>
 </section>
 </section>

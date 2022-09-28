@@ -1,7 +1,7 @@
-# Other command line tools
+# Additional command line tools
 
-Apart from the main [`opusfilter`](overview.md) and
-[`opusfilter-cmd`](overview.md#running-a-single-command) scripts,
+Apart from the main [`opusfilter`](usage.md#opusfilter-script) and
+[`opusfilter-cmd`](usage.md#running-a-single-command) scripts,
 the package also provides some analysis tools.
 
 ## opusfilter-diagram
