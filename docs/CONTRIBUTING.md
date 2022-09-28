@@ -1,3 +1,5 @@
+# Contributing
+
 Questions, bug reports, and feature wishes are welcome in the GitHub
 issues page. We are also happy to consider pull requests. There are a
 few rules for pull requests:
