@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.5.1] - 2022-09-28
+
+### Fixed
+
+- add missing document file
+
 ## [2.5.0] - 2022-09-28
 
 ### Added
@@ -138,7 +144,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 First tagged version.
 
 
-[Unreleased]: https://github.com/Helsinki-NLP/OpusFilter/compare/2.5.0...develop
+[Unreleased]: https://github.com/Helsinki-NLP/OpusFilter/compare/2.5.1...develop
+[2.5.1]: https://github.com/Helsinki-NLP/OpusFilter/compare/2.5.0...2.5.1
 [2.5.0]: https://github.com/Helsinki-NLP/OpusFilter/compare/2.4.0...2.5.0
 [2.4.0]: https://github.com/Helsinki-NLP/OpusFilter/compare/2.3.1...2.4.0
 [2.3.1]: https://github.com/Helsinki-NLP/OpusFilter/compare/2.3.0...2.3.1
