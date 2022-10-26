@@ -94,8 +94,6 @@ class RegExpSub(PreprocessorABC):
             idx: self._compile_patterns(idx_patterns)
             for idx, idx_patterns in lang_patterns.items()
         }
-        for idx, idx_patterns in lang_patterns.items():
-            self.lang_patterns[idx] = self._compile_patterns(idx_patterns)
         super().__init__(**kwargs)
 
     @staticmethod
