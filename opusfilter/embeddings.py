@@ -117,10 +117,20 @@ class SentenceEmbeddingFilter(FilterABC):
                                          n_neighbors, nn_sums[idx1][idx2][pos], nn_sums[idx2][idx1][pos])
                    for idx1, idx2 in itertools.combinations(range(len(self.languages)), 2)]
 
+    def _score_chunk(self, chunk):
+        """Return scores for a chunk of data"""
+        return self._cosine_similarities(chunk) if self.nn_model is None else \
+            self._normalized_similarities(chunk)
+
     def score(self, pairs):
         for chunk in grouper(pairs, self.chunksize):
-            return self._cosine_similarities(chunk) if self.nn_model is None else \
-                self._normalized_similarities(chunk)
+            return self._score_chunk(chunk)
 
     def accept(self, score):
         return all(similarity >= self.threshold for similarity in score)
+
+    def filter(self, pairs):
+        for chunk in grouper(pairs, self.chunksize):
+            for pair, score in zip(pairs, self._score_chunk(chunk)):
+                if self.accept(score):
+                    yield pair

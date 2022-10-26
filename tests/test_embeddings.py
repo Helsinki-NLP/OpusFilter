@@ -63,6 +63,13 @@ class TestSentenceEmbeddingFilter(unittest.TestCase):
         for result, correct in zip(results, expected):
             self.assertEqual(result, correct)
 
+    def test_bilingual_filter(self):
+        testfilter = SentenceEmbeddingFilter(languages=self.bi_langs, threshold=0.4)
+        expected = [self.bi_inputs[0], self.bi_inputs[1]]
+        results = testfilter.filter(self.bi_inputs)
+        for result, correct in zip(results, expected):
+            self.assertEqual(result, correct)
+
     def test_bilingual_margin_ratios(self):
         nn_model = self._train_nn_model()
         with tempfile.NamedTemporaryFile('w+b') as model_file:
