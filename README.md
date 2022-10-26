@@ -23,6 +23,19 @@ Install from source:
 
 * `pip install .` or `python setup.py install`
 
+### Troubleshooting
+
+OpusFilter should generally work fine on Python 3.6, 3.7, and 3.8. In the case of troubles, try installing the exact versions in `requirements.txt`:
+
+* `pip install -r requirements.txt`
+
+Libraries that currently cause trouble:
+
+* `pyhash`
+  * `pyhash-0.9.3` requires `setuptools==58` or below
+* `fast-mosestokenizer`
+  * no PyPI packages for Python>=3.9
+
 ## Documentation
 
 The complete OpusFilter documentation is available from [helsinki-nlp.github.io/OpusFilter](https://helsinki-nlp.github.io/OpusFilter/).
