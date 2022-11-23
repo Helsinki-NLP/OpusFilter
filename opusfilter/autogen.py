@@ -29,9 +29,15 @@ class GenericFilterAdjuster:
     SINGLE_THRESHOLD_ARGUMENTS = ['threshold']
     MULTI_THRESHOLD_ARGUMENTS = ['threshold', 'thresholds']
     MIN_MAX_ARGUMENTS = [('min_length', 'max_length')]
+    ALL_THRESHOLD_ARGUMENTS = SINGLE_THRESHOLD_ARGUMENTS + MULTI_THRESHOLD_ARGUMENTS + MIN_MAX_ARGUMENTS
 
     def __init__(self, filterclass):
-        self.filterclass = filterclass
+        if isinstance(filterclass, str):
+            self.filter_name = filterclass
+            self.filter_cls = getattr(filtermodule, self.filter_name)
+        else:
+            self.filter_name = filterclass.__name__
+            self.filter_cls = filterclass
         self.default_parameters = self.get_default_parameters()
 
     def get_default_parameters(self):
@@ -41,10 +47,9 @@ class GenericFilterAdjuster:
         values are ignored and will cause a failure.
 
         """
-        filter_cls = getattr(filtermodule, self.filterclass)
         default_parameters = {}
-        sig = inspect.signature(filter_cls)
-        logger.info("signature: %s%s", self.filterclass, sig)
+        sig = inspect.signature(self.filter_cls)
+        logger.info("signature: %s%s", self.filter_name, sig)
         for key, parameter in sig.parameters.items():
             if parameter.default == inspect._empty:
                 if key != 'kwargs':
@@ -70,6 +75,16 @@ class GenericFilterAdjuster:
                     return candidate
         return None
 
+    def is_adjustable(self):
+        """Return whether the current filter has parameters to adjust"""
+        if self.filter_cls.score_direction in {CLEAN_TRUE, CLEAN_FALSE}:
+            # Nothing to estimate for boolean
+            return False
+        if self._locate_arguments(self.ALL_THRESHOLD_ARGUMENTS, self.default_parameters):
+            # Known threshold parameters to adjust
+            return True
+        return False
+
     def get_adjusted_parameters(self, data, excluded_percentile=0.01):
         """Estimate parameters for the filter using data
 
@@ -86,13 +101,11 @@ class GenericFilterAdjuster:
         # if the condition for accepting the value is being greater
         # than the threshold.
         parameters = copy.deepcopy(self.default_parameters)
-        filter_cls = getattr(filtermodule, self.filterclass)
-        score_dir = filter_cls.score_direction
-        logger.info("score type for %s: %s", self.filterclass, score_dir)
-        if score_dir in {CLEAN_TRUE, CLEAN_FALSE}:
-            # Nothing to estimate
+        if not self.is_adjustable():
             return parameters
-        filter_config = {self.filterclass: self.default_parameters}
+        score_dir = self.filter_cls.score_direction
+        logger.info("score type for %s: %s", self.filter_name, score_dir)
+        filter_config = {self.filter_name: self.default_parameters}
         filter_pipe = pipeline.FilterPipeline.from_config([filter_config])
         df = self.get_score_df(filter_pipe, data)
         if score_dir == CLEAN_LOW:
