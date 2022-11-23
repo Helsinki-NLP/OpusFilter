@@ -29,8 +29,8 @@ logging.getLogger('mosestokenizer.tokenizer.MosesTokenizer').setLevel(logging.WA
 parser = argparse.ArgumentParser(prog='opusfilter-autogen',
     description='Generate initial configuration based on parallel text data')
 
-parser.add_argument('files', nargs='+', metavar='FILE', help='parallel text input file(s)')
-parser.add_argument('-o', '--output', type=argparse.FileType('w'), default='-', metavar='FILE',
+parser.add_argument('files', nargs='+', metavar='TEXTFILE', help='parallel text input file(s)')
+parser.add_argument('-o', '--output', type=argparse.FileType('w'), default='-', metavar='CONFIGFILE',
                     help='output configuration file')
 
 args = parser.parse_args()
