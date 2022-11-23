@@ -12,8 +12,8 @@ Install from source:
 
 Note that all required libraries are not available to install via PyPI
 on Windows OS.  On Linux, it should work directly for Python versions
-from 3.6 to 3.8, but with Python 3.9 the `fast-mosestokenizer` library
-currently requires a manual install.
+from 3.6 to 3.8, but with Python 3.9 or above the
+`fast-mosestokenizer` library requires a manual install.
 
 ## Required libraries
 
@@ -41,6 +41,8 @@ See `setup.py` for possible version requirements.
 
 ## Optional libraries and tools
 
+### Jieba and MeCab word segmentation
+
 For Chinese tokenization (word segmentation), you can use the
 [jieba](https://github.com/fxsjy/jieba) library. It can be installed
 automatically with pip by including the extras `[jieba]` or `[all]`
@@ -51,6 +53,8 @@ For Japanese tokenization (word segmentation), you can use the
 automatically with pip by including the extras `[mecab]` or `[all]`
 (e.g. `pip install opusfilter[all]`).
 
+### LASER sentence embeddings
+
 For using sentence embeddings filters, you need to install
 `laserembeddings` (https://github.com/yannvgn/laserembeddings). It can
 be installed automatically with pip by including the extras `[laser]`
@@ -58,10 +62,22 @@ or `[all]` (e.g. `pip install opusfilter[all]`). The package will also
 require a number of additional libraries, including PyTorch, jieba,
 and MeCab.
 
+### VariKN n-gram models
+
 For using n-gram language model filters, you need to install VariKN
-(https://github.com/vsiivola/variKN) and its Python wrapper. Include
-the library files compiled to `build/lib/python` to your Python
-library path (e.g. by setting the `PYTHONPATH` environment variable).
+(https://github.com/vsiivola/variKN) and its Python wrapper. The
+wrapper is included in the default build:
+```sh
+mkdir build
+cd build
+cmake .. -DCMAKE_BUILD_TYPE=Release
+cmake --build .
+```
+After building, include the library files compiled to
+`build/lib/python` to your Python library path (e.g. by setting the
+`PYTHONPATH` environment variable).
+
+### Eflomal word alignment
 
 For using word alignment filters, you need to install elfomal
 (https://github.com/robertostling/eflomal) and set environment
