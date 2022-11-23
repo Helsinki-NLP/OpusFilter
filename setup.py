@@ -4,6 +4,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 install_requires = [
+    "setuptools<=58.0.0",  # for pyhash
     "opustools",
     "beautifulsoup4",
     "fasttext",
