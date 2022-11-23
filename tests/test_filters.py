@@ -77,6 +77,17 @@ class TestLongWordFilter(unittest.TestCase):
             self.assertSequenceEqual(result, correct)
 
 
+class TestAverageWordLengthFilter(unittest.TestCase):
+
+    def test_bilingual(self):
+        testfilter = AverageWordLengthFilter(1.2, 4)
+        cases = [['aa bb bb', 'c d'], ['aa bb', 'c dd e ff'], ['a bbb aa', 'cc ddddddddddd ee'], ['', '']]
+        expected = [([2.0, 1.0], False), ([2.0, 1.5], True), ([2.0, 5.0], False), ([0.0, 0.0], False)]
+        results = [(x, testfilter.accept(x)) for x in testfilter.score(cases)]
+        for result, correct in zip(results, expected):
+            self.assertSequenceEqual(result, correct)
+
+
 class TestHtmlTagFilter(unittest.TestCase):
 
     def test_bilingual(self):

@@ -111,7 +111,7 @@ class AverageWordLengthFilter(FilterABC):
 
     def __init__(self, min_length=2, max_length=20, pass_empty=False, **kwargs):
         min_length, max_length = check_args_compability(
-            min_length, max_length, required_types=[int, int], names=['min_length', 'max_length'])
+            min_length, max_length, required_types=[(int, float), (int, float)], names=['min_length', 'max_length'])
         self.min_length = min_length
         self.max_length = max_length
         self.pass_empty = pass_empty
