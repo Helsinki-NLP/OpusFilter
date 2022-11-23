@@ -8,7 +8,6 @@ import logging
 import lzma
 import os
 
-import requests
 from tqdm import tqdm
 import ruamel.yaml
 
@@ -125,6 +124,7 @@ def is_file_empty(filename):
 
 def file_download(url, localfile=None, chunk_size=None):
     """Download file from URL to a local file"""
+    import requests
     if localfile is None:
         localfile = url.split('/')[-1]
     if chunk_size is None:

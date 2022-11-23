@@ -7,10 +7,6 @@ import math
 import os
 import random
 
-import morfessor
-from subword_nmt.apply_bpe import BPE
-from subword_nmt.learn_bpe import learn_bpe
-
 from . import ConfigurationError, PreprocessorABC
 from .util import file_open
 
@@ -57,6 +53,7 @@ class BPESegmentation(DummySegmentation):
 
     def __init__(self, model, merges=-1, separator='@@', vocab=None, glossaries=None, dropout=0, **kwargs):
         super().__init__(**kwargs)
+        from subword_nmt.apply_bpe import BPE
         try:
             modelfile = os.path.join(self.workdir, model)
         except TypeError as err:
@@ -74,6 +71,7 @@ class BPESegmentation(DummySegmentation):
     @staticmethod
     def train(datafilename, modelfilename, symbols=10000, min_frequency=2, num_workers=1):
         """Train BPE"""
+        from subword_nmt.learn_bpe import learn_bpe
         with file_open(datafilename) as infile, file_open(modelfilename, 'w') as outfile:
             learn_bpe(infile, outfile, symbols, min_frequency=min_frequency, verbose=False, is_dict=False,
                       total_symbols=False, num_workers=num_workers)
@@ -108,7 +106,8 @@ class MorfessorSegmentation(DummySegmentation):
 
     def __init__(self, model, separator='@@ ', lowercase=False, viterbi_max_len=30, viterbi_smoothing=0, **kwargs):
         super().__init__(**kwargs)
-        self.morfessor_io = morfessor.io.MorfessorIO(
+        from morfessor.io import MorfessorIO
+        self.morfessor_io = MorfessorIO(
             encoding='utf-8', construction_separator=separator, comment_start='#', compound_separator=r'\s+',
             atom_separator=None, lowercase=lowercase)
         try:
@@ -125,6 +124,7 @@ class MorfessorSegmentation(DummySegmentation):
     def train(cls, datafilename, modelfilename, lowercase=False, min_frequency=1, dampening='log',
               seed=None, use_skips=True, **kwargs):
         """Train Morfessor"""
+        import morfessor
         if seed is not None:
             random.seed(seed)
         if not dampening or dampening == 'none':

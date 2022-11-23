@@ -6,8 +6,6 @@ import logging
 import os
 import pickle
 
-from scipy.spatial.distance import cosine
-from sklearn.neighbors import NearestNeighbors
 from tqdm import tqdm
 
 from . import FilterABC, ConfigurationError
@@ -17,17 +15,16 @@ from .util import file_open, grouper
 logger = logging.getLogger(__name__)
 
 
-try:
-    from laserembeddings import Laser
-except ImportError:
-    logger.warning("Could not load laserembeddings, LASER filtering not supported")
-
-
 class ParallelNearestNeighbors:
     """Wrapper for sklearn.neighbors.NearestNeighbors"""
 
     def __init__(self, input_files, languages, embedding_model=None, n_neighbors=4,
                  algorithm='brute', metric='cosine'):
+        try:
+            from laserembeddings import Laser
+        except ImportError:
+            logger.warning("Could not load laserembeddings, LASER filtering not supported")
+            raise
         if len(input_files) != len(languages):
             raise ConfigurationError(
                 f"The number of input files does not match to the number of languages: {input_files} {languages}")
@@ -40,6 +37,7 @@ class ParallelNearestNeighbors:
 
     def fit_neighborhoods(self, input_files):
         """Fit the neighborhood model"""
+        from sklearn.neighbors import NearestNeighbors
         models = {}
         for language, fname in zip(self.languages, input_files):
             logger.info("Training neighbor model for %s", language)
@@ -70,6 +68,11 @@ class SentenceEmbeddingFilter(FilterABC):
     """
 
     def __init__(self, languages=None, threshold=0.5, nn_model=None, chunksize=200, **kwargs):
+        try:
+            from laserembeddings import Laser
+        except ImportError:
+            logger.warning("Could not load laserembeddings, LASER filtering not supported")
+            raise
         if languages is None:
             raise ConfigurationError("A list of language codes needs to be defined")
         self.threshold = threshold
@@ -84,6 +87,7 @@ class SentenceEmbeddingFilter(FilterABC):
 
     def _cosine_similarities(self, pairs):
         """Calculate cosine similarities for the segments"""
+        from scipy.spatial.distance import cosine
         chunksize = len(pairs)
         segments = [segment for pair in pairs for segment in pair]
         languages = self.languages * chunksize
@@ -95,6 +99,7 @@ class SentenceEmbeddingFilter(FilterABC):
     @staticmethod
     def _ratio_normalize(vec1, vec2, n_neighbors, nn_sum1, nn_sum2):
         """Cosine similarity normalized by similarity to nearest neighbors"""
+        from scipy.spatial.distance import cosine
         return 2 * n_neighbors * (1 - cosine(vec1, vec2)) / (nn_sum1 + nn_sum2)
 
     def _normalized_similarities(self, pairs):

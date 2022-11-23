@@ -8,23 +8,6 @@ from . import ConfigurationError
 logger = logging.getLogger(__name__)
 
 
-try:
-    import mosestokenizer
-except ImportError:
-    logger.warning("Could not import mosestokenizer, moses tokenization not supported")
-
-try:
-    import jieba
-    jieba.setLogLevel(logging.INFO)
-except ImportError:
-    logger.warning("Could not import jieba, Chinese tokenization with jieba not supported")
-
-try:
-    import MeCab
-except ImportError:
-    logger.warning("Could not import MeCab, Japanese tokenization with MeCab not supported")
-
-
 class DummyTokenizer:
     """Dummy tokenizer"""
 
@@ -70,6 +53,11 @@ class MosesTokenizer(DummyTokenizer):
 
     def __init__(self, lang, **options):
         try:
+            import mosestokenizer
+        except ImportError:
+            logger.warning("Could not import mosestokenizer, moses tokenization not supported")
+            raise
+        try:
             self._moses_tokenizer = mosestokenizer.MosesTokenizer(lang, **options)
         except RuntimeError as err:
             msg = str(err)
@@ -93,6 +81,12 @@ class JiebaTokenizer(DummyTokenizer):
     """Wrapper for popular Chinese tokenizer jieba"""
 
     def __init__(self, lang, map_space_to='␣', **options):
+        try:
+            import jieba
+            jieba.setLogLevel(logging.INFO)
+        except ImportError:
+            logger.warning("Could not import jieba, Chinese tokenization with jieba not supported")
+            raise
         if not lang.startswith('zh'):
             logger.warning("Jieba tokenizer only avaliable for Chinese (zh), requested language %s", lang)
         try:
@@ -119,6 +113,11 @@ class MeCabTokenizer(DummyTokenizer):
     """Wrapper for Japanese tokenization with MeCab"""
 
     def __init__(self, lang, map_space_to='␣', mecab_args=''):
+        try:
+            import MeCab
+        except ImportError:
+            logger.warning("Could not import MeCab, Japanese tokenization with MeCab not supported")
+            raise
         if not lang.startswith('jp'):
             logger.warning("MeCab tokenizer is for Japanese (jp), requested language %s", lang)
         try:

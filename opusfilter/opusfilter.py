@@ -15,20 +15,16 @@ import tempfile
 from itertools import chain
 
 import json
-import numpy as np
 from tqdm import tqdm
 
-from opustools import OpusRead
-
 from . import ConfigurationError, OpusFilterRuntimeError
-from . import pipeline
 from . import embeddings
 from . import lm
-from . import word_alignment
+from . import pipeline
 from . import subwords
-from . import tokenization
-from . import classifier
 from . import segment_hash
+from . import tokenization
+from . import word_alignment
 from .util import file_open, file_download, Var, VarStr, count_lines
 
 
@@ -310,6 +306,7 @@ class OpusFilter:
         * OpusTools :cite:`aulamo-etal-2020-opustools`.
 
         """
+        from opustools import OpusRead
         self._check_extra_parameters(
             {'src_output', 'tgt_output', 'suppress_prompts', 'release', 'corpus_name',
              'source_language', 'target_language', 'preprocessing'}, parameters)
@@ -578,6 +575,7 @@ class OpusFilter:
 
     def train_classifier(self, parameters, overwrite=False):
         """Train classifier for scored sentence pairs"""
+        from . import classifier
         self._check_extra_parameters(
             {'model', 'training_scores', 'dev_scores', 'model_type', 'model_parameters',
              'features', 'optimization', 'criterion'}, parameters)
@@ -673,6 +671,7 @@ class OpusFilter:
 
     def sort_files(self, parameters, overwrite=False):
         """Sort file(s) by values read from other file"""
+        import numpy as np
         self._check_extra_parameters(
             {'inputs', 'outputs', 'key', 'type', 'values', 'combine_operator', 'reverse'}, parameters)
         outfiles = [os.path.join(self.output_dir, fname) for fname in parameters['outputs']]

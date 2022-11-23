@@ -17,12 +17,6 @@ from .util import is_file_empty
 logger = logging.getLogger(__name__)
 
 
-try:
-    import varikn
-except ImportError:
-    logger.warning("Could not load varikn, language model filtering not supported")
-
-
 _VARIKN_TRAINING_PARAMS = {
     'optdata': '',
     'norder': 0,
@@ -58,6 +52,11 @@ def train(datafile, outputfile, **kwargs):
     For details of the algorithm, see :cite:`siivola-etal-2007-growing`
 
     """
+    try:
+        import varikn
+    except ImportError:
+        logger.warning("Could not load varikn, language model filtering not supported")
+        raise
     if is_file_empty(datafile):
         raise OpusFilterRuntimeError(f"No training data available in {datafile}")
     # pylint: disable=E1101
@@ -163,6 +162,11 @@ def get_lm(**kwargs):
     Any extra keyword arguments are ignored.
 
     """
+    try:
+        import varikn
+    except ImportError:
+        logger.warning("Could not load varikn, language model filtering not supported")
+        raise
 
     # pylint: disable=E1101
     args = argparse.Namespace()

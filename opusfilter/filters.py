@@ -8,12 +8,7 @@ import os
 import string
 from typing import Iterator, List, Tuple
 
-import rapidfuzz
 import regex
-from langid.langid import LanguageIdentifier, model
-import pycld2
-from bs4 import BeautifulSoup as bs
-import fasttext
 
 from . import FilterABC, ConfigurationError
 from .util import check_args_compability
@@ -141,6 +136,7 @@ class HtmlTagFilter(FilterABC):
         super().__init__(**kwargs)
 
     def check(self, segment):
+        from bs4 import BeautifulSoup as bs
         try:
             found = bool(bs(segment, 'html.parser').find())
         except TypeError as err:
@@ -267,16 +263,20 @@ class LanguageIDFilter(FilterABC):
         if languages is None:
             raise ConfigurationError("A list of language codes needs to be defined")
         # fasttext options
-        if id_method == 'fasttext' and not fasttext_model_path:
-            raise ConfigurationError("FastText language ID method was choosen without specifying "
-                                     "any path to fasttext model")
-        if id_method != 'fasttext' and fasttext_model_path:
-            raise ConfigurationError("FastText language ID method was not choosen but fasttext "
-                                     "path to model was set")
-        self.fasttext_model = fasttext.load_model(os.path.join(self.workdir, fasttext_model_path)) \
-            if id_method == 'fasttext' else None
+        if id_method == 'fasttext':
+            if not fasttext_model_path:
+                raise ConfigurationError("FastText language ID method was choosen without specifying "
+                                         "any path to fasttext model")
+            import fasttext
+            self.fasttext_model = fasttext.load_model(os.path.join(self.workdir, fasttext_model_path))
+        else:
+            if fasttext_model_path:
+                raise ConfigurationError("FastText language ID method was not choosen but fasttext "
+                                         "path to model was set")
+            self.fasttext_model = None
         # langid options
         if id_method == 'langid':
+            from langid.langid import LanguageIdentifier, model
             self.identifier = LanguageIdentifier.from_modelstring(model, norm_probs=True)
             if langid_languages:
                 self.identifier.set_languages(langid_languages)
@@ -304,6 +304,7 @@ class LanguageIDFilter(FilterABC):
             return 1.0
 
         if self.id_method == 'cld2':
+            import pycld2
             try:
                 clddetails = pycld2.detect(sentence, **self.cld2_options)
             except pycld2.error as err:
@@ -468,6 +469,7 @@ class SimilarityFilter(FilterABC):
 
     def similarity(self, seq1, seq2):
         """Return normalized similarity between the sequences"""
+        import rapidfuzz
         if self.lowercase:
             seq1 = seq1.lower()
             seq2 = seq2.lower()
