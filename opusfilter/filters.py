@@ -31,7 +31,7 @@ class LengthFilter(FilterABC):
     def __init__(self, min_length=1, max_length=100, unit='word', pass_empty=False, **kwargs):
         min_length, max_length, unit = check_args_compability(
             min_length, max_length, unit,
-            required_types=[int, int, str],
+            required_types=[(int, float), (int, float), str],
             choices=[None, None, ('word', 'char', 'character')],
             names=['min_length', 'max_length', 'unit'])
         self.min_length = min_length
@@ -90,7 +90,7 @@ class LongWordFilter(FilterABC):
     """Word length filter"""
 
     def __init__(self, threshold=40, **kwargs):
-        self.threshold = check_args_compability(threshold, required_types=[int], names=['threshold'])
+        self.threshold = check_args_compability(threshold, required_types=[(int, float)], names=['threshold'])
         super().__init__(**kwargs)
 
     def score(self, pairs):
@@ -188,7 +188,7 @@ class AlphabetRatioFilter(FilterABC):
     """Proportion of alphabetic characters in the segment"""
 
     def __init__(self, threshold=0.75, exclude_whitespace=False, **kwargs):
-        self.threshold = check_args_compability(threshold, required_types=[float], names=['threshold'])
+        self.threshold = check_args_compability(threshold, required_types=[(float, int)], names=['threshold'])
         self.exclude_whitespace = exclude_whitespace
         self.re_whitespace = regex.compile(r'\s')
         self.re_not_alphas = regex.compile(r'\p{Alphabetic=No}')
@@ -552,7 +552,7 @@ class RepetitionFilter(FilterABC):
 
     def score(self, pairs):
         for pair in pairs:
-            yield [self.get_repetitions(sent)[0] for sent in pair]
+            yield max(self.get_repetitions(sent)[0] for sent in pair)
 
     def accept(self, score):
-        return all(repetitions < self.threshold for repetitions in score)
+        return score < self.threshold
