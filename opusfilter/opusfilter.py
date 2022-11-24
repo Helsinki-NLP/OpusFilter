@@ -205,6 +205,7 @@ class OpusFilter:
             'sort': self.sort_files,
             'head': self.head,
             'tail': self.tail,
+            'slice': self.slice,
             'product': self.product,
             'remove_duplicates': self.remove_duplicates,
             'split': self.split,
