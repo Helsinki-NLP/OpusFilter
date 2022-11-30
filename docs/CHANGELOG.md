@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.6.0] - 2022-11-30
+
+### Added
+
+- add `slice` missing from the enabled steps
+
+### Changed
+
+- improve documentation
+- import slow libraries only when needed
+- use chunks for the filter method of `SentenceEmbeddingFilter`
+- change `RepetitionFilter` to use single score for consistency with the threshold
+
+### Fixed
+
+- allow float thresholds for `AverageWordLengthFilter`
+- remove unnecessary code from `RegExpSub`
+- add `setuptools` version requirement
+
 ## [2.5.1] - 2022-09-28
 
 ### Fixed
@@ -144,7 +163,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 First tagged version.
 
 
-[Unreleased]: https://github.com/Helsinki-NLP/OpusFilter/compare/2.5.1...develop
+[Unreleased]: https://github.com/Helsinki-NLP/OpusFilter/compare/2.6.0...develop
+[2.6.0]: https://github.com/Helsinki-NLP/OpusFilter/compare/2.5.1...2.6.0
 [2.5.1]: https://github.com/Helsinki-NLP/OpusFilter/compare/2.5.0...2.5.1
 [2.5.0]: https://github.com/Helsinki-NLP/OpusFilter/compare/2.4.0...2.5.0
 [2.4.0]: https://github.com/Helsinki-NLP/OpusFilter/compare/2.3.1...2.4.0
