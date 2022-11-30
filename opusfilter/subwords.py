@@ -130,9 +130,9 @@ class MorfessorSegmentation(DummySegmentation):
         if not dampening or dampening == 'none':
             count_modifier = None
         elif dampening == 'log':
-            count_modifier = lambda x: int(round(math.log(x + 1, 2)))
+            count_modifier = lambda x: int(round(math.log(x + 1, 2)))  # noqa: E731
         elif dampening in {'ones', 'types'}:
-            count_modifier = lambda x: 1
+            count_modifier = lambda x: 1  # noqa: E731
         else:
             raise ConfigurationError(f"Invalid option for Morfessor frequency dampening: {dampening}")
         morfessor_io = morfessor.io.MorfessorIO(
