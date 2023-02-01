@@ -64,18 +64,10 @@ and MeCab.
 
 ### VariKN n-gram models
 
-For using n-gram language model filters, you need to install VariKN
-(https://github.com/vsiivola/variKN) and its Python wrapper. The
-wrapper is included in the default build:
-```sh
-mkdir build
-cd build
-cmake .. -DCMAKE_BUILD_TYPE=Release
-cmake --build .
-```
-After building, include the library files compiled to
-`build/lib/python` to your Python library path (e.g. by setting the
-`PYTHONPATH` environment variable).
+For using n-gram language model filters, you need to install the
+Python wrapper for VariKN (https://github.com/vsiivola/variKN). It can
+be installed automatically with pip by including the extras `[varikn]`
+or `[all]` (e.g. `pip install opusfilter[all]`).
 
 ### Eflomal word alignment
 
