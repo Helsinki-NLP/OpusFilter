@@ -32,8 +32,9 @@ parser = argparse.ArgumentParser(prog='opusfilter-autogen',
 parser.add_argument('files', nargs='+', metavar='TEXTFILE', help='parallel text input file(s)')
 parser.add_argument('-o', '--output', type=argparse.FileType('w'), default='-', metavar='CONFIGFILE',
                     help='output configuration file')
+parser.add_argument('-i', '--initial_params', type=str, default=None, help='initial parameters')
 
 args = parser.parse_args()
 
-generator = ConfigurationGenerator(args.files)
+generator = ConfigurationGenerator(args.files, initial_params=args.initial_params)
 yaml.dump(generator.get_config(), args.output)

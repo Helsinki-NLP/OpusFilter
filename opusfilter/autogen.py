@@ -3,6 +3,7 @@
 import copy
 import inspect
 import logging
+import json
 
 from pandas import json_normalize
 from tqdm import tqdm
@@ -16,7 +17,7 @@ from .util import file_open
 
 
 logger = logging.getLogger(__name__)
-
+logger.setLevel('WARNING')
 
 class FilterArgumentFailure(OpusFilterError):
     """Unusable default arguments for filter"""
@@ -181,7 +182,7 @@ class ConfigurationGenerator:
     # - Duplicate filtering
     # - ...
 
-    def __init__(self, files, workdir='work', excluded_percentile=0.001):
+    def __init__(self, files, initial_params=None, workdir='work', excluded_percentile=0.001):
         self.files = files
         self.workdir = workdir
         self.excluded_percentile = excluded_percentile
@@ -191,14 +192,41 @@ class ConfigurationGenerator:
             'TerminalPunctuationFilter', 'NonZeroNumeralsFilter',
             'LongestCommonSubstringFilter', 'SimilarityFilter', 'RepetitionFilter'
         ]
-        self.filters = []
-        for filterclass in self.filters_to_add:
-            try:
-                filter_config = self.get_filter_parameters(filterclass)
-            except FilterArgumentFailure as err:
-                logger.error("Unusable default arguments for %s: %s", filterclass, err)
-                continue
-            self.filters.append(filter_config)
+
+        if initial_params:
+            self.filters = self.filters_from_params(initial_params)
+        else:
+            self.filters = []
+            for filterclass in self.filters_to_add:
+                try:
+                    filter_config = self.get_filter_parameters(filterclass)
+                except FilterArgumentFailure as err:
+                    logger.error("Unusable default arguments for %s: %s", filterclass, err)
+                    continue
+                self.filters.append(filter_config)
+
+    def filters_from_params(self, params):
+        param_dict = {}
+        with file_open(params, 'r') as param_file:
+            for line in param_file:
+                param_item = json.loads(line)
+                filterclass = param_item[0].split('.')[0]
+                if filterclass not in param_dict.keys():
+                    param_dict[filterclass] = [param_item[1]]
+                else:
+                    param_dict[filterclass].append(param_item[1])
+        filters = []
+        for filterclass, threshold in param_dict.items():
+                adjuster = GenericFilterAdjuster(filterclass)
+                parameters = adjuster.get_default_parameters()
+                if 'threshold' in parameters:
+                    if len(threshold) == 1:
+                        threshold = threshold[0]
+                    parameters['threshold'] = threshold
+                elif 'thresholds' in parameters:
+                    parameters['thresholds'] = threshold
+                filters.append({filterclass: parameters})
+        return filters
 
     def get_filter_parameters(self, filterclass):
         """Return suitable parameters for filter of the given class"""

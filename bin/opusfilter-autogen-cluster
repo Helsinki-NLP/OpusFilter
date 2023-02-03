@@ -1,0 +1,21 @@
+#!/usr/bin/env python3
+
+import argparse
+import logging
+
+from opusfilter.autogen_cluster import ConfigGenerator
+
+logging.basicConfig(level=logging.INFO)
+
+parser = argparse.ArgumentParser(prog='autogen')
+
+parser.add_argument('--files', nargs=2)
+parser.add_argument('--langs', nargs=2)
+parser.add_argument('--scripts', nargs=2)
+parser.add_argument('--output_dir', default='.', help='Intermediate files go in this dir')
+parser.add_argument('--output_file', type=argparse.FileType('w'), default='config.yaml')
+
+args = parser.parse_args()
+
+cg = ConfigGenerator(**vars(args))
+cg.generate_config()
