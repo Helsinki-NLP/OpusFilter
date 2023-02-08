@@ -18,16 +18,15 @@ from 3.6 to 3.8, but with Python 3.9 or above the
 ## Required libraries
 
 * beautifulsoup4
-* graphviz
-* langid
 * fast-mosestokenizer
 * fasttext
+* graphviz
+* langid
 * matplotlib
 * morfessor
 * OpusTools
 * pandas
 * pycld2
-* pyhash
 * rapidfuzz
 * ruamel.yaml
 * regex
@@ -36,6 +35,7 @@ from 3.6 to 3.8, but with Python 3.9 or above the
 * scikit-learn
 * subword_nmt
 * tqdm
+* xxhash
 
 See `setup.py` for possible version requirements.
 

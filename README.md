@@ -31,8 +31,6 @@ OpusFilter should generally work fine on Python 3.6, 3.7, and 3.8. In the case o
 
 Libraries that currently cause trouble:
 
-* `pyhash`
-  * `pyhash-0.9.3` requires `setuptools==58` or below
 * `fast-mosestokenizer`
   * no PyPI packages for Python>=3.9
 

@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- update varikn installation instructions (installable from PyPI)
+- update github workflows and discard python 3.6 tests
+- use xxhash instead of pyhash for hash functions
+
+### Fixed
+
+- catch NotImplementedError from beautifulsoup 4.11.2
+
 ## [2.6.0] - 2022-11-30
 
 ### Added

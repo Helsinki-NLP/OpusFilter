@@ -740,6 +740,7 @@ class TestSplit(unittest.TestCase):
         shutil.rmtree(self.tempdir)
 
     def test_split_single_out(self):
+        # Using xx_64 to test pyhash compability mapping
         parameters = {
             'inputs': [os.path.join(self.tempdir, 'input_src'),
                        os.path.join(self.tempdir, 'input_tgt')],
@@ -758,7 +759,7 @@ class TestSplit(unittest.TestCase):
                        os.path.join(self.tempdir, 'input_tgt')],
             'outputs': [os.path.join(self.tempdir, 'output_src'),
                         os.path.join(self.tempdir, 'output_tgt')],
-            'divisor': 2, 'hash': 'xx_64', 'seed': 123}
+            'divisor': 2, 'hash': 'xxh64', 'seed': 123}
         self.opus_filter.split(parameters)
         with open(os.path.join(self.tempdir, 'output_src')) as f:
             self.assertEqual(f.read(), ''.join('Sent_{}\n'.format(idx) for idx in [1]))
@@ -773,7 +774,7 @@ class TestSplit(unittest.TestCase):
                         os.path.join(self.tempdir, 'output_tgt')],
             'outputs_2': [os.path.join(self.tempdir, 'output_src_2'),
                           os.path.join(self.tempdir, 'output_tgt_2')],
-            'divisor': 2, 'hash': 'xx_64'}
+            'divisor': 2, 'hash': 'xxh64'}
         self.opus_filter.split(parameters)
         with open(os.path.join(self.tempdir, 'output_src')) as f:
             self.assertEqual(f.read(), ''.join('Sent_{}\n'.format(idx) for idx in [1, 2, 5]))
@@ -791,7 +792,7 @@ class TestSplit(unittest.TestCase):
                        os.path.join(self.tempdir, 'input_tgt')],
             'outputs': [os.path.join(self.tempdir, 'output_src'),
                         os.path.join(self.tempdir, 'output_tgt')],
-            'divisor': 2, 'compare': [0], 'hash': 'xx_64'}
+            'divisor': 2, 'compare': [0], 'hash': 'xxh64'}
         self.opus_filter.split(parameters)
         with open(os.path.join(self.tempdir, 'output_src')) as f:
             self.assertEqual(f.read(), ''.join('Sent_{}\n'.format(idx) for idx in [3, 4]))
@@ -804,7 +805,7 @@ class TestSplit(unittest.TestCase):
                        os.path.join(self.tempdir, 'input_tgt')],
             'outputs': [os.path.join(self.tempdir, 'output_src'),
                         os.path.join(self.tempdir, 'output_tgt')],
-            'divisor': 2, 'compare': [1], 'hash': 'xx_64'}
+            'divisor': 2, 'compare': [1], 'hash': 'xxh64'}
         self.opus_filter.split(parameters)
         with open(os.path.join(self.tempdir, 'output_src')) as f:
             self.assertEqual(f.read(), ''.join('Sent_{}\n'.format(idx) for idx in [2, 4, 5]))
@@ -817,7 +818,7 @@ class TestSplit(unittest.TestCase):
                        os.path.join(self.tempdir, 'input_tgt')],
             'outputs': [os.path.join(self.tempdir, 'output_src'),
                         os.path.join(self.tempdir, 'output_tgt')],
-            'divisor': 10, 'threshold': 3, 'hash': 'xx_64'}
+            'divisor': 10, 'threshold': 3, 'hash': 'xxh64'}
         self.opus_filter.split(parameters)
         with open(os.path.join(self.tempdir, 'output_src')) as f:
             self.assertEqual(f.read(), ''.join('Sent_{}\n'.format(idx) for idx in [1, 3, 5]))

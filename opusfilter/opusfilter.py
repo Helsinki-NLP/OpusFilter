@@ -862,7 +862,7 @@ class OpusFilter:
         threshold = parameters.get('threshold', 1)
         hasher = segment_hash.SegmentHasher(
             compare=parameters.get('compare', 'all'),
-            method=parameters.get('hash', 'xx_64'),
+            method=parameters.get('hash', 'xxh64'),
             hashseed=parameters.get('seed', 0)
         )
         infs = [file_open(fname) for fname in infiles]
@@ -906,7 +906,7 @@ class OpusFilter:
             return
         hasher = segment_hash.SegmentHasher(
             compare=parameters.get('compare', 'all'),
-            method=parameters.get('hash', 'xx_64'),
+            method=parameters.get('hash', 'xxh64'),
             letters_only=parameters.get('letters_only', False),
             lowercase=parameters.get('lowercase', False),
         )

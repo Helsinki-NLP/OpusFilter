@@ -20,9 +20,9 @@ parser = argparse.ArgumentParser(prog='opusfilter-duplicates',
 parser.add_argument('files', nargs='+', metavar='FILE', help='parallel text input file(s)')
 parser.add_argument('--overlap', '-o', nargs='+', metavar='FILE', default=None,
                     help='calculate overlap with second set of input files')
-parser.add_argument('--hash', type=str, default='xx_64',
-                    help=('hash function from pyhash library, empty string '
-                          'for no hashing (default "xx_64")'))
+parser.add_argument('--hash', type=str, default='xxh64',
+                    help=('hash function from xxhash library, empty string '
+                          'for no hashing (default "xxh64")'))
 parser.add_argument('--letters-only', action='store_true', default=False,
                     help='lowercase input strings before hashing')
 parser.add_argument('--lowercase', action='store_true', default=False,

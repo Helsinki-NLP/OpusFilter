@@ -9,7 +9,7 @@ Parameters:
 * `inputs`: input file(s)
 * `outputs`: output file(s)
 * `compare`: select files for duplicate comparison (optional; default `all` or a list of indices)
-* `hash`: select hash algorithm from pyhash (optional; default `xx_64`)
+* `hash`: select hash algorithm from xxhash (optional; default `xxh64`)
 * `overlap`: remove overlap with a second set of files (optional; default `null`)
 
 Duplicate filtering is recommended as a first step especially if you
@@ -32,8 +32,7 @@ exact duplicates of the test data from your training data.
 Non-cryptographic hashing is used to reduce memory consumption for the
 case that the files are very large. The lines defined by the `compare`
 option are concatenated together, and the hash algorithm is applied on
-the result to produce the final key for storing the counts. You can
-use any of the hash algorithms implemented in the pyhash library. The
+the result to produce the final key for storing the counts. The
 default 64-bit XXHash algorithm should be fine for any practical data
 sizes, but if do not care about memory use and want to be extra sure
 there are no collisions, you can disable hashing by setting the `hash`

@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 install_requires = [
-    "setuptools<=58.0.0",  # for pyhash
+    "setuptools",
     "opustools",
     "beautifulsoup4",
     "fasttext",
@@ -15,7 +15,7 @@ install_requires = [
     "fast-mosestokenizer",
     "pandas>=1.0.0",
     "pycld2",
-    "pyhash",
+    "xxhash>=3.2.0",
     "sentence-splitter",
     "rapidfuzz",
     "ruamel.yaml>=0.15.0",
