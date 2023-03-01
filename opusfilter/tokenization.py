@@ -67,7 +67,7 @@ class MosesTokenizer(DummyTokenizer):
             else:
                 raise err
         except NameError as err:
-            logger.error("Install fast-mosestokenizer to support moses tokenization")
+            logger.error("Install opus-fast-mosestokenizer to support moses tokenization")
             raise err
 
     def tokenize(self, string):

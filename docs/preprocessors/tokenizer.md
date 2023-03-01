@@ -12,8 +12,10 @@ Parameters:
 Supported tokenizers:
 
 * `moses`:
-  * Uses the [fast-mosestokenizer](https://github.com/mingruimingrui/fast-mosestokenizer) package.
-  * Avaliable for most languages.
+  * Uses the
+    [opus-fast-mosestokenizer](https://github.com/Helsinki-NLP/opus-fast-mosestokenizer) package
+    (a fork of [fast-mosestokenizer](https://github.com/mingruimingrui/fast-mosestokenizer)).
+  * Available for most languages.
   * Options are passed to the `mosestokenizer.MosesTokenizer` class;
     see its documentation for the available options.
 * `jieba`:

@@ -11,14 +11,13 @@ Install from source:
 * `python setup.py install`
 
 Note that all required libraries are not available to install via PyPI
-on Windows OS.  On Linux, it should work directly for Python versions
-from 3.6 to 3.8, but with Python 3.9 or above the
-`fast-mosestokenizer` library requires a manual install.
+on Windows OS. On Linux and MacOS, it should work directly for Python
+versions from 3.6 to 3.10.
 
 ## Required libraries
 
 * beautifulsoup4
-* fast-mosestokenizer
+* opus-fast-mosestokenizer
 * fasttext
 * graphviz
 * langid

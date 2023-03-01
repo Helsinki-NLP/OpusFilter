@@ -25,14 +25,9 @@ Install from source:
 
 ### Troubleshooting
 
-OpusFilter should generally work fine on Python 3.6, 3.7, and 3.8. In the case of troubles, try installing the exact versions in `requirements.txt`:
+OpusFilter should generally work fine on Python 3.6 to 3.10. In the case of troubles, try installing the exact versions in `requirements.txt`:
 
 * `pip install -r requirements.txt`
-
-Libraries that currently cause trouble:
-
-* `fast-mosestokenizer`
-  * no PyPI packages for Python>=3.9
 
 ## Documentation
 
