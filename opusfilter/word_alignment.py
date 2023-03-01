@@ -1,9 +1,9 @@
 """Word alignment filtering"""
 
+import contextlib
 import json
 import logging
 import os
-import subprocess
 import tempfile
 
 from . import FilterABC, OpusFilterRuntimeError
@@ -13,63 +13,10 @@ from .util import file_open
 logger = logging.getLogger(__name__)
 
 
-EFLOMAL_PATH = os.environ.get('EFLOMAL_PATH')
-if EFLOMAL_PATH is None:
-    logger.warning("Please set enviroment variable EFLOMAL_PATH to use word alignment scores")
-    EFLOMAL_PATH = '.'
-
-
-def create_align_input_file(sentence_pairs, src_tokenizer=None, tgt_tokenizer=None):
-    """Write sentence pairs to a named temporary file and return the file"""
-    src_tokenize = tokenization.get_tokenize(src_tokenizer)
-    tgt_tokenize = tokenization.get_tokenize(tgt_tokenizer)
-    inputfile = tempfile.NamedTemporaryFile('w+')  # pylint: disable=R1732
-    rawfile = tempfile.NamedTemporaryFile('w+') if src_tokenizer or tgt_tokenizer else None  # pylint: disable=R1732
-    empty = []
-    n_non_empty = 0
-    for idx, pair in enumerate(sentence_pairs):
-        if len(pair) != 2:
-            raise ValueError("Only bilingual input supported by WordAlignFilter")
-        if all(not sentence for sentence in pair):
-            empty.append(idx)
-            continue
-        sent1, sent2 = pair
-        if rawfile:
-            rawfile.write(f'{sent1} ||| {sent2}\n')
-        inputfile.write(f'{src_tokenize(sent1)} ||| {tgt_tokenize(sent2)}\n')
-        n_non_empty += 1
-    if rawfile:
-        rawfile.flush()
-    inputfile.flush()
-    empty.reverse()
-    return inputfile, rawfile, empty, n_non_empty
-
-
-def _run_eflomal_align(input_file, fwd_file, rev_file, model=3, priors=None,
-                       scores_fwd_file=None, scores_rev_file=None):
-    """Run eflomal alignment and produce alignment files"""
-    priors_arg = f'--priors {priors}' if priors else ''
-    scores_arg = f'-F {scores_fwd_file} -R {scores_rev_file}' if (scores_fwd_file and scores_rev_file) else ''
-    command = '{path}/align.py --overwrite -i {input} -f {fwd} -r {rev} {scores} --model {model} -M {model} {priors}'.format(
-        path=EFLOMAL_PATH, input=input_file, fwd=fwd_file, rev=rev_file, scores=scores_arg,
-        model=model, priors=priors_arg)
-    return subprocess.run(command.split(), check=True)
-
-
-def _run_eflomal_scoring(input_file, scores_fwd_file, scores_rev_file,
-                         model=3, priors=None):
-    """Run eflomal alignment and produce score files"""
-    priors_arg = f'--priors {priors}' if priors else ''
-    command = '{path}/align.py -i {input} -F {fwd} -R {rev} --model {model} -M {model} {priors}'.format(
-        path=EFLOMAL_PATH, input=input_file, fwd=scores_fwd_file, rev=scores_rev_file,
-        model=model, priors=priors_arg)
-    return subprocess.run(command.split(), check=True)
-
-
-def _run_eflomal_priors(input_file, scores_fwd_file, scores_rev_file, priors_file):
-    """Run eflomal prior estimation"""
-    command = f'{EFLOMAL_PATH}/makepriors.py -i {input_file} -f {scores_fwd_file} -r {scores_rev_file} --priors {priors_file}'
-    return subprocess.run(command.split(), check=True)
+try:
+    import eflomal
+except ImportError:
+    logger.warning("Could not load eflomal, word alignment filtering not supported")
 
 
 def eflomal_to_opusfilter_scores(scores_fwd_file, scores_rev_file, output_score_file):
@@ -80,23 +27,37 @@ def eflomal_to_opusfilter_scores(scores_fwd_file, scores_rev_file, output_score_
             fobj.write(json.dumps(obj, sort_keys=True) + '\n')
 
 
-def make_priors(sentence_pairs, priors_file, model=3, score_file=None):
-    """Create alignment priors from clean sentence pairs"""
-    input_file, _, _, num = create_align_input_file(sentence_pairs)
+def sentence_generator(filename, tokenizer=None):
+    """Yield and optionally tokenize sentences from given file"""
+    tokenize = tokenization.get_tokenize(tokenizer)
+    num = 0
+    with file_open(filename) as fobj:
+        for line in fobj:
+            yield tokenize(line.rstrip())
+            num += 1
     if num == 0:
         raise OpusFilterRuntimeError("No training data available for word alignment priors")
+
+
+def make_priors(src_file, tgt_file, priors_file, model=3, score_file=None, src_tokenizer=None, tgt_tokenizer=None):
+    """Create alignment priors from clean sentence pairs"""
+
+    aligner = eflomal.Aligner(model=model)
     with tempfile.NamedTemporaryFile('w+') as fwd_file, tempfile.NamedTemporaryFile('w+') as rev_file, \
          tempfile.NamedTemporaryFile('w+') as scores_fwd_file, tempfile.NamedTemporaryFile('w+') as scores_rev_file:
-        process = _run_eflomal_align(
-            input_file.name, fwd_file.name, rev_file.name, model=model, priors=None,
-            scores_fwd_file=scores_fwd_file.name if score_file else None,
-            scores_rev_file=scores_rev_file.name if score_file else None)
-        process.check_returncode()
+        aligner.align(sentence_generator(src_file, src_tokenizer), sentence_generator(tgt_file, tgt_tokenizer),
+                      links_filename_fwd=fwd_file.name, links_filename_rev=rev_file.name,
+                      scores_filename_fwd=scores_fwd_file.name if score_file else None,
+                      scores_filename_rev=scores_rev_file.name if score_file else None, quiet=True)
         if score_file:
             eflomal_to_opusfilter_scores(scores_fwd_file, scores_rev_file, score_file)
-        process = _run_eflomal_priors(input_file.name, fwd_file.name, rev_file.name, priors_file)
-        process.check_returncode()
-        input_file.close()
+        fwd_file.seek(0)
+        rev_file.seek(0)
+        priors_list = eflomal.calculate_priors(
+            sentence_generator(src_file, src_tokenizer), sentence_generator(tgt_file, tgt_tokenizer),
+            fwd_file, rev_file)
+        with open(priors_file, 'w', encoding='utf-8') as priorsf:
+            eflomal.write_priors(priorsf, *priors_list)
 
 
 class WordAlignFilter(FilterABC):
@@ -116,7 +77,7 @@ class WordAlignFilter(FilterABC):
         self.src_tokenizer = src_tokenizer
         self.tgt_tokenizer = tgt_tokenizer
         self.priors = os.path.join(self.workdir, priors) if priors else None
-        self.model = model
+        self.aligner = eflomal.Aligner(model=model)
         self.score_for_empty = score_for_empty
 
     def _with_empty_pairs(self, iterator, empty_pairs):
@@ -140,69 +101,95 @@ class WordAlignFilter(FilterABC):
             yield pair
             idx += 1
 
+    def _write_pairs(self, pairs, outfiles, raw_outfiles=None):
+        tokenizers = [tokenization.get_tokenize(self.src_tokenizer),
+                      tokenization.get_tokenize(self.tgt_tokenizer)]
+        empty = []
+        if raw_outfiles is None:
+            raw_outfiles = (None, None)
+        for idx, pair in enumerate(pairs):
+            if len(pair) != 2:
+                raise ValueError("Only bilingual input supported by WordAlignFilter")
+            if all(not sentence for sentence in pair):
+                empty.append(idx)
+                continue
+            for sent, tokenizer, outfile, raw_outfile in zip(pair, tokenizers, outfiles, raw_outfiles):
+                if raw_outfile:
+                    raw_outfile.write(f'{sent}\n')
+                if tokenizer:
+                    sent = tokenizer(sent)
+                outfile.write(f'{sent}\n')
+        empty.reverse()
+        return empty
+
     def score(self, pairs):
-        input_file, raw_file, empty_pairs, _ = create_align_input_file(
-            pairs, src_tokenizer=self.src_tokenizer, tgt_tokenizer=self.tgt_tokenizer)
-        if raw_file:
-            raw_file.close()
-        with tempfile.NamedTemporaryFile('w+') as scores_fwd_file, \
-                tempfile.NamedTemporaryFile('w+') as scores_rev_file:
-            process = _run_eflomal_scoring(input_file.name, scores_fwd_file.name, scores_rev_file.name,
-                                           model=self.model, priors=self.priors)
-            process.check_returncode()
-            scores_fwd_file.seek(0)
-            scores_rev_file.seek(0)
-            for item in self._with_empty_pairs(
-                    zip(scores_fwd_file, scores_rev_file), empty_pairs):
+        with contextlib.ExitStack() as stack:
+            # Write input data to temporary files
+            input_files = (stack.enter_context(tempfile.TemporaryFile('w+')),
+                           stack.enter_context(tempfile.TemporaryFile('w+')))
+            empty_pairs = self._write_pairs(pairs, input_files)
+            for fobj in input_files:
+                fobj.seek(0)
+            # Run aligner
+            score_files = (stack.enter_context(tempfile.NamedTemporaryFile('w+')),
+                           stack.enter_context(tempfile.NamedTemporaryFile('w+')))
+            priorsf = stack.enter_context(open(self.priors, 'r', encoding='utf-8')) if self.priors else None
+            self.aligner.align(*input_files, scores_filename_fwd=score_files[0].name,
+                               scores_filename_rev=score_files[1].name, priors_input=priorsf, quiet=True)
+            for fobj in score_files:
+                fobj.seek(0)
+            # Yield results (scores)
+            for item in self._with_empty_pairs(zip(*score_files), empty_pairs):
                 if item == self._empty_pair_sentinel:
                     yield [self.score_for_empty, self.score_for_empty]
                 else:
-                    line1, line2 = item
-                    yield [float(line1.strip()), float(line2.strip())]
-            input_file.close()
+                    yield [float(item[0].strip()), float(item[1].strip())]
 
     def accept(self, score):
         return score[0] < self.src_threshold and score[1] < self.tgt_threshold
 
     def _filtergen(self, pairs, filterfalse=False, decisions=False):
         """Filter or yield decisions for filtering"""
-        input_file, raw_file, empty_pairs, _ = create_align_input_file(
-            pairs, src_tokenizer=self.src_tokenizer, tgt_tokenizer=self.tgt_tokenizer)
-        with tempfile.NamedTemporaryFile('w+') as scores_fwd_file, \
-                tempfile.NamedTemporaryFile('w+') as scores_rev_file:
-            process = _run_eflomal_scoring(input_file.name, scores_fwd_file.name, scores_rev_file.name,
-                                           model=self.model, priors=self.priors)
-            process.check_returncode()
-            if raw_file:
-                # input_file contains tokenized text, use raw_file
-                output_file = raw_file
+        with contextlib.ExitStack() as stack:
+            # Write input data to temporary files
+            input_files = (stack.enter_context(tempfile.NamedTemporaryFile('w+')),
+                           stack.enter_context(tempfile.NamedTemporaryFile('w+')))
+            if self.src_tokenizer or self.tgt_tokenizer:
+                raw_input_files = (stack.enter_context(tempfile.NamedTemporaryFile('w+')),
+                                   stack.enter_context(tempfile.NamedTemporaryFile('w+')))
+                empty_pairs = self._write_pairs(pairs, input_files, raw_input_files)
+                output_files = raw_input_files
             else:
-                output_file = input_file
-            output_file.seek(0)
-            scores_fwd_file.seek(0)
-            scores_rev_file.seek(0)
-            for sent1, sent2, score in self._get_segments_and_score(
-                    output_file, scores_fwd_file, scores_rev_file, empty_pairs):
+                empty_pairs = self._write_pairs(pairs, input_files)
+                output_files = input_files
+            for fobj in input_files:
+                fobj.seek(0)
+            # Run aligner
+            score_files = (stack.enter_context(tempfile.NamedTemporaryFile('w+')),
+                           stack.enter_context(tempfile.NamedTemporaryFile('w+')))
+            self.aligner.align(
+                *input_files, scores_filename_fwd=score_files[0].name, scores_filename_rev=score_files[1].name,
+                priors_input=stack.enter_context(open(self.priors, 'r', encoding='utf-8')) if self.priors else None,
+                quiet=True)
+            for fobj in (*score_files, *output_files):
+                fobj.seek(0)
+            # Yield results (decisions or filtered original sentences)
+            for pair, score in self._get_segments_and_score(output_files, score_files, empty_pairs):
                 if decisions:
                     yield self.accept(score)
                 elif bool(filterfalse) != bool(self.accept(score)):
-                    yield sent1, sent2
-            if raw_file:
-                raw_file.close()
-            input_file.close()
+                    yield pair
 
-    def _get_segments_and_score(self, output_file, scores_fwd_file, scores_rev_file, empty_pairs):
+    def _get_segments_and_score(self, output_files, score_files, empty_pairs):
         """Combine input segments and scores with separately collected empty input pairs"""
-        for item in self._with_empty_pairs(
-                zip(output_file, scores_fwd_file, scores_rev_file), empty_pairs):
+        for item in self._with_empty_pairs(zip(*output_files, *score_files), empty_pairs):
             if item == self._empty_pair_sentinel:
                 score = [self.score_for_empty, self.score_for_empty]
                 sent1, sent2 = '', ''
             else:
-                pair, line1, line2 = item
+                sent1, sent2, line1, line2 = item
                 score = [float(line1.strip()), float(line2.strip())]
-                sent1, sent2 = pair.strip().split(' ||| ')
-            yield sent1, sent2, score
+            yield (sent1.strip(), sent2.strip()), score
 
     def filter(self, pairs):
         return self._filtergen(pairs, decisions=False, filterfalse=False)

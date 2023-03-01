@@ -26,6 +26,10 @@ install_requires = [
     "tqdm"
 ]
 
+eflomal_require = [
+    'eflomal>=1.0.0b1'
+]
+
 jieba_require = [
     'jieba>=0.42'
 ]
@@ -54,7 +58,7 @@ docs_require = [
     'sphinxcontrib-bibtex'
 ]
 
-all_require = jieba_require + mecab_require + laser_require + varikn_require + tests_require + docs_require
+all_require = eflomal_require + jieba_require + mecab_require + laser_require + varikn_require + tests_require + docs_require
 
 setuptools.setup(
     name="opusfilter",
@@ -71,8 +75,9 @@ setuptools.setup(
              "bin/opusfilter-scores", "bin/opusfilter-test"],
     install_requires=install_requires,
     tests_require=tests_require,
-    extras_require={'test': tests_require, 'jieba': jieba_require, 'mecab': mecab_require, 'laser': laser_require,
-                    'varikn': varikn_require, 'docs': docs_require, 'all': all_require},
+    extras_require={'test': tests_require, 'eflomal': eflomal_require, 'jieba': jieba_require,
+                    'mecab': mecab_require, 'laser': laser_require, 'varikn': varikn_require,
+                    'docs': docs_require, 'all': all_require},
     classifiers=(
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",

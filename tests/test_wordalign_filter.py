@@ -9,7 +9,13 @@ import unittest
 from opusfilter import word_alignment, OpusFilterRuntimeError
 
 
-@unittest.skipIf(os.environ.get('EFLOMAL_PATH') is None, 'EFLOMAL_PATH not defined in environment')
+try:
+    import eflomal
+except ImportError:
+    logging.warning("Could not load eflomal, word alignment filtering tests not supported")
+
+
+@unittest.skipIf('eflomal' not in globals(), 'eflomal package not installed')
 class TestAlignFilter(unittest.TestCase):
 
     def test_scoring(self):
@@ -52,24 +58,45 @@ class TestAlignFilter(unittest.TestCase):
         logging.info(scores)
         self.assertSequenceEqual(bools, [True] * 50 + [False, False, False, False])
 
+    @staticmethod
+    def _write_to_file(sentences, fobj):
+        for sent in sentences:
+            fobj.write(f'{sent}\n')
+        fobj.seek(0)
+
     def test_make_priors(self):
-        """Test making priors
-
-        Note: The result of the alignment is not deterministic and the
-        test could fail with really bad luck.
-
-        """
+        """Test making priors"""
         prior_data1 = ['%s.' % ('ab ' * (line + 1)) for line in range(10)] * 5
         prior_data2 = ['%s.' % ('AB ' * (line + 1)) for line in range(10)] * 5
-        with tempfile.NamedTemporaryFile('w+') as priors_file:
-            word_alignment.make_priors(zip(prior_data1, prior_data2), priors_file.name)
+        with tempfile.NamedTemporaryFile('w+') as data1_file, \
+             tempfile.NamedTemporaryFile('w+') as data2_file, \
+             tempfile.NamedTemporaryFile('w+') as priors_file:
+            self._write_to_file(prior_data1, data1_file)
+            self._write_to_file(prior_data2, data2_file)
+            word_alignment.make_priors(data1_file.name, data2_file.name, priors_file.name)
+            self.assertTrue(priors_file.read())
+
+    def test_make_priors_with_empty(self):
+        """Test making priors with some empty input lines"""
+        prior_data1 = ['%s.' % ('ab ' * (line + 1)) for line in range(10)] * 3 + ['', 'ab', '']
+        prior_data2 = ['%s.' % ('AB ' * (line + 1)) for line in range(10)] * 3 + ['', '', 'AB']
+        with tempfile.NamedTemporaryFile('w+') as data1_file, \
+             tempfile.NamedTemporaryFile('w+') as data2_file, \
+             tempfile.NamedTemporaryFile('w+') as priors_file:
+            self._write_to_file(prior_data1, data1_file)
+            self._write_to_file(prior_data2, data2_file)
+            word_alignment.make_priors(data1_file.name, data2_file.name, priors_file.name)
             self.assertTrue(priors_file.read())
 
     def test_make_priors_empty(self):
         """Test making priors with empty data"""
-        with self.assertRaises(OpusFilterRuntimeError):
-            with tempfile.NamedTemporaryFile('w+') as priors_file:
-                word_alignment.make_priors([], priors_file.name)
+        with tempfile.NamedTemporaryFile('w+') as data1_file, \
+             tempfile.NamedTemporaryFile('w+') as data2_file, \
+             tempfile.NamedTemporaryFile('w+') as priors_file:
+            self._write_to_file([], data1_file)
+            self._write_to_file([], data2_file)
+            with self.assertRaises(OpusFilterRuntimeError):
+                word_alignment.make_priors(data1_file.name, data2_file.name, priors_file.name)
 
     def test_make_priors_with_scores(self):
         """Test making priors with the score file option
@@ -80,8 +107,12 @@ class TestAlignFilter(unittest.TestCase):
         """
         prior_data1 = ['%s.' % ('ab ' * (line + 1)) for line in range(10)] * 5
         prior_data2 = ['%s.' % ('AB ' * (line + 1)) for line in range(10)] * 5
-        with tempfile.NamedTemporaryFile('w+') as priors_file, tempfile.NamedTemporaryFile('w+') as score_file:
-            word_alignment.make_priors(zip(prior_data1, prior_data2), priors_file.name, score_file=score_file.name)
+        with tempfile.NamedTemporaryFile('w+') as data1_file, \
+             tempfile.NamedTemporaryFile('w+') as data2_file, \
+             tempfile.NamedTemporaryFile('w+') as priors_file, tempfile.NamedTemporaryFile('w+') as score_file:
+            self._write_to_file(prior_data1, data1_file)
+            self._write_to_file(prior_data2, data2_file)
+            word_alignment.make_priors(data1_file.name, data2_file.name, priors_file.name, score_file=score_file.name)
             self.assertTrue(priors_file.read())
             scores = [json.loads(line) for line in score_file]
             self.assertEqual(len(scores), len(prior_data1))
@@ -97,8 +128,12 @@ class TestAlignFilter(unittest.TestCase):
         prior_data2 = ['%s.' % ('AB ' * (line + 1)) for line in range(10)] * 5
         data1 = ['%s.' % ('ab ' * (line + 1)) for line in range(5)] + ['', 'ab ab ab ab ab ab .']
         data2 = ['%s.' % ('AB ' * (line + 1)) for line in range(5)] + ['', 'AB']
-        with tempfile.NamedTemporaryFile('w+') as priors_file:
-            word_alignment.make_priors(zip(prior_data1, prior_data2), priors_file.name)
+        with tempfile.NamedTemporaryFile('w+') as data1_file, \
+             tempfile.NamedTemporaryFile('w+') as data2_file, \
+             tempfile.NamedTemporaryFile('w+') as priors_file:
+            self._write_to_file(prior_data1, data1_file)
+            self._write_to_file(prior_data2, data2_file)
+            word_alignment.make_priors(data1_file.name, data2_file.name, priors_file.name)
             align_filter = word_alignment.WordAlignFilter(src_threshold=0, tgt_threshold=0, priors=priors_file.name)
             scores = []
             bools = []

@@ -523,14 +523,13 @@ class OpusFilter:
         if not overwrite and os.path.isfile(model_out):
             logger.info("Output file exists, skipping step")
             return
-        score_file = os.path.join(self.output_dir, parameters['scores']) if 'scores' in parameters else None
-        pair_gen = tqdm(self.pair_generator(
+        word_alignment.make_priors(
             os.path.join(self.output_dir, parameters['src_data']),
             os.path.join(self.output_dir, parameters['tgt_data']),
-            tokenizers=[parameters['parameters'].get('src_tokenizer', None),
-                        parameters['parameters'].get('tgt_tokenizer', None)]))
-        word_alignment.make_priors(
-            pair_gen, model_out, model=parameters['parameters'].get('model', 3), score_file=score_file)
+            model_out, model=parameters['parameters'].get('model', 3),
+            score_file=os.path.join(self.output_dir, parameters['scores']) if 'scores' in parameters else None,
+            src_tokenizer=parameters['parameters'].get('src_tokenizer', None),
+            tgt_tokenizer=parameters['parameters'].get('tgt_tokenizer', None))
 
     def train_nearest_neighbors(self, parameters, overwrite=False):
         """Train model for querying nearest neighbors"""

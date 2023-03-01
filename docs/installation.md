@@ -72,7 +72,7 @@ or `[all]` (e.g. `pip install opusfilter[all]`).
 ### Eflomal word alignment
 
 For using word alignment filters, you need to install elfomal
-(https://github.com/robertostling/eflomal) and set environment
-variable `EFLOMAL_PATH` to eflomal's root directory, which contains
-the Python scripts `align.py` and `makepriors.py`. Note that you
-will need `Cython` to install the Python interface to `eflomal`.
+(https://github.com/robertostling/eflomal). It can be installed
+automatically with pip by including the extras `[eflomal]` or `[all]`
+(e.g. `pip install opusfilter[all]`). Note that you will need `Cython`
+for the installation.
