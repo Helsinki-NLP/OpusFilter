@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - update varikn installation instructions (installable from PyPI)
-- update github workflows and discard python 3.6 tests
+- update github workflows
 - use xxhash instead of pyhash for hash functions
 - use opus-fast-mosestokenizer instead of fast-mosestokenizer
 

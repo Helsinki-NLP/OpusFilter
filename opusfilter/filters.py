@@ -141,7 +141,7 @@ class HtmlTagFilter(FilterABC):
         from bs4 import BeautifulSoup as bs
         try:
             found = bool(bs(segment, 'html.parser').find())
-        except (TypeError, UnboundLocalError, NotImplementedError) as err:
+        except (TypeError, UnboundLocalError, NotImplementedError, AssertionError) as err:
             logger.warning("BeautifulSoup parsing failed for %s: %s", repr(segment), err)
             found = True
         return found
