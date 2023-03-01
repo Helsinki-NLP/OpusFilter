@@ -12,7 +12,7 @@ install_requires = [
     "langid",
     "matplotlib",
     "morfessor",
-    "fast-mosestokenizer",
+    "opus-fast-mosestokenizer",
     "pandas>=1.0.0",
     "pycld2",
     "xxhash>=3.2.0",
