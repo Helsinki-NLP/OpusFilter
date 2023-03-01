@@ -20,8 +20,13 @@ try:
 except ImportError:
     logging.warning("Could not load varikn, language model filtering tests not supported")
 
+try:
+    import eflomal
+except ImportError:
+    logging.warning("Could not load eflomal, word alignment filtering tests not supported")
 
-@unittest.skipIf('varikn' not in globals() or os.environ.get('EFLOMAL_PATH') is None, 'varikn or eflomal not found')
+
+@unittest.skipIf('varikn' not in globals() or 'eflomal' not in globals(), 'varikn or eflomal not found')
 class TestOpusFilter(unittest.TestCase):
 
     @classmethod
@@ -1128,7 +1133,7 @@ class TestVariables(unittest.TestCase):
                 self.of._expand_parameters(case, variables)
 
 
-@unittest.skipIf('varikn' not in globals() or os.environ.get('EFLOMAL_PATH') is None, 'varikn or eflomal not found')
+@unittest.skipIf('varikn' not in globals() or 'eflomal' not in globals(), 'varikn or eflomal not found')
 class TestParallel(unittest.TestCase):
     @classmethod
     def setUpClass(self):
