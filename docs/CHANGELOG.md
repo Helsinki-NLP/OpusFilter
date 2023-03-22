@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - catch NotImplementedError from beautifulsoup 4.11.2
+- catch ParserRejectedMarkup from beautifulsoup 4.12.0
 
 ## [2.6.0] - 2022-11-30
 

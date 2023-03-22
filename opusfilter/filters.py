@@ -138,10 +138,11 @@ class HtmlTagFilter(FilterABC):
     @staticmethod
     def check(segment):
         """Return whether segment has HTML tags (or something that breaks bs4)"""
-        from bs4 import BeautifulSoup as bs
+        import bs4
         try:
-            found = bool(bs(segment, 'html.parser').find())
-        except (TypeError, UnboundLocalError, NotImplementedError, AssertionError) as err:
+            found = bool(bs4.BeautifulSoup(segment, 'html.parser').find())
+        except (TypeError, UnboundLocalError, NotImplementedError,
+                AssertionError, bs4.builder.ParserRejectedMarkup) as err:
             logger.warning("BeautifulSoup parsing failed for %s: %s", repr(segment), err)
             found = True
         return found
