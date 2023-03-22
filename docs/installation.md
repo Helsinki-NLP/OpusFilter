@@ -59,7 +59,8 @@ For using sentence embeddings filters, you need to install
 be installed automatically with pip by including the extras `[laser]`
 or `[all]` (e.g. `pip install opusfilter[all]`). The package will also
 require a number of additional libraries, including PyTorch, jieba,
-and MeCab.
+and MeCab. Note that you need also to download the prebuild models
+with `python -m laserembeddings download-models`.
 
 ### VariKN n-gram models
 
