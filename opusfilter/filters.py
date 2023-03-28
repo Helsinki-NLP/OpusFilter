@@ -10,9 +10,9 @@ from typing import Iterator, List, Tuple
 
 import regex
 
-from . import FilterABC, ConfigurationError
-from .util import check_args_compability
+from . import FilterABC, ConfigurationError, CLEAN_LOW, CLEAN_HIGH, CLEAN_BETWEEN, CLEAN_TRUE, CLEAN_FALSE
 from .lm import CrossEntropyFilter, CrossEntropyDifferenceFilter, LMClassifierFilter  # pylint: disable=W0611 # noqa: F401
+from .util import check_args_compability
 from .word_alignment import WordAlignFilter      # pylint: disable=W0611 # noqa: F401
 from .embeddings import SentenceEmbeddingFilter  # pylint: disable=W0611 # noqa: F401
 
@@ -22,6 +22,8 @@ logger = logging.getLogger(__name__)
 
 class LengthFilter(FilterABC):
     """Sentence length filter"""
+
+    score_direction = CLEAN_BETWEEN
 
     def __init__(self, min_length=1, max_length=100, unit='word', pass_empty=False, **kwargs):
         min_length, max_length, unit = check_args_compability(
@@ -54,6 +56,8 @@ class LengthFilter(FilterABC):
 class LengthRatioFilter(FilterABC):
     """Character length ratio"""
 
+    score_direction = CLEAN_LOW
+
     def __init__(self, threshold=3, unit='word', **kwargs):
         self.threshold = threshold
         self.unit = check_args_compability(
@@ -84,6 +88,8 @@ class LengthRatioFilter(FilterABC):
 class LongWordFilter(FilterABC):
     """Word length filter"""
 
+    score_direction = CLEAN_LOW
+
     def __init__(self, threshold=40, **kwargs):
         self.threshold = check_args_compability(threshold, required_types=[(int, float)], names=['threshold'])
         super().__init__(**kwargs)
@@ -103,6 +109,8 @@ class AverageWordLengthFilter(FilterABC):
     with only empty segments are accepted.
 
     """
+
+    score_direction = CLEAN_BETWEEN
 
     def __init__(self, min_length=2, max_length=20, pass_empty=False, **kwargs):
         min_length, max_length = check_args_compability(
@@ -131,6 +139,8 @@ class AverageWordLengthFilter(FilterABC):
 
 class HtmlTagFilter(FilterABC):
     """HTML tag filter"""
+
+    score_direction = CLEAN_FALSE
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -173,6 +183,11 @@ class RegExpFilter(FilterABC):
         self.accept_match = accept_match
         super().__init__(**kwargs)
 
+    @property
+    def score_direction(self):
+        """Hint for which score values indicate accept"""
+        return CLEAN_TRUE if self.accept_match else CLEAN_FALSE
+
     def score(self, pairs):
         for pair in pairs:
             yield [bool(regex.search(self.regexps[idx], segment)) for idx, segment in enumerate(pair)]
@@ -185,6 +200,8 @@ class RegExpFilter(FilterABC):
 
 class AlphabetRatioFilter(FilterABC):
     """Proportion of alphabetic characters in the segment"""
+
+    score_direction = CLEAN_HIGH
 
     def __init__(self, threshold=0.75, exclude_whitespace=False, **kwargs):
         self.threshold = check_args_compability(threshold, required_types=[(float, int)], names=['threshold'])
@@ -217,6 +234,8 @@ class CharacterScoreFilter(FilterABC):
     https://www.regular-expressions.info/unicode.html
 
     """
+
+    score_direction = CLEAN_HIGH
 
     def __init__(self, scripts=None, thresholds=None, **kwargs):
         if scripts is None:
@@ -258,6 +277,8 @@ class LanguageIDFilter(FilterABC):
     * fasttext: see :cite:`joulin-etal-2016-fasttext` and :cite:`joulin-etal-2017-bag`
 
     """
+
+    score_direction = CLEAN_HIGH
 
     def __init__(self, languages=None, id_method='langid', thresholds=None,
                  fasttext_model_path=None, langid_languages=None, cld2_options=None,
@@ -357,6 +378,8 @@ class TerminalPunctuationFilter(FilterABC):
 
     """
 
+    score_direction = CLEAN_HIGH
+
     def __init__(self, threshold=-2, **kwargs):
         self.threshold = threshold
         super().__init__(**kwargs)
@@ -392,6 +415,8 @@ class NonZeroNumeralsFilter(FilterABC):
 
     """
 
+    score_direction = CLEAN_HIGH
+
     def __init__(self, threshold=0.5, require_all=True, **kwargs):
         self.threshold = threshold
         self.require_all = require_all
@@ -421,6 +446,8 @@ class LongestCommonSubstringFilter(FilterABC):
     to be below the threshold. For bilingual input, it has no effect.
 
     """
+
+    score_direction = CLEAN_LOW
 
     def __init__(self, threshold=0.9, require_all=True, **kwargs):
         self.threshold = threshold
@@ -455,6 +482,8 @@ class SimilarityFilter(FilterABC):
     to be below the threshold. For bilingual input, it has no effect.
 
     """
+
+    score_direction = CLEAN_LOW
 
     VALID_UNITS = ('word', 'char', 'character')
 
@@ -506,6 +535,8 @@ class RepetitionFilter(FilterABC):
     otherwise.
 
     """
+
+    score_direction = CLEAN_LOW
 
     def __init__(self, threshold=2, min_length=3, max_length=100, **kwargs):
         if threshold < 1:
