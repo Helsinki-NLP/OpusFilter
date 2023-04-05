@@ -1,7 +1,6 @@
 """Filter pipeline"""
 
 import collections
-import importlib
 import logging
 
 from tqdm import tqdm
@@ -9,7 +8,7 @@ from tqdm import tqdm
 from . import filters as filtermodule
 from . import preprocessors as preprocessmodule
 from . import subwords as subwordsmodule
-from .util import grouper
+from .util import grouper, import_class
 
 
 logger = logging.getLogger(__name__)
@@ -27,14 +26,8 @@ class FilterPipeline:
         """Initilize filter pipeline from configuration dictionary"""
         pipeline = cls()
         for filt in config:
-            custom_module = filt.pop('module') if 'module' in filt else None
-            name = next(iter(filt.keys()))
+            name, filter_cls = import_class(filt, [filtermodule])
             attributes = filt[name]
-            if custom_module:
-                mod = importlib.import_module(custom_module)
-                filter_cls = getattr(mod, name)
-            else:
-                filter_cls = getattr(filtermodule, name)
             if workdir:
                 attributes['workdir'] = workdir
             pipeline.filters.append(filter_cls(**attributes))
@@ -135,18 +128,10 @@ class PreprocessorPipeline:
         """Initilize filter pipeline from configuration dictionary"""
         pipeline = cls()
         for processor in config:
-            custom_module = processor.pop('module') if 'module' in processor else None
-            name = next(iter(processor.keys()))
+            name, processor_cls = import_class(processor, [subwordsmodule, preprocessmodule])
             attributes = processor[name]
             if workdir:
                 attributes['workdir'] = workdir
-            if custom_module:
-                mod = importlib.import_module(custom_module)
-                processor_cls = getattr(mod, name)
-            elif hasattr(subwordsmodule, name):
-                processor_cls = getattr(subwordsmodule, name)
-            else:
-                processor_cls = getattr(preprocessmodule, name)
             pipeline.preprocessors.append(processor_cls(**attributes))
         return pipeline
 

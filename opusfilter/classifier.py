@@ -13,7 +13,10 @@ from pandas import json_normalize
 import sklearn.linear_model
 from sklearn.metrics import accuracy_score, confusion_matrix, roc_auc_score, log_loss
 
-from .util import grouper, file_open
+from . import CLEAN_LOW, CLEAN_HIGH, CLEAN_BETWEEN, CLEAN_TRUE, CLEAN_FALSE
+from . import filters as filtermodule
+from .util import file_open, grouper, import_class
+
 
 logger = logging.getLogger(__name__)
 
@@ -77,9 +80,18 @@ def standardize_dataframe_scores(dataframe, features, means_stds=None):
         means_stds = {}
         for column in dataframe:
             vect = dataframe[column].to_numpy()
-            if features[column].get('clean-direction', 'high') == 'low':
+            clean_direction = features[column].get('clean-direction')
+            if not clean_direction:
+                # Take default from filter class (= first part of the column name)
+                _, cls = import_class({column.split('.', maxsplit=1)[0]: None}, [filtermodule])
+                clean_direction = cls.score_direction
+            if clean_direction in [CLEAN_LOW, CLEAN_FALSE, 'low']:
                 direction = -1
+            elif clean_direction in [CLEAN_HIGH, CLEAN_TRUE, 'high']:
+                direction = 1
             else:
+                logger.warning('Unsuitable direction %s for %s, using default %s',
+                               clean_direction, column, CLEAN_HIGH)
                 direction = 1
             means_stds[column] = (vect.mean(), vect.std(), direction)
     for column in features:

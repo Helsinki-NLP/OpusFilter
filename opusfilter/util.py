@@ -2,6 +2,7 @@
 
 import bz2
 import gzip
+import importlib
 import io
 import itertools
 import logging
@@ -15,6 +16,30 @@ from . import ConfigurationError
 
 
 logger = logging.getLogger(__name__)
+
+
+def import_class(config_dict, default_modules):
+    """Import class from default modules or custom module defined in config
+
+    The config_dict argument should have one key that corresponds to
+    the class name, containing the arguments for the class, and
+    optionally key "module" that gives the name of the custom module
+    containing the class. If custom module is not provided, the class
+    is searched from the default_modules, which should be a list of
+    module objects.
+
+    Returns the imported class name and the actual class.
+
+    """
+    custom_module = config_dict.pop('module') if 'module' in config_dict else None
+    name = next(iter(config_dict.keys()))
+    if custom_module:
+        mod = importlib.import_module(custom_module)
+        return name, getattr(mod, name)
+    for module in default_modules:
+        if hasattr(module, name):
+            return name, getattr(module, name)
+    raise KeyError('Class %s not found in modules' % name)
 
 
 class FakeList:

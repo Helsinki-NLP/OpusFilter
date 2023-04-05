@@ -52,11 +52,11 @@ class DataframeTests(unittest.TestCase):
         self.assertEqual(len(dfs[2]), 1)
 
     def test_standardize_dataframe_scores(self):
-        data = {'column1': [3,4,3,6,3,7,3],
-                'column2': [4,8,6,9,2,-5,4],
-                'column3': [1,11,3,7,4,-1,6],
-                'column4': [0,1,2,3,4,5,6],
-                'column5': [1,1,1,1,1,1,1]}
+        data = {'column1': [3, 4, 3, 6, 3, 7, 3],
+                'column2': [4, 8, 6, 9, 2, -5, 4],
+                'column3': [1, 11, 3, 7, 4, -1, 6],
+                'column4': [0, 1, 2, 3, 4, 5, 6],
+                'column5': [1, 1, 1, 1, 1, 1, 1]}
         features = {'column1': {'clean-direction': 'high', 'quantiles': [0.1]},
                     'column2': {'clean-direction': 'high', 'quantiles': [0.1]},
                     'column3': {'clean-direction': 'high', 'quantiles': [0.1]},
@@ -69,6 +69,30 @@ class DataframeTests(unittest.TestCase):
         self.assertAlmostEqual(new_df['column1'][0], -0.73646, places=6)
         self.assertAlmostEqual(new_df['column4'][6], 1.5, places=6)
         self.assertAlmostEqual(new_df['column5'][6], 0, places=6)
+
+    def test_standardize_dataframe_default_direction(self):
+        data = {'LongWordFilter.0': [3, 4, 3, 6, 3, 7],
+                'NonZeroNumeralsFilter': [4, 8, 6, 9, 2, -5],
+                'LengthFilter.0': [20, 10, 20, 10, 20, 10],
+                'HtmlTagFilter.0': [True, True, True, False, False, False]}
+        features = {'LongWordFilter.0': {'quantiles': [0.1]},
+                    'NonZeroNumeralsFilter': {'quantiles': [0.1]},
+                    'LengthFilter.0': {'quantiles': [0.1]},
+                    'HtmlTagFilter.0': {'quantiles': [0.1]}}
+        df = pd.DataFrame(data)
+        new_df, means_stds = standardize_dataframe_scores(df, features)
+        self.assertAlmostEqual(new_df['LongWordFilter.0'][0], 0.8340576, places=6)
+        self.assertAlmostEqual(new_df['NonZeroNumeralsFilter'][5], -1.933510, places=6)
+        self.assertAlmostEqual(new_df['LengthFilter.0'][0], 1.0, places=6)
+        self.assertAlmostEqual(new_df['HtmlTagFilter.0'][0], -1.0, places=6)
+        self.assertAlmostEqual(new_df['HtmlTagFilter.0'][5], 1.0, places=6)
+
+    def test_standardize_dataframe_default_direction_error(self):
+        data = {'UnknownFilter': [3,4,3,6,3,7,3]}
+        features = {'UnknownFilter': {'quantiles': [0.1]}}
+        df = pd.DataFrame(data)
+        with self.assertRaises(KeyError):
+            new_df, means_stds = standardize_dataframe_scores(df, features)
 
 
 class TestTrainClassifierNoDev(unittest.TestCase):
