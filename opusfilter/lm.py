@@ -72,6 +72,9 @@ def train(datafile, outputfile, **kwargs):
     trainer.initialize(datafile, 0, 0, -1, args.optdata, '<s>', False, '')
     trainer.set_cutoffs([int(x) for x in args.cutoffs.split()])
     trainer.grow(1)
+    if not os.path.isdir(os.path.dirname(outputfile)):
+        logger.info(f'Creating output directory for {outputfile}')
+        os.makedirs(os.path.dirname(outputfile))
     trainer.write_file(outputfile, args.arpa)
 
 
