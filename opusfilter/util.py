@@ -98,7 +98,7 @@ def file_open(filename, mode='r', encoding='utf8'):
     In write mode, creates the output directory if it does not exist.
 
     """
-    if 'w' in mode and not os.path.isdir(os.path.dirname(filename)):
+    if 'w' in mode and os.path.dirname(filename) and not os.path.isdir(os.path.dirname(filename)):
         os.makedirs(os.path.dirname(filename))
     if filename.endswith('.bz2'):
         if mode in {'r', 'w', 'x', 'a'}:
