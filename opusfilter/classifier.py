@@ -178,10 +178,19 @@ class TrainClassifier:
 
         self.group_config = features
         self.feature_config = {}
+        found_in_data = set()
         for t_key in self.df_training_data.keys():
+            found_in_features = False
             for f_key in features.keys():
                 if t_key.startswith(f_key):
                     self.feature_config[t_key] = features[f_key]
+                    found_in_data.add(f_key)
+                    found_in_features = True
+            if not found_in_features:
+                logger.warning("Score %s not listed as a feature, skipping", t_key)
+        for f_key in features.keys():
+            if f_key not in found_in_data:
+                logger.warning("Feature %s defined but not in training scores, skipping", f_key)
 
         self.df_training_data = self.df_training_data[self.feature_config.keys()]
         self.df_training_data, self.means_stds = standardize_dataframe_scores(
