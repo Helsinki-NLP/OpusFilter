@@ -177,27 +177,27 @@ class TestTrainClassifierNoDev(unittest.TestCase):
         self.assertAlmostEqual(bic, -4.910486801786702)
 
     def test_find_best_aic_model(self):
-        LR, aic, value = self.fc.find_best_model('AIC')
+        LR, aic, value, initial = self.fc.find_best_model('AIC')
         self.assertAlmostEqual(aic, 16.2056, places=2)
 
     def test_find_best_aic_model_bfgs(self):
-        LR, aic, value = self.fc.find_best_model('AIC', algorithm='Powell')
+        LR, aic, value, initial = self.fc.find_best_model('AIC', algorithm='Powell')
         self.assertAlmostEqual(aic, 16.2056, places=2)
 
     def test_find_best_aic_model_none(self):
-        LR, aic, value = self.fc.find_best_model('AIC', algorithm='none')
+        LR, aic, value, initial = self.fc.find_best_model('AIC', algorithm='none')
         self.assertAlmostEqual(aic, 16.2056, places=2)
 
     def test_find_best_bic_model(self):
-        LR, bic, value = self.fc.find_best_model('BIC')
+        LR, bic, value, initial = self.fc.find_best_model('BIC')
         self.assertAlmostEqual(bic, -2.295, places=2)
 
     def test_find_best_sse_model(self):
-        LR, sse, value = self.fc.find_best_model('SSE')
+        LR, sse, value, initial = self.fc.find_best_model('SSE')
         self.assertAlmostEqual(sse, 1.01, places=2)
 
     def test_find_best_ce_model(self):
-        LR, ce, value = self.fc.find_best_model('CE')
+        LR, ce, value, initial = self.fc.find_best_model('CE')
         self.assertAlmostEqual(ce, 0.3319, places=2)
 
 
@@ -235,5 +235,5 @@ class TestTrainClassifierWithDev(TestTrainClassifierNoDev):
         self.assertAlmostEqual(self.fc.get_roc_auc(LR, self.fc.dev_data), 1)
 
     def test_find_best_roc_auc_model(self):
-        LR, roc_auc, value = self.fc.find_best_model('ROC_AUC')
+        LR, roc_auc, value, initial = self.fc.find_best_model('ROC_AUC')
         self.assertAlmostEqual(roc_auc, 1)
