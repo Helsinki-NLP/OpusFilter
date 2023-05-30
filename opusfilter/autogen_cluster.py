@@ -1,6 +1,7 @@
 import os
 from collections import Counter
 import logging
+import pprint
 
 from sklearn.cluster import KMeans
 from sklearn import preprocessing
@@ -24,15 +25,11 @@ logger.setLevel('INFO')
 class ConfigGenerator:
 
     def __init__(self, files, langs, scripts, output_dir, output_file, graph=True):
+        self.input_files = files
+        self.langs = langs
         self.output_dir = output_dir
         self.output_config = output_file
         self.graph = graph
-
-        dedup_files = ['dedup_'+f for f in files]
-        self.noemp_files = ['noemp_'+f for f in files]
-        self.sample_files = ['100k_'+f for f in files]
-        self.output_files = ['filtered_'+f for f in files]
-        self.score_file = f'100k-scores.{"-".join(langs)}.jsonl.gz'
 
         self.filter_params = {
                 'AlphabetRatioFilter': {},
@@ -51,17 +48,28 @@ class ConfigGenerator:
                 'TerminalPunctuationFilter': {}
                 }
 
-        self.config =  {'common': {'output_directory': output_dir},
+    def prepare_data(self):
+        # Remove duplicates and empty lines, take a 100k samples, produce filter scores
+        dedup_files = ['dedup_'+f for f in self.input_files]
+        noemp_files = ['noemp_'+f for f in self.input_files]
+        sample_files = ['100k_'+f for f in self.input_files]
+        score_name = sample_files[0]
+        for l in self.langs:
+            score_name = score_name.replace(l, '')
+        score_file = f'scores_{score_name}.{"-".join(self.langs)}.jsonl.gz'
+        score_file = score_file.replace('..', '.')
+
+        pre_config =  {'common': {'output_directory': self.output_dir},
                     'steps': [
                         {'type': 'remove_duplicates',
                         'parameters': {
-                            'inputs': files,
+                            'inputs': self.input_files,
                             'outputs': dedup_files}
                         },
                         {'type': 'filter',
                         'parameters': {
                             'inputs': dedup_files,
-                            'outputs': self.noemp_files,
+                            'outputs': noemp_files,
                             'filters': [
                                 {'LengthFilter':
                                     {'unit': 'word', 'min_length': 1, 'max_length': 150}
@@ -70,23 +78,28 @@ class ConfigGenerator:
                         },
                         {'type': 'subset',
                         'parameters': {
-                            'inputs': self.noemp_files,
-                            'outputs': self.sample_files,
+                            'inputs': noemp_files,
+                            'outputs': sample_files,
                             'size': 100000,
                             'seed': 1}
                         },
                         {'type': 'score',
                         'parameters': {
-                            'inputs': self.sample_files,
-                            'output': self.score_file,
+                            'inputs': sample_files,
+                            'output': score_file,
                             'filters': [{k.split('.')[0]: v} for k, v in self.filter_params.items()]
                             }
                         }
                     ]
                 }
 
-    def sort(self, labels):
-        input_files = self.sample_files + [labels, self.score_file]
+        of = OpusFilter(pre_config)
+        of.execute_steps(overwrite=False)
+
+        return score_file, noemp_files, sample_files
+
+    def sort(self, labels, score_file, sample_files):
+        input_files = sample_files + [labels, score_file]
         output_files = ['sorted_'+n for n in input_files]
         sort_config = {'common': {'output_directory': self.output_dir},
                 'steps': [
@@ -97,13 +110,13 @@ class ConfigGenerator:
                         'values': labels}}
                     ]
                 }
-
-    def generate_config(self):
-        # Prepare data
-        of = OpusFilter(self.config)
+        of = OpusFilter(sort_config)
         of.execute_steps(overwrite=False)
 
-        df = load_dataframe(os.path.join(self.output_dir, self.score_file))
+    def generate_config(self):
+        score_file, noemp_files, sample_files = self.prepare_data()
+
+        df = load_dataframe(os.path.join(self.output_dir, score_file))
 
         filters = [AlphabetRatioFilter, CharacterScoreFilter, LanguageIDFilter, LengthRatioFilter, NonZeroNumeralsFilter, TerminalPunctuationFilter]
         filters = {f.__name__: f for f in filters}
@@ -241,26 +254,26 @@ class ConfigGenerator:
                 if prev_t == None or thresholds[i] < prev_t:
                     parameter['threshold'] = thresholds[i]
 
+        output_files = ['filtered_'+f for f in self.input_files]
         out_config = {'common':
                         {'output_directory': self.output_dir},
                     'steps':
                         [{'type': 'filter',
                         'parameters':
-                            {'inputs': self.noemp_files,
-                            'outputs': self.output_files,
+                            {'inputs': noemp_files,
+                            'outputs': output_files,
                             'filters': [{k.split('.')[0]: v} for k, v in self.filter_params.items()]
                             }
                         }]
                     }
 
-        import pprint
         logger.info('Generated config file:')
         pprint.pprint(out_config)
 
         yaml = ruamel.yaml.YAML()
         yaml.dump(out_config, self.output_config)
 
-        self.sort(label_file_name)
+        self.sort(label_file_name, score_file, sample_files)
 
         if self.graph:
             plt.show()
@@ -290,9 +303,9 @@ class ConfigGenerator:
         return X_t, pca, low_b, nrows, ncols
 
     def add_scatter(self, X_t, nrows, ncols, position, labels, pca_centers, noisy_pca_center, noisy_label):
-        colors = ['orange' if l == noisy_label else 'green' for l in labels]
+        colors = ['orange' if l == noisy_label else 'blue' for l in labels]
         a = plt.subplot(nrows, ncols, position)
-        a.scatter(X_t[:,0], X_t[:,1], c=colors, marker=',', s=1)
-        a.scatter(pca_centers[:,0], pca_centers[:,1], color='blue')
-        a.scatter(noisy_pca_center[0], noisy_pca_center[1], color='red')
+        a.scatter(X_t[:,0], X_t[:,1], c=colors, edgecolors='black') #marker=',', s=1)
+        #a.scatter(pca_centers[:,0], pca_centers[:,1], color='blue', edgecolors='black')
+        #a.scatter(noisy_pca_center[0], noisy_pca_center[1], color='red', edgecolors='black')
 
