@@ -26,13 +26,19 @@ logger.setLevel('INFO')
 
 class ConfigGenerator:
 
-    def __init__(self, files, langs, scripts, output_dir, output_file, graph=True):
+    def __init__(self, files, langs, scripts, work_dir, output_file, graph, overwrite):
         self.input_files = files
+
+        self.base_name = files[0]
+        for l in langs:
+            self.base_name = self.base_name.replace(l, '')
+
         self.config_input_files = ['noemp_'+f for f in self.input_files]
         self.langs = langs
-        self.output_dir = output_dir
+        self.work_dir = work_dir
         self.output_config = output_file
         self.graph = graph
+        self.overwrite = overwrite
 
         self.filter_params = {
                 'AlphabetRatioFilter': {},
@@ -52,9 +58,13 @@ class ConfigGenerator:
                 }
 
     def generate_config(self):
+        if os.path.isfile(self.output_config) and not self.overwrite:
+            logger.info(f'Output file "{self.output_config}" exists, not overwriting')
+            exit()
+
         score_file, sample_files = self.prepare_data()
 
-        df = load_dataframe(os.path.join(self.output_dir, score_file))
+        df = load_dataframe(os.path.join(self.work_dir, score_file))
         thresholds, standard_data, labels, label_file_name = self.find_thresholds(df, 2)
 
         rejects = self.get_rejects(standard_data, labels, df.columns)
@@ -71,13 +81,10 @@ class ConfigGenerator:
 
         dedup_files = ['dedup_'+f for f in self.input_files]
         sample_files = ['100k_'+f for f in self.input_files]
-        score_name = sample_files[0]
-        for l in self.langs:
-            score_name = score_name.replace(l, '')
-        score_file = f'scores_{score_name}.{"-".join(self.langs)}.jsonl.gz'
+        score_file = f'scores_{self.base_name}.{"-".join(self.langs)}.jsonl.gz'
         score_file = score_file.replace('..', '.')
 
-        pre_config =  {'common': {'output_directory': self.output_dir},
+        pre_config =  {'common': {'output_directory': self.work_dir},
                     'steps': [
                         {'type': 'remove_duplicates',
                         'parameters': {
@@ -112,7 +119,7 @@ class ConfigGenerator:
                 }
 
         of = OpusFilter(pre_config)
-        of.execute_steps(overwrite=False)
+        of.execute_steps(overwrite=self.overwrite)
 
         return score_file, sample_files
 
@@ -176,10 +183,16 @@ class ConfigGenerator:
             colors = ['orange' if l == noisy_label else 'blue' for l in labels]
             plt.scatter(X_t[:,0], X_t[:,1], c=colors, marker=',', s=1)
 
-        label_file_name = 'labels.txt'
-        with open(os.path.join(self.output_dir, label_file_name), 'w') as label_file:
-            for label in labels:
-                label_file.write(str(label)+'\n')
+        label_file_name = f'{self.base_name}.labels.txt'
+        label_file_name = label_file_name.replace('..', '.')
+        label_file_path = os.path.join(self.work_dir, label_file_name)
+
+        if os.path.isfile(label_file_path) and not self.overwrite:
+            logger.info(f'Label file "{label_file_name}" exits, not overwriting')
+        else:
+            with open(label_file_path, 'w') as label_file:
+                for label in labels:
+                    label_file.write(str(label)+'\n')
 
         logger.info(f'Cluster center of the noisiest cluster ({low_mean})')
         logger.info(f'Noisy label: {noisy_label}')
@@ -249,7 +262,7 @@ class ConfigGenerator:
 
         output_files = ['filtered_'+f for f in self.input_files]
         out_config = {'common':
-                        {'output_directory': self.output_dir},
+                        {'output_directory': self.work_dir},
                     'steps':
                         [{'type': 'filter',
                         'parameters':
@@ -264,12 +277,13 @@ class ConfigGenerator:
         pprint.pprint(out_config)
 
         yaml = ruamel.yaml.YAML()
-        yaml.dump(out_config, self.output_config)
+        with open(self.output_config, 'w') as out_conf:
+            yaml.dump(out_config, out_conf)
 
     def sort(self, labels, score_file, sample_files):
         input_files = sample_files + [labels, score_file]
         output_files = ['sorted_'+n for n in input_files]
-        sort_config = {'common': {'output_directory': self.output_dir},
+        sort_config = {'common': {'output_directory': self.work_dir},
                 'steps': [
                     {'type': 'sort',
                     'parameters': {
@@ -279,7 +293,7 @@ class ConfigGenerator:
                     ]
                 }
         of = OpusFilter(sort_config)
-        of.execute_steps(overwrite=False)
+        of.execute_steps(overwrite=self.overwrite)
 
     def pca_data(self, X):
         # PCA to get 2d graph for clusters

@@ -7,13 +7,15 @@ from opusfilter.autogen_cluster import ConfigGenerator
 
 logging.basicConfig(level=logging.INFO)
 
-parser = argparse.ArgumentParser(prog='autogen')
+parser = argparse.ArgumentParser(prog='opusfilter-autogen-cluster')
 
-parser.add_argument('--files', nargs=2)
-parser.add_argument('--langs', nargs=2)
-parser.add_argument('--scripts', nargs=2)
-parser.add_argument('--output_dir', default='.', help='Intermediate files go in this dir')
-parser.add_argument('--output_file', type=argparse.FileType('w'), default='config.yaml')
+parser.add_argument('--files', nargs=2, required=True, help='Source and target file of a bitext', metavar=('src_file', 'trg_file'))
+parser.add_argument('--langs', nargs=2, required=True, help='Language codes corresponding to the source and target files', metavar=('src_lang', 'trg_lang'))
+parser.add_argument('--scripts', nargs=2, required=True, help='Alphabetic scripts corresponding to the source and target files', metavar=('src_script', 'trg_script'))
+parser.add_argument('--work_dir', default='.', help='Directory where source and target files and all intermediate files are processed')
+parser.add_argument('--output_file', default='config.yaml')
+parser.add_argument('--graph', action='store_true', help='Show a scatter plot of the clustering and histograms of feature data distributions')
+parser.add_argument('--overwrite', action='store_true', help='Overwrite existing config file and intermediate files')
 
 args = parser.parse_args()
 
