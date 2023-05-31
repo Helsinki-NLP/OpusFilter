@@ -1,3 +1,33 @@
+# Automatic configuration file generation
+
+You can generate OpusFilter config files with the `opusfilter-autogen-cluster` script. The script takes a parallel corpus as an input and measures its quality to generate threshold parameters for filters. Currently, the used filters are AlphabetRatioFilter, CharacterScoreFilter, LanguageIDFilter, LengthRatioFilter, NonZeroNumeralsFilter and TerminalPunctuationFilter, but this list will be expanded and made more flexible in the future.
+
+First, we remove duplicates and empty sentences from the input corpus. Next, we take 100k subset of the corpus and produce scores for each sentence pair in the subset with the previously mentioned filters. These scores are used as features for K-means clustering to classify the sentence pairs into clean and noisy pairs. The values of the noisy cluster center are used as the filter threshold parameters in the generated config file.
+
+usage:
+
+```
+opusfilter-autogen-cluster [-h] --files src_file trg_file --langs src_lang trg_lang --scripts
+                                  src_script trg_script [--work_dir WORK_DIR]
+                                  [--output_file OUTPUT_FILE] [--graph] [--overwrite]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --files src_file trg_file
+                        Source and target file of a bitext
+  --langs src_lang trg_lang
+                        Language codes corresponding to the source and target files
+  --scripts src_script trg_script
+                        Alphabetic scripts corresponding to the source and target files
+  --work_dir WORK_DIR   Directory where source and target files and all intermediate files are
+                        processed (default=.)
+  --output_file OUTPUT_FILE
+                        Generated config file (default=config.yaml)
+  --graph               Show a scatter plot of the clustering and histograms of feature data
+                        distributions
+  --overwrite           Overwrite existing config file and intermediate files
+```
+
 # OpusFilter
 
 OpusFilter is a tool for filtering and combining parallel corpora.
