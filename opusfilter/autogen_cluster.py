@@ -18,16 +18,17 @@ import pandas as pd
 from opusfilter.classifier import load_dataframe
 from opusfilter.filters import AlphabetRatioFilter, CharacterScoreFilter, LanguageIDFilter, LengthRatioFilter, NonZeroNumeralsFilter, TerminalPunctuationFilter
 from opusfilter.opusfilter import OpusFilter
+from . import CLEAN_LOW
 
 plt.style.use('seaborn')
 
 logger = logging.getLogger(__name__)
-logger.setLevel('INFO')
 
 class ConfigGenerator:
 
-    def __init__(self, files, langs, scripts, work_dir, output_file, graph, overwrite):
+    def __init__(self, files, langs, scripts, output_file, sample_size, work_dir, graph, overwrite):
         self.input_files = files
+        self.sample_size = sample_size
 
         self.base_name = files[0]
         for l in langs:
@@ -42,8 +43,6 @@ class ConfigGenerator:
 
         self.filter_params = {
                 'AlphabetRatioFilter': {},
-                'CharacterScoreFilter': {
-                    'scripts': scripts},
                 'LanguageIDFilter': {
                     'id_method': 'cld2',
                     'languages': langs},
@@ -57,30 +56,33 @@ class ConfigGenerator:
                 'TerminalPunctuationFilter': {}
                 }
 
+        if scripts:
+            self.filter_params['CharacterScoreFilter'] = {'scripts': scripts}
+
     def generate_config(self):
         if os.path.isfile(self.output_config) and not self.overwrite:
             logger.info(f'Output file "{self.output_config}" exists, not overwriting')
             exit()
 
-        score_file, sample_files = self.prepare_data()
+        score_file, sample_files = self.prepare_data(self.sample_size)
 
         df = load_dataframe(os.path.join(self.work_dir, score_file))
         thresholds, standard_data, labels, label_file_name = self.find_thresholds(df, 2)
 
         rejects = self.get_rejects(standard_data, labels, df.columns)
 
-        self.make_config_yaml(thresholds, rejects, df.columns)
+        self.make_config_yaml(thresholds, rejects)
 
         self.sort(label_file_name, score_file, sample_files)
 
         if self.graph:
             plt.show()
 
-    def prepare_data(self):
-        # Remove duplicates and empty lines, take a 100k samples, produce filter scores
+    def prepare_data(self, n):
+        # Remove duplicates and empty lines, take a sample of size n, produce filter scores
 
         dedup_files = ['dedup_'+f for f in self.input_files]
-        sample_files = ['100k_'+f for f in self.input_files]
+        sample_files = ['sample_'+f for f in self.input_files]
         score_file = f'scores_{self.base_name}.{"-".join(self.langs)}.jsonl.gz'
         score_file = score_file.replace('..', '.')
 
@@ -105,7 +107,7 @@ class ConfigGenerator:
                         'parameters': {
                             'inputs': self.config_input_files,
                             'outputs': sample_files,
-                            'size': 100000,
+                            'size': n,
                             'seed': 1}
                         },
                         {'type': 'score',
@@ -152,7 +154,7 @@ class ConfigGenerator:
             for j, name in enumerate(df.columns):
                 first_part = name.split('.')[0]
                 value = center[j].copy()
-                if filters[first_part].score_direction == 'clean_low':
+                if filters[first_part].score_direction == CLEAN_LOW:
                     value *= -1
                 fixed_center.append(value)
             dir_fixed_centers.append(fixed_center)
@@ -229,8 +231,8 @@ class ConfigGenerator:
 
         return rejects
 
-    def make_config_yaml(self, thresholds, rejects, columns):
-        for i, name in enumerate(columns):
+    def make_config_yaml(self, thresholds, rejects):
+        for i, name in enumerate(rejects.keys()):
             fullname = name
             name_parts = name.split('.')
             stap = name_parts[0]
@@ -252,7 +254,8 @@ class ConfigGenerator:
             elif 'threshold' in filt_args:
                 parameter = self.filter_params.get(name)
                 if rejects[fullname]:
-                    del self.filter_params[name]
+                    if name in self.filter_params.keys():
+                        del self.filter_params[name]
                     continue
                 if parameter == None:
                     continue
@@ -266,7 +269,7 @@ class ConfigGenerator:
                     'steps':
                         [{'type': 'filter',
                         'parameters':
-                            {'inputs': self.config_input_files,
+                            {'inputs': self.input_files,
                             'outputs': output_files,
                             'filters': [{k.split('.')[0]: v} for k, v in self.filter_params.items()]
                             }

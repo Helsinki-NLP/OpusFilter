@@ -11,9 +11,10 @@ parser = argparse.ArgumentParser(prog='opusfilter-autogen-cluster')
 
 parser.add_argument('--files', nargs=2, required=True, help='Source and target file of a bitext', metavar=('src_file', 'trg_file'))
 parser.add_argument('--langs', nargs=2, required=True, help='Language codes corresponding to the source and target files', metavar=('src_lang', 'trg_lang'))
-parser.add_argument('--scripts', nargs=2, required=True, help='Alphabetic scripts corresponding to the source and target files', metavar=('src_script', 'trg_script'))
-parser.add_argument('--work_dir', default='.', help='Directory where source and target files and all intermediate files are processed (default=.)')
-parser.add_argument('--output_file', default='config.yaml', help='Generated config file (default=config.yaml)')
+parser.add_argument('--scripts', nargs=2, help='Alphabetic scripts corresponding to the source and target files. If omitted, CharacterScoreFilter will not be used.', metavar=('src_script', 'trg_script'))
+parser.add_argument('--output-file', default='config.yaml', help='Generated config file (default=config.yaml)')
+parser.add_argument('--sample-size', default=100000, type=int, help='Number of sentence pairs in the sample used in clustering')
+parser.add_argument('--work-dir', default='.', help='Directory where source and target files and all intermediate files are processed (default=.)')
 parser.add_argument('--graph', action='store_true', help='Show a scatter plot of the clustering and histograms of feature data distributions')
 parser.add_argument('--overwrite', action='store_true', help='Overwrite existing config file and intermediate files')
 
