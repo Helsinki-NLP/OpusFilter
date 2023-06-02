@@ -1,15 +1,20 @@
 # Automatic configuration file generation
 
-You can generate OpusFilter config files with the `opusfilter-autogen-cluster` script. The script takes a parallel corpus as an input and measures its quality to generate threshold parameters for filters. Currently, the used filters are AlphabetRatioFilter, CharacterScoreFilter, LanguageIDFilter, LengthRatioFilter, NonZeroNumeralsFilter and TerminalPunctuationFilter, but this list will be expanded and made more flexible in the future.
+You can generate OpusFilter config files with the `opusfilter-autogen-cluster` script. The script takes a parallel corpus as an input and measures its quality to generate threshold parameters for filters. Currently, the used filters are AlphabetRatioFilter, CharacterScoreFilter, LanguageIDFilter, LengthRatioFilter, NonZeroNumeralsFilter and TerminalPunctuationFilter. This list will be expanded and made more flexible in the future.
 
-First, we remove duplicates and empty sentences from the input corpus. Next, we take 100k subset of the corpus and produce scores for each sentence pair in the subset with the previously mentioned filters. These scores are used as features for K-means clustering to classify the sentence pairs into clean and noisy pairs. The values of the noisy cluster center are used as the filter threshold parameters in the generated config file.
+## How does it work?
 
-usage:
+First, we remove duplicates and empty sentences from the input corpus. Next, we take a subset (100k sentencepairs by default) of the corpus and produce scores for each sentence pair in the subset with the previously mentioned filters. These scores are used as features for K-means clustering to classify the sentence pairs into clean and noisy pairs. The values of the noisy cluster center are used as the filter threshold parameters in the generated config file.
+
+If you want to save the intermediate files, make sure to use the `--inter-dir` argument.
+
+## usage:
 
 ```
-opusfilter-autogen-cluster [-h] --files src_file trg_file --langs src_lang trg_lang --scripts
-                                  src_script trg_script [--work_dir WORK_DIR]
-                                  [--output_file OUTPUT_FILE] [--graph] [--overwrite]
+opusfilter-autogen-cluster [-h] --files src_file trg_file --langs src_lang trg_lang
+                                  [--scripts src_script trg_script] [--output-file OUTPUT_FILE]
+                                  [--sample-size SAMPLE_SIZE] [--work-dir WORK_DIR]
+                                  [--inter-dir INTER_DIR] [--graph] [--overwrite]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -18,11 +23,17 @@ optional arguments:
   --langs src_lang trg_lang
                         Language codes corresponding to the source and target files
   --scripts src_script trg_script
-                        Alphabetic scripts corresponding to the source and target files
-  --work_dir WORK_DIR   Directory where source and target files and all intermediate files are
-                        processed (default=.)
-  --output_file OUTPUT_FILE
+                        Alphabetic scripts corresponding to the source and target files. If omitted,
+                        CharacterScoreFilter will not be used.
+  --output-file OUTPUT_FILE
                         Generated config file (default=config.yaml)
+  --sample-size SAMPLE_SIZE
+                        Number of sentence pairs used for clustering (default=100000)
+  --work-dir WORK_DIR   Location of the source and target files
+  --inter-dir INTER_DIR
+                        Save intermediate files in this directory. These files are: deduplicated files
+                        > files with empty lines and lines longer than 150 words removed > sample files
+                        for clustering > scores for the sample > labels from clustering
   --graph               Show a scatter plot of the clustering and histograms of feature data
                         distributions
   --overwrite           Overwrite existing config file and intermediate files

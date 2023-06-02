@@ -1,7 +1,9 @@
 import os
+import shutil
 from collections import Counter
 import logging
 import pprint
+import tempfile
 
 from sklearn.cluster import KMeans
 from sklearn import preprocessing
@@ -26,17 +28,23 @@ logger = logging.getLogger(__name__)
 
 class ConfigGenerator:
 
-    def __init__(self, files, langs, scripts, output_file, sample_size, work_dir, graph, overwrite):
+    def __init__(self, files, langs, scripts, output_file, sample_size, work_dir, inter_dir, graph, overwrite):
         self.input_files = files
         self.sample_size = sample_size
 
-        self.base_name = files[0]
-        for l in langs:
-            self.base_name = self.base_name.replace(l, '')
+        self.base_name = '-'.join(langs)
 
-        self.config_input_files = ['noemp_'+f for f in self.input_files]
         self.langs = langs
         self.work_dir = work_dir
+        if inter_dir:
+            self.use_tmp = False
+            self.inter_dir = inter_dir
+        else:
+            self.use_tmp = True
+            self.inter_dir = tempfile.mkdtemp()
+        label_file_name = f'{self.base_name}.labels.txt'
+        label_file_name = label_file_name.replace('..', '.')
+        self.label_file_path = os.path.join(self.inter_dir, label_file_name)
         self.output_config = output_file
         self.graph = graph
         self.overwrite = overwrite
@@ -67,13 +75,16 @@ class ConfigGenerator:
         score_file, sample_files = self.prepare_data(self.sample_size)
 
         df = load_dataframe(os.path.join(self.work_dir, score_file))
-        thresholds, standard_data, labels, label_file_name = self.find_thresholds(df, 2)
+        thresholds, standard_data, labels = self.find_thresholds(df, 2)
 
         rejects = self.get_rejects(standard_data, labels, df.columns)
 
         self.make_config_yaml(thresholds, rejects)
 
-        self.sort(label_file_name, score_file, sample_files)
+        if not self.use_tmp:
+            self.sort(sample_files, self.label_file_path, score_file)
+        else:
+            shutil.rmtree(self.inter_dir)
 
         if self.graph:
             plt.show()
@@ -81,12 +92,13 @@ class ConfigGenerator:
     def prepare_data(self, n):
         # Remove duplicates and empty lines, take a sample of size n, produce filter scores
 
-        dedup_files = ['dedup_'+f for f in self.input_files]
-        sample_files = ['sample_'+f for f in self.input_files]
-        score_file = f'scores_{self.base_name}.{"-".join(self.langs)}.jsonl.gz'
+        dedup_files = [os.path.join(self.inter_dir, f'dedup_{self.base_name}.{l}') for l in self.langs]
+        noemp_files = [os.path.join(self.inter_dir, f'noemp_{self.base_name}.{l}') for l in self.langs]
+        sample_files = [os.path.join(self.inter_dir, f'sample_{self.base_name}.{l}') for l in self.langs]
+        score_file = os.path.join(self.inter_dir, f'scores_{self.base_name}.{"-".join(self.langs)}.jsonl.gz')
         score_file = score_file.replace('..', '.')
 
-        pre_config =  {'common': {'output_directory': self.work_dir},
+        pre_config =  {'common': {'output_directory': '.'},
                     'steps': [
                         {'type': 'remove_duplicates',
                         'parameters': {
@@ -96,7 +108,7 @@ class ConfigGenerator:
                         {'type': 'filter',
                         'parameters': {
                             'inputs': dedup_files,
-                            'outputs': self.config_input_files,
+                            'outputs': noemp_files,
                             'filters': [
                                 {'LengthFilter':
                                     {'unit': 'word', 'min_length': 1, 'max_length': 150}
@@ -105,7 +117,7 @@ class ConfigGenerator:
                         },
                         {'type': 'subset',
                         'parameters': {
-                            'inputs': self.config_input_files,
+                            'inputs': noemp_files,
                             'outputs': sample_files,
                             'size': n,
                             'seed': 1}
@@ -185,14 +197,10 @@ class ConfigGenerator:
             colors = ['orange' if l == noisy_label else 'blue' for l in labels]
             plt.scatter(X_t[:,0], X_t[:,1], c=colors, marker=',', s=1)
 
-        label_file_name = f'{self.base_name}.labels.txt'
-        label_file_name = label_file_name.replace('..', '.')
-        label_file_path = os.path.join(self.work_dir, label_file_name)
-
-        if os.path.isfile(label_file_path) and not self.overwrite:
-            logger.info(f'Label file "{label_file_name}" exits, not overwriting')
+        if os.path.isfile(self.label_file_path) and not self.overwrite:
+            logger.info(f'Label file "{self.label_file_path}" exits, not overwriting')
         else:
-            with open(label_file_path, 'w') as label_file:
+            with open(self.label_file_path, 'w') as label_file:
                 for label in labels:
                     label_file.write(str(label)+'\n')
 
@@ -207,7 +215,7 @@ class ConfigGenerator:
             noisy_samples.hist(bins=100, figsize=(10,10))
             clean_samples.hist(bins=100, figsize=(10,10))
 
-        return thresholds, standard_data, labels, label_file_name
+        return thresholds, standard_data, labels
 
     def get_rejects(self, X, labels, columns):
         # Train random forest and find important features
@@ -245,11 +253,15 @@ class ConfigGenerator:
                 if 'thresholds' not in parameter.keys():
                     parameter['thresholds'] = []
                 if rejects[fullname]:
-                    parameter['thresholds'].insert(int(endp), 0)
+                    if stap == 'LanguageIDFilter':
+                        # -1 accepts any language in the LanguageIDFilter
+                        parameter['thresholds'].insert(int(endp), -1)
+                    else:
+                        parameter['thresholds'].insert(int(endp), 0)
                 else:
                     parameter['thresholds'].insert(int(endp), thresholds[i])
                 if len(parameter['thresholds']) == 2:
-                    if all(v == 0 for v in parameter['thresholds']):
+                    if all(v <= 0 for v in parameter['thresholds']):
                         del self.filter_params[stap]
             elif 'threshold' in filt_args:
                 parameter = self.filter_params.get(name)
@@ -263,7 +275,7 @@ class ConfigGenerator:
                 if prev_t == None or thresholds[i] < prev_t:
                     parameter['threshold'] = thresholds[i]
 
-        output_files = ['filtered_'+f for f in self.input_files]
+        output_files = [f'filtered_{self.base_name}.{l}' for l in self.langs]
         out_config = {'common':
                         {'output_directory': self.work_dir},
                     'steps':
@@ -283,10 +295,11 @@ class ConfigGenerator:
         with open(self.output_config, 'w') as out_conf:
             yaml.dump(out_config, out_conf)
 
-    def sort(self, labels, score_file, sample_files):
+    def sort(self, sample_files, labels, score_file):
         input_files = sample_files + [labels, score_file]
-        output_files = ['sorted_'+n for n in input_files]
-        sort_config = {'common': {'output_directory': self.work_dir},
+        tmp_names = [t.split('/')[-1] for t in input_files]
+        output_files = [os.path.join(self.inter_dir, 'sorted_'+n) for n in tmp_names]
+        sort_config = {'common': {'output_directory': '.'},
                 'steps': [
                     {'type': 'sort',
                     'parameters': {
