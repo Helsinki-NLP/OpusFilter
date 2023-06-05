@@ -26,16 +26,39 @@ plt.style.use('seaborn')
 
 logger = logging.getLogger(__name__)
 
-class ConfigGenerator:
+def make_config_yaml(filter_params, input_files, config_name, work_dir):
+    output_files = [f'filtered_{os.path.basename(i)}' for i in input_files]
+    out_config = {'common':
+                    {'output_directory': work_dir},
+                'steps':
+                    [{'type': 'filter',
+                    'parameters':
+                        {'inputs': input_files,
+                        'outputs': output_files,
+                        'filters': [{k.split('.')[0]: v} for k, v in filter_params.items()]
+                        }
+                    }]
+                }
+
+    logger.info('Generated config file:')
+    pprint.pprint(out_config)
+
+    yaml = ruamel.yaml.YAML()
+    with open(config_name, 'w') as out_conf:
+        yaml.dump(out_config, out_conf)
+
+
+class ThresholdFinder:
 
     def __init__(self, files, langs, scripts, output_file, sample_size, work_dir, inter_dir, graph, overwrite):
         self.input_files = files
+        if work_dir != '.':
+            self.input_files = [os.path.join(work_dir, f) for f in files]
         self.sample_size = sample_size
 
         self.base_name = '-'.join(langs)
 
         self.langs = langs
-        self.work_dir = work_dir
         if inter_dir:
             self.use_tmp = False
             self.inter_dir = inter_dir
@@ -43,7 +66,6 @@ class ConfigGenerator:
             self.use_tmp = True
             self.inter_dir = tempfile.mkdtemp()
         label_file_name = f'{self.base_name}.labels.txt'
-        label_file_name = label_file_name.replace('..', '.')
         self.label_file_path = os.path.join(self.inter_dir, label_file_name)
         self.output_config = output_file
         self.graph = graph
@@ -67,19 +89,19 @@ class ConfigGenerator:
         if scripts:
             self.filter_params['CharacterScoreFilter'] = {'scripts': scripts}
 
-    def generate_config(self):
+    def find_thresholds(self):
         if os.path.isfile(self.output_config) and not self.overwrite:
             logger.info(f'Output file "{self.output_config}" exists, not overwriting')
             exit()
 
         score_file, sample_files = self.prepare_data(self.sample_size)
 
-        df = load_dataframe(os.path.join(self.work_dir, score_file))
-        thresholds, standard_data, labels = self.find_thresholds(df, 2)
+        df = load_dataframe(score_file)
+        noisy_center, standard_data, labels = self.get_noisy_cluster_center(df, 2)
 
         rejects = self.get_rejects(standard_data, labels, df.columns)
 
-        self.make_config_yaml(thresholds, rejects)
+        self.get_parameters(noisy_center, rejects)
 
         if not self.use_tmp:
             self.sort(sample_files, self.label_file_path, score_file)
@@ -89,6 +111,8 @@ class ConfigGenerator:
         if self.graph:
             plt.show()
 
+        return self.filter_params
+
     def prepare_data(self, n):
         # Remove duplicates and empty lines, take a sample of size n, produce filter scores
 
@@ -96,7 +120,6 @@ class ConfigGenerator:
         noemp_files = [os.path.join(self.inter_dir, f'noemp_{self.base_name}.{l}') for l in self.langs]
         sample_files = [os.path.join(self.inter_dir, f'sample_{self.base_name}.{l}') for l in self.langs]
         score_file = os.path.join(self.inter_dir, f'scores_{self.base_name}.{"-".join(self.langs)}.jsonl.gz')
-        score_file = score_file.replace('..', '.')
 
         pre_config =  {'common': {'output_directory': '.'},
                     'steps': [
@@ -137,7 +160,7 @@ class ConfigGenerator:
 
         return score_file, sample_files
 
-    def find_thresholds(self, df, n):
+    def get_noisy_cluster_center(self, df, n):
         # Find filter thresholds: train Kmeans clustering with n cluster
         # and take parameters from the noisy cluster center
 
@@ -239,7 +262,7 @@ class ConfigGenerator:
 
         return rejects
 
-    def make_config_yaml(self, thresholds, rejects):
+    def get_parameters(self, thresholds, rejects):
         for i, name in enumerate(rejects.keys()):
             fullname = name
             name_parts = name.split('.')
@@ -253,15 +276,11 @@ class ConfigGenerator:
                 if 'thresholds' not in parameter.keys():
                     parameter['thresholds'] = []
                 if rejects[fullname]:
-                    if stap == 'LanguageIDFilter':
-                        # -1 accepts any language in the LanguageIDFilter
-                        parameter['thresholds'].insert(int(endp), -1)
-                    else:
-                        parameter['thresholds'].insert(int(endp), 0)
+                    parameter['thresholds'].insert(int(endp), -1)
                 else:
                     parameter['thresholds'].insert(int(endp), thresholds[i])
                 if len(parameter['thresholds']) == 2:
-                    if all(v <= 0 for v in parameter['thresholds']):
+                    if all(v == -1 for v in parameter['thresholds']):
                         del self.filter_params[stap]
             elif 'threshold' in filt_args:
                 parameter = self.filter_params.get(name)
@@ -275,32 +294,12 @@ class ConfigGenerator:
                 if prev_t == None or thresholds[i] < prev_t:
                     parameter['threshold'] = thresholds[i]
 
-        output_files = [f'filtered_{self.base_name}.{l}' for l in self.langs]
-        out_config = {'common':
-                        {'output_directory': self.work_dir},
-                    'steps':
-                        [{'type': 'filter',
-                        'parameters':
-                            {'inputs': self.input_files,
-                            'outputs': output_files,
-                            'filters': [{k.split('.')[0]: v} for k, v in self.filter_params.items()]
-                            }
-                        }]
-                    }
-
-        logger.info('Generated config file:')
-        pprint.pprint(out_config)
-
-        yaml = ruamel.yaml.YAML()
-        with open(self.output_config, 'w') as out_conf:
-            yaml.dump(out_config, out_conf)
-
     def sort(self, sample_files, labels, score_file):
         input_files = sample_files + [labels, score_file]
         tmp_names = [t.split('/')[-1] for t in input_files]
         output_files = [os.path.join(self.inter_dir, 'sorted_'+n) for n in tmp_names]
         sort_config = {'common': {'output_directory': '.'},
-                'steps': [
+                    'steps': [
                     {'type': 'sort',
                     'parameters': {
                         'inputs': input_files,
