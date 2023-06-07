@@ -13,6 +13,7 @@ import pickle
 import random
 import tempfile
 from itertools import chain
+import shutil
 
 import json
 from tqdm import tqdm
@@ -444,7 +445,11 @@ class OpusFilter:
         shuffle_subset = parameters.get('shuffle_subset', False)
         total = self._get_total_lines(infiles[0])
         logger.info("Sampling subset of %s lines from total %s lines", size, total)
-        if shuffle_subset:
+        if total < size:
+            logger.warning("Number of lines (%s) is smaller than requested size (%s)", total, size)
+            shutil.copyfile(infiles[0], outfiles[0])
+            shutil.copyfile(infiles[1], outfiles[1])
+        elif shuffle_subset:
             sample = random.sample(range(total), size)
             with file_open(infiles[0]) as inf, file_open(outfiles[0], 'w') as outf:
                 for line in self._yield_subset(inf, sample):
@@ -592,8 +597,10 @@ class OpusFilter:
             model_parameters=parameters.get('model_parameters'),
             features=parameters['features']
         )
-        model, value, features = trainer.find_best_model(
+        model, value, features, initial_params = trainer.find_best_model(
             parameters['criterion'], **parameters.get('optimization', {}))
+
+        self._write_jsonl(list(initial_params.items()), './initial_params.jsonl')
 
         logger.info('Best model has %s: %s', parameters['criterion'], value)
 

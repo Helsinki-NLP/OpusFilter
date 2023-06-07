@@ -1,4 +1,4 @@
-# Usage
+# Basic usage
 
 ## opusfilter script
 

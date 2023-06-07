@@ -7,6 +7,13 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+CLEAN_LOW = 'clean_low'
+CLEAN_HIGH = 'clean_high'
+CLEAN_BETWEEN = 'clean_between'
+CLEAN_TRUE = 'clean_true'
+CLEAN_FALSE = 'clean_false'
+
+
 class OpusFilterError(Exception):
     """OpusFilter error"""
 
@@ -58,6 +65,11 @@ class FilterABC(metaclass=abc.ABCMeta):
         for pair in pairs:
             if not self.accept(next(self.score([pair]))):  # pylint: disable=R1708
                 yield pair
+
+    @property
+    @abc.abstractmethod
+    def score_direction(self):
+        """Hint for which score values indicate accept"""
 
 
 class PreprocessorABC(metaclass=abc.ABCMeta):

@@ -175,6 +175,7 @@ class TrainClassifier:
                  model_parameters=None, features=None):
         logger.info("Loading training data")
         self.df_training_data = load_dataframe(training_scores)
+        self.orig_data = self.df_training_data.copy()
 
         self.group_config = features
         self.feature_config = {}
@@ -382,12 +383,13 @@ class TrainClassifier:
             # Use optimization algorithm from scipy
             best_quantiles = dict(zip(features, scipy.optimize.minimize(
                 cost, initial, method=algorithm, bounds=bounds, options=options).x))
+        initial_params = {k: self.orig_data[k].quantile(q) for k, q in best_quantiles.items()}
         df_train_copy, df_dev_copy, active = self._prune_datasets(best_quantiles, features)
         labels = self.get_labels(df_train_copy, self.get_cutoffs(df_train_copy, best_quantiles, active))
         classifier = self.train_classifier(df_train_copy, labels)
         if criterion['dev']:
-            return classifier, criterion['func'](classifier, df_dev_copy), best_quantiles
-        return classifier, criterion['func'](classifier, df_train_copy, labels), best_quantiles
+            return classifier, criterion['func'](classifier, df_dev_copy), best_quantiles, initial_params
+        return classifier, criterion['func'](classifier, df_train_copy, labels), best_quantiles, initial_params
 
     @staticmethod
     def default_search(costfunc, initial, bounds=None, step_coef=1.25):

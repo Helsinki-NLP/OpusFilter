@@ -9,7 +9,7 @@ import math
 import os
 import tempfile
 
-from . import FilterABC, ConfigurationError, OpusFilterRuntimeError
+from . import FilterABC, ConfigurationError, OpusFilterRuntimeError, CLEAN_LOW, CLEAN_HIGH
 from .subwords import BPESegmentation, MorfessorSegmentation
 from .util import is_file_empty
 
@@ -73,7 +73,7 @@ def train(datafile, outputfile, **kwargs):
     trainer.set_cutoffs([int(x) for x in args.cutoffs.split()])
     trainer.grow(1)
     if not os.path.isdir(os.path.dirname(outputfile)):
-        logger.info(f'Creating output directory for {outputfile}')
+        logger.info('Creating output directory for %s', outputfile)
         os.makedirs(os.path.dirname(outputfile))
     trainer.write_file(outputfile, args.arpa)
 
@@ -291,6 +291,7 @@ def join_workdir_to_lm_paths(lm_params, workdir):
 class CrossEntropyFilter(FilterABC):
     """Filtering based on language model scores"""
 
+    score_direction = CLEAN_LOW
     score_types = {'entropy', 'perplexity', 'logprob'}
 
     def __init__(self, lm_params=None, score_type='entropy',
@@ -346,6 +347,8 @@ class CrossEntropyDifferenceFilter(FilterABC):
 
     """
 
+    score_direction = CLEAN_LOW
+
     def __init__(self, id_lm_params=None, nd_lm_params=None, thresholds=None, score_for_empty=False, **kwargs):
         super().__init__(**kwargs)
         if not id_lm_params:
@@ -399,6 +402,8 @@ class LMClassifierFilter(FilterABC):
     normalized probability of the expected label.
 
     """
+
+    score_direction = CLEAN_HIGH
 
     def __init__(self, labels=None, lm_params=None, thresholds=None, relative_score=False, **kwargs):
         super().__init__(**kwargs)

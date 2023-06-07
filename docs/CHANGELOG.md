@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `opusfilter-autogen` script for automatic filter config generation
+- `score_direction` property for filters
+
 ### Changed
 
 - update varikn installation instructions (installable from PyPI)
