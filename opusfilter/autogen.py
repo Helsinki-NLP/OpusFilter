@@ -3,7 +3,6 @@
 import copy
 import inspect
 import logging
-import json
 
 from pandas import json_normalize
 from tqdm import tqdm
@@ -138,7 +137,8 @@ class DefaultParameterFilters:
             filters.append(filter_config)
         return filters
 
-    def get_filter_parameters(self, filterclass):
+    @staticmethod
+    def get_filter_parameters(filterclass):
         """Return default parameters for filter of the given class"""
         adjuster = GenericFilterAdjuster(filterclass)
         filter_cls = getattr(filtermodule, filterclass)
@@ -157,7 +157,7 @@ class PercentileFilters:
         self.files = files
         self.sample_size = sample_size
         self.excluded_percentile = excluded_percentile
-        self.filters_to_add = filters if filters is not None else  [
+        self.filters_to_add = filters if filters is not None else [
             'LengthFilter', 'LengthRatioFilter', 'LongWordFilter', 'HtmlTagFilter',
             'AverageWordLengthFilter', 'AlphabetRatioFilter',
             'TerminalPunctuationFilter', 'NonZeroNumeralsFilter',
@@ -225,7 +225,7 @@ class GenericFilterAdjuster:
         sig = inspect.signature(self.filter_cls)
         logger.info("signature: %s%s", self.filter_name, sig)
         for key, parameter in sig.parameters.items():
-            if parameter.default == inspect._empty:
+            if parameter.default == inspect.Signature.empty:
                 if key != 'kwargs':
                     logger.warning("Ignoring argument without default: %s", key)
                 continue

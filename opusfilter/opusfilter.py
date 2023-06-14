@@ -588,32 +588,21 @@ class OpusFilter:
         if not overwrite and os.path.isfile(model_out):
             logger.info("Output file exists, skipping step")
             return
-        training_scores = os.path.join(self.output_dir, parameters['training_scores'])
-        dev_scores = os.path.join(self.output_dir, parameters['dev_scores']) \
-            if 'dev_scores' in parameters else None
         trainer = classifier.TrainClassifier(
-            training_scores=training_scores,
-            dev_scores=dev_scores, model_type=parameters.get('model_type'),
+            training_scores=os.path.join(self.output_dir, parameters['training_scores']),
+            dev_scores=os.path.join(self.output_dir, parameters['dev_scores']) if 'dev_scores' in parameters else None,
+            model_type=parameters.get('model_type'),
             model_parameters=parameters.get('model_parameters'),
             features=parameters['features']
         )
         model, value, features, initial_params = trainer.find_best_model(
             parameters['criterion'], **parameters.get('optimization', {}))
-
         self._write_jsonl(list(initial_params.items()), './initial_params.jsonl')
-
         logger.info('Best model has %s: %s', parameters['criterion'], value)
-
-        feature_cutoffs = ''
-        for item in features.items():
-            feature_cutoffs += '\n\t'+str(item)
-        logger.info('And feature cutoffs: %s', feature_cutoffs)
-
-        feature_weights = ''
-        for item in model.weights():
-            feature_weights += '\n\t'+str(item)
-        logger.info('And weights: %s', feature_weights)
-
+        logger.info('And feature cutoffs: \n\t%s',
+                    '\n\t'.join(str(item) for item in features.items()))
+        logger.info('And weights: \n\t%s',
+                    '\n\t'.join(str(item) for item in model.weights()))
         logger.info('Saving best model to %s', model_out)
         with open(model_out, 'wb') as model_file:
             pickle.dump(model, model_file)

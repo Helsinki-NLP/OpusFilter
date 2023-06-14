@@ -39,7 +39,7 @@ def import_class(config_dict, default_modules):
     for module in default_modules:
         if hasattr(module, name):
             return name, getattr(module, name)
-    raise KeyError('Class %s not found in modules' % name)
+    raise KeyError(f'Class {name} not found in modules')
 
 
 class FakeList:

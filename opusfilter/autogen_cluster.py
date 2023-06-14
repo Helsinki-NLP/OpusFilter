@@ -123,7 +123,7 @@ class ScoreClusters:
 
 
 class FilterThresholdFinder:
-    """Find thresholds for filter based on score clustering"""
+    """Find thresholds for filters based on score clustering"""
 
     def __init__(self, files, langs, scripts, sample_size, inter_dir, overwrite):
         self.input_files = files
@@ -176,7 +176,7 @@ class FilterThresholdFinder:
                     label_file.write(str(label)+'\n')
         if self.use_tmp:
             shutil.rmtree(self.inter_dir)
-        filters = [{k.split('.')[0]: v} for k, v in self.filter_params.items()]
+        filters = [{k.split('.', maxsplit=1)[0]: v} for k, v in self.filter_params.items()]
         return filters, scoreclusters
 
     def _prepare_data(self):

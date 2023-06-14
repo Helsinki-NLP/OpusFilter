@@ -13,7 +13,7 @@ from pandas import json_normalize
 import sklearn.linear_model
 from sklearn.metrics import accuracy_score, confusion_matrix, roc_auc_score, log_loss
 
-from . import CLEAN_LOW, CLEAN_HIGH, CLEAN_BETWEEN, CLEAN_TRUE, CLEAN_FALSE
+from . import CLEAN_LOW, CLEAN_HIGH, CLEAN_TRUE, CLEAN_FALSE
 from . import filters as filtermodule
 from .util import file_open, grouper, import_class
 
@@ -239,9 +239,6 @@ class TrainClassifier:
     def get_roc_auc(self, model, dev_data):
         """Calculate ROC AUC for a given model (requires dev_data)"""
         probs = model.classifier.predict_proba(dev_data)
-        # pred = model.classifier.predict(dev_data)
-        # logger.info("Classifier labels: %s", model.classifier.classes_)
-        # logger.info("Predicted labels: %s", collections.Counter(pred))
         return roc_auc_score(self.dev_labels, probs[:, 1])
 
     @staticmethod
