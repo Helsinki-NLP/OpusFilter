@@ -24,10 +24,13 @@ class TestGenericFilterAdjuster(unittest.TestCase):
             params = adjuster.default_parameters
             logging.info("%s %s", filter_name, params)
             if filter_name in self.expected_failures:
-                with self.assertRaises(ConfigurationError):
+                with self.assertRaises((ConfigurationError, ModuleNotFoundError)):
                     obj = filter_cls(**params)
             else:
-                obj = filter_cls(**params)
+                try:
+                    obj = filter_cls(**params)
+                except ModuleNotFoundError:
+                    logger.info("Skipping test for %s: Requred module not found", filter_name)
 
     @unittest.expectedFailure
     def test_adjusted_parameters(self):
