@@ -13,12 +13,6 @@ from .util import file_open
 logger = logging.getLogger(__name__)
 
 
-try:
-    import eflomal
-except ImportError:
-    logger.warning("Could not load eflomal, word alignment filtering not supported")
-
-
 def eflomal_to_opusfilter_scores(scores_fwd_file, scores_rev_file, output_score_file):
     """Write OpusFilter score file (JSONLines) from eflomal score files"""
     with file_open(output_score_file, 'w') as fobj:
@@ -41,7 +35,11 @@ def sentence_generator(filename, tokenizer=None):
 
 def make_priors(src_file, tgt_file, priors_file, model=3, score_file=None, src_tokenizer=None, tgt_tokenizer=None):
     """Create alignment priors from clean sentence pairs"""
-
+    try:
+        import eflomal
+    except ImportError:
+        logger.warning("Could not load eflomal, word alignment filtering not supported")
+        raise
     aligner = eflomal.Aligner(model=model)
     with tempfile.NamedTemporaryFile('w+') as fwd_file, tempfile.NamedTemporaryFile('w+') as rev_file, \
          tempfile.NamedTemporaryFile('w+') as scores_fwd_file, tempfile.NamedTemporaryFile('w+') as scores_rev_file:
@@ -72,6 +70,11 @@ class WordAlignFilter(FilterABC):
 
     def __init__(self, src_threshold=0, tgt_threshold=0, priors=None, model=3,
                  src_tokenizer=None, tgt_tokenizer=None, score_for_empty=-100, **kwargs):
+        try:
+            import eflomal
+        except ImportError:
+            logger.warning("Could not load eflomal, word alignment filtering not supported")
+            raise
         super().__init__(**kwargs)
         self.src_threshold = src_threshold
         self.tgt_threshold = tgt_threshold
