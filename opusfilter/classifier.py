@@ -189,7 +189,6 @@ class TrainClassifier:
         self.df_training_data = load_dataframe(training_scores)
         self.orig_data = self.df_training_data.copy()
 
-        self.group_config = features
         self.feature_config = {}
         found_in_data = set()
         for t_key in self.df_training_data.keys():

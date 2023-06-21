@@ -28,7 +28,11 @@ yaml = ruamel.yaml.YAML()
 
 
 class ScoreClusters:
-    """Cluster segments by filter scores"""
+    """Cluster segments by filter scores
+
+    Train k-means clustering and take thresholds based on the noisy cluster center.
+
+    """
 
     def __init__(self, score_file, n=2):
         self.df = load_dataframe(score_file)
@@ -43,20 +47,14 @@ class ScoreClusters:
         logger.info('Training KMeans with %s clusters', n)
         self.kmeans = KMeans(n_clusters=n, random_state=0, n_init='auto').fit(self.standard_data)
         self.labels = self.kmeans.labels_
-
-        noisy_label, thresholds = self._get_noisy_label_and_thresholds()
-        self.noisy_label = noisy_label
+        self.cluster_centers = self.scaler.inverse_transform(self.kmeans.cluster_centers_)
+        self.noisy_label = self._get_noisy_label()
         self.clean_label = np.abs(self.noisy_label - 1)
-        self.thresholds = thresholds
 
-    def _get_noisy_label_and_thresholds(self):
-        """Find filter thresholds
-
-        Train k-means clustering and take thresholds from the noisy cluster center.
-
-        """
+    def _get_noisy_label(self):
+        """Find label for the noisy cluster"""
         centers = self.kmeans.cluster_centers_
-        inv_centers = self.scaler.inverse_transform(centers)
+        inv_centers = self.cluster_centers
 
         # Flip values if low score indicates clean data
         dir_fixed_centers = []
@@ -80,14 +78,18 @@ class ScoreClusters:
         # Cluster center of the noisiest cluster based on average features
         noisy_mean = np.min(means)
         noisy_label = np.argmin(means)
-
         logger.info('Cluster center of the noisiest cluster (%s)', np.round(noisy_mean, 2))
         logger.info('Noisy label: %s', noisy_label)
         noisy_labels = np.where(self.labels == noisy_label)[0]
         logger.info('Number of noisy labels: %s',
                     f'{len(noisy_labels)}/{len(self.labels)} ({round(100*len(noisy_labels)/len(self.labels), 2)}%)')
-        thresholds = inv_centers[noisy_label].round(3).tolist()
-        return noisy_label, thresholds
+        return noisy_label
+
+    def get_thresholds(self, method='noisy_center', precision=6):
+        """Return thresholds for noisy samples"""
+        if method != 'noisy_center':
+            raise ValueError(f'Method {method} for thresholds not implemented')
+        return self.cluster_centers[self.noisy_label].round(precision).tolist()
 
     def get_rejects(self):
         """Train random forest classifier to find important features"""
@@ -158,29 +160,29 @@ class FilterThresholdFinder:
             self.filter_params['CharacterScoreFilter'] = {'scripts': self.scripts}
         if len(self.input_files) == 2:
             self.filter_params['TerminalPunctuationFilter'] = {}
+        self.scoredata = None
 
-    def find_thresholds(self):
-        """Find suitable filter thresholds
-
-        Returns a dict of filter parameters and a ScoreClusters object
-
-        """
-        score_file = self._prepare_data()
-        scoreclusters = ScoreClusters(os.path.join(self.inter_dir, score_file))
-        self._set_parameters(scoreclusters.thresholds, scoreclusters.get_rejects())
+    def get_thresholds(self):
+        """Get filter configuration with thresholds"""
+        self.scoredata = ScoreClusters(self._get_score_file())
+        self._set_parameters(self.scoredata.get_thresholds(), self.scoredata.get_rejects())
         if os.path.isfile(self.label_file_path) and not self.overwrite:
             logger.info('Label file "%s" exits, not overwriting', self.label_file_path)
         else:
             with open(self.label_file_path, 'w', encoding='utf-8') as label_file:
-                for label in scoreclusters.labels:
+                for label in self.scoredata.labels:
                     label_file.write(str(label)+'\n')
         if self.use_tmp:
             shutil.rmtree(self.inter_dir)
         filters = [{k.split('.', maxsplit=1)[0]: v} for k, v in self.filter_params.items()]
-        return filters, scoreclusters
+        return filters
 
-    def _prepare_data(self):
-        """Remove duplicates and empty lines, take a sample of size n, produce filter scores"""
+    def _get_score_file(self):
+        """Calculate filter scores and return score file
+
+        Remove duplicates and empty lines, take a sample of size n, produce filter scores
+
+        """
         config_gen = ConfigurationGenerator(files=[os.path.abspath(f) for f in self.input_files], workdir=self.inter_dir)
         config_gen.add_remove_duplicates()
         config_gen.add_filter([{'LengthFilter': {'unit': 'word', 'min_length': 1, 'max_length': 150}}])
@@ -190,10 +192,15 @@ class FilterThresholdFinder:
         yaml.dump(pre_config, pathlib.Path(os.path.join(self.inter_dir, 'config.yaml')))
         opusf = OpusFilter(pre_config)
         opusf.execute_steps(overwrite=self.overwrite)
-        return score_file
+        return os.path.join(self.inter_dir, score_file)
 
     def _set_parameters(self, thresholds, rejects):
-        """Set filter parameters based on thresholds and rejects"""
+        """Set filter parameters based on thresholds and rejects
+
+        thresholds: list of threshold values
+        rejects: boolean-valued dictionary, dataframe columns as keys
+
+        """
         for i, name in enumerate(rejects):
             fullname = name
             name_parts = name.split('.')
