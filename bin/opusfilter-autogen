@@ -50,16 +50,15 @@ if args.filter_params == 'unsupervised':
     filtergen = FilterThresholdFinder(
         files=args.files, langs=args.langs, scripts=args.scripts, sample_size=args.sample_size,
         inter_dir=args.inter_dir, overwrite=args.overwrite)
-    filters, scoredata = filtergen.find_thresholds()
-    if args.plot:
-        scoredata.plot(plt)
-        plt.show()
 elif args.filter_params == 'percentiles':
     filtergen = PercentileFilters(files=args.files, excluded_percentile=args.noisy_percentile)
-    filters = filtergen.get_thresholds()
 else:
     filtergen = DefaultParameterFilters()
-    filters = filtergen.get_thresholds()
+filters = filtergen.get_thresholds()
+
+if args.filter_params == 'unsupervised' and args.plot:
+    filtergen.scoredata.plot(plt)
+    plt.show()
 
 generator = ConfigurationGenerator(
     files=[os.path.abspath(f) for f in args.files], langs=args.langs, workdir=args.work_dir)

@@ -540,9 +540,9 @@ class RepetitionFilter(FilterABC):
 
     def __init__(self, threshold=2, min_length=3, max_length=100, **kwargs):
         if threshold < 1:
-            raise ConfigurationError("threshold for RepetitionFilter has to be at least one")
+            raise ConfigurationError(f"threshold for RepetitionFilter has to be at least one, got {threshold}")
         if min_length < 1:
-            raise ConfigurationError("min_length for RepetitionFilter has to be at least one")
+            raise ConfigurationError(f"min_length for RepetitionFilter has to be at least one, got {min_length}")
         self._threshold = threshold
         self._min_length = min_length
         self._max_length = max_length
