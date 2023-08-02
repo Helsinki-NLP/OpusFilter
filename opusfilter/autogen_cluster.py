@@ -1,12 +1,7 @@
 """Unsupervised threshold selection for filters"""
 
-import inspect
-import os
-import shutil
 from collections import Counter
 import logging
-import pathlib
-import tempfile
 
 from sklearn.cluster import KMeans
 from sklearn import preprocessing
@@ -14,17 +9,13 @@ from sklearn.decomposition import PCA
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.inspection import permutation_importance
 import numpy as np
-import ruamel.yaml
 
 from . import CLEAN_LOW
 from . import filters as filtermodule
-from .autogen import ConfigurationGenerator
 from .classifier import load_dataframe
-from .opusfilter import OpusFilter
 
 
 logger = logging.getLogger(__name__)
-yaml = ruamel.yaml.YAML()
 
 
 class ScoreClusters:
@@ -122,115 +113,3 @@ class ScoreClusters:
         plt.suptitle('Histograms for noisy samples')
         clean_samples.hist(bins=100, figsize=(10, 10))
         plt.suptitle('Histograms for clean samples')
-
-
-class FilterThresholdFinder:
-    """Find thresholds for filters based on score clustering"""
-
-    def __init__(self, files, langs, scripts, sample_size, inter_dir, overwrite):
-        self.input_files = files
-        self.sample_size = sample_size
-        self.langs = langs
-        self.scripts = scripts
-        if inter_dir:
-            self.use_tmp = False
-            self.inter_dir = inter_dir
-        else:
-            self.use_tmp = True
-            self.inter_dir = tempfile.mkdtemp()
-        self.label_file_path = os.path.join(self.inter_dir, 'labels.txt')
-        self.overwrite = overwrite
-        self.filter_params = {
-            'AlphabetRatioFilter': {},
-            'LengthRatioFilter.char': {
-                'name': 'char',
-                'unit': 'char'},
-            'LengthRatioFilter.word': {
-                'name': 'word',
-                'unit': 'word'},
-            'NonZeroNumeralsFilter': {},
-        }
-        if self.langs:
-            self.filter_params['LanguageIDFilter'] = {
-                'name': 'cld2',
-                'id_method': 'cld2',
-                'languages': langs
-            }
-        if self.scripts:
-            self.filter_params['CharacterScoreFilter'] = {'scripts': self.scripts}
-        if len(self.input_files) == 2:
-            self.filter_params['TerminalPunctuationFilter'] = {}
-        self.scoredata = None
-
-    def get_thresholds(self):
-        """Get filter configuration with thresholds"""
-        self.scoredata = ScoreClusters(self._get_score_file())
-        self._set_parameters(self.scoredata.get_thresholds(), self.scoredata.get_rejects())
-        if os.path.isfile(self.label_file_path) and not self.overwrite:
-            logger.info('Label file "%s" exits, not overwriting', self.label_file_path)
-        else:
-            with open(self.label_file_path, 'w', encoding='utf-8') as label_file:
-                for label in self.scoredata.labels:
-                    label_file.write(str(label)+'\n')
-        if self.use_tmp:
-            shutil.rmtree(self.inter_dir)
-        filters = [{k.split('.', maxsplit=1)[0]: v} for k, v in self.filter_params.items()]
-        return filters
-
-    def _get_score_file(self):
-        """Calculate filter scores and return score file
-
-        Remove duplicates and empty lines, take a sample of size n, produce filter scores
-
-        """
-        config_gen = ConfigurationGenerator(files=[os.path.abspath(f) for f in self.input_files], workdir=self.inter_dir)
-        config_gen.add_remove_duplicates()
-        config_gen.add_filter([{'LengthFilter': {'unit': 'word', 'min_length': 1, 'max_length': 150}}])
-        config_gen.add_subset(self.sample_size, 1)
-        score_file = config_gen.add_score([{k.split('.', maxsplit=1)[0]: v} for k, v in self.filter_params.items()])
-        pre_config = config_gen.get_config()
-        yaml.dump(pre_config, pathlib.Path(os.path.join(self.inter_dir, 'config.yaml')))
-        opusf = OpusFilter(pre_config)
-        opusf.execute_steps(overwrite=self.overwrite)
-        return os.path.join(self.inter_dir, score_file)
-
-    def _set_parameters(self, thresholds, rejects):
-        """Set filter parameters based on thresholds and rejects
-
-        thresholds: list of threshold values
-        rejects: boolean-valued dictionary, dataframe columns as keys
-
-        """
-        for i, name in enumerate(rejects):
-            fullname = name
-            name_parts = name.split('.')
-            filter_name = name_parts[0]
-            filter_cls = getattr(filtermodule, filter_name)
-            filt_args = inspect.signature(filter_cls).parameters
-            endp = name_parts[-1]
-            if endp.isnumeric():
-                # numeric last part is language index
-                name = '.'.join(name_parts[:-1])
-            if 'thresholds' in filt_args:
-                parameter = self.filter_params.get(filter_name)
-                if 'thresholds' not in parameter:
-                    parameter['thresholds'] = []
-                if rejects[fullname]:
-                    # FIXME: -1 may not work for all filters
-                    parameter['thresholds'].insert(int(endp), -1)
-                else:
-                    parameter['thresholds'].insert(int(endp), thresholds[i])
-                if len(parameter['thresholds']) == 2:
-                    if all(v == -1 for v in parameter['thresholds']):
-                        del self.filter_params[filter_name]
-            elif 'threshold' in filt_args:
-                parameter = self.filter_params.get(name)
-                if rejects[fullname]:
-                    if name in self.filter_params:
-                        del self.filter_params[name]
-                    continue
-                if parameter is None:
-                    continue
-                prev_t = parameter.get('threshold')
-                if prev_t is None or thresholds[i] < prev_t:
-                    parameter['threshold'] = thresholds[i]
