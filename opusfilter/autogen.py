@@ -3,20 +3,24 @@
 import copy
 import inspect
 import logging
+import os
+import pathlib
+import shutil
+import tempfile
 
-from pandas import json_normalize
-from tqdm import tqdm
+import ruamel.yaml
 
 from . import CLEAN_LOW, CLEAN_HIGH, CLEAN_BETWEEN, CLEAN_TRUE, CLEAN_FALSE
 from . import OpusFilterError, ConfigurationError
 from . import filters as filtermodule
-from . import pipeline
-from .classifier import lists_to_dicts
-from .util import file_open
+from .autogen_cluster import ScoreClusters
+from .classifier import load_dataframe
+from .opusfilter import OpusFilter
 
 
 logger = logging.getLogger(__name__)
 logger.setLevel('WARNING')
+yaml = ruamel.yaml.YAML()
 
 
 class FilterArgumentFailure(OpusFilterError):
@@ -114,86 +118,170 @@ class ConfigurationGenerator:
         return config
 
 
+def get_score_file(input_files, filters, outputdir, sample_size, overwrite=False, max_length=150):
+    """Calculate filter scores and return score file
+
+    Remove duplicates and empty lines, take a sample of size n,
+    produce filter scores file, and return its path.
+
+    """
+    config_gen = ConfigurationGenerator(files=[os.path.abspath(f) for f in input_files], workdir=outputdir)
+    config_gen.add_remove_duplicates()
+    config_gen.add_filter([{'LengthFilter': {'unit': 'word', 'min_length': 1, 'max_length': max_length}}])
+    config_gen.add_subset(sample_size, 1)
+    score_file = config_gen.add_score(filters)
+    pre_config = config_gen.get_config()
+    yaml.dump(pre_config, pathlib.Path(os.path.join(outputdir, 'config.yaml')))
+    opusf = OpusFilter(pre_config)
+    opusf.execute_steps(overwrite=overwrite)
+    return os.path.join(outputdir, score_file)
+
+
+def get_default_parameters(filter_name):
+    """Get default parameters for a filter
+
+    Uses the signature of the class. Arguments without default
+    values are ignored and will cause a failure.
+
+    """
+    filter_cls = getattr(filtermodule, filter_name)
+    default_parameters = {}
+    sig = inspect.signature(filter_cls)
+    logger.info("signature: %s%s", filter_name, sig)
+    for key, parameter in sig.parameters.items():
+        if parameter.default == inspect.Signature.empty:
+            if key != 'kwargs':
+                logger.warning("Ignoring argument without default: %s", key)
+            continue
+        default_parameters[key] = parameter.default
+    return default_parameters
+
+
+def parse_filter_specs(specs):
+    """Return classname, params tuple for filter specifications"""
+    if isinstance(specs, str):
+        name = specs
+        params = {}
+    else:
+        name, params = copy.deepcopy(specs)
+    if '.' in name:
+        name, subname = name.split('.', maxsplit=1)
+        params['name'] = subname
+    return name, params
+
+
 class DefaultParameterFilters:
     """Filter configuration with default parameters"""
 
-    def __init__(self, filters=None):
-        self.filters_to_add = filters if filters is not None else [
-            'LengthFilter', 'LengthRatioFilter', 'LongWordFilter', 'HtmlTagFilter',
-            'AverageWordLengthFilter', 'AlphabetRatioFilter',
-            'TerminalPunctuationFilter', 'NonZeroNumeralsFilter',
-            'LongestCommonSubstringFilter', 'SimilarityFilter', 'RepetitionFilter'
-        ]
+    DEFAULT_FILTERS = ['LengthFilter',
+                       ('LengthRatioFilter.word', {'unit': 'word'}), ('LengthRatioFilter.char', {'unit': 'char'}),
+                       'LongWordFilter', 'HtmlTagFilter',
+                       'AverageWordLengthFilter', 'AlphabetRatioFilter',
+                       'TerminalPunctuationFilter', 'NonZeroNumeralsFilter',
+                       'LongestCommonSubstringFilter', 'SimilarityFilter', 'RepetitionFilter',
+                       'CharacterScoreFilter', ('LanguageIDFilter', {'id_method': 'cld2'})]
 
-    def get_thresholds(self):
+    def __init__(self, langs=None, scripts=None, filters=None):
+        if filters is None:
+            filters = self.DEFAULT_FILTERS
+        filters = [parse_filter_specs(spec) for spec in filters]
+        self.filters_to_add = []
+        for filter_name, filter_params in filters:
+            if filter_name == 'CharacterScoreFilter' and 'scripts' not in filter_params:
+                if not scripts:
+                    logger.warning('Cannot add CharacterScoreFilter (no scripts provided)')
+                    continue
+                filter_params['scripts'] = scripts
+            if filter_name == 'LanguageIDFilter' and 'languages' not in filter_params:
+                if not langs:
+                    logger.warning('Cannot add LanguageIDFilter (no languages provided)')
+                    continue
+                filter_params['languages'] = langs
+            self.filters_to_add.append((filter_name, filter_params))
+        self._filters = []  # Final filters
+
+    @property
+    def filters(self):
         """Get filter configuration with thresholds"""
-        filters = []
-        for filterclass in self.filters_to_add:
+        return self._filters
+
+    def set_filter_thresholds(self):
+        """Set filter thresholds"""
+        for filter_name, filter_params in self.filters_to_add:
             try:
-                filter_config = self.get_filter_parameters(filterclass)
+                filter_config = self.get_filter_parameters(filter_name, filter_params)
             except FilterArgumentFailure as err:
-                logger.error("Unusable default arguments for %s: %s", filterclass, err)
+                logger.error("Unusable default arguments for %s: %s", filter_name, err)
                 continue
-            filters.append(filter_config)
-        return filters
+            self._filters.append(filter_config)
 
     @staticmethod
-    def get_filter_parameters(filterclass):
-        """Return default parameters for filter of the given class"""
-        adjuster = GenericFilterAdjuster(filterclass)
-        filter_cls = getattr(filtermodule, filterclass)
+    def get_filter_parameters(filter_name, filter_params):
+        """Return parameters for filter of the given class"""
+        filter_cls = getattr(filtermodule, filter_name)
+        defaults = get_default_parameters(filter_name)
+        defaults.update(filter_params)
         try:
-            filter_cls(**adjuster.default_parameters)
+            filter_cls(**defaults)
         except ConfigurationError as err:
             raise FilterArgumentFailure(err) from err
-        filter_config = {filterclass: adjuster.default_parameters}
+        filter_config = {filter_name: defaults}
         return filter_config
 
 
-class PercentileFilters:
-    """Configuration generator based on filter score percentiles"""
+class PercentileFilters(DefaultParameterFilters):
+    """Filter configuration based on filter score percentiles"""
 
-    def __init__(self, files, filters=None, excluded_percentile=0.001, sample_size=100000):
+    def __init__(self, files, langs=None, scripts=None, filters=None, excluded_percentile=0.001,
+                 sample_size=100000, inter_dir=None, overwrite=False):
+        super().__init__(langs=langs, scripts=scripts, filters=filters)
         self.files = files
         self.sample_size = sample_size
         self.excluded_percentile = excluded_percentile
-        self.filters_to_add = filters if filters is not None else [
-            'LengthFilter', 'LengthRatioFilter', 'LongWordFilter', 'HtmlTagFilter',
-            'AverageWordLengthFilter', 'AlphabetRatioFilter',
-            'TerminalPunctuationFilter', 'NonZeroNumeralsFilter',
-            'LongestCommonSubstringFilter', 'SimilarityFilter', 'RepetitionFilter'
-        ]
+        if inter_dir:
+            self.use_tmp = False
+            self.inter_dir = inter_dir
+            if not os.path.exists(self.inter_dir):
+                os.makedirs(self.inter_dir)
+        else:
+            self.use_tmp = True
+            self.inter_dir = tempfile.mkdtemp()
+        self.overwrite = overwrite
+        self.max_length = 1000
+        self.df = None
 
-    def get_thresholds(self):
-        """Get filter configuration with thresholds"""
-        filters = []
-        for filterclass in self.filters_to_add:
+    def set_filter_thresholds(self):
+        """Set filter thresholds"""
+        score_file = get_score_file(
+            self.files, [{name: params} for name, params in self.filters_to_add], self.inter_dir, self.sample_size,
+            overwrite=self.overwrite, max_length=self.max_length)
+        self.df = load_dataframe(score_file)
+        for filter_name, filter_params in self.filters_to_add:
             try:
-                filter_config = self.get_filter_parameters(filterclass)
+                filter_config = self.get_filter_parameters(filter_name, filter_params)
             except FilterArgumentFailure as err:
-                logger.error("Unusable default arguments for %s: %s", filterclass, err)
+                logger.error("Unusable default arguments for %s: %s", filter_name, err)
                 continue
-            filters.append(filter_config)
-        return filters
+            self._filters.append(filter_config)
+        if self.use_tmp:
+            shutil.rmtree(self.inter_dir)
 
-    def get_filter_parameters(self, filterclass):
-        """Return suitable parameters for filter of the given class"""
-        adjuster = GenericFilterAdjuster(filterclass)
-        filter_cls = getattr(filtermodule, filterclass)
+    def get_filter_parameters(self, filter_name, filter_params):
+        """Return parameters for filter of the given class"""
+        adjuster = GenericFilterAdjuster(filter_name, filter_params)
+        filter_cls = getattr(filtermodule, filter_name)
         try:
             filter_cls(**adjuster.default_parameters)
         except ConfigurationError as err:
             raise FilterArgumentFailure(err) from err
+        column_prefix = filter_name
+        if 'name' in filter_params:
+            column_prefix += '.' + filter_params['name']
+        columns = [col for col in self.df.columns if col.startswith(column_prefix)]
         new_parameters = adjuster.get_adjusted_parameters(
-            self.read_lines(), excluded_percentile=self.excluded_percentile)
-        filter_config = {filterclass: new_parameters}
+            self.df[columns], excluded_percentile=self.excluded_percentile)
+        filter_config = {filter_name: new_parameters}
         return filter_config
-
-    def read_lines(self):
-        """Read segments without newlines"""
-        infs = [file_open(infile, 'r') for infile in self.files]
-        for pair in tqdm(zip(*infs)):
-            yield [segment.rstrip() for segment in pair]
 
 
 class GenericFilterAdjuster:
@@ -205,32 +293,16 @@ class GenericFilterAdjuster:
     MIN_MAX_ARGUMENTS = [('min_length', 'max_length')]
     ALL_THRESHOLD_ARGUMENTS = SINGLE_THRESHOLD_ARGUMENTS + MULTI_THRESHOLD_ARGUMENTS + MIN_MAX_ARGUMENTS
 
-    def __init__(self, filterclass):
+    def __init__(self, filterclass, filter_parameters=None):
         if isinstance(filterclass, str):
             self.filter_name = filterclass
             self.filter_cls = getattr(filtermodule, self.filter_name)
         else:
             self.filter_name = filterclass.__name__
             self.filter_cls = filterclass
-        self.default_parameters = self.get_default_parameters()
-
-    def get_default_parameters(self):
-        """Get default parameters for the filter
-
-        Uses the signature of the class. Arguments without default
-        values are ignored and will cause a failure.
-
-        """
-        default_parameters = {}
-        sig = inspect.signature(self.filter_cls)
-        logger.info("signature: %s%s", self.filter_name, sig)
-        for key, parameter in sig.parameters.items():
-            if parameter.default == inspect.Signature.empty:
-                if key != 'kwargs':
-                    logger.warning("Ignoring argument without default: %s", key)
-                continue
-            default_parameters[key] = parameter.default
-        return default_parameters
+        self.default_parameters = get_default_parameters(self.filter_name)
+        if filter_parameters:
+            self.default_parameters.update(filter_parameters)
 
     @staticmethod
     def _locate_arguments(candidates, arguments):
@@ -259,7 +331,7 @@ class GenericFilterAdjuster:
             return True
         return False
 
-    def get_adjusted_parameters(self, data, excluded_percentile=0.01):
+    def get_adjusted_parameters(self, df, excluded_percentile=0.01):
         """Estimate parameters for the filter using data
 
         Assumes that excluded_percentile amount of the data should be
@@ -279,9 +351,6 @@ class GenericFilterAdjuster:
             return parameters
         score_dir = self.filter_cls.score_direction
         logger.info("score type for %s: %s", self.filter_name, score_dir)
-        filter_config = {self.filter_name: self.default_parameters}
-        filter_pipe = pipeline.FilterPipeline.from_config([filter_config])
-        df = self.get_score_df(filter_pipe, data)
         if score_dir == CLEAN_LOW:
             percentiles = [1 - excluded_percentile]
             pct_keys = [f'{100*(1-excluded_percentile):g}%']
@@ -337,7 +406,108 @@ class GenericFilterAdjuster:
             logger.warning("Threshold adjusting not supported")
         return parameters
 
-    @staticmethod
-    def get_score_df(filter_pipe, data):
-        """Return dataframe containing filter scores from the data"""
-        return json_normalize([lists_to_dicts(scores_obj) for scores_obj in filter_pipe.score(data)])
+
+class ClusterFilters:
+    """Filter configuration based on score clustering"""
+
+    def __init__(self, files, langs, scripts, sample_size, inter_dir, overwrite):
+        self.files = files
+        self.sample_size = sample_size
+        self.max_length = 150
+        self.langs = langs
+        self.scripts = scripts
+        if inter_dir:
+            self.use_tmp = False
+            self.inter_dir = inter_dir
+            if not os.path.exists(self.inter_dir):
+                os.makedirs(self.inter_dir)
+        else:
+            self.use_tmp = True
+            self.inter_dir = tempfile.mkdtemp()
+        self.label_file_path = os.path.join(self.inter_dir, 'labels.txt')
+        self.overwrite = overwrite
+        self.filter_params = {
+            'AlphabetRatioFilter': {},
+            'LengthRatioFilter.char': {
+                'name': 'char',
+                'unit': 'char'},
+            'LengthRatioFilter.word': {
+                'name': 'word',
+                'unit': 'word'},
+            'NonZeroNumeralsFilter': {},
+        }
+        if self.langs:
+            self.filter_params['LanguageIDFilter'] = {
+                'name': 'cld2',
+                'id_method': 'cld2',
+                'languages': langs
+            }
+        if self.scripts:
+            self.filter_params['CharacterScoreFilter'] = {'scripts': self.scripts}
+        if len(self.files) == 2:
+            self.filter_params['TerminalPunctuationFilter'] = {}
+        self.scoredata = None
+        self._filters = []
+
+    @property
+    def filters(self):
+        """Get filter configuration with thresholds"""
+        return self._filters
+
+    def set_filter_thresholds(self):
+        """Get filter configuration with thresholds"""
+        score_file = get_score_file(
+            self.files, [{k.split('.', maxsplit=1)[0]: v} for k, v in self.filter_params.items()],
+            self.inter_dir, self.sample_size, overwrite=self.overwrite, max_length=self.max_length)
+        self.scoredata = ScoreClusters(score_file)
+        self._set_parameters(self.scoredata.get_thresholds(), self.scoredata.get_rejects())
+        if os.path.isfile(self.label_file_path) and not self.overwrite:
+            logger.info('Label file "%s" exits, not overwriting', self.label_file_path)
+        else:
+            with open(self.label_file_path, 'w', encoding='utf-8') as label_file:
+                for label in self.scoredata.labels:
+                    label_file.write(str(label)+'\n')
+        if self.use_tmp:
+            shutil.rmtree(self.inter_dir)
+        self._filters = [{k.split('.', maxsplit=1)[0]: v} for k, v in self.filter_params.items()]
+
+    def _set_parameters(self, thresholds, rejects):
+        """Set filter parameters based on thresholds and rejects
+
+        thresholds: list of threshold values
+        rejects: boolean-valued dictionary, dataframe columns as keys
+
+        """
+        for i, name in enumerate(rejects):
+            fullname = name
+            name_parts = name.split('.')
+            filter_name = name_parts[0]
+            filter_cls = getattr(filtermodule, filter_name)
+            filt_args = inspect.signature(filter_cls).parameters
+            endp = name_parts[-1]
+            if endp.isnumeric():
+                # numeric last part is language index
+                name = '.'.join(name_parts[:-1])
+            if 'thresholds' in filt_args:
+                parameter = self.filter_params.get(filter_name)
+                if 'thresholds' not in parameter:
+                    parameter['thresholds'] = []
+                if rejects[fullname]:
+                    # FIXME: -1 may not work for all filters
+                    parameter['thresholds'].insert(int(endp), -1)
+                else:
+                    parameter['thresholds'].insert(int(endp), thresholds[i])
+                if len(parameter['thresholds']) == 2:
+                    if all(v == -1 for v in parameter['thresholds']):
+                        del self.filter_params[filter_name]
+            elif 'threshold' in filt_args:
+                parameter = self.filter_params.get(name)
+                if rejects[fullname]:
+                    if name in self.filter_params:
+                        del self.filter_params[name]
+                    continue
+                if parameter is None:
+                    continue
+                prev_t = parameter.get('threshold')
+                if prev_t is None or thresholds[i] < prev_t:
+                    parameter['threshold'] = thresholds[i]

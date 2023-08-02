@@ -491,7 +491,7 @@ class SimilarityFilter(FilterABC):
                  require_all=True, **kwargs):
         if unit not in self.VALID_UNITS:
             raise ConfigurationError(
-                f"Value of 'unit' are not one of the allowed choices {self.VALID_UNITS}: {unit}")
+                f"Value of 'unit' is not one of the allowed choices {self.VALID_UNITS}: {unit}")
         self.threshold = threshold
         self.weights = weights
         self.unit = unit
@@ -524,10 +524,11 @@ class SimilarityFilter(FilterABC):
 class RepetitionFilter(FilterABC):
     """Filter segments with repeated content
 
-    Filter segments with substrings of min_length to max_length
+    Filter out segments with substrings of min_length to max_length
     characters that are repeated at least threshold number of times.
     The first occurrence is not counted to the threshold, i.e.,
-    threshold 2 means that the substring has to occur three times.
+    threshold 2 means that any substring cannot occur three times
+    in a row.
 
     There may be optional space character(s) between the repeated
     strings that are not counted to the length. The repeated string
@@ -537,9 +538,10 @@ class RepetitionFilter(FilterABC):
     """
 
     score_direction = CLEAN_LOW
+    min_threshold = 1
 
     def __init__(self, threshold=2, min_length=3, max_length=100, **kwargs):
-        if threshold < 1:
+        if threshold < self.min_threshold:
             raise ConfigurationError(f"threshold for RepetitionFilter has to be at least one, got {threshold}")
         if min_length < 1:
             raise ConfigurationError(f"min_length for RepetitionFilter has to be at least one, got {min_length}")

@@ -3,11 +3,11 @@
 import argparse
 import logging
 import os
+import sys
 
 import matplotlib.pyplot as plt
 
-from opusfilter.autogen import ConfigurationGenerator, DefaultParameterFilters, PercentileFilters
-from opusfilter.autogen_cluster import FilterThresholdFinder
+from opusfilter.autogen import ClusterFilters, ConfigurationGenerator, DefaultParameterFilters, PercentileFilters
 from opusfilter.util import yaml
 
 try:
@@ -24,14 +24,16 @@ parser = argparse.ArgumentParser(
     prog='opusfilter-autogen',
     description='Generate initial configuration based on parallel text data')
 
+#parser.add_argument('--add-filter', nargs=2, action='append', default=[], metavar=('CLASS', 'JSON'),
+#                    help='Add filter of CLASS with JSON parameters object')
 parser.add_argument('--files', required=True, nargs='+', metavar='TEXTFILE', help='parallel text input file(s)')
 parser.add_argument('--langs', nargs='+', metavar='LANGCODE',
                     help='Language codes corresponding to the input files. If omitted, LanguageIDFilters will not be used.')
 parser.add_argument('--scripts', nargs='+', metavar='SCRIPT', help=(
     'Alphabetic scripts (e.g. Latin) corresponding to the input files. '
     'If omitted, CharacterScoreFilter will not be used.'))
-parser.add_argument('--filter-params', choices=['default', 'percentiles', 'unsupervised'], default='unsupervised',
-                    help='Method for selecting filter parameters (default: %(default)s)')
+parser.add_argument('--method', choices=['defaults', 'percentiles', 'clustering'], default='clustering',
+                    help='Method for selecting filter thresholds (default: %(default)s)')
 parser.add_argument('--sample-size', default=100000, type=int,
                     help='Max number of sentence pairs used for clustering (default %(default)s)')
 parser.add_argument('--noisy-percentile', default=0.001, type=float,
@@ -41,26 +43,35 @@ parser.add_argument('--work-dir', default='work',
 parser.add_argument('--inter-dir', help='Save intermediate files in this directory (use a temporary directory if not given)')
 parser.add_argument('--plot', action='store_true',
                     help='Show a scatter plot of the clustering and histograms of feature data distributions')
+parser.add_argument('--list-defaults', action='store_true', help='List default filters of the method to the output and quit')
 parser.add_argument('--overwrite', action='store_true', help='Overwrite existing config file and intermediate files')
 parser.add_argument('-o', '--output', type=argparse.FileType('w'), default='-', metavar='CONFIGFILE',
                     help='Output configuration file (default %(default)s)')
 args = parser.parse_args()
 
-if args.filter_params == 'unsupervised':
-    filtergen = FilterThresholdFinder(
+if args.method == 'clustering':
+    filtergen = ClusterFilters(
         files=args.files, langs=args.langs, scripts=args.scripts, sample_size=args.sample_size,
         inter_dir=args.inter_dir, overwrite=args.overwrite)
-elif args.filter_params == 'percentiles':
-    filtergen = PercentileFilters(files=args.files, excluded_percentile=args.noisy_percentile)
+elif args.method == 'percentiles':
+    filtergen = PercentileFilters(
+        files=args.files, langs=args.langs, scripts=args.scripts,
+        excluded_percentile=args.noisy_percentile, sample_size=args.sample_size,
+        inter_dir=args.inter_dir, overwrite=args.overwrite)
 else:
-    filtergen = DefaultParameterFilters()
-filters = filtergen.get_thresholds()
+    filtergen = DefaultParameterFilters(langs=args.langs, scripts=args.scripts)
 
-if args.filter_params == 'unsupervised' and args.plot:
+if args.list_defaults:
+    yaml.dump(filtergen.DEFAULT_FILTERS, args.output)
+    sys.exit(0)
+
+filters = filtergen.set_filter_thresholds()
+
+if args.method == 'clustering' and args.plot:
     filtergen.scoredata.plot(plt)
     plt.show()
 
 generator = ConfigurationGenerator(
     files=[os.path.abspath(f) for f in args.files], langs=args.langs, workdir=args.work_dir)
-generator.add_filter(filters)
+generator.add_filter(filtergen.filters)
 yaml.dump(generator.get_config(), args.output)
