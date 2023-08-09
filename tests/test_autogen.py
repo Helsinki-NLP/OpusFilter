@@ -1,52 +1,17 @@
 import inspect
 import logging
 import os
-import requests
 import shutil
 import tempfile
 import unittest
 
+import pandas as pd
+
 import opustools
 
-from opusfilter import FilterABC, ConfigurationError, filters, pipeline
+from opusfilter import FilterABC, ConfigurationError, filters
 from opusfilter.autogen import *
 from opusfilter.opusfilter import OpusFilter
-
-
-default_params = {
-    'AlphabetRatioFilter': {},
-    'CharacterScoreFilter': {'scripts': ['latin', 'latin']},
-    'LanguageIDFilter': {'name': 'cld2', 'id_method': 'cld2', 'languages': ['en', 'de']},
-    'LengthRatioFilter.char': {'name': 'char', 'unit': 'char'},
-    'LengthRatioFilter.word': {'name': 'word', 'unit': 'word'},
-    'NonZeroNumeralsFilter': {},
-    'TerminalPunctuationFilter': {}
-}
-
-example_params = {
-    'AlphabetRatioFilter': {'threshold': 1},
-    'CharacterScoreFilter': {'scripts': ['latin', 'latin'], 'thresholds': [1, 1]},
-    'LanguageIDFilter': {'name': 'cld2', 'id_method': 'cld2',
-                         'languages': ['en', 'de'],
-                         'thresholds': [1, 1]},
-    'LengthRatioFilter.char': {'name': 'char', 'threshold': 1, 'unit': 'char'},
-    'LengthRatioFilter.word': {'name': 'word', 'threshold': 1, 'unit': 'word'},
-    'NonZeroNumeralsFilter': {'threshold': 1},
-    'TerminalPunctuationFilter': {'threshold': 1}
-}
-
-default_rejects = {
-    'TerminalPunctuationFilter': False,
-    'AlphabetRatioFilter.0': False,
-    'AlphabetRatioFilter.1': False,
-    'CharacterScoreFilter.0': False,
-    'CharacterScoreFilter.1': False,
-    'LanguageIDFilter.0': False,
-    'LanguageIDFilter.1': False,
-    'LengthRatioFilter.char': False,
-    'LengthRatioFilter.word': False,
-    'NonZeroNumeralsFilter.0': False
-}
 
 
 class TestAutogen(unittest.TestCase):
@@ -115,55 +80,80 @@ class TestAutogen(unittest.TestCase):
 
 class TestThresholdFinder(unittest.TestCase):
 
+    col_names = [
+        'AlphabetRatioFilter.0',
+        'AlphabetRatioFilter.1',
+        'LengthRatioFilter.char',
+        'LengthRatioFilter.word',
+        'NonZeroNumeralsFilter.0',
+        'CharacterScoreFilter.0',
+        'CharacterScoreFilter.1',
+        'LanguageIDFilter.0',
+        'LanguageIDFilter.1',
+        'TerminalPunctuationFilter'
+    ]
+
+    example_params = [
+        {'AlphabetRatioFilter': {'threshold': [1, 1]}},
+        {'LengthRatioFilter': {'name': 'char', 'threshold': 1, 'unit': 'char'}},
+        {'LengthRatioFilter': {'name': 'word', 'threshold': 1, 'unit': 'word'}},
+        {'NonZeroNumeralsFilter': {'threshold': 1}},
+        {'CharacterScoreFilter': {'scripts': ['latin', 'latin'], 'thresholds': [1, 1]}},
+        {'LanguageIDFilter': {'id_method': 'cld2', 'languages': ['en', 'de'], 'thresholds': [1, 1]}},
+        {'TerminalPunctuationFilter': {'threshold': 1}}
+    ]
+
+    def _make_df(self, names, thresholds, rejects):
+        return pd.DataFrame.from_dict(
+            {'name': names, 'threshold': thresholds, 'reject': rejects})
+
     def test_set_default_parameters(self):
-        tf = ClusterFilters([None, None], ['en', 'de'], ['latin', 'latin'], None, None, None)
-        self.assertEqual(tf.filter_params, default_params)
+        tf = ClusterFilters([None, None], langs=['en', 'de'], scripts=['latin', 'latin'])
+        self.assertEqual(tf.filters, [])
 
     def test_reject_all_parameters(self):
-        tf = ClusterFilters([None, None], ['en', 'de'], ['latin', 'latin'], None, None, None)
-        tf._set_parameters([1 for i in range(10)], {k: True for k in default_rejects.keys()})
-        self.assertEqual(tf.filter_params, {})
+        tf = ClusterFilters([None, None], langs=['en', 'de'], scripts=['latin', 'latin'])
+        tf._set_parameters(self._make_df(self.col_names, [1] * len(self.col_names), [True] * len(self.col_names)))
+        self.assertEqual(tf.filters, [])
 
     def test_set_all_parameters(self):
-        tf = ClusterFilters([None, None], ['en', 'de'], ['latin', 'latin'], None, None, None)
-        tf._set_parameters([1 for i in range(10)], default_rejects)
-        self.assertEqual(tf.filter_params, example_params)
+        tf = ClusterFilters([None, None], langs=['en', 'de'], scripts=['latin', 'latin'])
+        tf._set_parameters(self._make_df(self.col_names, [1] * len(self.col_names), [False] * len(self.col_names)))
+        self.assertSequenceEqual(tf.filters, self.example_params)
 
     def test_set_parameters_reject_one_side(self):
-        tf = ClusterFilters([None, None], ['en', 'de'], ['latin', 'latin'], None, None, None)
+        tf = ClusterFilters([None, None], langs=['en', 'de'], scripts=['latin', 'latin'])
+        default_rejects = [False] * len(self.col_names)
         rejects = copy.deepcopy(default_rejects)
-        rejects['LanguageIDFilter.0'] = True
-        params = copy.deepcopy(example_params)
-        params['LanguageIDFilter']['thresholds'][0] = -1
-        tf._set_parameters([1 for i in range(10)], rejects)
-        self.assertEqual(tf.filter_params, params)
+        rejects[7] = True  # 'LanguageIDFilter.0'
+        params = copy.deepcopy(self.example_params)
+        params[5]['LanguageIDFilter']['thresholds'][0] = -1
+        tf._set_parameters(self._make_df(self.col_names, [1] * len(self.col_names), rejects))
+        self.assertEqual(tf.filters, params)
 
-        tf.filter_params = copy.deepcopy(default_params)
         rejects = copy.deepcopy(default_rejects)
-        rejects['LanguageIDFilter.1'] = True
-        params = copy.deepcopy(example_params)
-        params['LanguageIDFilter']['thresholds'][1] = -1
-        tf._set_parameters([1 for i in range(10)], rejects)
-        self.assertEqual(tf.filter_params, params)
+        rejects[8] = True  # LanguageIDFilter.1
+        params = copy.deepcopy(self.example_params)
+        params[5]['LanguageIDFilter']['thresholds'][1] = -1
+        tf._set_parameters(self._make_df(self.col_names, [1] * len(self.col_names), rejects))
+        self.assertEqual(tf.filters, params)
 
-        tf.filter_params = copy.deepcopy(default_params)
         rejects = copy.deepcopy(default_rejects)
-        rejects['CharacterScoreFilter.0'] = True
-        params = copy.deepcopy(example_params)
-        params['CharacterScoreFilter']['thresholds'][0] = -1
-        tf._set_parameters([1 for i in range(10)], rejects)
-        self.assertEqual(tf.filter_params, params)
+        rejects[5] = True  # 'CharacterScoreFilter.0'
+        params = copy.deepcopy(self.example_params)
+        params[4]['CharacterScoreFilter']['thresholds'][0] = -1
+        tf._set_parameters(self._make_df(self.col_names, [1] * len(self.col_names), rejects))
+        self.assertEqual(tf.filters, params)
 
-        tf.filter_params = copy.deepcopy(default_params)
         rejects = copy.deepcopy(default_rejects)
-        rejects['CharacterScoreFilter.1'] = True
-        params = copy.deepcopy(example_params)
-        params['CharacterScoreFilter']['thresholds'][1] = -1
-        tf._set_parameters([1 for i in range(10)], rejects)
-        self.assertEqual(tf.filter_params, params)
+        rejects[6] = True  # 'CharacterScoreFilter.1'
+        params = copy.deepcopy(self.example_params)
+        params[4]['CharacterScoreFilter']['thresholds'][1] = -1
+        tf._set_parameters(self._make_df(self.col_names, [1] * len(self.col_names), rejects))
+        self.assertEqual(tf.filters, params)
 
 
-class TestGenericFilterAdjuster(unittest.TestCase):
+class TestPercentileAdjuster(unittest.TestCase):
 
     # These have arguments without defaults
     expected_failures = {'CharacterScoreFilter', 'CrossEntropyFilter', 'CrossEntropyDifferenceFilter',
@@ -173,8 +163,8 @@ class TestGenericFilterAdjuster(unittest.TestCase):
         for filter_name, filter_cls in inspect.getmembers(filters, inspect.isclass):
             if not issubclass(filter_cls, FilterABC) or filter_cls == FilterABC:
                 continue
-            adjuster = GenericFilterAdjuster(filter_name)
-            params = adjuster.default_parameters
+            adjuster = PercentileAdjuster(filter_name)
+            params = adjuster.initial_parameters
             logging.info("%s %s", filter_name, params)
             if filter_name in self.expected_failures:
                 with self.assertRaises((ConfigurationError, ModuleNotFoundError)):
@@ -195,7 +185,7 @@ class TestGenericFilterAdjuster(unittest.TestCase):
                 continue
             if filter_name in self.expected_failures:
                 continue
-            adjuster = GenericFilterAdjuster(filter_name)
+            adjuster = PercentileAdjuster(filter_name)
             if not adjuster.is_adjustable():
                 continue
             params = adjuster.get_adjusted_parameters(data, excluded_percentile=0.1)
