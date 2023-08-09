@@ -3,6 +3,7 @@
 from collections import Counter
 import logging
 
+import pandas as pd
 from sklearn.cluster import KMeans
 from sklearn import preprocessing
 from sklearn.decomposition import PCA
@@ -39,29 +40,39 @@ class ScoreClusters:
         self.kmeans = KMeans(n_clusters=n, random_state=0, n_init='auto').fit(self.standard_data)
         self.labels = self.kmeans.labels_
         self.cluster_centers = self.scaler.inverse_transform(self.kmeans.cluster_centers_)
-        self.noisy_label = self._get_noisy_label()
-        self.clean_label = np.abs(self.noisy_label - 1)
+        self._noisy_label = self._get_noisy_label()
 
-    def _get_noisy_label(self):
-        """Find label for the noisy cluster"""
-        centers = self.kmeans.cluster_centers_
-        inv_centers = self.cluster_centers
+    @property
+    def noisy_label(self):
+        """Cluster label for noisy data"""
+        return self._noisy_label
 
-        # Flip values if low score indicates clean data
+    @property
+    def clean_label(self):
+        """Cluster label for clean data"""
+        return np.abs(self._noisy_label - 1)
+
+    def _get_flipped_centers(self):
+        """Get centers with values flipped when low score indicates clean data"""
         dir_fixed_centers = []
-        for center in centers:
+        for center in self.kmeans.cluster_centers_:
             fixed_center = []
-            for j, name in enumerate(self.df.columns):
-                value = center[j].copy()
+            for i, name in enumerate(self.df.columns):
+                value = center[i].copy()
                 if self.filters[name].score_direction == CLEAN_LOW:
                     value *= -1
                 fixed_center.append(value)
             dir_fixed_centers.append(fixed_center)
-        means = np.mean(dir_fixed_centers, axis=1)
+        return dir_fixed_centers
 
+    def _get_noisy_label(self):
+        """Find label for the noisy cluster"""
+        means = np.mean(self._get_flipped_centers(), axis=1)
+
+        # Output some cluster information
         nlabels = Counter(self.labels)
-        for k, (center, inv_center, mean) in enumerate(zip(centers, inv_centers, means)):
-            logger.info('Cluster #%s - number of samples: %s', k, nlabels[k])
+        for i, (center, inv_center, mean) in enumerate(zip(self.kmeans.cluster_centers_, self.cluster_centers, means)):
+            logger.info('Cluster #%s - number of samples: %s', i, nlabels[i])
             for j, val in enumerate(center):
                 logger.info('%s\t%s\t%s', self.df.columns[j], round(val, 2), round(inv_center[j], 2))
             logger.info('Average center\t%s', np.round(mean, 2))
@@ -76,14 +87,22 @@ class ScoreClusters:
                     f'{len(noisy_labels)}/{len(self.labels)} ({round(100*len(noisy_labels)/len(self.labels), 2)}%)')
         return noisy_label
 
+    def get_columns(self):
+        """Return data column names"""
+        return self.df.columns
+
     def get_thresholds(self, method='noisy_center', precision=6):
-        """Return thresholds for noisy samples"""
+        """Return a list of thresholds for noisy samples"""
         if method != 'noisy_center':
             raise ValueError(f'Method {method} for thresholds not implemented')
         return self.cluster_centers[self.noisy_label].round(precision).tolist()
 
     def get_rejects(self):
-        """Train random forest classifier to find important features"""
+        """Train random forest classifier to find important features
+
+        Returns a list of booleans (True = reject).
+
+        """
         logger.info('Training random forest')
         clf = RandomForestClassifier(random_state=1)
         clf.fit(self.standard_data, self.labels)
@@ -93,12 +112,20 @@ class ScoreClusters:
         rej_coef = 0.1
         logger.info('mean importance: %s', round(importance_mean_mean, 3))
         logger.info('rejection coefficient: %s', rej_coef)
-        rejects = {}
+        rejects = []
         for i, k in enumerate(self.df.columns):
             importance = feature_importances['importances_mean'][i]
-            rejects[k] = importance < importance_mean_mean * rej_coef
-            logger.info('%s\t%s\t%s', k, round(importance, 3), 'reject' if rejects[k] else 'keep')
+            reject = importance < importance_mean_mean * rej_coef
+            logger.info('%s\t%s\t%s', k, round(importance, 3), 'reject' if reject else 'keep')
+            rejects.append(reject)
         return rejects
+
+    def get_result_df(self):
+        """Return dataframe containing the thresholds and reject booleans"""
+        return pd.DataFrame.from_dict(
+            {'name': self.get_columns(),
+             'threshold': self.get_thresholds(),
+             'reject': self.get_rejects()})
 
     def plot(self, plt):
         """Plot clustering and histograms"""
