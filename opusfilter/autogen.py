@@ -310,7 +310,7 @@ class FilterInspect:
     # Lists of possible filter threshold arguments
     SINGLE_THRESHOLD_ARGUMENTS = ['threshold']
     MULTI_THRESHOLD_ARGUMENTS = ['threshold', 'thresholds']
-    MIN_MAX_ARGUMENTS = [('min_length', 'max_length')]
+    MIN_MAX_ARGUMENTS = [('min_length', 'max_length'), ('min_threshold', 'max_threshold')]
     ALL_THRESHOLD_ARGUMENTS = SINGLE_THRESHOLD_ARGUMENTS + MULTI_THRESHOLD_ARGUMENTS + MIN_MAX_ARGUMENTS
 
     def __init__(self, filterclass, filter_parameters=None):
@@ -463,9 +463,6 @@ class ClusterFilters(DataBasedFiltersABC):
         score_file = get_score_file(
             self.files, [{name: params} for name, params in self.filters_to_add], self.inter_dir, self.sample_size,
             overwrite=self.overwrite, max_length=self.max_length)
-        # score_file = get_score_file(
-        #     self.files, [{k.split('.', maxsplit=1)[0]: v} for k, v in self.filter_params.items()],
-        #     self.inter_dir, self.sample_size, overwrite=self.overwrite, max_length=self.max_length)
         self.scoredata = ScoreClusters(score_file)
         self._set_parameters(self.scoredata.get_result_df())
         if os.path.isfile(self.label_file_path) and not self.overwrite:
@@ -476,7 +473,6 @@ class ClusterFilters(DataBasedFiltersABC):
                     label_file.write(str(label)+'\n')
         if self.use_tmp:
             shutil.rmtree(self.inter_dir)
-        # self._filters = [{k.split('.', maxsplit=1)[0]: v} for k, v in self.filter_params.items()]
 
     def _set_parameters(self, df):
         """Set filter parameters based on ScoreClusters
@@ -504,8 +500,8 @@ class ClusterFilters(DataBasedFiltersABC):
             thresholds = list(df_part['threshold'])
             for i, reject in enumerate(df_part.reject):
                 if reject:
-                    # FIXME: -1 may not work for all filters
-                    thresholds[i] = -1
+                    # Set a threshold that accepts all input
+                    thresholds[i] = filter_inspect.filter_cls.accept_threshold
             logger.warning(thresholds)
             new_params[threshold_key] = thresholds if len(thresholds) > 1 else thresholds[0]
             logger.warning({classname: new_params})

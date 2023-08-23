@@ -68,6 +68,8 @@ class SentenceEmbeddingFilter(FilterABC):
     """
 
     score_direction = CLEAN_HIGH
+    accept_threshold = 0
+    reject_threshold = 1 + 10**-6
 
     def __init__(self, languages=None, threshold=0.5, nn_model=None, chunksize=200, **kwargs):
         try:

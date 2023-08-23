@@ -5,7 +5,10 @@ the filter configuration entries.
 
 The custom filters should inherit the abstract base class `FilterABC`
 from the `opusfilter` package. They should implement two abstract
-methods: `score` and `accept`.
+methods, `score` and `accept`, and one abstract property,
+`score_direction`. Additionally, for filters with adjustable
+thresholds, defining `accept_threshold` and `reject_threshold`
+properties is recommended.
 
 The `score` method is a generator that takes an iterator over tuples
 of parallel sentences, and yields a score object for each pair. The
@@ -16,6 +19,17 @@ The `accept` method takes a single output yielded by the `score`
 method, and returns whether the sentence pair should be accepted based
 on the score.
 
+The `score_direction` should be one of the following contants defined
+in the `opusfilter` module depending on the output of the `score()`
+method:
+
+* `CLEAN_LOW`: scores below a threshold parameter indicate clean data
+* `CLEAN_HIGH`: scores above a threshold parameter indicate clean data
+* `CLEAN_BETWEEN`: scores between minimum and maximum thresholds
+  indicate clean data
+* `CLEAN_TRUE`: score value `True` indicates clean data
+* `CLEAN_FALSE`: score value `False` indicates clean data
+
 If the filter requires any parameters (e.g. score thresholds for the
 `accept` method), the class should implement also the `__init__`
 method.  Arbitrary keyword arguments should be accepted (with
@@ -23,6 +37,25 @@ method.  Arbitrary keyword arguments should be accepted (with
 should be called with the remaining keyword arguments. The keyword
 argument `name` is reserved for giving names to the filters and
 `workdir` for a location for non-temprary files.
+
+For compability with the included [automatic configuration generation
+tools](../automatic_configuration.md), also the following should be
+considered:
+
+* If there is a threshold value used by `accept`, the argument should
+  be named as `threshold` (a single global threshold) or `thresholds`
+  (multiple thresholds, e.g. one per language). The `accept_threshold`
+  and `reject_threshold` properties should have threshold values that
+  force all inputs to be accepted or rejected, respectively.  That is,
+  a sensible threshold value will always be between `accept_threshold`
+  and `reject_threshold`.
+* If there are lower and upper thresholds used by `accept`
+  (i.e. `score_direction` is `CLEAN_BETWEEN`), the respective
+  arguments should be named as `min_threshold` and `max_threshold` or
+  `min_length` and `max_length`. The `accept_threshold` and
+  `reject_threshold` properties should have tuples of two threshold
+  values (for lower and upper thresholds) that force all inputs to be
+  accepted or rejected, respectively.
 
 Based on the `score` and `accept` methods, the abstract class
 `FilterABC` implements the following three generators that take
@@ -43,6 +76,10 @@ uppercase characters:
 import opusfilter
 
 class UppercaseFilter(opusfilter.FilterABC):
+
+	score_direction = opusfilter.CLEAN_LOW
+	accept_threshold = 1 + 10**-6
+	reject_threshold = 0
 
     def __init__(self, threshold=0.5, **kwargs):
         self.threshold = threshold

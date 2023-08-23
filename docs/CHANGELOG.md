@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - `opusfilter-autogen` script for automatic filter config generation
-- `score_direction` property for filters
+- `score_direction`, `accept_threshold`, and `reject_threshold` properties for filters
 
 ### Changed
 

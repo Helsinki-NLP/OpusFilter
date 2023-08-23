@@ -127,28 +127,28 @@ class TestThresholdFinder(unittest.TestCase):
         rejects = copy.deepcopy(default_rejects)
         rejects[7] = True  # 'LanguageIDFilter.0'
         params = copy.deepcopy(self.example_params)
-        params[5]['LanguageIDFilter']['thresholds'][0] = -1
+        params[5]['LanguageIDFilter']['thresholds'][0] = filters.LanguageIDFilter.accept_threshold
         tf._set_parameters(self._make_df(self.col_names, [1] * len(self.col_names), rejects))
         self.assertEqual(tf.filters, params)
 
         rejects = copy.deepcopy(default_rejects)
         rejects[8] = True  # LanguageIDFilter.1
         params = copy.deepcopy(self.example_params)
-        params[5]['LanguageIDFilter']['thresholds'][1] = -1
+        params[5]['LanguageIDFilter']['thresholds'][1] = filters.LanguageIDFilter.accept_threshold
         tf._set_parameters(self._make_df(self.col_names, [1] * len(self.col_names), rejects))
         self.assertEqual(tf.filters, params)
 
         rejects = copy.deepcopy(default_rejects)
         rejects[5] = True  # 'CharacterScoreFilter.0'
         params = copy.deepcopy(self.example_params)
-        params[4]['CharacterScoreFilter']['thresholds'][0] = -1
+        params[4]['CharacterScoreFilter']['thresholds'][0] = filters.CharacterScoreFilter.accept_threshold
         tf._set_parameters(self._make_df(self.col_names, [1] * len(self.col_names), rejects))
         self.assertEqual(tf.filters, params)
 
         rejects = copy.deepcopy(default_rejects)
         rejects[6] = True  # 'CharacterScoreFilter.1'
         params = copy.deepcopy(self.example_params)
-        params[4]['CharacterScoreFilter']['thresholds'][1] = -1
+        params[4]['CharacterScoreFilter']['thresholds'][1] = filters.CharacterScoreFilter.accept_threshold
         tf._set_parameters(self._make_df(self.col_names, [1] * len(self.col_names), rejects))
         self.assertEqual(tf.filters, params)
 

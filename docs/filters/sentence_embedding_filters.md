@@ -18,7 +18,7 @@ calculate the similarity of the embeddings.  If `nn_model` is
 provided, the similarities are normalized by the average similarity to
 K nearest neighbors in a reference corpus; see
 [train_nearest_neighbors](train_nearest_neighbors) for training a
-model. With normalized scores, threshold around 1.0 is likely more
+model. With normalized scores, threshold closer to 1.0 is likely more
 suitable than the default 0.5.
 
 Especially with the nearest neighbor normalization, this filter can be
