@@ -3,6 +3,7 @@
 import contextlib
 import json
 import logging
+import math
 import os
 import tempfile
 
@@ -66,6 +67,8 @@ class WordAlignFilter(FilterABC):
     """
 
     score_direction = CLEAN_LOW
+    accept_threshold = math.inf
+    reject_threshold = -math.inf
     _empty_pair_sentinel = object()
 
     def __init__(self, src_threshold=0, tgt_threshold=0, priors=None, model=3,

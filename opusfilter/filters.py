@@ -24,6 +24,8 @@ class LengthFilter(FilterABC):
     """Sentence length filter"""
 
     score_direction = CLEAN_BETWEEN
+    accept_threshold = (0, math.inf)
+    reject_threshold = (math.inf, 0)
 
     def __init__(self, min_length=1, max_length=100, unit='word', pass_empty=False, **kwargs):
         min_length, max_length, unit = check_args_compability(
@@ -57,6 +59,8 @@ class LengthRatioFilter(FilterABC):
     """Character length ratio"""
 
     score_direction = CLEAN_LOW
+    accept_threshold = math.inf
+    reject_threshold = 0
 
     def __init__(self, threshold=3, unit='word', **kwargs):
         self.threshold = threshold
@@ -89,6 +93,8 @@ class LongWordFilter(FilterABC):
     """Word length filter"""
 
     score_direction = CLEAN_LOW
+    accept_threshold = math.inf
+    reject_threshold = 1
 
     def __init__(self, threshold=40, **kwargs):
         self.threshold = check_args_compability(threshold, required_types=[(int, float)], names=['threshold'])
@@ -111,6 +117,8 @@ class AverageWordLengthFilter(FilterABC):
     """
 
     score_direction = CLEAN_BETWEEN
+    accept_threshold = (0, math.inf)
+    reject_threshold = (math.inf, 0)
 
     def __init__(self, min_length=2, max_length=20, pass_empty=False, **kwargs):
         min_length, max_length = check_args_compability(
@@ -202,6 +210,8 @@ class AlphabetRatioFilter(FilterABC):
     """Proportion of alphabetic characters in the segment"""
 
     score_direction = CLEAN_HIGH
+    accept_threshold = 0
+    reject_threshold = 1 + 10**-6
 
     def __init__(self, threshold=0.75, exclude_whitespace=False, **kwargs):
         self.threshold = check_args_compability(threshold, required_types=[(float, int)], names=['threshold'])
@@ -236,6 +246,8 @@ class CharacterScoreFilter(FilterABC):
     """
 
     score_direction = CLEAN_HIGH
+    accept_threshold = 0
+    reject_threshold = 1 + 10**-6
 
     def __init__(self, scripts=None, thresholds=None, **kwargs):
         if scripts is None:
@@ -279,6 +291,8 @@ class LanguageIDFilter(FilterABC):
     """
 
     score_direction = CLEAN_HIGH
+    accept_threshold = -1
+    reject_threshold = 1
 
     def __init__(self, languages=None, id_method='langid', thresholds=None,
                  fasttext_model_path=None, langid_languages=None, cld2_options=None,
@@ -379,6 +393,8 @@ class TerminalPunctuationFilter(FilterABC):
     """
 
     score_direction = CLEAN_HIGH
+    accept_threshold = 0
+    reject_threshold = math.inf
 
     def __init__(self, threshold=-2, **kwargs):
         self.threshold = threshold
@@ -391,7 +407,7 @@ class TerminalPunctuationFilter(FilterABC):
             sent1, sent2 = pair
             spun = len([c for c in sent1 if c in ['.', '?', '!', '…']])
             tpun = len([c for c in sent2 if c in ['.', '?', '!', '…']])
-            score = abs(spun-tpun)
+            score = abs(spun - tpun)
             if spun > 1:
                 score += spun - 1
             if tpun > 1:
@@ -416,6 +432,8 @@ class NonZeroNumeralsFilter(FilterABC):
     """
 
     score_direction = CLEAN_HIGH
+    accept_threshold = 0
+    reject_threshold = 1 + 10**-6
 
     def __init__(self, threshold=0.5, require_all=True, **kwargs):
         self.threshold = threshold
@@ -448,6 +466,8 @@ class LongestCommonSubstringFilter(FilterABC):
     """
 
     score_direction = CLEAN_LOW
+    accept_threshold = 1 + 10**-6
+    reject_threshold = 0
 
     def __init__(self, threshold=0.9, require_all=True, **kwargs):
         self.threshold = threshold
@@ -484,6 +504,8 @@ class SimilarityFilter(FilterABC):
     """
 
     score_direction = CLEAN_LOW
+    accept_threshold = 1 + 10**-6
+    reject_threshold = 0
 
     VALID_UNITS = ('word', 'char', 'character')
 
@@ -538,10 +560,11 @@ class RepetitionFilter(FilterABC):
     """
 
     score_direction = CLEAN_LOW
-    min_threshold = 1
+    accept_threshold = math.inf
+    reject_threshold = 1
 
     def __init__(self, threshold=2, min_length=3, max_length=100, **kwargs):
-        if threshold < self.min_threshold:
+        if threshold < self.reject_threshold:
             raise ConfigurationError(f"threshold for RepetitionFilter has to be at least one, got {threshold}")
         if min_length < 1:
             raise ConfigurationError(f"min_length for RepetitionFilter has to be at least one, got {min_length}")

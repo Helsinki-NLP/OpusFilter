@@ -71,6 +71,28 @@ class FilterABC(metaclass=abc.ABCMeta):
     def score_direction(self):
         """Hint for which score values indicate accept"""
 
+    @property
+    def accept_threshold(self):
+        """Threshold value for which accept() is always true
+
+        If not applicable, the value is None. If score_direction is
+        CLEAN_BETWEEN, the value is a tuple of lower and upper
+        thresholds.
+
+        """
+        return None
+
+    @property
+    def reject_threshold(self):
+        """Threshold value for which accept() is always false
+
+        If not applicable, the value is None. If score_direction is
+        CLEAN_BETWEEN, the value is a tuple of lower and upper
+        thresholds.
+
+        """
+        return None
+
 
 class PreprocessorABC(metaclass=abc.ABCMeta):
     """Abstract base class for preprocessors"""

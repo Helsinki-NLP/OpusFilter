@@ -293,6 +293,8 @@ class CrossEntropyFilter(FilterABC):
 
     score_direction = CLEAN_LOW
     score_types = {'entropy', 'perplexity', 'logprob'}
+    accept_threshold = math.inf
+    reject_threshold = 0
 
     def __init__(self, lm_params=None, score_type='entropy',
                  thresholds=None, low_thresholds=None, diff_threshold=10.0,
@@ -348,6 +350,8 @@ class CrossEntropyDifferenceFilter(FilterABC):
     """
 
     score_direction = CLEAN_LOW
+    accept_threshold = math.inf
+    reject_threshold = -math.inf
 
     def __init__(self, id_lm_params=None, nd_lm_params=None, thresholds=None, score_for_empty=False, **kwargs):
         super().__init__(**kwargs)
@@ -404,6 +408,8 @@ class LMClassifierFilter(FilterABC):
     """
 
     score_direction = CLEAN_HIGH
+    accept_threshold = 0
+    reject_threshold = 1 + 10**-6
 
     def __init__(self, labels=None, lm_params=None, thresholds=None, relative_score=False, **kwargs):
         super().__init__(**kwargs)
