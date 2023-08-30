@@ -24,8 +24,6 @@ parser = argparse.ArgumentParser(
     prog='opusfilter-autogen',
     description='Generate initial configuration based on parallel text data')
 
-#parser.add_argument('--add-filter', nargs=2, action='append', default=[], metavar=('CLASS', 'JSON'),
-#                    help='Add filter of CLASS with JSON parameters object')
 parser.add_argument('--files', required=True, nargs='+', metavar='TEXTFILE', help='parallel text input file(s)')
 parser.add_argument('--langs', nargs='+', metavar='LANGCODE',
                     help='Language codes corresponding to the input files. If omitted, LanguageIDFilters will not be used.')

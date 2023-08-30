@@ -1,6 +1,5 @@
 """Filter classifier"""
 
-import json
 import logging
 import collections
 import functools
@@ -9,68 +8,15 @@ import scipy.optimize
 
 import numpy as np
 import pandas as pd
-from pandas import json_normalize
 import sklearn.linear_model
 from sklearn.metrics import accuracy_score, confusion_matrix, roc_auc_score, log_loss
 
 from . import CLEAN_LOW, CLEAN_HIGH, CLEAN_TRUE, CLEAN_FALSE
 from . import filters as filtermodule
-from .util import file_open, grouper, import_class
+from .util import file_open, import_class, load_dataframe, load_dataframe_in_chunks
 
 
 logger = logging.getLogger(__name__)
-
-
-def lists_to_dicts(obj):
-    """Convert lists in a JSON-style object to dicts recursively
-
-    Examples:
-
-    >>> lists_to_dicts([3, 4])
-    {"0": 3, "1": 4}
-    >>> lists_to_dicts([3, [4, 5]])
-    {"0": 3, "1": {"0": 4, "1": 5}}
-    >>> lists_to_dicts({"a": [3, 4], "b": []})
-    {"a": {"0": 3, "1": 4}, "b": {}}
-
-    """
-    if isinstance(obj, dict):
-        return {key: lists_to_dicts(value) for key, value in obj.items()}
-    if isinstance(obj, list):
-        return {str(idx): lists_to_dicts(value) for idx, value in enumerate(obj)}
-    return obj
-
-
-def load_dataframe(data_file):
-    """Load normalized scores dataframe from a JSON lines file"""
-    data = []
-    with file_open(data_file) as dfile:
-        for line in dfile:
-            try:
-                data.append(lists_to_dicts(json.loads(line)))
-            except json.decoder.JSONDecodeError as err:
-                logger.error(line)
-                raise err
-    return pd.DataFrame(json_normalize(data))
-
-
-def load_dataframe_in_chunks(data_file, chunksize):
-    """Yield normalized scores dataframes from a chunked JSON lines file
-
-    Use instead of load_dataframe if the data is too large to fit in memory.
-
-    """
-    with file_open(data_file) as dfile:
-        for num, chunk in enumerate(grouper(dfile, chunksize)):
-            data = []
-            for line in chunk:
-                try:
-                    data.append(lists_to_dicts(json.loads(line)))
-                except json.decoder.JSONDecodeError as err:
-                    logger.error(line)
-                    raise err
-            logger.info("Processing chunk %s with %s lines", num, len(data))
-            yield pd.DataFrame(json_normalize(data))
 
 
 def standardize_dataframe_scores(dataframe, features, means_stds=None):

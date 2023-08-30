@@ -7,11 +7,14 @@ step, with a few options for determining the filter parameters.
 The usage description for the script is as follows:
 ```text
 usage: opusfilter-autogen [-h] --files TEXTFILE [TEXTFILE ...]
-                          [--langs LANGCODE [LANGCODE ...]] [--scripts SCRIPT [SCRIPT ...]]
-                          [--filter-params {cluster,default,percentiles}]
-                          [--sample-size SAMPLE_SIZE] [--noisy-percentile NOISY_PERCENTILE]
-                          [--work-dir WORK_DIR] [--inter-dir INTER_DIR] [--plot]
-                          [--overwrite] [-o CONFIGFILE]
+                          [--langs LANGCODE [LANGCODE ...]]
+                          [--scripts SCRIPT [SCRIPT ...]]
+                          [--method {defaults,percentiles,clustering}]
+                          [--sample-size SAMPLE_SIZE]
+                          [--noisy-percentile NOISY_PERCENTILE]
+                          [--work-dir WORK_DIR] [--inter-dir INTER_DIR]
+                          [--plot] [--list-defaults] [--overwrite]
+                          [-o CONFIGFILE]
 
 Generate initial configuration based on parallel text data
 
@@ -20,37 +23,43 @@ options:
   --files TEXTFILE [TEXTFILE ...]
                         parallel text input file(s)
   --langs LANGCODE [LANGCODE ...]
-                        Language codes corresponding to the input files. If omitted,
-                        LanguageIDFilters will not be used.
+                        Language codes corresponding to the input files. If
+                        omitted, LanguageIDFilters will not be used.
   --scripts SCRIPT [SCRIPT ...]
-                        Alphabetic scripts (e.g. Latin) corresponding to the input files.
-                        If omitted, CharacterScoreFilter will not be used.
-  --filter-params {default,percentiles,unsupervised}
-                        Method for selecting filter parameters (default: unsupervised)
+                        Alphabetic scripts (e.g. Latin) corresponding to the
+                        input files. If omitted, CharacterScoreFilter will not
+                        be used.
+  --method {defaults,percentiles,clustering}
+                        Method for selecting filter thresholds (default:
+                        clustering)
   --sample-size SAMPLE_SIZE
-                        Max number of sentence pairs used for clustering (default 100000)
+                        Max number of sentence pairs used for clustering
+                        (default 100000)
   --noisy-percentile NOISY_PERCENTILE
-                        Proportion of the data considered to be noisy; only for percentiles
-                        method (default 0.001)
-  --work-dir WORK_DIR   Location of the source and target files for the generated
-                        configuration (default work)
+                        Proportion of the data considered to be noisy; only
+                        for percentiles method (default 0.001)
+  --work-dir WORK_DIR   Location of the source and target files for the
+                        generated configuration (default work)
   --inter-dir INTER_DIR
-                        Save intermediate files in this directory (use a temporary
-                        directory if not given)
-  --plot                Show a scatter plot of the clustering and histograms of feature
-                        data distributions
+                        Save intermediate files in this directory (use a
+                        temporary directory if not given)
+  --plot                Show a scatter plot of the clustering and histograms
+                        of feature data distributions
+  --list-defaults       List default filters of the method to the output and
+                        quit
   --overwrite           Overwrite existing config file and intermediate files
   -o CONFIGFILE, --output CONFIGFILE
                         Output configuration file (default -)
 ```
 
-The `--filter-params` options sets how the filter parameters are set.
-The option `default` uses the default parameters defined in the filter
+The `--method` option sets how the filter parameters are set.  The
+option `default` uses the default parameters defined in the filter
 classes. The option `percentiles` assumes that a proportion of the
 data (set by `--noisy-percentile`) is noisy, and sets the thresholds
 for each filter independently based on the percentile. The
-`unsupervised` option is likely the most useful of the three, and
-described in more detail below.
+`clustering` option is likely the most useful of the three, and
+described in more detail below. However, it is applicable to a more
+limited set of filters.
 
 ## Unsupervised feature selection for filters
 

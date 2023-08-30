@@ -5,10 +5,13 @@ import gzip
 import importlib
 import io
 import itertools
+import json
 import logging
 import lzma
 import os
 
+import pandas as pd
+from pandas import json_normalize
 from tqdm import tqdm
 import ruamel.yaml
 
@@ -16,6 +19,58 @@ from . import ConfigurationError
 
 
 logger = logging.getLogger(__name__)
+
+
+def lists_to_dicts(obj):
+    """Convert lists in a JSON-style object to dicts recursively
+
+    Examples:
+
+    >>> lists_to_dicts([3, 4])
+    {"0": 3, "1": 4}
+    >>> lists_to_dicts([3, [4, 5]])
+    {"0": 3, "1": {"0": 4, "1": 5}}
+    >>> lists_to_dicts({"a": [3, 4], "b": []})
+    {"a": {"0": 3, "1": 4}, "b": {}}
+
+    """
+    if isinstance(obj, dict):
+        return {key: lists_to_dicts(value) for key, value in obj.items()}
+    if isinstance(obj, list):
+        return {str(idx): lists_to_dicts(value) for idx, value in enumerate(obj)}
+    return obj
+
+
+def load_dataframe(data_file):
+    """Load normalized scores dataframe from a JSON lines file"""
+    data = []
+    with file_open(data_file) as dfile:
+        for line in dfile:
+            try:
+                data.append(lists_to_dicts(json.loads(line)))
+            except json.decoder.JSONDecodeError as err:
+                logger.error(line)
+                raise err
+    return pd.DataFrame(json_normalize(data))
+
+
+def load_dataframe_in_chunks(data_file, chunksize):
+    """Yield normalized scores dataframes from a chunked JSON lines file
+
+    Use instead of load_dataframe if the data is too large to fit in memory.
+
+    """
+    with file_open(data_file) as dfile:
+        for num, chunk in enumerate(grouper(dfile, chunksize)):
+            data = []
+            for line in chunk:
+                try:
+                    data.append(lists_to_dicts(json.loads(line)))
+                except json.decoder.JSONDecodeError as err:
+                    logger.error(line)
+                    raise err
+            logger.info("Processing chunk %s with %s lines", num, len(data))
+            yield pd.DataFrame(json_normalize(data))
 
 
 def import_class(config_dict, default_modules):
@@ -67,7 +122,8 @@ def check_args_compability(*args, required_types=None, choices=None, names=None)
 
     def type_error_msg(idx, type_, value):
         name = names[idx] if names else str(idx + 1)
-        return f"Values of argument '{name}' are not of the type {type_.__name__}: {value}"
+        typestr = ' or '.join(t.__name__ for t in type_) if isinstance(type_, tuple) else type_.__name__
+        return f"Values of argument '{name}' are not of the type {typestr}: {value}"
 
     def value_error_msg(idx, choices, value):
         name = names[idx] if names else str(idx + 1)

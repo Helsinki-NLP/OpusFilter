@@ -1,3 +1,4 @@
+import copy
 import inspect
 import logging
 import os
@@ -6,12 +7,16 @@ import tempfile
 import unittest
 
 import pandas as pd
+from pandas import json_normalize
 
 import opustools
 
 from opusfilter import FilterABC, ConfigurationError, filters
-from opusfilter.autogen import *
+from opusfilter.autogen import ConfigurationGenerator, DefaultParameterFilters, \
+    parse_filter_specs, PercentileFilters, PercentileAdjuster, ClusterFilters
 from opusfilter.opusfilter import OpusFilter
+from opusfilter.pipeline import FilterPipeline
+from opusfilter.util import lists_to_dicts
 
 
 class TestAutogen(unittest.TestCase):
@@ -61,7 +66,6 @@ class TestAutogen(unittest.TestCase):
             self.assertTrue(any(filter_name in f for f in filtergen.filters))
         self._test_filters(filtergen.filters)
 
-    @unittest.expectedFailure
     def test_percentile_filters(self):
         filtergen = PercentileFilters(
             files=[self.src_out, self.tgt_out], langs=[self.source, self.target], scripts=['Latin', 'Latin'],
@@ -173,13 +177,24 @@ class TestPercentileAdjuster(unittest.TestCase):
                 try:
                     obj = filter_cls(**params)
                 except ModuleNotFoundError:
-                    logger.info("Skipping test for %s: Requred module not found", filter_name)
+                    logging.info("Skipping test for %s: Requred module not found", filter_name)
 
-    @unittest.expectedFailure
+    def _get_score_df(self, filter_cls, data):
+        pipeline = FilterPipeline([filter_cls()])
+        df_data = [lists_to_dicts(score) for score in pipeline.score(data)]
+        return pd.DataFrame(json_normalize(df_data))
+
     def test_adjusted_parameters(self):
         src_data = ['a'] * 11 + ['a bbbbb'] * 78 + ['a bbbbb cccc'] * 11
         tgt_data = [seg.upper() for seg in src_data]
         data = list(zip(src_data, tgt_data))
+        self._test_adjusted_parameters(data)
+        src_data += ['a bbbbb']
+        tgt_data += ['A']
+        data = list(zip(src_data, tgt_data))
+        self._test_adjusted_parameters(data)
+
+    def _test_adjusted_parameters(self, data):
         for filter_name, filter_cls in inspect.getmembers(filters, inspect.isclass):
             if not issubclass(filter_cls, FilterABC) or filter_cls == FilterABC:
                 continue
@@ -188,7 +203,8 @@ class TestPercentileAdjuster(unittest.TestCase):
             adjuster = PercentileAdjuster(filter_name)
             if not adjuster.is_adjustable():
                 continue
-            params = adjuster.get_adjusted_parameters(data, excluded_percentile=0.1)
+            df = self._get_score_df(filter_cls, data)
+            params = adjuster.get_adjusted_parameters(df, excluded_percentile=0.1)
             logging.info("%s %s", filter_name, params)
             obj = filter_cls(**params)
             filtered = list(obj.filter(data))
