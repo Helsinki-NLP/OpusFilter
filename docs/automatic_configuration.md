@@ -13,8 +13,8 @@ usage: opusfilter-autogen [-h] --files TEXTFILE [TEXTFILE ...]
                           [--sample-size SAMPLE_SIZE]
                           [--noisy-percentile NOISY_PERCENTILE]
                           [--work-dir WORK_DIR] [--inter-dir INTER_DIR]
-                          [--plot] [--list-defaults] [--overwrite]
-                          [-o CONFIGFILE]
+                          [--plot] [--list-defaults] [--add-filter CLASS JSON]
+                          [--overwrite] [-o CONFIGFILE]
 
 Generate initial configuration based on parallel text data
 
@@ -33,8 +33,8 @@ options:
                         Method for selecting filter thresholds (default:
                         clustering)
   --sample-size SAMPLE_SIZE
-                        Max number of sentence pairs used for clustering
-                        (default 100000)
+                        Max number of sentence pairs used for data-based
+                        methods (default 100000)
   --noisy-percentile NOISY_PERCENTILE
                         Proportion of the data considered to be noisy; only
                         for percentiles method (default 0.001)
@@ -44,9 +44,17 @@ options:
                         Save intermediate files in this directory (use a
                         temporary directory if not given)
   --plot                Show a scatter plot of the clustering and histograms
-                        of feature data distributions
+                        of feature data distributions; only for the clustering
+                        method
   --list-defaults       List default filters of the method to the output and
                         quit
+  --add-filter CLASS JSON
+                        Instead of using default filters, add a filter of
+                        CLASS with JSON parameters object ("{}" for default
+                        parameters). The class name may be followed by a dot
+                        and a unique filter identifier in order to allow
+                        multiple filters of the same class. Example: --add-
+                        filter LanguageIDFilter.cld2 '{"id_method": "cld2"}'
   --overwrite           Overwrite existing config file and intermediate files
   -o CONFIGFILE, --output CONFIGFILE
                         Output configuration file (default -)

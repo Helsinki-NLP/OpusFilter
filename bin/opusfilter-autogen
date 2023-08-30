@@ -2,6 +2,7 @@
 
 import argparse
 import logging
+import json
 import os
 import sys
 
@@ -33,31 +34,40 @@ parser.add_argument('--scripts', nargs='+', metavar='SCRIPT', help=(
 parser.add_argument('--method', choices=['defaults', 'percentiles', 'clustering'], default='clustering',
                     help='Method for selecting filter thresholds (default: %(default)s)')
 parser.add_argument('--sample-size', default=100000, type=int,
-                    help='Max number of sentence pairs used for clustering (default %(default)s)')
+                    help='Max number of sentence pairs used for data-based methods (default %(default)s)')
 parser.add_argument('--noisy-percentile', default=0.001, type=float,
                     help='Proportion of the data considered to be noisy; only for percentiles method (default %(default)s)')
 parser.add_argument('--work-dir', default='work',
                     help='Location of the source and target files for the generated configuration (default %(default)s)')
 parser.add_argument('--inter-dir', help='Save intermediate files in this directory (use a temporary directory if not given)')
 parser.add_argument('--plot', action='store_true',
-                    help='Show a scatter plot of the clustering and histograms of feature data distributions')
+                    help=('Show a scatter plot of the clustering and histograms of feature data distributions; '
+                          'only for the clustering method'))
 parser.add_argument('--list-defaults', action='store_true', help='List default filters of the method to the output and quit')
-parser.add_argument('--overwrite', action='store_true', help='Overwrite existing config file and intermediate files')
-parser.add_argument('-o', '--output', type=argparse.FileType('w'), default='-', metavar='CONFIGFILE',
-                    help='Output configuration file (default %(default)s)')
+parser.add_argument('--add-filter', nargs=2, action='append', default=[], metavar=('CLASS', 'JSON'),
+                    help=('Instead of using default filters, add a filter of CLASS with JSON parameters object '
+                          '("{}" for default parameters). The class name may be followed by a dot and a unique '
+                          'filter identifier in order to allow multiple filters of the same class. Example: '
+                          '--add-filter LanguageIDFilter.cld2 \'{"id_method": "cld2"}\''))
+parser.add_argument('--overwrite', action='store_true',
+                    help='Overwrite existing config file and intermediate files')
+parser.add_argument('-o', '--output', type=argparse.FileType('w'),
+                    default='-', metavar='CONFIGFILE', help='Output configuration file (default %(default)s)')
 args = parser.parse_args()
+
+filters = [(name, json.loads(jsonstr)) for name, jsonstr in args.add_filter] if args.add_filter else None
 
 if args.method == 'clustering':
     filtergen = ClusterFilters(
-        files=args.files, langs=args.langs, scripts=args.scripts, sample_size=args.sample_size,
-        inter_dir=args.inter_dir, overwrite=args.overwrite)
+        files=args.files, langs=args.langs, scripts=args.scripts, filters=filters,
+        sample_size=args.sample_size, inter_dir=args.inter_dir, overwrite=args.overwrite)
 elif args.method == 'percentiles':
     filtergen = PercentileFilters(
-        files=args.files, langs=args.langs, scripts=args.scripts,
+        files=args.files, langs=args.langs, scripts=args.scripts, filters=filters,
         excluded_percentile=args.noisy_percentile, sample_size=args.sample_size,
         inter_dir=args.inter_dir, overwrite=args.overwrite)
 else:
-    filtergen = DefaultParameterFilters(langs=args.langs, scripts=args.scripts)
+    filtergen = DefaultParameterFilters(langs=args.langs, scripts=args.scripts, filters=filters)
 
 if args.list_defaults:
     yaml.dump(filtergen.DEFAULT_FILTERS, args.output)
