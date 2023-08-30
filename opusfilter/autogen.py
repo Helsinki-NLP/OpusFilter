@@ -265,6 +265,15 @@ class DataBasedFiltersABC(AutoFiltersABC, metaclass=abc.ABCMeta):
 class PercentileFilters(DataBasedFiltersABC):
     """Filter configuration based on filter score percentiles"""
 
+    DEFAULT_FILTERS = ['LengthFilter',
+                       ('LengthRatioFilter.char', {'unit': 'char'}),
+                       ('LengthRatioFilter.word', {'unit': 'word'}),
+                       'LongWordFilter', 'HtmlTagFilter',
+                       'AverageWordLengthFilter', 'AlphabetRatioFilter',
+                       'TerminalPunctuationFilter', 'NonZeroNumeralsFilter',
+                       'LongestCommonSubstringFilter', 'SimilarityFilter', 'RepetitionFilter',
+                       'CharacterScoreFilter', ('LanguageIDFilter', {'id_method': 'cld2'})]
+
     def __init__(self, files, excluded_percentile=0.001, **kwargs):
         super().__init__(files, **kwargs)
         self.excluded_percentile = excluded_percentile
@@ -378,6 +387,86 @@ class FilterInspect:
 class PercentileAdjuster(FilterInspect):
     """Class for setting filters to remove given percentile of data"""
 
+    @staticmethod
+    def _find_index(target, sorted_value_list):
+        """Locate index of value exceeding target in sorted list
+
+        If target is not in the list, returns the index of the first
+        value exceeding it.
+
+        """
+        for idx, value2 in enumerate(sorted_value_list):
+            if value2 >= target:
+                return idx
+        return len(sorted_value_list) - 1
+
+    def _select_value(self, values, percentile, stats_key, reverse):
+        """Select threshold value for single column"""
+        sorted_values = sorted(values.unique(), reverse=reverse)
+        if len(sorted_values) == 1:
+            # No variation -> accept all
+            return self.filter_cls.accept_threshold
+        stats = values.describe(percentiles=[percentile])
+        logger.info(stats)
+        value = stats.loc[stats_key]
+        idx = self._find_index(value, sorted_values)
+        if idx < len(sorted_values) - 1:
+            # Using the next value ensures that the filter will not
+            # exclude everything
+            value = sorted_values[idx + 1]
+        return value.item()
+
+    def _select_values(self, df, score_dir, excluded_percentile):
+        """Select threshold values from the distribution in dataframe
+
+        df: DataFrame containing the data values for the filter
+        score_dir: filter's score direction (CLEAN_LOW or CLEAN_HIGH)
+        excluded_percentile: target percentile to exclude as noisy
+
+        """
+        if score_dir == CLEAN_LOW:
+            percentile = 1 - excluded_percentile
+            stats_key = f'{100*(1-excluded_percentile):g}%'
+            reverse = False
+        else:
+            percentile = excluded_percentile
+            stats_key = f'{100*excluded_percentile:g}%'
+            reverse = True
+        return [self._select_value(df[column], percentile, stats_key, reverse) for column in df.columns]
+
+    def _select_values_between(self, df, excluded_percentile):
+        """Select min-max threshold values from the distribution in dataframe
+
+        df: DataFrame containing the data values for the filter
+        excluded_percentile: target percentile to exclude as noisy
+
+        """
+        half_pct = excluded_percentile / 2
+        percentiles = [half_pct, 1 - half_pct]
+        pct_keys = [f'{100*half_pct:g}%', f'{100*(1-half_pct):g}%']
+        min_values, max_values = [], []
+        for column in df.columns:
+            sorted_values = sorted(df[column].unique(), reverse=False)
+            if len(sorted_values) == 1:
+                # No variation -> accept all
+                min_value, max_value = self.filter_cls.accept_threshold
+            else:
+                stats = df[column].describe(percentiles=percentiles)
+                logger.info(stats)
+                min_value = stats.loc[pct_keys[0]].item()
+                min_idx = self._find_index(min_value, sorted_values)
+                if min_idx > 0:
+                    # Ensure that the filter will not exclude everything
+                    min_value = sorted_values[min_idx - 1].item()
+                max_value = stats.loc[pct_keys[1]].item()
+                max_idx = self._find_index(max_value, sorted_values)
+                if max_idx < len(sorted_values) - 1:
+                    # Ensure that the filter will not exclude everything
+                    max_value = sorted_values[max_idx + 1].item()
+            min_values.append(min_value)
+            max_values.append(max_value)
+        return min_values, max_values
+
     def get_adjusted_parameters(self, df, excluded_percentile=0.01):
         """Estimate parameters for the filter using data
 
@@ -387,50 +476,23 @@ class PercentileAdjuster(FilterInspect):
         the lowest and highest values.
 
         """
-        # TODO: It should be checked that the selected threshold does
-        # not remove too much data. E.g. if the clean values are high,
-        # excluded_percentile is 1%, and the highest 99.1% of the
-        # values are 1, the selected threshold 1 might remove all data
-        # if the condition for accepting the value is being greater
-        # than the threshold.
         parameters = copy.deepcopy(self.initial_parameters)
         if not self.is_adjustable():
             return parameters
         score_dir = self.filter_cls.score_direction
         logger.info("score type for %s: %s", self.filter_name, score_dir)
-        if score_dir == CLEAN_LOW:
-            percentiles = [1 - excluded_percentile]
-            pct_keys = [f'{100*(1-excluded_percentile):g}%']
-        elif score_dir == CLEAN_HIGH:
-            percentiles = [excluded_percentile]
-            pct_keys = [f'{100*excluded_percentile:g}%']
-        elif score_dir == CLEAN_BETWEEN:
-            half_pct = excluded_percentile / 2
-            percentiles = [half_pct, 1 - half_pct]
-            pct_keys = [f'{100*half_pct:g}%', f'{100*(1-half_pct):g}%']
-        else:
-            raise ValueError(f"Unknown score type '{score_dir}'")
         score_dim = len(df.columns)
         threshold_key = self.find_threshold_keys(score_dim)
         if threshold_key is None:
             return parameters
         if score_dir in {CLEAN_LOW, CLEAN_HIGH}:
             # Clean is below or above threshold
-            values = []
-            for column in df.columns:
-                stats = df[column].describe(percentiles=percentiles)
-                logger.info(stats)
-                values.append(stats.loc[pct_keys[0]].item())
+            values = self._select_values(df, score_dir, excluded_percentile)
             logger.info("Selected values %s for %s", values, threshold_key)
             parameters[threshold_key] = values[0] if score_dim == 1 else values
         elif score_dir == CLEAN_BETWEEN:
             # Clean is between minimum and maximum
-            min_values, max_values = [], []
-            for column in df.columns:
-                stats = df[column].describe(percentiles=percentiles)
-                logger.info(stats)
-                min_values.append(stats.loc[pct_keys[0]].item())
-                max_values.append(stats.loc[pct_keys[1]].item())
+            min_values, max_values = self._select_values_between(df, excluded_percentile)
             if score_dim == 1:
                 min_values = min_values[0]
                 max_values = max_values[0]
@@ -489,12 +551,9 @@ class ClusterFilters(DataBasedFiltersABC):
             if 'name' in params:
                 column_prefix += '.' + params['name']
             df_part = df[df.name.str.startswith(column_prefix)]
-            logger.warning(column_prefix)
-            logger.warning(df_part)
             if all(df_part.reject):
                 continue
             threshold_key = filter_inspect.find_threshold_keys(len(df_part))
-            logger.warning(threshold_key)
             if threshold_key is None:
                 continue
             thresholds = list(df_part['threshold'])
@@ -502,8 +561,5 @@ class ClusterFilters(DataBasedFiltersABC):
                 if reject:
                     # Set a threshold that accepts all input
                     thresholds[i] = filter_inspect.filter_cls.accept_threshold
-            logger.warning(thresholds)
             new_params[threshold_key] = thresholds if len(thresholds) > 1 else thresholds[0]
-            logger.warning({classname: new_params})
             self._filters.append({classname: new_params})
-        logger.info("Filters: %s", self.filters)

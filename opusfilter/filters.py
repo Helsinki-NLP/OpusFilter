@@ -60,7 +60,7 @@ class LengthRatioFilter(FilterABC):
 
     score_direction = CLEAN_LOW
     accept_threshold = math.inf
-    reject_threshold = 0
+    reject_threshold = 1
 
     def __init__(self, threshold=3, unit='word', **kwargs):
         self.threshold = threshold
@@ -564,14 +564,18 @@ class RepetitionFilter(FilterABC):
     reject_threshold = 1
 
     def __init__(self, threshold=2, min_length=3, max_length=100, **kwargs):
-        if threshold < self.reject_threshold:
-            raise ConfigurationError(f"threshold for RepetitionFilter has to be at least one, got {threshold}")
         if min_length < 1:
             raise ConfigurationError(f"min_length for RepetitionFilter has to be at least one, got {min_length}")
+        if threshold < self.reject_threshold:
+            raise ConfigurationError(f"threshold for RepetitionFilter has to be at least one, got {threshold}")
         self._threshold = threshold
         self._min_length = min_length
         self._max_length = max_length
-        self._regexp = self._get_regexp()
+        if threshold == self.accept_threshold:
+            logger.warning("threshold for RepetitionFilter set to %s, filter disabled", threshold)
+            self._regexp = None
+        else:
+            self._regexp = self._get_regexp()
         super().__init__(**kwargs)
 
     @property
@@ -604,6 +608,8 @@ class RepetitionFilter(FilterABC):
         None are returned.
 
         """
+        if not self._regexp:
+            return 0, None
         match = self._regexp.search(segment)
         if match:
             full = match.group(0)
