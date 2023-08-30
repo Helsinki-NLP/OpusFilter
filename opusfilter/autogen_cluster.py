@@ -131,8 +131,13 @@ class ScoreClusters:
         """Plot clustering and histograms"""
         plt.figure(figsize=(10, 10))
         data_t = PCA(n_components=2).fit_transform(self.standard_data)
-        colors = ['orange' if lbl == self.noisy_label else 'blue' for lbl in self.labels]
-        plt.scatter(data_t[:, 0], data_t[:, 1], c=colors, marker=',', s=1)
+        for label_id in [self.noisy_label, self.clean_label]:
+            points = np.where(self.labels == label_id)
+            plt.scatter(data_t[points, 0], data_t[points, 1],
+                        c='orange' if label_id == self.noisy_label else 'blue',
+                        label='noisy' if label_id == self.noisy_label else 'clean',
+                        marker=',', s=1)
+        plt.legend()
         plt.title('Clusters')
         noisy_samples = self.df.iloc[np.where(self.labels == self.noisy_label)]
         clean_samples = self.df.iloc[np.where(self.labels == self.clean_label)]
