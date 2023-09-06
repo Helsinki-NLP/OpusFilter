@@ -26,7 +26,8 @@ class ScoreClusters:
 
     """
 
-    def __init__(self, score_file, n=2):
+    def __init__(self, score_file, k=2):
+        self.k = k
         self.df = load_dataframe(score_file)
         self.filters = {}
         for name in self.df.columns:
@@ -36,8 +37,8 @@ class ScoreClusters:
         self.scaler = preprocessing.StandardScaler()
         self.standard_data = self.scaler.fit_transform(self.df)
 
-        logger.info('Training KMeans with %s clusters', n)
-        self.kmeans = KMeans(n_clusters=n, random_state=0, init='k-means++', n_init=1).fit(self.standard_data)
+        logger.info('Training KMeans with %s clusters', self.k)
+        self.kmeans = KMeans(n_clusters=self.k, random_state=0, init='k-means++', n_init=1).fit(self.standard_data)
         self.labels = self.kmeans.labels_
         self.cluster_centers = self.scaler.inverse_transform(self.kmeans.cluster_centers_)
         self._noisy_label = self._get_noisy_label()
@@ -48,9 +49,9 @@ class ScoreClusters:
         return self._noisy_label
 
     @property
-    def clean_label(self):
-        """Cluster label for clean data"""
-        return np.abs(self._noisy_label - 1)
+    def clean_labels(self):
+        """Cluster labels for clean data"""
+        return [idx for idx in range(self.k) if idx != self._noisy_label]
 
     def _get_flipped_centers(self):
         """Get centers with values flipped when low score indicates clean data"""
@@ -130,17 +131,23 @@ class ScoreClusters:
     def plot(self, plt):
         """Plot clustering and histograms"""
         plt.figure(figsize=(10, 10))
-        data_t = PCA(n_components=2).fit_transform(self.standard_data)
-        for label_id in [self.noisy_label, self.clean_label]:
+        pca = PCA(n_components=2)
+        data_t = pca.fit_transform(self.standard_data)
+        centroids = pca.transform(self.kmeans.cluster_centers_)
+        for label_id in range(self.k):
             points = np.where(self.labels == label_id)
             plt.scatter(data_t[points, 0], data_t[points, 1],
                         c='orange' if label_id == self.noisy_label else 'blue',
                         label='noisy' if label_id == self.noisy_label else 'clean',
-                        marker=',', s=1)
+                        marker=',', s=1, alpha=0.3)
+        for label_id in range(self.k):
+            plt.scatter(centroids[label_id, 0], centroids[label_id, 1], s=100, alpha=1,
+                        marker='+', c='darkorange' if label_id == self.noisy_label else 'darkblue',
+                        label='noisy centroid' if label_id == self.noisy_label else 'clean centroid')
         plt.legend()
         plt.title('Clusters')
         noisy_samples = self.df.iloc[np.where(self.labels == self.noisy_label)]
-        clean_samples = self.df.iloc[np.where(self.labels == self.clean_label)]
+        clean_samples = self.df.iloc[np.where(self.labels != self.noisy_label)]
         noisy_samples.hist(bins=100, figsize=(10, 10))
         plt.suptitle('Histograms for noisy samples')
         clean_samples.hist(bins=100, figsize=(10, 10))

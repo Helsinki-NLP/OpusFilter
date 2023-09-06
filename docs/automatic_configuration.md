@@ -32,12 +32,15 @@ options:
   --method {defaults,percentiles,clustering}
                         Method for selecting filter thresholds (default:
                         clustering)
-  --sample-size SAMPLE_SIZE
-                        Max number of sentence pairs used for data-based
+  --sample-size INT     Max number of sentence pairs used for data-based
                         methods (default 100000)
-  --noisy-percentile NOISY_PERCENTILE
+  --noisy-percentile FLOAT
                         Proportion of the data considered to be noisy; only
                         for percentiles method (default 0.001)
+  --clusters INT, -k INT
+                        Number of clusters for the clustering method; try
+                        increasing if too much data is clustered as noisy
+                        (default 2)
   --work-dir WORK_DIR   Location of the source and target files for the
                         generated configuration (default work)
   --inter-dir INTER_DIR
@@ -83,9 +86,11 @@ First, we remove duplicates and empty sentences from the input
 corpus. Next, we take a subset (`--sample-size`, 100k sentence pairs
 by default) of the corpus and produce scores for each sentence pair in
 the subset with the previously mentioned filters. These scores are
-used as features for K-means clustering to classify the sentence pairs
+used as features for K-means clustering to group the sentence pairs
 into clean and noisy pairs. The values of the noisy cluster center are
 used as the filter threshold parameters in the generated config file.
+If it looks like too many samples are clustered as noisy, increasing
+the number of clusters (`--clusters`) may help.
 
 Figures from the clustering and score histograms are plotted given the
 `--plot` option. If you want also to save the intermediate files, make

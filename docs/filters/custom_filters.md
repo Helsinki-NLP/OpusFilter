@@ -19,7 +19,7 @@ The `accept` method takes a single output yielded by the `score`
 method, and returns whether the sentence pair should be accepted based
 on the score.
 
-The `score_direction` should be one of the following contants defined
+The `score_direction` should be one of the following constants defined
 in the `opusfilter` module depending on the output of the `score()`
 method:
 
