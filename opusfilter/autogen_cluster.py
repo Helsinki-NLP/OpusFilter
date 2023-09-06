@@ -37,7 +37,7 @@ class ScoreClusters:
         self.standard_data = self.scaler.fit_transform(self.df)
 
         logger.info('Training KMeans with %s clusters', n)
-        self.kmeans = KMeans(n_clusters=n, random_state=0, n_init='auto').fit(self.standard_data)
+        self.kmeans = KMeans(n_clusters=n, random_state=0, init='k-means++', n_init=1).fit(self.standard_data)
         self.labels = self.kmeans.labels_
         self.cluster_centers = self.scaler.inverse_transform(self.kmeans.cluster_centers_)
         self._noisy_label = self._get_noisy_label()
