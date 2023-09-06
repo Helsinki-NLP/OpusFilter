@@ -12,7 +12,7 @@ Install from source:
 
 Note that all required libraries are not available to install via PyPI
 on Windows OS. On Linux and MacOS, it should work directly for Python
-versions from 3.6 to 3.10.
+versions from 3.7 to 3.10.
 
 ## Required libraries
 

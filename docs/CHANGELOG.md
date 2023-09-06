@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - use xxhash instead of pyhash for hash functions
 - use opus-fast-mosestokenizer instead of fast-mosestokenizer
 - install eflomal from PyPI and use the new interface in WordAlignFilter
+- remove Python 3.6 support and tests
 
 ### Fixed
 
