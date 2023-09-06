@@ -33,10 +33,13 @@ parser.add_argument('--scripts', nargs='+', metavar='SCRIPT', help=(
     'If omitted, CharacterScoreFilter will not be used.'))
 parser.add_argument('--method', choices=['defaults', 'percentiles', 'clustering'], default='clustering',
                     help='Method for selecting filter thresholds (default: %(default)s)')
-parser.add_argument('--sample-size', default=100000, type=int,
+parser.add_argument('--sample-size', default=100000, type=int, metavar='INT',
                     help='Max number of sentence pairs used for data-based methods (default %(default)s)')
-parser.add_argument('--noisy-percentile', default=0.001, type=float,
+parser.add_argument('--noisy-percentile', default=0.001, type=float, metavar='FLOAT',
                     help='Proportion of the data considered to be noisy; only for percentiles method (default %(default)s)')
+parser.add_argument('--clusters', '-k', default=2, type=int, metavar='INT',
+                    help=('Number of clusters for the clustering method; try increasing if too much data is clustered '
+                          'as noisy (default %(default)s)'))
 parser.add_argument('--work-dir', default='work',
                     help='Location of the source and target files for the generated configuration (default %(default)s)')
 parser.add_argument('--inter-dir', help='Save intermediate files in this directory (use a temporary directory if not given)')
@@ -60,7 +63,7 @@ filters = [(name, json.loads(jsonstr)) for name, jsonstr in args.add_filter] if 
 if args.method == 'clustering':
     filtergen = ClusterFilters(
         files=args.files, langs=args.langs, scripts=args.scripts, filters=filters,
-        sample_size=args.sample_size, inter_dir=args.inter_dir, overwrite=args.overwrite)
+        sample_size=args.sample_size, k=args.clusters, inter_dir=args.inter_dir, overwrite=args.overwrite)
 elif args.method == 'percentiles':
     filtergen = PercentileFilters(
         files=args.files, langs=args.langs, scripts=args.scripts, filters=filters,
