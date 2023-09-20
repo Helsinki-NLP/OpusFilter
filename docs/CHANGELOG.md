@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.0rc1] - 2023-09-20
+
 ### Added
 
 - `opusfilter-autogen` script for automatic filter config generation
@@ -182,7 +184,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 First tagged version.
 
 
-[Unreleased]: https://github.com/Helsinki-NLP/OpusFilter/compare/2.6.0...develop
+[Unreleased]: https://github.com/Helsinki-NLP/OpusFilter/compare/3.0.0rc1...develop
+[3.0.0rc1]: https://github.com/Helsinki-NLP/OpusFilter/compare/2.6.0...3.0.0rc1
 [2.6.0]: https://github.com/Helsinki-NLP/OpusFilter/compare/2.5.1...2.6.0
 [2.5.1]: https://github.com/Helsinki-NLP/OpusFilter/compare/2.5.0...2.5.1
 [2.5.0]: https://github.com/Helsinki-NLP/OpusFilter/compare/2.4.0...2.5.0
