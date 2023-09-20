@@ -85,7 +85,7 @@ Parameters:
 * `divisor`: divisor for the modulo operation (e.g. 2 for splitting to equal sized parts)
 * `threshold`: threshold for the output of the modulo operation (optional; default 1)
 * `compare`: select files to use for hash operation (optional; default `all` or a list of indices)
-* `hash`: select hash algorithm from pyhash (optional; default `xx_64`)
+* `hash`: select hash algorithm from xxhash (optional; default `xxh64`)
 * `seed`: integer seed for the hash algorithm (optional; default 0)
 
 Input files are processed line by line in parallel. If the condition

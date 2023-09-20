@@ -1,8 +1,10 @@
-# Additional command line tools
+# Command line tools for analysis
 
-Apart from the main [`opusfilter`](usage.md#opusfilter-script) and
-[`opusfilter-cmd`](usage.md#running-a-single-command) scripts,
-the package also provides some analysis tools.
+Apart from the main scripts ([`opusfilter`](usage.md#opusfilter-script) and
+[`opusfilter-cmd`](usage.md#running-a-single-command)) and configuration
+generation ([`opusfilter-autogen`](automatic_configuration.md)),
+the package also provides command line tools for testing and analyzing
+the configurations and filters.
 
 ## opusfilter-diagram
 

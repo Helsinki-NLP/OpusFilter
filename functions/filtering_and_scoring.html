@@ -1,22 +1,21 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Filtering and scoring &mdash; OpusFilter 2.6.0 documentation</title>
+  <title>Filtering and scoring &mdash; OpusFilter 3.0.0rc1 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../_static/doctools.js"></script>
-        <script src="../_static/sphinx_highlight.js"></script>
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=9763b693"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -29,14 +28,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../index.html" class="icon icon-home"> OpusFilter
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            OpusFilter
           </a>
               <div class="version">
-                2.6
+                3.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -45,8 +48,9 @@
               <p class="caption" role="heading"><span class="caption-text">Get started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../command_line_tools.html">Additional command line tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Basic usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../automatic_configuration.html">Automatic configuration generation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../command_line_tools.html">Command line tools for analysis</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Available functions</span></p>
 <ul class="current">
@@ -103,7 +107,7 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../index.html" class="icon icon-home"></a></li>
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
       <li class="breadcrumb-item active">Filtering and scoring</li>
       <li class="wy-breadcrumbs-aside">
       </li>
@@ -123,7 +127,7 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">inputs</span></code>: input file(s)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">outputs</span></code>: output file(s)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">compare</span></code>: select files for duplicate comparison (optional; default <code class="docutils literal notranslate"><span class="pre">all</span></code> or a list of indices)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">hash</span></code>: select hash algorithm from pyhash (optional; default <code class="docutils literal notranslate"><span class="pre">xx_64</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">hash</span></code>: select hash algorithm from xxhash (optional; default <code class="docutils literal notranslate"><span class="pre">xxh64</span></code>)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">overlap</span></code>: remove overlap with a second set of files (optional; default <code class="docutils literal notranslate"><span class="pre">null</span></code>)</p></li>
 </ul>
 <p>Duplicate filtering is recommended as a first step especially if you
@@ -143,8 +147,7 @@ exact duplicates of the test data from your training data.</p>
 <p>Non-cryptographic hashing is used to reduce memory consumption for the
 case that the files are very large. The lines defined by the <code class="docutils literal notranslate"><span class="pre">compare</span></code>
 option are concatenated together, and the hash algorithm is applied on
-the result to produce the final key for storing the counts. You can
-use any of the hash algorithms implemented in the pyhash library. The
+the result to produce the final key for storing the counts. The
 default 64-bit XXHash algorithm should be fine for any practical data
 sizes, but if do not care about memory use and want to be extra sure
 there are no collisions, you can disable hashing by setting the <code class="docutils literal notranslate"><span class="pre">hash</span></code>
@@ -165,7 +168,7 @@ parameter as empty string or null.</p>
 filter. The top level should typically include a single key that
 defines the class name for the filter (e.g. <code class="docutils literal notranslate"><span class="pre">LenghtFilter</span></code>).
 Additionally it can include a special key <code class="docutils literal notranslate"><span class="pre">module</span></code> for defining module
-name for <a class="reference internal" href="../filters/custom_filters.html"><span class="doc std std-doc">custom filters</span></a>.</p>
+name for <a class="reference internal" href="../filters/custom_filters.html"><span class="std std-doc">custom filters</span></a>.</p>
 <p>Under the class name there is a dictionary the defines the parameters
 of the filters. The are mostly specific to the filter class; see
 <a class="reference internal" href="../index.html#filters"><span class="std std-ref">Available filters</span></a> for ready-made

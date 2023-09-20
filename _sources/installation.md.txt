@@ -11,23 +11,21 @@ Install from source:
 * `python setup.py install`
 
 Note that all required libraries are not available to install via PyPI
-on Windows OS.  On Linux, it should work directly for Python versions
-from 3.6 to 3.8, but with Python 3.9 or above the
-`fast-mosestokenizer` library requires a manual install.
+on Windows OS. On Linux and MacOS, it should work directly for Python
+versions from 3.7 to 3.10.
 
 ## Required libraries
 
 * beautifulsoup4
+* opus-fast-mosestokenizer
+* fasttext
 * graphviz
 * langid
-* fast-mosestokenizer
-* fasttext
 * matplotlib
 * morfessor
 * OpusTools
 * pandas
 * pycld2
-* pyhash
 * rapidfuzz
 * ruamel.yaml
 * regex
@@ -36,6 +34,7 @@ from 3.6 to 3.8, but with Python 3.9 or above the
 * scikit-learn
 * subword_nmt
 * tqdm
+* xxhash
 
 See `setup.py` for possible version requirements.
 
@@ -60,27 +59,20 @@ For using sentence embeddings filters, you need to install
 be installed automatically with pip by including the extras `[laser]`
 or `[all]` (e.g. `pip install opusfilter[all]`). The package will also
 require a number of additional libraries, including PyTorch, jieba,
-and MeCab.
+and MeCab. Note that you need also to download the prebuild models
+with `python -m laserembeddings download-models`.
 
 ### VariKN n-gram models
 
-For using n-gram language model filters, you need to install VariKN
-(https://github.com/vsiivola/variKN) and its Python wrapper. The
-wrapper is included in the default build:
-```sh
-mkdir build
-cd build
-cmake .. -DCMAKE_BUILD_TYPE=Release
-cmake --build .
-```
-After building, include the library files compiled to
-`build/lib/python` to your Python library path (e.g. by setting the
-`PYTHONPATH` environment variable).
+For using n-gram language model filters, you need to install the
+Python wrapper for VariKN (https://github.com/vsiivola/variKN). It can
+be installed automatically with pip by including the extras `[varikn]`
+or `[all]` (e.g. `pip install opusfilter[all]`).
 
 ### Eflomal word alignment
 
 For using word alignment filters, you need to install elfomal
-(https://github.com/robertostling/eflomal) and set environment
-variable `EFLOMAL_PATH` to eflomal's root directory, which contains
-the Python scripts `align.py` and `makepriors.py`. Note that you
-will need `Cython` to install the Python interface to `eflomal`.
+(https://github.com/robertostling/eflomal). It can be installed
+automatically with pip by including the extras `[eflomal]` or `[all]`
+(e.g. `pip install opusfilter[all]`). Note that you will need `Cython`
+for the installation.

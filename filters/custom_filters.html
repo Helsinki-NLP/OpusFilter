@@ -1,22 +1,21 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Custom filters &mdash; OpusFilter 2.6.0 documentation</title>
+  <title>Custom filters &mdash; OpusFilter 3.0.0rc1 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../_static/doctools.js"></script>
-        <script src="../_static/sphinx_highlight.js"></script>
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=9763b693"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -29,14 +28,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../index.html" class="icon icon-home"> OpusFilter
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            OpusFilter
           </a>
               <div class="version">
-                2.6
+                3.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -45,8 +48,9 @@
               <p class="caption" role="heading"><span class="caption-text">Get started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../command_line_tools.html">Additional command line tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Basic usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../automatic_configuration.html">Automatic configuration generation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../command_line_tools.html">Command line tools for analysis</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Available functions</span></p>
 <ul>
@@ -98,7 +102,7 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../index.html" class="icon icon-home"></a></li>
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
       <li class="breadcrumb-item active">Custom filters</li>
       <li class="wy-breadcrumbs-aside">
       </li>
@@ -114,7 +118,10 @@
 the filter configuration entries.</p>
 <p>The custom filters should inherit the abstract base class <code class="docutils literal notranslate"><span class="pre">FilterABC</span></code>
 from the <code class="docutils literal notranslate"><span class="pre">opusfilter</span></code> package. They should implement two abstract
-methods: <code class="docutils literal notranslate"><span class="pre">score</span></code> and <code class="docutils literal notranslate"><span class="pre">accept</span></code>.</p>
+methods, <code class="docutils literal notranslate"><span class="pre">score</span></code> and <code class="docutils literal notranslate"><span class="pre">accept</span></code>, and one abstract property,
+<code class="docutils literal notranslate"><span class="pre">score_direction</span></code>. Additionally, for filters with adjustable
+thresholds, defining <code class="docutils literal notranslate"><span class="pre">accept_threshold</span></code> and <code class="docutils literal notranslate"><span class="pre">reject_threshold</span></code>
+properties is recommended.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">score</span></code> method is a generator that takes an iterator over tuples
 of parallel sentences, and yields a score object for each pair. The
 score may either be a single number, or if multiple score values need
@@ -122,6 +129,17 @@ to be yielded, a dictionary that has the numbers as values.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">accept</span></code> method takes a single output yielded by the <code class="docutils literal notranslate"><span class="pre">score</span></code>
 method, and returns whether the sentence pair should be accepted based
 on the score.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">score_direction</span></code> should be one of the following constants defined
+in the <code class="docutils literal notranslate"><span class="pre">opusfilter</span></code> module depending on the output of the <code class="docutils literal notranslate"><span class="pre">score()</span></code>
+method:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">CLEAN_LOW</span></code>: scores below a threshold parameter indicate clean data</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">CLEAN_HIGH</span></code>: scores above a threshold parameter indicate clean data</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">CLEAN_BETWEEN</span></code>: scores between minimum and maximum thresholds
+indicate clean data</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">CLEAN_TRUE</span></code>: score value <code class="docutils literal notranslate"><span class="pre">True</span></code> indicates clean data</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">CLEAN_FALSE</span></code>: score value <code class="docutils literal notranslate"><span class="pre">False</span></code> indicates clean data</p></li>
+</ul>
 <p>If the filter requires any parameters (e.g. score thresholds for the
 <code class="docutils literal notranslate"><span class="pre">accept</span></code> method), the class should implement also the <code class="docutils literal notranslate"><span class="pre">__init__</span></code>
 method.  Arbitrary keyword arguments should be accepted (with
@@ -129,6 +147,25 @@ method.  Arbitrary keyword arguments should be accepted (with
 should be called with the remaining keyword arguments. The keyword
 argument <code class="docutils literal notranslate"><span class="pre">name</span></code> is reserved for giving names to the filters and
 <code class="docutils literal notranslate"><span class="pre">workdir</span></code> for a location for non-temprary files.</p>
+<p>For compability with the included <a class="reference internal" href="../automatic_configuration.html"><span class="std std-doc">automatic configuration generation
+tools</span></a>, also the following should be
+considered:</p>
+<ul class="simple">
+<li><p>If there is a threshold value used by <code class="docutils literal notranslate"><span class="pre">accept</span></code>, the argument should
+be named as <code class="docutils literal notranslate"><span class="pre">threshold</span></code> (a single global threshold) or <code class="docutils literal notranslate"><span class="pre">thresholds</span></code>
+(multiple thresholds, e.g. one per language). The <code class="docutils literal notranslate"><span class="pre">accept_threshold</span></code>
+and <code class="docutils literal notranslate"><span class="pre">reject_threshold</span></code> properties should have threshold values that
+force all inputs to be accepted or rejected, respectively.  That is,
+a sensible threshold value will always be between <code class="docutils literal notranslate"><span class="pre">accept_threshold</span></code>
+and <code class="docutils literal notranslate"><span class="pre">reject_threshold</span></code>.</p></li>
+<li><p>If there are lower and upper thresholds used by <code class="docutils literal notranslate"><span class="pre">accept</span></code>
+(i.e. <code class="docutils literal notranslate"><span class="pre">score_direction</span></code> is <code class="docutils literal notranslate"><span class="pre">CLEAN_BETWEEN</span></code>), the respective
+arguments should be named as <code class="docutils literal notranslate"><span class="pre">min_threshold</span></code> and <code class="docutils literal notranslate"><span class="pre">max_threshold</span></code> or
+<code class="docutils literal notranslate"><span class="pre">min_length</span></code> and <code class="docutils literal notranslate"><span class="pre">max_length</span></code>. The <code class="docutils literal notranslate"><span class="pre">accept_threshold</span></code> and
+<code class="docutils literal notranslate"><span class="pre">reject_threshold</span></code> properties should have tuples of two threshold
+values (for lower and upper thresholds) that force all inputs to be
+accepted or rejected, respectively.</p></li>
+</ul>
 <p>Based on the <code class="docutils literal notranslate"><span class="pre">score</span></code> and <code class="docutils literal notranslate"><span class="pre">accept</span></code> methods, the abstract class
 <code class="docutils literal notranslate"><span class="pre">FilterABC</span></code> implements the following three generators that take
 iterator over segment pairs as input:</p>
@@ -145,6 +182,10 @@ uppercase characters:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">opusfilter</span>
 
 <span class="k">class</span> <span class="nc">UppercaseFilter</span><span class="p">(</span><span class="n">opusfilter</span><span class="o">.</span><span class="n">FilterABC</span><span class="p">):</span>
+
+	<span class="n">score_direction</span> <span class="o">=</span> <span class="n">opusfilter</span><span class="o">.</span><span class="n">CLEAN_LOW</span>
+	<span class="n">accept_threshold</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">+</span> <span class="mi">10</span><span class="o">**-</span><span class="mi">6</span>
+	<span class="n">reject_threshold</span> <span class="o">=</span> <span class="mi">0</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span> <span class="o">=</span> <span class="n">threshold</span>
@@ -168,20 +209,20 @@ uppercase characters:</p>
 the Python evironment (e.g. save the code as <code class="docutils literal notranslate"><span class="pre">customfilter.py</span></code> and add
 the directory that contains it to <code class="docutils literal notranslate"><span class="pre">PYTHONPATH</span></code> environment variable),
 it can be selected in the filter configurations as follows:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">steps</span><span class="p">:</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">steps</span><span class="p">:</span>
 
-<span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">...</span><span class="w"></span>
+<span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">...</span>
 
-<span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">- type</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">filter</span><span class="w"></span>
-<span class="w">    </span><span class="l l-Scalar l-Scalar-Plain">parameters</span><span class="p p-Indicator">:</span><span class="w"></span>
+<span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">- type</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">filter</span>
+<span class="w">    </span><span class="l l-Scalar l-Scalar-Plain">parameters</span><span class="p p-Indicator">:</span>
 
-<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">...</span><span class="w"></span>
+<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">...</span>
 
-<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">filters</span><span class="p p-Indicator">:</span><span class="w"></span>
+<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">filters</span><span class="p p-Indicator">:</span>
 
-<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">UppercaseFilter</span><span class="p">:</span><span class="w"></span>
-<span class="w">            </span><span class="nt">threshold</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.5</span><span class="w"></span>
-<span class="w">          </span><span class="nt">module</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">customfilter</span><span class="w"></span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">UppercaseFilter</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">threshold</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.5</span>
+<span class="w">          </span><span class="nt">module</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">customfilter</span>
 </pre></div>
 </div>
 <p>If a filter requires external resources files (e.g. for model

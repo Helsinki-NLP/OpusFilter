@@ -1,26 +1,25 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Installation &mdash; OpusFilter 2.6.0 documentation</title>
+  <title>Installation &mdash; OpusFilter 3.0.0rc1 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=9763b693"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Usage" href="usage.html" />
+    <link rel="next" title="Basic usage" href="usage.html" />
     <link rel="prev" title="OpusFilter" href="index.html" /> 
 </head>
 
@@ -29,14 +28,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="index.html" class="icon icon-home"> OpusFilter
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            OpusFilter
           </a>
               <div class="version">
-                2.6
+                3.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -55,8 +58,9 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
-<li class="toctree-l1"><a class="reference internal" href="command_line_tools.html">Additional command line tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Basic usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="automatic_configuration.html">Automatic configuration generation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="command_line_tools.html">Command line tools for analysis</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Available functions</span></p>
 <ul>
@@ -108,7 +112,7 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a></li>
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
       <li class="breadcrumb-item active">Installation</li>
       <li class="wy-breadcrumbs-aside">
       </li>
@@ -134,23 +138,21 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">setup.py</span> <span class="pre">install</span></code></p></li>
 </ul>
 <p>Note that all required libraries are not available to install via PyPI
-on Windows OS.  On Linux, it should work directly for Python versions
-from 3.6 to 3.8, but with Python 3.9 or above the
-<code class="docutils literal notranslate"><span class="pre">fast-mosestokenizer</span></code> library requires a manual install.</p>
+on Windows OS. On Linux and MacOS, it should work directly for Python
+versions from 3.7 to 3.10.</p>
 <section id="required-libraries">
 <h2>Required libraries<a class="headerlink" href="#required-libraries" title="Permalink to this heading"></a></h2>
 <ul class="simple">
 <li><p>beautifulsoup4</p></li>
+<li><p>opus-fast-mosestokenizer</p></li>
+<li><p>fasttext</p></li>
 <li><p>graphviz</p></li>
 <li><p>langid</p></li>
-<li><p>fast-mosestokenizer</p></li>
-<li><p>fasttext</p></li>
 <li><p>matplotlib</p></li>
 <li><p>morfessor</p></li>
 <li><p>OpusTools</p></li>
 <li><p>pandas</p></li>
 <li><p>pycld2</p></li>
-<li><p>pyhash</p></li>
 <li><p>rapidfuzz</p></li>
 <li><p>ruamel.yaml</p></li>
 <li><p>regex</p></li>
@@ -159,6 +161,7 @@ from 3.6 to 3.8, but with Python 3.9 or above the
 <li><p>scikit-learn</p></li>
 <li><p>subword_nmt</p></li>
 <li><p>tqdm</p></li>
+<li><p>xxhash</p></li>
 </ul>
 <p>See <code class="docutils literal notranslate"><span class="pre">setup.py</span></code> for possible version requirements.</p>
 </section>
@@ -182,30 +185,23 @@ automatically with pip by including the extras <code class="docutils literal not
 be installed automatically with pip by including the extras <code class="docutils literal notranslate"><span class="pre">[laser]</span></code>
 or <code class="docutils literal notranslate"><span class="pre">[all]</span></code> (e.g. <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">opusfilter[all]</span></code>). The package will also
 require a number of additional libraries, including PyTorch, jieba,
-and MeCab.</p>
+and MeCab. Note that you need also to download the prebuild models
+with <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">laserembeddings</span> <span class="pre">download-models</span></code>.</p>
 </section>
 <section id="varikn-n-gram-models">
 <h3>VariKN n-gram models<a class="headerlink" href="#varikn-n-gram-models" title="Permalink to this heading"></a></h3>
-<p>For using n-gram language model filters, you need to install VariKN
-(https://github.com/vsiivola/variKN) and its Python wrapper. The
-wrapper is included in the default build:</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>mkdir build
-<span class="nb">cd</span> build
-cmake .. -DCMAKE_BUILD_TYPE<span class="o">=</span>Release
-cmake --build .
-</pre></div>
-</div>
-<p>After building, include the library files compiled to
-<code class="docutils literal notranslate"><span class="pre">build/lib/python</span></code> to your Python library path (e.g. by setting the
-<code class="docutils literal notranslate"><span class="pre">PYTHONPATH</span></code> environment variable).</p>
+<p>For using n-gram language model filters, you need to install the
+Python wrapper for VariKN (https://github.com/vsiivola/variKN). It can
+be installed automatically with pip by including the extras <code class="docutils literal notranslate"><span class="pre">[varikn]</span></code>
+or <code class="docutils literal notranslate"><span class="pre">[all]</span></code> (e.g. <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">opusfilter[all]</span></code>).</p>
 </section>
 <section id="eflomal-word-alignment">
 <h3>Eflomal word alignment<a class="headerlink" href="#eflomal-word-alignment" title="Permalink to this heading"></a></h3>
 <p>For using word alignment filters, you need to install elfomal
-(https://github.com/robertostling/eflomal) and set environment
-variable <code class="docutils literal notranslate"><span class="pre">EFLOMAL_PATH</span></code> to eflomal’s root directory, which contains
-the Python scripts <code class="docutils literal notranslate"><span class="pre">align.py</span></code> and <code class="docutils literal notranslate"><span class="pre">makepriors.py</span></code>. Note that you
-will need <code class="docutils literal notranslate"><span class="pre">Cython</span></code> to install the Python interface to <code class="docutils literal notranslate"><span class="pre">eflomal</span></code>.</p>
+(https://github.com/robertostling/eflomal). It can be installed
+automatically with pip by including the extras <code class="docutils literal notranslate"><span class="pre">[eflomal]</span></code> or <code class="docutils literal notranslate"><span class="pre">[all]</span></code>
+(e.g. <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">opusfilter[all]</span></code>). Note that you will need <code class="docutils literal notranslate"><span class="pre">Cython</span></code>
+for the installation.</p>
 </section>
 </section>
 </section>
@@ -215,7 +211,7 @@ will need <code class="docutils literal notranslate"><span class="pre">Cython</s
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="index.html" class="btn btn-neutral float-left" title="OpusFilter" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="usage.html" class="btn btn-neutral float-right" title="Usage" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="usage.html" class="btn btn-neutral float-right" title="Basic usage" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

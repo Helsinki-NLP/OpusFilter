@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Automatic configuration generation &mdash; OpusFilter 3.0.0rc1 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=9763b693"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Command line tools for analysis" href="command_line_tools.html" />
+    <link rel="prev" title="Basic usage" href="usage.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            OpusFilter
+          </a>
+              <div class="version">
+                3.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Get started</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Basic usage</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Automatic configuration generation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#unsupervised-threshold-selection-for-filters">Unsupervised threshold selection for filters</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="command_line_tools.html">Command line tools for analysis</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Available functions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="functions/downloading_and_selecting_data.html">Downloading and selecting data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/preprocessing_text.html">Preprocessing text</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/filtering_and_scoring.html">Filtering and scoring</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/using_score_files.html">Using score files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/training_language_and_alignment_models.html">Training language and alignment models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/training_and_using_classifiers.html">Training and using classifiers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Available filters</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="filters/length_filters.html">Length filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filters/script_and_language_identification_filters.html">Script and language identification filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filters/special_character_and_similarity_filters.html">Special character and similarity filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filters/language_model_filters.html">Language model filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filters/alignment_model_filters.html">Alignment model filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filters/sentence_embedding_filters.html">Sentence embedding filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filters/custom_filters.html">Custom filters</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Available preprocessors</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="preprocessors/tokenizer.html">Tokenizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preprocessors/detokenizer.html">Detokenizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preprocessors/whitespaceNormalizer.html">WhitespaceNormalizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preprocessors/reg_exp_sub.html">RegExpSub</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preprocessors/monolingual_sentence_splitter.html">MonolingualSentenceSplitter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preprocessors/bpe_segmentation.html">BPESegmentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preprocessors/morfessor_segmentation.html">MorfessorSegmentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preprocessors/custom_preprocessors.html">Custom preprocessors</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Other information</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="references.html">Citing and references</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CONTRIBUTING.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CHANGELOG.html">Changelog</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">OpusFilter</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Automatic configuration generation</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="automatic-configuration-generation">
+<h1>Automatic configuration generation<a class="headerlink" href="#automatic-configuration-generation" title="Permalink to this heading"></a></h1>
+<p>You can generate OpusFilter config files with the <code class="docutils literal notranslate"><span class="pre">opusfilter-autogen</span></code>
+script. Currently the script supports only adding a single filter
+step, with a few options for determining the filter parameters.</p>
+<p>The usage description for the script is as follows:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>usage: opusfilter-autogen [-h] --files TEXTFILE [TEXTFILE ...]
+                          [--langs LANGCODE [LANGCODE ...]]
+                          [--scripts SCRIPT [SCRIPT ...]]
+                          [--method {defaults,percentiles,clustering}]
+                          [--sample-size SAMPLE_SIZE]
+                          [--noisy-percentile NOISY_PERCENTILE]
+                          [--work-dir WORK_DIR] [--inter-dir INTER_DIR]
+                          [--plot] [--list-defaults] [--add-filter CLASS JSON]
+                          [--overwrite] [-o CONFIGFILE]
+
+Generate initial configuration based on parallel text data
+
+options:
+  -h, --help            show this help message and exit
+  --files TEXTFILE [TEXTFILE ...]
+                        parallel text input file(s)
+  --langs LANGCODE [LANGCODE ...]
+                        Language codes corresponding to the input files. If
+                        omitted, LanguageIDFilters will not be used.
+  --scripts SCRIPT [SCRIPT ...]
+                        Alphabetic scripts (e.g. Latin) corresponding to the
+                        input files. If omitted, CharacterScoreFilter will not
+                        be used.
+  --method {defaults,percentiles,clustering}
+                        Method for selecting filter thresholds (default:
+                        clustering)
+  --sample-size INT     Max number of sentence pairs used for data-based
+                        methods (default 100000)
+  --noisy-percentile FLOAT
+                        Proportion of the data considered to be noisy; only
+                        for percentiles method (default 0.001)
+  --clusters INT, -k INT
+                        Number of clusters for the clustering method; try
+                        increasing if too much data is clustered as noisy
+                        (default 2)
+  --work-dir WORK_DIR   Location of the source and target files for the
+                        generated configuration (default work)
+  --inter-dir INTER_DIR
+                        Save intermediate files in this directory (use a
+                        temporary directory if not given)
+  --plot                Show a scatter plot of the clustering and histograms
+                        of feature data distributions; only for the clustering
+                        method
+  --list-defaults       List default filters of the method to the output and
+                        quit
+  --add-filter CLASS JSON
+                        Instead of using default filters, add a filter of
+                        CLASS with JSON parameters object (&quot;{}&quot; for default
+                        parameters). The class name may be followed by a dot
+                        and a unique filter identifier in order to allow
+                        multiple filters of the same class. Example: --add-
+                        filter LanguageIDFilter.cld2 &#39;{&quot;id_method&quot;: &quot;cld2&quot;}&#39;
+  --overwrite           Overwrite existing intermediate files
+  -o CONFIGFILE, --output CONFIGFILE
+                        Output configuration file (default -)
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">--method</span></code> option sets how the filter parameters are set.  The
+option <code class="docutils literal notranslate"><span class="pre">default</span></code> uses the default parameters defined in the filter
+classes. The option <code class="docutils literal notranslate"><span class="pre">percentiles</span></code> assumes that a proportion of the
+data (set by <code class="docutils literal notranslate"><span class="pre">--noisy-percentile</span></code>) is noisy, and sets the thresholds
+for each filter independently based on the percentile. The
+<code class="docutils literal notranslate"><span class="pre">clustering</span></code> option may be the most useful of the three, and described
+in more detail below. However, it is applicable to a more limited set
+of filters.</p>
+<section id="unsupervised-threshold-selection-for-filters">
+<h2>Unsupervised threshold selection for filters<a class="headerlink" href="#unsupervised-threshold-selection-for-filters" title="Permalink to this heading"></a></h2>
+<p>This implements the method introduced by <span id="id1">Aulamo <em>et al.</em> [<a class="reference internal" href="references.html#cite-aulamo-etal-2023-unsupervised" title="Mikko Aulamo, Ona de Giber, Sami Virpioja, and Jörg Tiedemann. Unsupervised feature selection for effective parallel corpus filtering. In Proceedings of the 24th Annual Conference of the European Association for Machine Translation, 31–38. European Association for Machine Translation, June 2023.">2023</a>]</span>.
+It takes a parallel corpus as an input and tries to separate the clean
+and noisy samples to generate threshold parameters for filters. The
+currently supported filters are <code class="docutils literal notranslate"><span class="pre">AlphabetRatioFilter</span></code>,
+<code class="docutils literal notranslate"><span class="pre">CharacterScoreFilter</span></code>, <code class="docutils literal notranslate"><span class="pre">LanguageIDFilter</span></code>, <code class="docutils literal notranslate"><span class="pre">LengthRatioFilter</span></code>,
+<code class="docutils literal notranslate"><span class="pre">NonZeroNumeralsFilter</span></code> and <code class="docutils literal notranslate"><span class="pre">TerminalPunctuationFilter</span></code>, but this list
+will be expanded and made more flexible in the future.</p>
+<p>First, we remove duplicates and empty sentences from the input
+corpus. Next, we take a subset (<code class="docutils literal notranslate"><span class="pre">--sample-size</span></code>, 100k sentence pairs
+by default) of the corpus and produce scores for each sentence pair in
+the subset with the previously mentioned filters. These scores are
+used as features for K-means clustering to group the sentence pairs
+into clean and noisy pairs. The values of the noisy cluster center are
+used as the filter threshold parameters in the generated config file.
+If it looks like too many samples are clustered as noisy, increasing
+the number of clusters (<code class="docutils literal notranslate"><span class="pre">--clusters</span></code>) may help.</p>
+<p>Figures from the clustering and score histograms are plotted given the
+<code class="docutils literal notranslate"><span class="pre">--plot</span></code> option. If you want also to save the intermediate files, make
+sure to use the <code class="docutils literal notranslate"><span class="pre">--inter-dir</span></code> argument.</p>
+<p><em>Note: The method should be considered as experimental, and it is not
+expected to give good results on all corpora. If you try it, please
+consider giving feedback on the project issues page.</em></p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="usage.html" class="btn btn-neutral float-left" title="Basic usage" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="command_line_tools.html" class="btn btn-neutral float-right" title="Command line tools for analysis" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p></p>
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

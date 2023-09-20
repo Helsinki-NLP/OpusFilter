@@ -1,22 +1,21 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Citing and references &mdash; OpusFilter 2.6.0 documentation</title>
+  <title>Citing and references &mdash; OpusFilter 3.0.0rc1 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=9763b693"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -29,14 +28,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="index.html" class="icon icon-home"> OpusFilter
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            OpusFilter
           </a>
               <div class="version">
-                2.6
+                3.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -45,8 +48,9 @@
               <p class="caption" role="heading"><span class="caption-text">Get started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
-<li class="toctree-l1"><a class="reference internal" href="command_line_tools.html">Additional command line tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Basic usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="automatic_configuration.html">Automatic configuration generation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="command_line_tools.html">Command line tools for analysis</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Available functions</span></p>
 <ul>
@@ -103,7 +107,7 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a></li>
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
       <li class="breadcrumb-item active">Citing and references</li>
       <li class="wy-breadcrumbs-aside">
       </li>
@@ -120,17 +124,17 @@
 <p>If you use OpusFilter in your research, please cite our <a class="reference external" href="https://www.aclweb.org/anthology/2020.acl-demos.20">ACL 2020
 paper</a>
 <span id="id1">[<a class="reference internal" href="#cite-aulamo-etal-2020-opusfilter" title="Mikko Aulamo, Sami Virpioja, and Jörg Tiedemann. OpusFilter: a configurable parallel corpus filtering toolbox. In Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics: System Demonstrations, 150–156. Association for Computational Linguistics, July 2020. URL: https://aclanthology.org/2020.acl-demos.20, doi:10.18653/v1/2020.acl-demos.20.">Aulamo <em>et al.</em>, 2020</a>]</span>:</p>
-<div class="highlight-BibTeX notranslate"><div class="highlight"><pre><span></span><span class="nc">@inproceedings</span><span class="p">{</span><span class="nl">aulamo-etal-2020-opusfilter</span><span class="p">,</span><span class="w"></span>
-<span class="w">    </span><span class="na">title</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">&quot;{O}pus{F}ilter: A Configurable Parallel Corpus Filtering Toolbox&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">    </span><span class="na">author</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{Aulamo, Mikko and Virpioja, Sami and Tiedemann, J{\&quot;o}rg}</span><span class="p">,</span><span class="w"></span>
-<span class="w">    </span><span class="na">booktitle</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">&quot;Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics: System Demonstrations&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">    </span><span class="na">month</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nv">jul</span><span class="p">,</span><span class="w"></span>
-<span class="w">    </span><span class="na">year</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">&quot;2020&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">    </span><span class="na">publisher</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">&quot;Association for Computational Linguistics&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">    </span><span class="na">url</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">&quot;https://www.aclweb.org/anthology/2020.acl-demos.20&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">    </span><span class="na">doi</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">&quot;10.18653/v1/2020.acl-demos.20&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">    </span><span class="na">pages</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">&quot;150--156&quot;</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<div class="highlight-BibTeX notranslate"><div class="highlight"><pre><span></span><span class="nc">@inproceedings</span><span class="p">{</span><span class="nl">aulamo-etal-2020-opusfilter</span><span class="p">,</span>
+<span class="w">    </span><span class="na">title</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">&quot;{O}pus{F}ilter: A Configurable Parallel Corpus Filtering Toolbox&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="na">author</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{Aulamo, Mikko and Virpioja, Sami and Tiedemann, J{\&quot;o}rg}</span><span class="p">,</span>
+<span class="w">    </span><span class="na">booktitle</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">&quot;Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics: System Demonstrations&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="na">month</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nv">jul</span><span class="p">,</span>
+<span class="w">    </span><span class="na">year</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">&quot;2020&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="na">publisher</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">&quot;Association for Computational Linguistics&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="na">url</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">&quot;https://www.aclweb.org/anthology/2020.acl-demos.20&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="na">doi</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">&quot;10.18653/v1/2020.acl-demos.20&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="na">pages</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">&quot;150--156&quot;</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 </section>
@@ -138,56 +142,75 @@ paper</a>
 <h2>References<a class="headerlink" href="#references" title="Permalink to this heading"></a></h2>
 <p>A full bibliography of papers cited in the documentation and code:</p>
 <div class="docutils container" id="id2">
-<dl class="citation">
-<dt class="label" id="cite-artetxe-schwenk-2018-margin"><span class="brackets">artetxe-schwenk-2018-margin</span></dt>
-<dd><p>Mikel Artetxe and Holger Schwenk. Margin-based parallel corpus mining with multilingual sentence embeddings. <em>CoRR</em>, 2018. URL: <a class="reference external" href="http://arxiv.org/abs/1811.01136">http://arxiv.org/abs/1811.01136</a>, <a class="reference external" href="https://arxiv.org/abs/1811.01136">arXiv:1811.01136</a>.</p>
-</dd>
-<dt class="label" id="cite-aulamo-etal-2020-opustools"><span class="brackets">aulamo-etal-2020-opustools</span></dt>
-<dd><p>Mikko Aulamo, Umut Sulubacak, Sami Virpioja, and Jörg Tiedemann. OpusTools and parallel corpus diagnostics. In <em>Proceedings of the 12th Language Resources and Evaluation Conference</em>, 3782–3789. Marseille, France, May 2020. European Language Resources Association. URL: <a class="reference external" href="https://aclanthology.org/2020.lrec-1.467">https://aclanthology.org/2020.lrec-1.467</a>.</p>
-</dd>
-<dt class="label" id="cite-aulamo-etal-2020-opusfilter"><span class="brackets"><a class="fn-backref" href="#id1">aulamo-etal-2020-opusfilter</a></span></dt>
-<dd><p>Mikko Aulamo, Sami Virpioja, and Jörg Tiedemann. OpusFilter: a configurable parallel corpus filtering toolbox. In <em>Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics: System Demonstrations</em>, 150–156. Association for Computational Linguistics, July 2020. URL: <a class="reference external" href="https://aclanthology.org/2020.acl-demos.20">https://aclanthology.org/2020.acl-demos.20</a>, <a class="reference external" href="https://doi.org/10.18653/v1/2020.acl-demos.20">doi:10.18653/v1/2020.acl-demos.20</a>.</p>
-</dd>
-<dt class="label" id="cite-chaudhary-etal-2019-low"><span class="brackets">chaudhary-etal-2019-low</span></dt>
-<dd><p>Vishrav Chaudhary, Yuqing Tang, Francisco Guzmán, Holger Schwenk, and Philipp Koehn. Low-resource corpus filtering using multilingual sentence embeddings. In <em>Proceedings of the Fourth Conference on Machine Translation (Volume 3: Shared Task Papers, Day 2)</em>, 261–266. Florence, Italy, August 2019. Association for Computational Linguistics. URL: <a class="reference external" href="https://aclanthology.org/W19-5435">https://aclanthology.org/W19-5435</a>, <a class="reference external" href="https://doi.org/10.18653/v1/W19-5435">doi:10.18653/v1/W19-5435</a>.</p>
-</dd>
-<dt class="label" id="cite-joulin-etal-2016-fasttext"><span class="brackets">joulin-etal-2016-fasttext</span></dt>
-<dd><p>Armand Joulin, Edouard Grave, Piotr Bojanowski, Matthijs Douze, Hervé Jégou, and Tomás Mikolov. Fasttext.zip: compressing text classification models. <em>CoRR</em>, 2016. URL: <a class="reference external" href="http://arxiv.org/abs/1612.03651">http://arxiv.org/abs/1612.03651</a>, <a class="reference external" href="https://arxiv.org/abs/1612.03651">arXiv:1612.03651</a>.</p>
-</dd>
-<dt class="label" id="cite-joulin-etal-2017-bag"><span class="brackets">joulin-etal-2017-bag</span></dt>
-<dd><p>Armand Joulin, Edouard Grave, Piotr Bojanowski, and Tomas Mikolov. Bag of tricks for efficient text classification. In <em>Proceedings of the 15th Conference of the European Chapter of the Association for Computational Linguistics: Volume 2, Short Papers</em>, 427–431. Valencia, Spain, April 2017. Association for Computational Linguistics. URL: <a class="reference external" href="https://aclanthology.org/E17-2068">https://aclanthology.org/E17-2068</a>.</p>
-</dd>
-<dt class="label" id="cite-koehn-2005-europarl"><span class="brackets">koehn-2005-europarl</span></dt>
-<dd><p>Philipp Koehn. Europarl: a parallel corpus for statistical machine translation. In <em>Proceedings of Machine Translation Summit X: Papers</em>, 79–86. Phuket, Thailand, September 2005. URL: <a class="reference external" href="https://aclanthology.org/2005.mtsummit-papers.11">https://aclanthology.org/2005.mtsummit-papers.11</a>.</p>
-</dd>
-<dt class="label" id="cite-lui-baldwin-2012-langid"><span class="brackets">lui-baldwin-2012-langid</span></dt>
-<dd><p>Marco Lui and Timothy Baldwin. Langid.py: an off-the-shelf language identification tool. In <em>Proceedings of the ACL 2012 System Demonstrations</em>, 25–30. Jeju Island, Korea, July 2012. Association for Computational Linguistics. URL: <a class="reference external" href="https://aclanthology.org/P12-3005">https://aclanthology.org/P12-3005</a>.</p>
-</dd>
-<dt class="label" id="cite-moore-lewis-2010-intelligent"><span class="brackets">moore-lewis-2010-intelligent</span></dt>
-<dd><p>Robert C. Moore and William Lewis. Intelligent selection of language model training data. In <em>Proceedings of the ACL 2010 Conference Short Papers</em>, 220–224. Uppsala, Sweden, July 2010. Association for Computational Linguistics. URL: <a class="reference external" href="https://aclanthology.org/P10-2041">https://aclanthology.org/P10-2041</a>.</p>
-</dd>
-<dt class="label" id="cite-sennrich-etal-2016-neural"><span class="brackets">sennrich-etal-2016-neural</span></dt>
-<dd><p>Rico Sennrich, Barry Haddow, and Alexandra Birch. Neural machine translation of rare words with subword units. In <em>Proceedings of the 54th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)</em>, 1715–1725. Berlin, Germany, August 2016. Association for Computational Linguistics. URL: <a class="reference external" href="https://aclanthology.org/P16-1162">https://aclanthology.org/P16-1162</a>, <a class="reference external" href="https://doi.org/10.18653/v1/P16-1162">doi:10.18653/v1/P16-1162</a>.</p>
-</dd>
-<dt class="label" id="cite-siivola-etal-2007-growing"><span class="brackets">siivola-etal-2007-growing</span></dt>
-<dd><p>Vesa Siivola, Teemu Hirsimäki, and Sami Virpioja. On growing and pruning Kneser-Ney smoothed n-gram models. <em>IEEE Transactions on Audio, Speech and Language Processing</em>, 15(5):1617–1624, 2007. URL: <a class="reference external" href="https://doi.org/10.1109/TASL.2007.896666">https://doi.org/10.1109/TASL.2007.896666</a>.</p>
-</dd>
-<dt class="label" id="cite-tiedemann-2012-parallel"><span class="brackets">tiedemann-2012-parallel</span></dt>
-<dd><p>Jörg Tiedemann. Parallel data, tools and interfaces in OPUS. In <em>Proceedings of the Eighth International Conference on Language Resources and Evaluation (LREC'12)</em>, 2214–2218. Istanbul, Turkey, May 2012. European Language Resources Association (ELRA). URL: <a class="reference external" href="http://www.lrec-conf.org/proceedings/lrec2012/pdf/463_Paper.pdf">http://www.lrec-conf.org/proceedings/lrec2012/pdf/463_Paper.pdf</a>.</p>
-</dd>
-<dt class="label" id="cite-vatanen-etal-2010-language"><span class="brackets">vatanen-etal-2010-language</span></dt>
-<dd><p>Tommi Vatanen, Jaakko J. Väyrynen, and Sami Virpioja. Language identification of short text segments with n-gram models. In Nicoletta Calzolari, Khalid Choukri, Bente Maegaard, Joseph Mariani, Jan Odjik, Stelios Piperidis, Mike Rosner, and Daniel Tapias, editors, <em>Proceedings of the Seventh conference on International Language Resources and Evaluation (LREC'10)</em>. European Language Resources Association (ELRA), May 2010.</p>
-</dd>
-<dt class="label" id="cite-virpioja-etal-2013-morfessor"><span class="brackets">virpioja-etal-2013-morfessor</span></dt>
-<dd><p>Sami Virpioja, Peter Smit, Stig-Arne Grönroos, and Mikko Kurimo. Morfessor 2.0: python implementation and extensions for Morfessor Baseline. Report 25/2013 in Aalto University publication series SCIENCE + TECHNOLOGY, Department of Signal Processing and Acoustics, Aalto University, Helsinki, Finland, 2013.</p>
-</dd>
-<dt class="label" id="cite-vazquez-etal-2019-university"><span class="brackets">vazquez-etal-2019-university</span></dt>
-<dd><p>Raúl Vázquez, Umut Sulubacak, and Jörg Tiedemann. The University of Helsinki submission to the WMT19 parallel corpus filtering task. In <em>Proceedings of the Fourth Conference on Machine Translation (Volume 3: Shared Task Papers, Day 2)</em>, 294–300. Florence, Italy, August 2019. Association for Computational Linguistics. URL: <a class="reference external" href="https://aclanthology.org/W19-5441">https://aclanthology.org/W19-5441</a>, <a class="reference external" href="https://doi.org/10.18653/v1/W19-5441">doi:10.18653/v1/W19-5441</a>.</p>
-</dd>
-<dt class="label" id="cite-ostling-tiedemann-2016-efficient"><span class="brackets">ostling-tiedemann-2016-efficient</span></dt>
-<dd><p>Robert Östling and Jörg Tiedemann. Efficient word alignment with Markov Chain Monte Carlo. <em>Prague Bulletin of Mathematical Linguistics</em>, 106:125–146, October 2016. URL: <a class="reference external" href="http://ufal.mff.cuni.cz/pbml/106/art-ostling-tiedemann.pdf">http://ufal.mff.cuni.cz/pbml/106/art-ostling-tiedemann.pdf</a>.</p>
-</dd>
-</dl>
+<div class="citation" id="cite-artetxe-schwenk-2018-margin" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>artetxe-schwenk-2018-margin<span class="fn-bracket">]</span></span>
+<p>Mikel Artetxe and Holger Schwenk. Margin-based parallel corpus mining with multilingual sentence embeddings. <em>CoRR</em>, 2018. URL: <a class="reference external" href="http://arxiv.org/abs/1811.01136">http://arxiv.org/abs/1811.01136</a>, <a class="reference external" href="https://arxiv.org/abs/1811.01136">arXiv:1811.01136</a>.</p>
+</div>
+<div class="citation" id="cite-aulamo-etal-2023-unsupervised" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>aulamo-etal-2023-unsupervised<span class="fn-bracket">]</span></span>
+<p>Mikko Aulamo, Ona de Giber, Sami Virpioja, and Jörg Tiedemann. Unsupervised feature selection for effective parallel corpus filtering. In <em>Proceedings of the 24th Annual Conference of the European Association for Machine Translation</em>, 31–38. European Association for Machine Translation, June 2023.</p>
+</div>
+<div class="citation" id="cite-aulamo-etal-2020-opustools" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>aulamo-etal-2020-opustools<span class="fn-bracket">]</span></span>
+<p>Mikko Aulamo, Umut Sulubacak, Sami Virpioja, and Jörg Tiedemann. OpusTools and parallel corpus diagnostics. In <em>Proceedings of the 12th Language Resources and Evaluation Conference</em>, 3782–3789. Marseille, France, May 2020. European Language Resources Association. URL: <a class="reference external" href="https://aclanthology.org/2020.lrec-1.467">https://aclanthology.org/2020.lrec-1.467</a>.</p>
+</div>
+<div class="citation" id="cite-aulamo-etal-2020-opusfilter" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">aulamo-etal-2020-opusfilter</a><span class="fn-bracket">]</span></span>
+<p>Mikko Aulamo, Sami Virpioja, and Jörg Tiedemann. OpusFilter: a configurable parallel corpus filtering toolbox. In <em>Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics: System Demonstrations</em>, 150–156. Association for Computational Linguistics, July 2020. URL: <a class="reference external" href="https://aclanthology.org/2020.acl-demos.20">https://aclanthology.org/2020.acl-demos.20</a>, <a class="reference external" href="https://doi.org/10.18653/v1/2020.acl-demos.20">doi:10.18653/v1/2020.acl-demos.20</a>.</p>
+</div>
+<div class="citation" id="cite-chaudhary-etal-2019-low" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>chaudhary-etal-2019-low<span class="fn-bracket">]</span></span>
+<p>Vishrav Chaudhary, Yuqing Tang, Francisco Guzmán, Holger Schwenk, and Philipp Koehn. Low-resource corpus filtering using multilingual sentence embeddings. In <em>Proceedings of the Fourth Conference on Machine Translation (Volume 3: Shared Task Papers, Day 2)</em>, 261–266. Florence, Italy, August 2019. Association for Computational Linguistics. URL: <a class="reference external" href="https://aclanthology.org/W19-5435">https://aclanthology.org/W19-5435</a>, <a class="reference external" href="https://doi.org/10.18653/v1/W19-5435">doi:10.18653/v1/W19-5435</a>.</p>
+</div>
+<div class="citation" id="cite-joulin-etal-2016-fasttext" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>joulin-etal-2016-fasttext<span class="fn-bracket">]</span></span>
+<p>Armand Joulin, Edouard Grave, Piotr Bojanowski, Matthijs Douze, Hervé Jégou, and Tomás Mikolov. Fasttext.zip: compressing text classification models. <em>CoRR</em>, 2016. URL: <a class="reference external" href="http://arxiv.org/abs/1612.03651">http://arxiv.org/abs/1612.03651</a>, <a class="reference external" href="https://arxiv.org/abs/1612.03651">arXiv:1612.03651</a>.</p>
+</div>
+<div class="citation" id="cite-joulin-etal-2017-bag" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>joulin-etal-2017-bag<span class="fn-bracket">]</span></span>
+<p>Armand Joulin, Edouard Grave, Piotr Bojanowski, and Tomas Mikolov. Bag of tricks for efficient text classification. In <em>Proceedings of the 15th Conference of the European Chapter of the Association for Computational Linguistics: Volume 2, Short Papers</em>, 427–431. Valencia, Spain, April 2017. Association for Computational Linguistics. URL: <a class="reference external" href="https://aclanthology.org/E17-2068">https://aclanthology.org/E17-2068</a>.</p>
+</div>
+<div class="citation" id="cite-koehn-2005-europarl" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>koehn-2005-europarl<span class="fn-bracket">]</span></span>
+<p>Philipp Koehn. Europarl: a parallel corpus for statistical machine translation. In <em>Proceedings of Machine Translation Summit X: Papers</em>, 79–86. Phuket, Thailand, September 2005. URL: <a class="reference external" href="https://aclanthology.org/2005.mtsummit-papers.11">https://aclanthology.org/2005.mtsummit-papers.11</a>.</p>
+</div>
+<div class="citation" id="cite-lui-baldwin-2012-langid" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>lui-baldwin-2012-langid<span class="fn-bracket">]</span></span>
+<p>Marco Lui and Timothy Baldwin. Langid.py: an off-the-shelf language identification tool. In <em>Proceedings of the ACL 2012 System Demonstrations</em>, 25–30. Jeju Island, Korea, July 2012. Association for Computational Linguistics. URL: <a class="reference external" href="https://aclanthology.org/P12-3005">https://aclanthology.org/P12-3005</a>.</p>
+</div>
+<div class="citation" id="cite-moore-lewis-2010-intelligent" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>moore-lewis-2010-intelligent<span class="fn-bracket">]</span></span>
+<p>Robert C. Moore and William Lewis. Intelligent selection of language model training data. In <em>Proceedings of the ACL 2010 Conference Short Papers</em>, 220–224. Uppsala, Sweden, July 2010. Association for Computational Linguistics. URL: <a class="reference external" href="https://aclanthology.org/P10-2041">https://aclanthology.org/P10-2041</a>.</p>
+</div>
+<div class="citation" id="cite-sennrich-etal-2016-neural" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>sennrich-etal-2016-neural<span class="fn-bracket">]</span></span>
+<p>Rico Sennrich, Barry Haddow, and Alexandra Birch. Neural machine translation of rare words with subword units. In <em>Proceedings of the 54th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)</em>, 1715–1725. Berlin, Germany, August 2016. Association for Computational Linguistics. URL: <a class="reference external" href="https://aclanthology.org/P16-1162">https://aclanthology.org/P16-1162</a>, <a class="reference external" href="https://doi.org/10.18653/v1/P16-1162">doi:10.18653/v1/P16-1162</a>.</p>
+</div>
+<div class="citation" id="cite-siivola-etal-2007-growing" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>siivola-etal-2007-growing<span class="fn-bracket">]</span></span>
+<p>Vesa Siivola, Teemu Hirsimäki, and Sami Virpioja. On growing and pruning Kneser-Ney smoothed n-gram models. <em>IEEE Transactions on Audio, Speech and Language Processing</em>, 15(5):1617–1624, 2007. URL: <a class="reference external" href="https://doi.org/10.1109/TASL.2007.896666">https://doi.org/10.1109/TASL.2007.896666</a>.</p>
+</div>
+<div class="citation" id="cite-tiedemann-2012-parallel" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>tiedemann-2012-parallel<span class="fn-bracket">]</span></span>
+<p>Jörg Tiedemann. Parallel data, tools and interfaces in OPUS. In <em>Proceedings of the Eighth International Conference on Language Resources and Evaluation (LREC'12)</em>, 2214–2218. Istanbul, Turkey, May 2012. European Language Resources Association (ELRA). URL: <a class="reference external" href="http://www.lrec-conf.org/proceedings/lrec2012/pdf/463_Paper.pdf">http://www.lrec-conf.org/proceedings/lrec2012/pdf/463_Paper.pdf</a>.</p>
+</div>
+<div class="citation" id="cite-vatanen-etal-2010-language" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>vatanen-etal-2010-language<span class="fn-bracket">]</span></span>
+<p>Tommi Vatanen, Jaakko J. Väyrynen, and Sami Virpioja. Language identification of short text segments with n-gram models. In Nicoletta Calzolari, Khalid Choukri, Bente Maegaard, Joseph Mariani, Jan Odjik, Stelios Piperidis, Mike Rosner, and Daniel Tapias, editors, <em>Proceedings of the Seventh conference on International Language Resources and Evaluation (LREC'10)</em>. European Language Resources Association (ELRA), May 2010.</p>
+</div>
+<div class="citation" id="cite-virpioja-etal-2013-morfessor" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>virpioja-etal-2013-morfessor<span class="fn-bracket">]</span></span>
+<p>Sami Virpioja, Peter Smit, Stig-Arne Grönroos, and Mikko Kurimo. Morfessor 2.0: python implementation and extensions for Morfessor Baseline. Report 25/2013 in Aalto University publication series SCIENCE + TECHNOLOGY, Department of Signal Processing and Acoustics, Aalto University, Helsinki, Finland, 2013.</p>
+</div>
+<div class="citation" id="cite-vazquez-etal-2019-university" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>vazquez-etal-2019-university<span class="fn-bracket">]</span></span>
+<p>Raúl Vázquez, Umut Sulubacak, and Jörg Tiedemann. The University of Helsinki submission to the WMT19 parallel corpus filtering task. In <em>Proceedings of the Fourth Conference on Machine Translation (Volume 3: Shared Task Papers, Day 2)</em>, 294–300. Florence, Italy, August 2019. Association for Computational Linguistics. URL: <a class="reference external" href="https://aclanthology.org/W19-5441">https://aclanthology.org/W19-5441</a>, <a class="reference external" href="https://doi.org/10.18653/v1/W19-5441">doi:10.18653/v1/W19-5441</a>.</p>
+</div>
+<div class="citation" id="cite-ostling-tiedemann-2016-efficient" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>ostling-tiedemann-2016-efficient<span class="fn-bracket">]</span></span>
+<p>Robert Östling and Jörg Tiedemann. Efficient word alignment with Markov Chain Monte Carlo. <em>Prague Bulletin of Mathematical Linguistics</em>, 106:125–146, October 2016. URL: <a class="reference external" href="http://ufal.mff.cuni.cz/pbml/106/art-ostling-tiedemann.pdf">http://ufal.mff.cuni.cz/pbml/106/art-ostling-tiedemann.pdf</a>.</p>
+</div>
+</div>
 </div>
 </section>
 <section id="references-as-bibtex">
@@ -234,6 +257,17 @@ paper</a>
     <span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;https://aclanthology.org/2020.acl-demos.20&quot;</span><span class="p">,</span>
     <span class="n">doi</span> <span class="o">=</span> <span class="s2">&quot;10.18653/v1/2020.acl-demos.20&quot;</span><span class="p">,</span>
     <span class="n">pages</span> <span class="o">=</span> <span class="s2">&quot;150--156&quot;</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="o">%</span> <span class="n">Aulamo</span> <span class="n">et</span> <span class="n">al</span><span class="o">.</span> <span class="p">(</span><span class="mi">2023</span><span class="p">)</span>
+<span class="nd">@inproceedings</span><span class="p">{</span><span class="n">aulamo</span><span class="o">-</span><span class="n">etal</span><span class="o">-</span><span class="mi">2023</span><span class="o">-</span><span class="n">unsupervised</span><span class="p">,</span>
+    <span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;Unsupervised Feature Selection for Effective Parallel Corpus Filtering&quot;</span><span class="p">,</span>
+    <span class="n">author</span> <span class="o">=</span> <span class="p">{</span><span class="n">Aulamo</span><span class="p">,</span> <span class="n">Mikko</span> <span class="ow">and</span> <span class="n">de</span> <span class="n">Giber</span><span class="p">,</span> <span class="n">Ona</span> <span class="ow">and</span> <span class="n">Virpioja</span><span class="p">,</span> <span class="n">Sami</span> <span class="ow">and</span> <span class="n">Tiedemann</span><span class="p">,</span> <span class="n">J</span><span class="p">{</span>\<span class="s2">&quot;o}rg},</span>
+    <span class="n">booktitle</span> <span class="o">=</span> <span class="s2">&quot;Proceedings of the 24th Annual Conference of the European Association for Machine Translation&quot;</span><span class="p">,</span>
+    <span class="n">month</span> <span class="o">=</span> <span class="n">jun</span><span class="p">,</span>
+    <span class="n">year</span> <span class="o">=</span> <span class="s2">&quot;2023&quot;</span><span class="p">,</span>
+    <span class="n">publisher</span> <span class="o">=</span> <span class="s2">&quot;European Association for Machine Translation&quot;</span><span class="p">,</span>
+    <span class="n">pages</span> <span class="o">=</span> <span class="s2">&quot;31--38&quot;</span><span class="p">,</span>
 <span class="p">}</span>
 
 <span class="o">%</span> <span class="n">Chaudhary</span> <span class="n">et</span> <span class="n">al</span><span class="o">.</span> <span class="p">(</span><span class="mi">2019</span><span class="p">)</span>
