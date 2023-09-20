@@ -58,7 +58,7 @@ options:
                         and a unique filter identifier in order to allow
                         multiple filters of the same class. Example: --add-
                         filter LanguageIDFilter.cld2 '{"id_method": "cld2"}'
-  --overwrite           Overwrite existing config file and intermediate files
+  --overwrite           Overwrite existing intermediate files
   -o CONFIGFILE, --output CONFIGFILE
                         Output configuration file (default -)
 ```
@@ -68,11 +68,11 @@ option `default` uses the default parameters defined in the filter
 classes. The option `percentiles` assumes that a proportion of the
 data (set by `--noisy-percentile`) is noisy, and sets the thresholds
 for each filter independently based on the percentile. The
-`clustering` option is likely the most useful of the three, and
-described in more detail below. However, it is applicable to a more
-limited set of filters.
+`clustering` option may be the most useful of the three, and described
+in more detail below. However, it is applicable to a more limited set
+of filters.
 
-## Unsupervised feature selection for filters
+## Unsupervised threshold selection for filters
 
 This implements the method introduced by {cite:t}`aulamo-etal-2023-unsupervised`.
 It takes a parallel corpus as an input and tries to separate the clean
@@ -95,3 +95,7 @@ the number of clusters (`--clusters`) may help.
 Figures from the clustering and score histograms are plotted given the
 `--plot` option. If you want also to save the intermediate files, make
 sure to use the `--inter-dir` argument.
+
+*Note: The method should be considered as experimental, and it is not
+expected to give good results on all corpora. If you try it, please
+consider giving feedback on the project issues page.*

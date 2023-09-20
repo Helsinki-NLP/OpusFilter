@@ -53,7 +53,7 @@ parser.add_argument('--add-filter', nargs=2, action='append', default=[], metava
                           'filter identifier in order to allow multiple filters of the same class. Example: '
                           '--add-filter LanguageIDFilter.cld2 \'{"id_method": "cld2"}\''))
 parser.add_argument('--overwrite', action='store_true',
-                    help='Overwrite existing config file and intermediate files')
+                    help='Overwrite existing intermediate files')
 parser.add_argument('-o', '--output', type=argparse.FileType('w'),
                     default='-', metavar='CONFIGFILE', help='Output configuration file (default %(default)s)')
 args = parser.parse_args()
