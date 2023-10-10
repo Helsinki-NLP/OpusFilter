@@ -36,6 +36,10 @@ class ScoreClusters:
         self.scaler = preprocessing.StandardScaler()
         self.standard_data = self.scaler.fit_transform(self.df.mul(self.direction_vector))
 
+        # Find the noisiest and cleanest examples
+        self.standard_data = self.get_extreme_data_mean(self.standard_data)
+        #self.standard_data = self.get_extreme_data_euclidean(self.standard_data)
+
         logger.info('Training KMeans with %s clusters', self.k)
         self.kmeans = KMeans(n_clusters=self.k, random_state=0, init='k-means++', n_init=1)
         self.kmeans.fit(self.standard_data)
@@ -82,6 +86,31 @@ class ScoreClusters:
         logger.info('Number of noisy labels: %s',
                     f'{len(noisy_labels)}/{len(self.labels)} ({round(100*len(noisy_labels)/len(self.labels), 2)}%)')
         return noisy_label
+
+    def get_extreme_data_mean(self, data):
+        """Return cleanest and noisiest parts based on mean"""
+        l = len(data)
+        low, high = int(0.1*l), int(0.9*l)
+        data = np.array(sorted(data, key=lambda i: np.mean(i)))
+        extreme_data = np.concatenate((data[:low], data[high:]))
+        return extreme_data
+
+    def get_extreme_data_euclidean(self, data):
+        """Return extreme parts based on euclidean distance to extreme points"""
+        extreme_points = []
+        for i in range(len(data[0])):
+            score_dim = data[...,i]
+            extreme_points.append(data[np.argmax(score_dim)])
+            extreme_points.append(data[np.argmin(score_dim)])
+        n = int((len(data)*0.2)/len(extreme_points))
+        mean = np.mean(data, 0)
+        extreme_data = []
+        for ep in extreme_points:
+            dists = np.linalg.norm(data-ep, axis=1)
+            i_mins = np.argpartition(dists, n)[:n]
+            extreme_data.append(data[i_mins])
+            data = np.delete(data, i_mins, axis=0)
+        return np.vstack(extreme_data)
 
     def get_columns(self):
         """Return data column names"""
