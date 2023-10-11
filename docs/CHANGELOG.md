@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [3.0.0rc1] - 2023-09-20
+## [3.0.0] - 2023-10-11
 
 ### Added
 
@@ -16,12 +16,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- refactor code and move auxiliary methods to opusfilter.util
 - update varikn installation instructions (installable from PyPI)
-- update github workflows
+- update github workflows and include Python 3.11 tests
+- update library version requirements to support Python 3.11
 - use xxhash instead of pyhash for hash functions
 - use opus-fast-mosestokenizer instead of fast-mosestokenizer
 - install eflomal from PyPI and use the new interface in WordAlignFilter
-- remove Python 3.6 support and tests
+
+### Removed
+
+- Python 3.6 support
 
 ### Fixed
 
@@ -184,8 +189,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 First tagged version.
 
 
-[Unreleased]: https://github.com/Helsinki-NLP/OpusFilter/compare/3.0.0rc1...develop
-[3.0.0rc1]: https://github.com/Helsinki-NLP/OpusFilter/compare/2.6.0...3.0.0rc1
+[Unreleased]: https://github.com/Helsinki-NLP/OpusFilter/compare/3.0.0...develop
+[3.0.0]: https://github.com/Helsinki-NLP/OpusFilter/compare/2.6.0...3.0.0
 [2.6.0]: https://github.com/Helsinki-NLP/OpusFilter/compare/2.5.1...2.6.0
 [2.5.1]: https://github.com/Helsinki-NLP/OpusFilter/compare/2.5.0...2.5.1
 [2.5.0]: https://github.com/Helsinki-NLP/OpusFilter/compare/2.4.0...2.5.0
