@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Contributing &mdash; OpusFilter 3.0.0rc2 documentation</title>
+  <title>Contributing &mdash; OpusFilter 3.0.0 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -13,7 +13,7 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=a09b3cf9"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=8ebd99bd"></script>
         <script src="_static/doctools.js?v=888ff710"></script>
         <script src="_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="_static/js/theme.js"></script>
@@ -119,7 +119,7 @@ issues page. We are also happy to consider pull requests. There are a
 few rules for pull requests:</p>
 <ul class="simple">
 <li><p>Make a pull request to the <code class="docutils literal notranslate"><span class="pre">develop</span></code> branch instead of <code class="docutils literal notranslate"><span class="pre">master</span></code>.</p></li>
-<li><p>The code should support at least Python versions from 3.7 to 3.10.</p></li>
+<li><p>The code should support at least Python versions from 3.7 to 3.11.</p></li>
 <li><p>Please follow <a class="reference external" href="https://www.python.org/dev/peps/pep-0008/">PEP 8</a>. Exception: The maximum line length is 127 characters instead of 79.</p></li>
 <li><p>Especially for new features, please include test cases for unit testing.</p></li>
 </ul>
@@ -131,8 +131,8 @@ project root. (Also <a class="reference external" href="https://nose.readthedocs
 work, if you have VariKN and eflomal set up as instructed - <code class="docutils literal notranslate"><span class="pre">pytest</span></code>
 skips the respective tests if not.)</p>
 <p>GitHub workflows defined in the project run automatically <code class="docutils literal notranslate"><span class="pre">flake8</span></code>
-checks and unit testing with <code class="docutils literal notranslate"><span class="pre">pytest</span></code> using Python 3.7, 3.8, 3.9, and
-3.10.</p>
+checks and unit testing with <code class="docutils literal notranslate"><span class="pre">pytest</span></code> using Python 3.7, 3.8, 3.9,
+3.10, and 3.11.</p>
 <p>Especially for larger contributions, consider using a code analysis
 tool like <a class="reference external" href="https://github.com/PyCQA/pylint">Pylint</a>. Install it
 e.g. via <code class="docutils literal notranslate"><span class="pre">pip</span></code>, run <code class="docutils literal notranslate"><span class="pre">pylint</span> <span class="pre">opusfilter/</span></code> in the project root and fix
