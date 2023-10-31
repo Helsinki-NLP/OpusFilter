@@ -5,7 +5,7 @@ import logging
 
 import pandas as pd
 from sklearn.cluster import KMeans
-from sklearn import preprocessing, random_projection
+from sklearn import decomposition, preprocessing, random_projection
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.inspection import permutation_importance
 import numpy as np
@@ -46,6 +46,8 @@ class ScoreClusters:
         self.labels = self.kmeans.labels_
         self.cluster_centers = self.scaler.inverse_transform(self.kmeans.cluster_centers_) * self.direction_vector
         self._noisy_label = self._get_noisy_label()
+        self.rejects = None
+        self.thresholds = None
 
     @property
     def noisy_label(self):
@@ -148,17 +150,27 @@ class ScoreClusters:
 
     def get_result_df(self):
         """Return dataframe containing the thresholds and reject booleans"""
+        self.rejects = self.get_rejects()
+        self.thresholds = self.get_thresholds()
         return pd.DataFrame.from_dict(
-            {'name': self.get_columns(),
-             'threshold': self.get_thresholds(),
-             'reject': self.get_rejects()})
+            {'name': self.get_columns(), 'threshold': self.thresholds, 'reject': self.rejects})
 
-    def plot(self, plt):
+    def plot(self, plt, apply_rejects=True, projection='pca'):
         """Plot clustering and histograms"""
         plt.figure(figsize=(10, 10))
-        projection = random_projection.GaussianRandomProjection(n_components=2)
-        data_t = projection.fit_transform(self.standard_data)
-        centroids = projection.transform(self.kmeans.cluster_centers_)
+        if projection == 'pca':
+            projection = decomposition.PCA(n_components=2)
+        elif projection == 'random':
+            projection = random_projection.GaussianRandomProjection(n_components=2)
+        else:
+            raise ValueError(f"Unknown projection: {projection}")
+        if apply_rejects and self.rejects:
+            indices = [idx for idx, reject in enumerate(self.rejects) if not reject]
+            data_t = projection.fit_transform(self.standard_data[:, indices])
+            centroids = projection.transform(self.kmeans.cluster_centers_[:, indices])
+        else:
+            data_t = projection.fit_transform(self.standard_data)
+            centroids = projection.transform(self.kmeans.cluster_centers_)
         for label_id in range(self.k):
             points = np.where(self.labels == label_id)
             plt.scatter(data_t[points, 0], data_t[points, 1],
@@ -173,7 +185,19 @@ class ScoreClusters:
         plt.title('Clusters')
         noisy_samples = self.df.iloc[np.where(self.labels == self.noisy_label)]
         clean_samples = self.df.iloc[np.where(self.labels != self.noisy_label)]
-        noisy_samples.hist(bins=100, figsize=(10, 10))
+        subplots_n = noisy_samples.hist(bins=100, figsize=(10, 10))
         plt.suptitle('Histograms for noisy samples')
-        clean_samples.hist(bins=100, figsize=(10, 10))
+        subplots_c = clean_samples.hist(bins=100, figsize=(10, 10))
         plt.suptitle('Histograms for clean samples')
+        if apply_rejects and self.rejects:
+            col_index = {col: idx for idx, col in enumerate(self.get_columns())}
+            for axes in ([axes for sublist in subplots_c for axes in sublist] +
+                         [axes for sublist in subplots_n for axes in sublist]):
+                title = axes.get_title()
+                if not title:
+                    continue
+                idx = col_index[title]
+                if self.rejects[idx]:
+                    axes.text(0.5, 1, 'REJECTED', horizontalalignment='center',
+                              verticalalignment='top', transform=axes.transAxes, color='r')
+                axes.axvline(self.thresholds[idx], color='k', linestyle='--', alpha=0.5)

@@ -12,7 +12,7 @@ install_requires = [
     "langid",
     "matplotlib",
     "morfessor",
-    "opus-fast-mosestokenizer",
+    "opus-fast-mosestokenizer>=0.0.8.5",
     "pandas>=1.0.0",
     "pycld2",
     "xxhash>=3.2.0",
@@ -35,7 +35,7 @@ jieba_require = [
 ]
 
 mecab_require = [
-    'mecab-python3>=1.0.0',
+    'mecab-python3>=1.0.8',
     'unidic-lite'
 ]
 
