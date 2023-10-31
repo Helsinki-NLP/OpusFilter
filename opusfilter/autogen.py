@@ -123,14 +123,14 @@ class ConfigurationGenerator:
 def get_score_file(input_files, filters, outputdir, sample_size, overwrite=False, max_length=150):
     """Calculate filter scores and return score file
 
-    Remove duplicates and empty lines, take a sample of size n,
+    Take a sample of size n, remove duplicates and empty lines,
     produce filter scores file, and return its path.
 
     """
     config_gen = ConfigurationGenerator(files=[os.path.abspath(f) for f in input_files], workdir=outputdir)
+    config_gen.add_subset(sample_size, 1)
     config_gen.add_remove_duplicates()
     config_gen.add_filter([{'LengthFilter': {'unit': 'word', 'min_length': 1, 'max_length': max_length}}])
-    config_gen.add_subset(sample_size, 1)
     score_file = config_gen.add_score(filters)
     pre_config = config_gen.get_config()
     yaml.dump(pre_config, pathlib.Path(os.path.join(outputdir, 'config.yaml')))
