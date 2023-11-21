@@ -524,9 +524,10 @@ class ClusterFilters(DataBasedFiltersABC):
                        ('LanguageIDFilter', {'id_method': 'lingua'}),
                        'TerminalPunctuationFilter']
 
-    def __init__(self, files, k=2, max_length=150, **kwargs):
+    def __init__(self, files, k=2, max_length=150, extreme=None, **kwargs):
         super().__init__(files, max_length=150, **kwargs)
         self.k = k
+        self.extreme = extreme
         self.label_file_path = os.path.join(self.inter_dir, 'labels.txt')
         self.scoredata = None
 
@@ -535,7 +536,7 @@ class ClusterFilters(DataBasedFiltersABC):
         score_file = get_score_file(
             self.files, [{name: params} for name, params in self.filters_to_add], self.inter_dir, self.sample_size,
             overwrite=self.overwrite, max_length=self.max_length)
-        self.scoredata = ScoreClusters(score_file, k=self.k)
+        self.scoredata = ScoreClusters(score_file, k=self.k, extreme=self.extreme)
         self._set_parameters(self.scoredata.get_result_df())
         if os.path.isfile(self.label_file_path) and not self.overwrite:
             logger.info('Label file "%s" exits, not overwriting', self.label_file_path)
