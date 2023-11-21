@@ -25,7 +25,7 @@ class ScoreClusters:
 
     """
 
-    def __init__(self, score_file, k=2):
+    def __init__(self, score_file, k=2, extreme=None):
         self.k = k
         self.df = load_dataframe(score_file)
         self.filters = {}
@@ -37,7 +37,9 @@ class ScoreClusters:
         self.standard_data = self.scaler.fit_transform(self.df.mul(self.direction_vector))
 
         # Find the noisiest and cleanest examples
-        self.standard_data = self.get_extreme_data_mean(self.standard_data)
+        if extreme:
+            if extreme == 'mean':
+                self.standard_data = self.get_extreme_data_mean(self.standard_data)
         #self.standard_data = self.get_extreme_data_euclidean(self.standard_data)
 
         logger.info('Training KMeans with %s clusters', self.k)
