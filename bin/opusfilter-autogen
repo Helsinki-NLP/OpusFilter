@@ -43,9 +43,9 @@ parser.add_argument('--clusters', '-k', default=2, type=int, metavar='INT',
 parser.add_argument('--work-dir', default='work',
                     help='Location of the source and target files for the generated configuration (default %(default)s)')
 parser.add_argument('--inter-dir', help='Save intermediate files in this directory (use a temporary directory if not given)')
-parser.add_argument('--plot', action='store_true',
-                    help=('Show a scatter plot of the clustering and histograms of feature data distributions; '
-                          'only for the clustering method'))
+parser.add_argument('--plot', metavar='PATH', default=None, type=str,
+                    help=('Create histograms of feature data distributions and a scatter plot of the clustering; '
+                          'give path to plot the PDF files to, or "-" for interactive plots; only for the clustering method'))
 parser.add_argument('--list-defaults', action='store_true', help='List default filters of the method to the output and quit')
 parser.add_argument('--add-filter', nargs=2, action='append', default=[], metavar=('CLASS', 'JSON'),
                     help=('Instead of using default filters, add a filter of CLASS with JSON parameters object '
@@ -78,9 +78,12 @@ if args.list_defaults:
 
 filters = filtergen.set_filter_thresholds()
 
-if args.method == 'clustering' and args.plot:
-    filtergen.scoredata.plot(plt)
-    plt.show()
+if args.method == 'clustering' and args.plot is not None:
+    if args.plot == '-':
+        filtergen.scoredata.plot(plt)
+        plt.show()
+    else:
+        filtergen.scoredata.plot(plt, path=args.plot)
 
 generator = ConfigurationGenerator(
     files=[os.path.abspath(f) for f in args.files], langs=args.langs, workdir=args.work_dir)
