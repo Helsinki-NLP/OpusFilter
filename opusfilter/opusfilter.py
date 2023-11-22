@@ -447,8 +447,10 @@ class OpusFilter:
         logger.info("Sampling subset of %s lines from total %s lines", size, total)
         if total < size:
             logger.warning("Number of lines (%s) is smaller than requested size (%s)", total, size)
-            shutil.copyfile(infiles[0], outfiles[0])
-            shutil.copyfile(infiles[1], outfiles[1])
+            for infname, outfname in zip(infiles, outfiles):
+                with file_open(infname) as inf, file_open(outfname, 'w') as outf:
+                    for line in inf:
+                        outf.write(line)
         elif shuffle_subset:
             sample = random.sample(range(total), size)
             with file_open(infiles[0]) as inf, file_open(outfiles[0], 'w') as outf:

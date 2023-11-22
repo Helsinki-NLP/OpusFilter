@@ -687,9 +687,13 @@ class TestSubset(unittest.TestCase):
         self.opus_filter = OpusFilter(
             {'common': {'output_directory': self.tempdir}, 'steps': []})
         with open(os.path.join(self.tempdir, 'input_src'), 'w') as f:
-            f.write(''.join('sent_{}\n'.format(idx) for idx in range(100)))
+            f.write(''.join(f'sent_{idx}\n' for idx in range(100)))
         with open(os.path.join(self.tempdir, 'input_tgt'), 'w') as f:
-            f.write(''.join('sent_{}\n'.format(idx) for idx in range(100)))
+            f.write(''.join(f'sent_{idx}\n' for idx in range(100)))
+        with file_open(os.path.join(self.tempdir, 'input_src.gz'), 'w') as f:
+            f.write(''.join(f'sent_{idx}\n' for idx in range(100)))
+        with file_open(os.path.join(self.tempdir, 'input_tgt.gz'), 'w') as f:
+            f.write(''.join(f'sent_{idx}\n' for idx in range(100)))
 
     def tearDown(self):
         shutil.rmtree(self.tempdir)
@@ -725,6 +729,39 @@ class TestSubset(unittest.TestCase):
             self.assertEqual(len(lines1), 20)
             self.assertEqual(len(lines2), 20)
             self.assertFalse(all(l1 == l2 for l1, l2 in zip(lines1, lines2)))
+
+    def test_subset_more_than_total(self):
+        parameters = {
+            'inputs': [os.path.join(self.tempdir, 'input_src'),
+                       os.path.join(self.tempdir, 'input_tgt')],
+            'outputs': [os.path.join(self.tempdir, 'output_src'),
+                        os.path.join(self.tempdir, 'output_tgt')],
+            'size': 200}
+        self.opus_filter.get_subset(parameters)
+        with open(os.path.join(self.tempdir, 'output_src')) as fobj1, \
+             open(os.path.join(self.tempdir, 'output_tgt')) as fobj2:
+            lines1 = fobj1.readlines()
+            lines2 = fobj2.readlines()
+            self.assertEqual(len(lines1), 100)
+            self.assertEqual(len(lines2), 100)
+            self.assertSequenceEqual(lines1, lines2)
+
+    def test_subset_more_than_total_gzip(self):
+        parameters = {
+            'inputs': [os.path.join(self.tempdir, 'input_src.gz'),
+                       os.path.join(self.tempdir, 'input_tgt.gz')],
+            'outputs': [os.path.join(self.tempdir, 'output_src'),
+                        os.path.join(self.tempdir, 'output_tgt')],
+            'size': 200}
+        self.opus_filter.get_subset(parameters)
+        with open(os.path.join(self.tempdir, 'output_src')) as fobj1, \
+             open(os.path.join(self.tempdir, 'output_tgt')) as fobj2:
+            lines1 = fobj1.readlines()
+            lines2 = fobj2.readlines()
+            self.assertEqual(len(lines1), 100)
+            self.assertEqual(len(lines2), 100)
+            self.assertSequenceEqual(lines1, lines2)
+
 
 
 class TestSplit(unittest.TestCase):
