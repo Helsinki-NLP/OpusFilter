@@ -185,6 +185,8 @@ class ScoreClusters:
         if extreme:
             if extreme == 'mean':
                 self.standard_data = self.get_extreme_data_mean(self.standard_data)
+            if extreme == 'mean2':
+                self.standard_data = self.get_extreme_data_mean2(self.standard_data)
         #self.standard_data = self.get_extreme_data_euclidean(self.standard_data)
 
         logger.info('Training KMeans with %s clusters', self.k)
@@ -242,6 +244,25 @@ class ScoreClusters:
         low, high = int(0.1*l), int(0.9*l)
         data = np.array(sorted(data, key=lambda i: np.mean(i)))
         extreme_data = np.concatenate((data[:low], data[high:]))
+        return extreme_data
+
+    def get_extreme_data_mean2(self, data):
+        """Return cleanest part based on mean score and noisy part based on noisiest
+        data according to each score
+        """
+        low = int(len(data)*0.1)
+        high = int(len(data)*(0.1/len(self.filters)))
+        data = np.array(sorted(data, key=lambda i: np.mean(i)))
+        clean_part = data[:low].copy()
+        rest = data[low:].copy()
+        noisy_parts = []
+        for i in range(len(self.filters)):
+            rest = np.array(sorted(rest, key=lambda x: x[i]))
+            noisy_parts.append(rest[len(rest)-high:].copy())
+            rest = rest[:len(rest)-high].copy()
+
+        noisy_part = np.concatenate(noisy_parts)
+        extreme_data = np.concatenate((clean_part, noisy_part))
         return extreme_data
 
     def get_extreme_data_euclidean(self, data):
