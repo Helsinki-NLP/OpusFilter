@@ -23,7 +23,8 @@ install_requires = [
     "requests",
     "scikit-learn",
     "subword_nmt",
-    "tqdm"
+    "tqdm",
+    "lingua-language-detector"
 ]
 
 eflomal_require = [

@@ -22,3 +22,4 @@ mecab-python3>=1.0.8
 unidic-lite==1.0.8
 subword-nmt==0.3.8
 Morfessor==2.0.6
+lingua-language-detector==2.0.1

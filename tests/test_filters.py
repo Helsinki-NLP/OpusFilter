@@ -354,6 +354,26 @@ class TestFasttext(TestLangIDMethod):
             self.assertEqual(model.accept(pair_score), pair_expected)
 
 
+class TestLingua(TestLangIDMethod):
+
+    def test_accept(self):
+        model = LanguageIDFilter(
+            languages=['en', 'fr'], id_method='lingua', thresholds=[0.4, 0.99])
+        pair_scores = model.score(self.pairs_inputs)
+        pair_expecteds = [True, False]
+        for pair_score, pair_expected in zip(pair_scores, pair_expecteds):
+            self.assertEqual(model.accept(pair_score), pair_expected)
+
+    def test_accept_high(self):
+        model = LanguageIDFilter(
+            languages=['en', 'fr'], id_method='lingua', lingua_mode="high", thresholds=[0.5, 0.7])
+        pair_scores = model.score(self.pairs_inputs)
+        pair_expecteds = [True, False]
+        for pair_score, pair_expected in zip(pair_scores, pair_expecteds):
+            self.assertEqual(model.accept(pair_score), pair_expected)
+
+
+
 class TestRepetitionFilter(unittest.TestCase):
 
     def test_get_repetition(self):
