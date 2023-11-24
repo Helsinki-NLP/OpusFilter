@@ -35,6 +35,7 @@ versions from 3.7 to 3.11.
 * subword_nmt
 * tqdm
 * xxhash
+* lingua-language-detector
 
 See `setup.py` for possible version requirements.
 

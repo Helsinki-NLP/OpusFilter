@@ -40,6 +40,7 @@ Parameters:
 * `fasttext_model_path`: path for a `fasttext` model (required only for the `fasttext` method; default `null`)
 * `langid_languages`: limit detection to a list of possible languages (valid only for the `langid` method; default `null`)
 * `cld2_options`: a dictionary of options for the `cld2` method (valid only for the `cld2` method; default `null`)
+* `lingua_mode`: a string specifying whether to use lingua's `high` or `low` accuracy mode
 
 Returned scores are the language identification confidence scores from a given identification method for the segments. The scores range from 0 to 1. In filtering, all values have to be greater than the minimum thresholds. Negative threshold can be used to skip filtering for a language.
 

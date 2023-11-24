@@ -283,10 +283,11 @@ class CharacterScoreFilter(FilterABC):
 class LanguageIDFilter(FilterABC):
     """Language identification confidence filter
 
-    Currently this supports three methods:
+    Currently this supports four methods:
     * langid (default): see :cite:`lui-baldwin-2012-langid`
     * cld2: see https://github.com/CLD2Owners/cld2
     * fasttext: see :cite:`joulin-etal-2016-fasttext` and :cite:`joulin-etal-2017-bag`
+    * lingua-py: see https://github.com/pemistahl/lingua-py
 
     """
 
@@ -296,7 +297,7 @@ class LanguageIDFilter(FilterABC):
 
     def __init__(self, languages=None, id_method='langid', thresholds=None,
                  fasttext_model_path=None, langid_languages=None, cld2_options=None,
-                 **kwargs):
+                 lingua_mode="low", **kwargs):
         super().__init__(**kwargs)
         if languages is None:
             raise ConfigurationError("A list of language codes needs to be defined")
@@ -330,6 +331,18 @@ class LanguageIDFilter(FilterABC):
             if cld2_options:
                 raise ConfigurationError("cld2_options is supported only by the method cld2")
             self.cld2_options = None
+        # lingua mode
+        if id_method == "lingua":
+            from lingua import LanguageDetectorBuilder
+            # TODO: support lingua_languages just like langid_languages
+            from_languages = LanguageDetectorBuilder.from_all_languages()
+            if lingua_mode == "high":
+                self.lingua_detector = from_languages.with_preloaded_language_models().build()
+            elif lingua_mode == "low":
+                self.lingua_detector = from_languages.with_low_accuracy_mode().build()
+            else:
+                assert False, f"{lingua_mode} lingua mode is not supported."
+
         # global options
         self.languages = languages
         self.id_method = id_method
@@ -364,6 +377,16 @@ class LanguageIDFilter(FilterABC):
         if self.id_method == 'fasttext':
             lang, confidence = self._fasttext_predict_lang(sentence)
             if lang != lan:
+                liconf = 0.0
+            else:
+                liconf = confidence
+            return liconf
+
+        if self.id_method == 'lingua':
+            confidence_values = self.lingua_detector.compute_language_confidence_values(sentence)
+            lang = confidence_values[0].language
+            confidence = confidence_values[0].value
+            if lang.iso_code_639_1.name.lower() != lan:
                 liconf = 0.0
             else:
                 liconf = confidence
