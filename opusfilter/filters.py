@@ -297,56 +297,67 @@ class LanguageIDFilter(FilterABC):
 
     def __init__(self, languages=None, id_method='langid', thresholds=None,
                  fasttext_model_path=None, langid_languages=None, cld2_options=None,
-                 lingua_mode="low", **kwargs):
+                 lingua_mode=None, **kwargs):
         super().__init__(**kwargs)
         if languages is None:
             raise ConfigurationError("A list of language codes needs to be defined")
-        # fasttext options
+        self.identifier = None
+        self.cld2_options = None
+        self.fasttext_model = None
+        self.lingua_detector = None
         if id_method == 'fasttext':
-            if not fasttext_model_path:
-                raise ConfigurationError("FastText language ID method was choosen without specifying "
-                                         "any path to fasttext model")
-            import fasttext
-            self.fasttext_model = fasttext.load_model(os.path.join(self.workdir, fasttext_model_path))
+            self.init_fastttext(fasttext_model_path)
         else:
             if fasttext_model_path:
                 raise ConfigurationError("FastText language ID method was not choosen but fasttext "
                                          "path to model was set")
-            self.fasttext_model = None
-        # langid options
         if id_method == 'langid':
-            from langid.langid import LanguageIdentifier, model
-            self.identifier = LanguageIdentifier.from_modelstring(model, norm_probs=True)
-            if langid_languages:
-                self.identifier.set_languages(langid_languages)
+            self.init_langid(langid_languages)
         else:
             if langid_languages:
                 raise ConfigurationError(
                     "langid_languages option is supported only by the method langid")
-            self.identifier = None
-        # cld2 options
         if id_method == 'cld2':
             self.cld2_options = cld2_options if cld2_options else {}
         else:
             if cld2_options:
                 raise ConfigurationError("cld2_options is supported only by the method cld2")
-            self.cld2_options = None
-        # lingua mode
         if id_method == "lingua":
-            from lingua import LanguageDetectorBuilder
-            # TODO: support lingua_languages just like langid_languages
-            from_languages = LanguageDetectorBuilder.from_all_languages()
-            if lingua_mode == "high":
-                self.lingua_detector = from_languages.with_preloaded_language_models().build()
-            elif lingua_mode == "low":
-                self.lingua_detector = from_languages.with_low_accuracy_mode().build()
-            else:
-                raise ConfigurationError(f"lingua mode '{lingua_mode}' is not supported.")
-
+            self.init_lingua(lingua_mode if lingua_mode else 'low')
+        else:
+            if lingua_mode:
+                raise ConfigurationError("lingua_mode is supported only by the method lingua")
         # global options
         self.languages = languages
         self.id_method = id_method
         self.thresholds = [0] * len(self.languages) if thresholds is None else thresholds
+
+    def init_langid(self, langid_languages):
+        """Initialize langid identifier"""
+        from langid.langid import LanguageIdentifier, model
+        self.identifier = LanguageIdentifier.from_modelstring(model, norm_probs=True)
+        if langid_languages:
+            self.identifier.set_languages(langid_languages)
+
+    def init_fastttext(self, fasttext_model_path):
+        """Initialize fasttext identifier"""
+        if not fasttext_model_path:
+            raise ConfigurationError("FastText language ID method was choosen without specifying "
+                                     "any path to fasttext model")
+        import fasttext
+        self.fasttext_model = fasttext.load_model(os.path.join(self.workdir, fasttext_model_path))
+
+    def init_lingua(self, lingua_mode):
+        """Initialize lingua identifier"""
+        from lingua import LanguageDetectorBuilder
+        # TODO: support lingua_languages just like langid_languages
+        from_languages = LanguageDetectorBuilder.from_all_languages()
+        if lingua_mode == "high":
+            self.lingua_detector = from_languages.with_preloaded_language_models().build()
+        elif lingua_mode == "low":
+            self.lingua_detector = from_languages.with_low_accuracy_mode().build()
+        else:
+            raise ConfigurationError(f"lingua mode '{lingua_mode}' is not supported.")
 
     def confidence(self, sentence: str, lan: str) -> float:
         """Return confidence of the identifier"""
