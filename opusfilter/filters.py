@@ -287,7 +287,7 @@ class LanguageIDFilter(FilterABC):
     * langid (default): see :cite:`lui-baldwin-2012-langid`
     * cld2: see https://github.com/CLD2Owners/cld2
     * fasttext: see :cite:`joulin-etal-2016-fasttext` and :cite:`joulin-etal-2017-bag`
-    * lingua-py: see https://github.com/pemistahl/lingua-py
+    * lingua: see https://github.com/pemistahl/lingua-py
 
     """
 
@@ -341,7 +341,7 @@ class LanguageIDFilter(FilterABC):
             elif lingua_mode == "low":
                 self.lingua_detector = from_languages.with_low_accuracy_mode().build()
             else:
-                assert False, f"{lingua_mode} lingua mode is not supported."
+                raise ConfigurationError(f"lingua mode '{lingua_mode}' is not supported.")
 
         # global options
         self.languages = languages
