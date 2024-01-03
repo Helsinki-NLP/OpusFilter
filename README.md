@@ -25,7 +25,7 @@ Install from source:
 
 ### Troubleshooting
 
-OpusFilter should generally work fine on Python 3.7 to 3.11. In the case of troubles, try installing the exact versions in `requirements.txt`:
+OpusFilter should generally work fine on Python 3.8 to 3.11. In the case of troubles, try installing the exact versions in `requirements.txt`:
 
 * `pip install -r requirements.txt`
 
