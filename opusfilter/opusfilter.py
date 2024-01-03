@@ -13,7 +13,6 @@ import pickle
 import random
 import tempfile
 from itertools import chain
-import shutil
 
 import json
 from tqdm import tqdm

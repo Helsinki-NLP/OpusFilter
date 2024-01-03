@@ -22,6 +22,8 @@ from .classifier import load_dataframe
 logger = logging.getLogger(__name__)
 
 
+# allow scikit-learn style code here
+# pylint: disable=C0103,W0613
 class ArcProjection(BaseEstimator, TransformerMixin):
     """Project data to two dimensions using evenly distributed unit vectors
 
@@ -48,6 +50,7 @@ class ArcProjection(BaseEstimator, TransformerMixin):
     """
 
     def __init__(self, arc='auto'):
+        self.components_ = None
         self.n_components_ = 2
         self.arc = arc
 
@@ -107,7 +110,7 @@ class ArcProjection(BaseEstimator, TransformerMixin):
         matrix = np.array([
             [np.cos(idx * dist), np.sin(idx * dist)] for idx in range(n_features)
         ])
-        _, best_m, best_cost  = self._best_permutation(matrix.copy(), n_features, costf)
+        _, best_m, best_cost = self._best_permutation(matrix.copy(), n_features, costf)
         logger.debug("fcorr:\n%s", corrmat.round(3))
         logger.debug("vdist:\n%s", (best_m @ best_m.T).round(3))
         logger.debug("diff:\n%s", (corrmat - best_m @ best_m.T).round(3))
@@ -161,8 +164,11 @@ class ArcProjection(BaseEstimator, TransformerMixin):
         )
 
         return X @ self.components_.T
+# pylint: enable=C0103,W0613
 
 
+# Would need some refactoring, but disable pylint's "too many" warnings for now.
+# pylint: disable=R0902,R0912,R0914,R0915
 class ScoreClusters:
     """Cluster segments by filter scores
 
@@ -337,3 +343,4 @@ class ScoreClusters:
         if path is not None:
             fig_clean.savefig(os.path.join(path, 'histogram_clean.pdf'))
             fig_noisy.savefig(os.path.join(path, 'histogram_noisy.pdf'))
+# pylint: enable=R0902,R0912,R0914,R0915
