@@ -8,6 +8,7 @@ import unittest
 
 from opusfilter import ConfigurationError
 from opusfilter.embeddings import *
+from opusfilter.pipeline import FilterPipeline
 
 
 try:
@@ -80,3 +81,17 @@ class TestSentenceEmbeddingFilter(unittest.TestCase):
         results = [testfilter.accept(x) for x in testfilter.score(self.bi_inputs)]
         for result, correct in zip(results, expected):
             self.assertEqual(result, correct)
+
+    def test_chunking(self):
+        testfilter = SentenceEmbeddingFilter(languages=self.bi_langs, threshold=0.4, chunksize=19)
+        inputs = 50 * self.bi_inputs
+        expected = 50 * [True, True, False, False]
+        results = [testfilter.accept(x) for x in testfilter.score(inputs)]
+        for result, correct in zip(results, expected):
+            self.assertEqual(result, correct)
+        pipeline = FilterPipeline(filters=[testfilter])
+        pipeline.chunksize = 30
+        filtered = list(pipeline.filter(inputs))
+        self.assertEqual(len(filtered), len([x for x in expected if x]))
+        scores = list(pipeline.score(inputs))
+        self.assertEqual(len(scores), len(expected))

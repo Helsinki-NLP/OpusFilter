@@ -133,7 +133,8 @@ class SentenceEmbeddingFilter(FilterABC):
 
     def score(self, pairs):
         for chunk in grouper(pairs, self.chunksize):
-            return self._score_chunk(chunk)
+            for score in self._score_chunk(chunk):
+                yield score
 
     def accept(self, score):
         return all(similarity >= self.threshold for similarity in score)
