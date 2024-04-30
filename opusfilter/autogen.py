@@ -176,7 +176,7 @@ class AutoFiltersABC(metaclass=abc.ABCMeta):
 
     DEFAULT_FILTERS = []
 
-    def __init__(self, langs=None, fasttext=None, scripts=None, filters=None, **kwargs):
+    def __init__(self, langs=None, scripts=None, filters=None, **kwargs):
         if filters is None:
             filters = self.DEFAULT_FILTERS
         filters = [parse_filter_specs(spec) for spec in filters]
@@ -193,9 +193,6 @@ class AutoFiltersABC(metaclass=abc.ABCMeta):
                         logger.warning('Cannot add LanguageIDFilter (no languages provided)')
                         continue
                     filter_params['languages'] = langs
-                if fasttext:
-                    filter_params['id_method'] = 'fasttext'
-                    filter_params['fasttext_model_path'] = fasttext
             self.filters_to_add.append((filter_name, filter_params))
         self._filters = []  # Final filters
         if kwargs:
