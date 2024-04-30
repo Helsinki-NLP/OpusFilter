@@ -330,7 +330,7 @@ class FilterInspect:
 
     # Lists of possible filter threshold arguments
     SINGLE_THRESHOLD_ARGUMENTS = ['threshold']
-    MULTI_THRESHOLD_ARGUMENTS = ['threshold', 'thresholds']
+    MULTI_THRESHOLD_ARGUMENTS = ['threshold', 'thresholds', ('src_threshold', 'tgt_threshold')]
     MIN_MAX_ARGUMENTS = [('min_length', 'max_length'), ('min_threshold', 'max_threshold')]
     ALL_THRESHOLD_ARGUMENTS = SINGLE_THRESHOLD_ARGUMENTS + MULTI_THRESHOLD_ARGUMENTS + MIN_MAX_ARGUMENTS
 
@@ -576,4 +576,6 @@ class ClusterFilters(DataBasedFiltersABC):
                     # Set a threshold that accepts all input
                     thresholds[i] = filter_inspect.filter_cls.accept_threshold
             new_params[threshold_key] = thresholds if len(thresholds) > 1 else thresholds[0]
+            if classname == 'WordAlignFilter':
+                new_params = {k: v for k, v in zip(threshold_key, thresholds)}
             self._filters.append({classname: new_params})
