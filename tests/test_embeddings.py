@@ -5,6 +5,7 @@ import requests
 import shutil
 import tempfile
 import unittest
+from unittest import mock
 
 from opusfilter import ConfigurationError
 from opusfilter.embeddings import *
@@ -15,6 +16,15 @@ try:
     import laserembeddings
 except ImportError:
     logging.warning("Could not load laserembeddings, LASER filtering not supported")
+
+
+def mocked_score_chunk(obj, chunk):
+    """Return scores for a chunk of data"""
+    mocked_score_chunk.counter += 1
+    return obj._cosine_similarities(chunk) if obj.nn_model is None else \
+        obj._normalized_similarities(chunk)
+
+mocked_score_chunk.counter = 0
 
 
 @unittest.skipIf('laserembeddings' not in globals(), 'laserembeddings package not installed')
@@ -57,19 +67,37 @@ class TestSentenceEmbeddingFilter(unittest.TestCase):
         dist, ind = nn_model.query([pair[1] for pair in self.bi_inputs], 'en', n_neighbors=2)
         self.assertEqual(ind.shape, (4, 2))
 
-    def test_bilingual(self):
-        testfilter = SentenceEmbeddingFilter(languages=self.bi_langs, threshold=0.4)
+    @mock.patch('opusfilter.embeddings.SentenceEmbeddingFilter._score_chunk', mocked_score_chunk)
+    def test_bilingual_score(self):
+        mocked_score_chunk.counter = 0
+        testfilter = SentenceEmbeddingFilter(languages=self.bi_langs, threshold=0.4, chunksize=2)
         expected = [True, True, False, False]
         results = [testfilter.accept(x) for x in testfilter.score(self.bi_inputs)]
         for result, correct in zip(results, expected):
             self.assertEqual(result, correct)
+        self.assertEqual(mocked_score_chunk.counter, (len(self.bi_inputs) + 1) // 2)
 
+    @mock.patch('opusfilter.embeddings.SentenceEmbeddingFilter._score_chunk', mocked_score_chunk)
     def test_bilingual_filter(self):
-        testfilter = SentenceEmbeddingFilter(languages=self.bi_langs, threshold=0.4)
+        mocked_score_chunk.counter = 0
+        testfilter = SentenceEmbeddingFilter(languages=self.bi_langs, threshold=0.4, chunksize=2)
         expected = [self.bi_inputs[0], self.bi_inputs[1]]
         results = testfilter.filter(self.bi_inputs)
         for result, correct in zip(results, expected):
             self.assertEqual(result, correct)
+        self.assertEqual(mocked_score_chunk.counter, (len(self.bi_inputs) + 1) // 2)
+
+    @mock.patch('opusfilter.embeddings.SentenceEmbeddingFilter._score_chunk', mocked_score_chunk)
+    def test_bilingual_filterfalse(self):
+        mocked_score_chunk.counter = 0
+        testfilter = SentenceEmbeddingFilter(languages=self.bi_langs, threshold=0.4, chunksize=2)
+        expected = [self.bi_inputs[2], self.bi_inputs[3]]
+        logging.warning(expected)
+        results = list(testfilter.filterfalse(self.bi_inputs))
+        logging.warning(results)
+        for result, correct in zip(results, expected):
+            self.assertEqual(result, correct)
+        self.assertEqual(mocked_score_chunk.counter, (len(self.bi_inputs) + 1) // 2)
 
     def test_bilingual_margin_ratios(self):
         nn_model = self._train_nn_model()
@@ -82,7 +110,7 @@ class TestSentenceEmbeddingFilter(unittest.TestCase):
         for result, correct in zip(results, expected):
             self.assertEqual(result, correct)
 
-    def test_chunking(self):
+    def test_pipeline_chunking(self):
         testfilter = SentenceEmbeddingFilter(languages=self.bi_langs, threshold=0.4, chunksize=19)
         inputs = 50 * self.bi_inputs
         expected = 50 * [True, True, False, False]

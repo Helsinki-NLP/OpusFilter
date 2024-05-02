@@ -141,6 +141,12 @@ class SentenceEmbeddingFilter(FilterABC):
 
     def filter(self, pairs):
         for chunk in grouper(pairs, self.chunksize):
-            for pair, score in zip(pairs, self._score_chunk(chunk)):
+            for pair, score in zip(chunk, self._score_chunk(chunk)):
                 if self.accept(score):
+                    yield pair
+
+    def filterfalse(self, pairs):
+        for chunk in grouper(pairs, self.chunksize):
+            for pair, score in zip(chunk, self._score_chunk(chunk)):
+                if not self.accept(score):
                     yield pair
