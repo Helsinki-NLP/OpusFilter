@@ -120,7 +120,7 @@ class ConfigurationGenerator:
         return config
 
 
-def get_score_file(input_files, filters, outputdir, sample_size, overwrite=False, max_length=150):
+def get_score_file(input_files, filters, outputdir, sample_size, overwrite=False, max_length=150, seed=1):
     """Calculate filter scores and return score file
 
     Take a sample of size n, remove duplicates and empty lines,
@@ -128,7 +128,7 @@ def get_score_file(input_files, filters, outputdir, sample_size, overwrite=False
 
     """
     config_gen = ConfigurationGenerator(files=[os.path.abspath(f) for f in input_files], workdir=outputdir)
-    config_gen.add_subset(sample_size, 1)
+    config_gen.add_subset(sample_size, seed)
     config_gen.add_remove_duplicates()
     config_gen.add_filter([{'LengthFilter': {'unit': 'word', 'min_length': 1, 'max_length': max_length}}])
     score_file = config_gen.add_score(filters)
@@ -524,8 +524,9 @@ class ClusterFilters(DataBasedFiltersABC):
                        ('LanguageIDFilter', {'id_method': 'lingua'}),
                        'TerminalPunctuationFilter']
 
-    def __init__(self, files, k=2, max_length=150, extreme=None, **kwargs):
+    def __init__(self, files, k=2, max_length=150, seed=1, extreme=None, **kwargs):
         super().__init__(files, max_length=150, **kwargs)
+        self.seed = seed
         self.k = k
         self.extreme = extreme
         self.label_file_path = os.path.join(self.inter_dir, 'labels.txt')
@@ -535,7 +536,7 @@ class ClusterFilters(DataBasedFiltersABC):
         """Get filter configuration with thresholds"""
         score_file = get_score_file(
             self.files, [{name: params} for name, params in self.filters_to_add], self.inter_dir, self.sample_size,
-            overwrite=self.overwrite, max_length=self.max_length)
+            overwrite=self.overwrite, max_length=self.max_length, seed=self.seed)
         self.scoredata = ScoreClusters(score_file, k=self.k, extreme=self.extreme)
         self._set_parameters(self.scoredata.get_result_df())
         if os.path.isfile(self.label_file_path) and not self.overwrite:
