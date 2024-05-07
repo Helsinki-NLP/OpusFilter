@@ -23,7 +23,8 @@ install_requires = [
     "requests",
     "scikit-learn",
     "subword_nmt",
-    "tqdm"
+    "tqdm",
+    "lingua-language-detector>=1.3.0"
 ]
 
 eflomal_require = [
@@ -84,5 +85,5 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ),
-    python_requires=">=3.7",
+    python_requires=">=3.8",
 )
