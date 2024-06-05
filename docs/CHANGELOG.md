@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.1.0] - 2024-06-05
+
 ### Added
 
 - support `lingua` based for language detection (https://github.com/Helsinki-NLP/OpusFilter/pull/65)
@@ -14,6 +16,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 - Python 3.7 support
+
+### Fixed
+
+- fix score method in `SentenceEmbeddingFilter` (https://github.com/Helsinki-NLP/OpusFilter/pull/71)
+- fix filter and filterfalse methods in `SentenceEmbeddingFilter`
 
 ## [3.0.0] - 2023-10-11
 
@@ -197,7 +204,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 First tagged version.
 
 
-[Unreleased]: https://github.com/Helsinki-NLP/OpusFilter/compare/3.0.0...develop
+[Unreleased]: https://github.com/Helsinki-NLP/OpusFilter/compare/3.1.0...develop
+[3.1.0]: https://github.com/Helsinki-NLP/OpusFilter/compare/3.0.0...3.1.0
 [3.0.0]: https://github.com/Helsinki-NLP/OpusFilter/compare/2.6.0...3.0.0
 [2.6.0]: https://github.com/Helsinki-NLP/OpusFilter/compare/2.5.1...2.6.0
 [2.5.1]: https://github.com/Helsinki-NLP/OpusFilter/compare/2.5.0...2.5.1
