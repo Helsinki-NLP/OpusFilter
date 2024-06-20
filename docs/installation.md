@@ -18,14 +18,12 @@ versions from 3.8 to 3.11.
 
 * beautifulsoup4
 * opus-fast-mosestokenizer
-* fasttext
 * graphviz
 * langid
 * matplotlib
 * morfessor
 * OpusTools
 * pandas
-* pycld2
 * rapidfuzz
 * ruamel.yaml
 * regex
@@ -40,6 +38,13 @@ versions from 3.8 to 3.11.
 See `setup.py` for possible version requirements.
 
 ## Optional libraries and tools
+
+### FastText and PyCLD2 language detection
+
+* fasttext
+* pycld2
+
+These libararies are no longer updated?
 
 ### Jieba and MeCab word segmentation
 
