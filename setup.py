@@ -29,7 +29,7 @@ install_requires = [
 ]
 
 eflomal_require = [
-    'eflomal>=1.0.0b1'
+    'eflomal>=2.0.0'
 ]
 
 jieba_require = [
