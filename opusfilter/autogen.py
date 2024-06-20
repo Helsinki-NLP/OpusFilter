@@ -217,7 +217,7 @@ class DefaultParameterFilters(AutoFiltersABC):
                        'AverageWordLengthFilter', 'AlphabetRatioFilter',
                        'TerminalPunctuationFilter', 'NonZeroNumeralsFilter',
                        'LongestCommonSubstringFilter', 'SimilarityFilter', 'RepetitionFilter',
-                       'CharacterScoreFilter', ('LanguageIDFilter', {'id_method': 'cld2'})]
+                       'CharacterScoreFilter', ('LanguageIDFilter', {'id_method': 'lingua'})]
 
     def set_filter_thresholds(self):
         """Set filter thresholds"""
@@ -272,7 +272,7 @@ class PercentileFilters(DataBasedFiltersABC):
                        'AverageWordLengthFilter', 'AlphabetRatioFilter',
                        'TerminalPunctuationFilter', 'NonZeroNumeralsFilter',
                        'LongestCommonSubstringFilter', 'SimilarityFilter', 'RepetitionFilter',
-                       'CharacterScoreFilter', ('LanguageIDFilter', {'id_method': 'cld2'})]
+                       'CharacterScoreFilter', ('LanguageIDFilter', {'id_method': 'lingua'})]
 
     def __init__(self, files, excluded_percentile=0.001, **kwargs):
         super().__init__(files, **kwargs)
@@ -512,7 +512,7 @@ class ClusterFilters(DataBasedFiltersABC):
                        ('LengthRatioFilter.word', {'unit': 'word'}),
                        'NonZeroNumeralsFilter',
                        'CharacterScoreFilter',
-                       ('LanguageIDFilter', {'id_method': 'cld2'}),
+                       ('LanguageIDFilter', {'id_method': 'lingua'}),
                        'TerminalPunctuationFilter']
 
     def __init__(self, files, k=2, max_length=150, **kwargs):

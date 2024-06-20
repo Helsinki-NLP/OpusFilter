@@ -344,7 +344,11 @@ class LanguageIDFilter(FilterABC):
         if not fasttext_model_path:
             raise ConfigurationError("FastText language ID method was choosen without specifying "
                                      "any path to fasttext model")
-        import fasttext
+        try:
+            import fasttext
+        except ImportError:
+            logger.warning("Could not import fasttext. Select another id_method for LanguageIDFilter.")
+            raise
         self.fasttext_model = fasttext.load_model(os.path.join(self.workdir, fasttext_model_path))
 
     def init_lingua(self, lingua_mode):
@@ -366,7 +370,11 @@ class LanguageIDFilter(FilterABC):
             return 1.0
 
         if self.id_method == 'cld2':
-            import pycld2
+            try:
+                import pycld2
+            except ImportError:
+                logger.warning("Could not import pycld2. Select another id_method for LanguageIDFilter.")
+                raise
             try:
                 clddetails = pycld2.detect(sentence, **self.cld2_options)
             except pycld2.error as err:
