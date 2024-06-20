@@ -1,5 +1,6 @@
 setuptools==65.5.1
 setuptools_scm==6.4.2
+numpy<2.0.0
 opustools
 jieba>=0.42
 beautifulsoup4>=4.8.2

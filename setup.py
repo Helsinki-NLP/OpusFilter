@@ -5,6 +5,7 @@ with open("README.md", "r") as fh:
 
 install_requires = [
     "setuptools",
+    "numpy<2.0.0",
     "opustools",
     "beautifulsoup4>=4.8.0",
     "fasttext",
