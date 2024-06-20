@@ -8,14 +8,12 @@ install_requires = [
     "numpy<2.0.0",
     "opustools",
     "beautifulsoup4>=4.8.0",
-    "fasttext",
     "graphviz",
     "langid",
     "matplotlib",
     "morfessor",
     "opus-fast-mosestokenizer>=0.0.8.5",
     "pandas>=1.0.0",
-    "pycld2",
     "xxhash>=3.2.0",
     "sentence-splitter",
     "rapidfuzz",
@@ -26,6 +24,14 @@ install_requires = [
     "subword_nmt",
     "tqdm",
     "lingua-language-detector>=1.3.0"
+]
+
+pycld2_require = [
+    "pycld2"
+]
+
+fasttext_require = [
+    "fasttext"
 ]
 
 eflomal_require = [
@@ -60,7 +66,8 @@ docs_require = [
     'sphinxcontrib-bibtex'
 ]
 
-all_require = eflomal_require + jieba_require + mecab_require + laser_require + varikn_require + tests_require + docs_require
+all_require = pycld2_require + fasttext_require + eflomal_require + jieba_require + \
+    mecab_require + laser_require + varikn_require + tests_require + docs_require
 
 setuptools.setup(
     name="opusfilter",
@@ -78,9 +85,10 @@ setuptools.setup(
         "bin/opusfilter-scores", "bin/opusfilter-test"],
     install_requires=install_requires,
     tests_require=tests_require,
-    extras_require={'test': tests_require, 'eflomal': eflomal_require, 'jieba': jieba_require,
-                    'mecab': mecab_require, 'laser': laser_require, 'varikn': varikn_require,
-                    'docs': docs_require, 'all': all_require},
+    extras_require={'test': tests_require, 'pycld2': pycld2_require, 'fasttext': fasttext_require,
+                    'eflomal': eflomal_require, 'jieba': jieba_require, 'mecab': mecab_require,
+                    'laser': laser_require, 'varikn': varikn_require, 'docs': docs_require,
+                    'all': all_require},
     classifiers=(
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
