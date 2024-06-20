@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- make pycld2 and fasttext libraries optional
+
 ## [3.1.0] - 2024-06-05
 
 ### Added
