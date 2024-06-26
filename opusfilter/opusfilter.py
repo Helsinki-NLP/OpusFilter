@@ -556,7 +556,11 @@ class OpusFilter:
         """Write objects to file as JSON lines"""
         with file_open(fname, 'w') as fobj:
             for obj in objects:
-                fobj.write(json.dumps(obj, sort_keys=True)+'\n')
+                try:
+                    fobj.write(json.dumps(obj, sort_keys=True)+'\n')
+                except TypeError as err:
+                    logger.error("Could not convert to JSON: %s", obj)
+                    raise err
 
     @staticmethod
     def _read_jsonl(fname):

@@ -388,7 +388,7 @@ class LanguageIDFilter(FilterABC):
 
         if self.id_method == 'langid':
             lidetails = self.identifier.classify(sentence)
-            lilan, liconf = lidetails[0], round(lidetails[1], 2)
+            lilan, liconf = lidetails[0], round(float(lidetails[1]), 2)
             if lilan != lan:
                 liconf = 0.0
             return liconf
