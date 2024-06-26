@@ -12,14 +12,14 @@ Install from source:
 
 Note that all required libraries are not available to install via PyPI
 on Windows OS. On Linux and MacOS, it should work directly for Python
-versions from 3.8 to 3.11.
+versions from 3.8 to 3.12.
 
 ## Required libraries
 
 * beautifulsoup4
 * opus-fast-mosestokenizer
 * graphviz
-* langid
+* py3langid
 * matplotlib
 * morfessor
 * OpusTools
@@ -41,11 +41,11 @@ See `setup.py` for possible version requirements.
 
 ### FastText and PyCLD2 language identification
 
-The language identification methods currently supported out-of-the-box
-are [langid](https://github.com/saffsd/langid.py) and
+The language identification libraries currently supported out-of-the-box
+are [py3langid](https://github.com/adbar/py3langid) and
 [lingua](https://github.com/pemistahl/lingua-py). The support for for
-[pycld2](https://github.com/aboSamoor/pycld2) and
-[fasttext models](https://fasttext.cc/docs/en/language-identification.html)
+[PyCLD2](https://github.com/aboSamoor/pycld2) and
+[FastText models](https://fasttext.cc/docs/en/language-identification.html)
 have been changed to optional due to the lack of support especially
 for newer Python versions.
 
