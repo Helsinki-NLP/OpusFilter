@@ -48,3 +48,4 @@ See [langid.py](https://github.com/saffsd/langid.py) and
 [pycld2](https://github.com/aboSamoor/pycld2) for the method-specific
 options. A pretrained `fasttext` model can be downloaded from
 [fasttext.cc/docs/en/language-identification.html](https://fasttext.cc/docs/en/language-identification.html).
+The `cld2` and `fasttext` methods require [installing optional libraries](../installation.md).
