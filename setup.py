@@ -8,7 +8,7 @@ install_requires = [
     "opustools",
     "beautifulsoup4>=4.8.0",
     "graphviz",
-    "langid",
+    "py3langid>=0.2.2",
     "matplotlib",
     "morfessor",
     "opus-fast-mosestokenizer>=0.0.8.5",
@@ -30,6 +30,7 @@ pycld2_require = [
 ]
 
 fasttext_require = [
+    "py3langid<0.3.0",  # 0.3.0 requires numpy 2.0.0
     "numpy<2.0.0",
     "fasttext"
 ]

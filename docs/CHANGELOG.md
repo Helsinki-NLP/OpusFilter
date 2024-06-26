@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- make pycld2 and fasttext libraries optional
+- make `pycld2` and `fasttext` libraries optional
+- replace `langid.py` library with `py3langid`
 - update github workflows and include Python 3.12 tests
 
 ## [3.1.0] - 2024-06-05

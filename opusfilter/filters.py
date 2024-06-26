@@ -334,8 +334,8 @@ class LanguageIDFilter(FilterABC):
 
     def init_langid(self, langid_languages):
         """Initialize langid identifier"""
-        from langid.langid import LanguageIdentifier, model
-        self.identifier = LanguageIdentifier.from_modelstring(model, norm_probs=True)
+        from py3langid.langid import LanguageIdentifier, MODEL_FILE
+        self.identifier = LanguageIdentifier.from_pickled_model(MODEL_FILE, norm_probs=True)
         if langid_languages:
             self.identifier.set_languages(langid_languages)
 
