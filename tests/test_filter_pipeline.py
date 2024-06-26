@@ -1,10 +1,26 @@
 import copy
 import unittest
 
+from numpy.testing import assert_almost_equal
+
 from opusfilter.pipeline import FilterPipeline
 
 
-class TestFilterPipeline(unittest.TestCase):
+class TestFilterPipelineBase(unittest.TestCase):
+
+    def assert_scores_equal(self, sdict1, sdict2):
+        self.assertEqual(set(sdict1), set(sdict2))  # same keys
+        for key, val1 in sdict1.items():
+            val2 = sdict2[key]
+            if isinstance(val1, list):
+                self.assertEqual(len(val1), len(val2), msg=f"Scores do not match for {key}: {val1} {val2}")
+                for item1, item2 in zip(val1, val2):
+                    self.assertAlmostEqual(item1, item2, msg=f"Scores do not match for {key}: {val1} {val2}")
+            else:
+                self.assertAlmostEqual(val1, val2, msg=f"Scores do not match for {key}: {val1} {val2}")
+
+
+class TestFilterPipeline(TestFilterPipelineBase):
 
     @classmethod
     def setUpClass(self):
@@ -46,7 +62,7 @@ class TestFilterPipeline(unittest.TestCase):
                  ('1245..', '12345.....'),
                  ('', '')]
         scores = list(fp.score(pairs))
-        self.assertEqual(
+        self.assert_scores_equal(
             scores[0],
             {'LengthFilter': [5, 9],
              'LengthRatioFilter': 1.8,
@@ -57,7 +73,7 @@ class TestFilterPipeline(unittest.TestCase):
              'LanguageIDFilter': [1.0, 1.0],
              'TerminalPunctuationFilter': -0.0,
              'NonZeroNumeralsFilter': [1.0]})
-        self.assertEqual(
+        self.assert_scores_equal(
             scores[1],
             {'LengthFilter': [1, 1],
              'LengthRatioFilter': 1.0,
@@ -68,7 +84,7 @@ class TestFilterPipeline(unittest.TestCase):
              'LanguageIDFilter': [0.17, 0.0],
              'TerminalPunctuationFilter': -2.1972245773362196,
              'NonZeroNumeralsFilter': [0.8888888888888888]})
-        self.assertEqual(
+        self.assert_scores_equal(
             scores[2],
             {'LengthFilter': [0, 0],
              'LengthRatioFilter': 0,
@@ -132,7 +148,7 @@ class TestFilterPipeline(unittest.TestCase):
             filtered, [('', ''), ('this is English', 'det är Svenska'), ('', '')])
 
 
-class TestFilterPipelineScoreNames(unittest.TestCase):
+class TestFilterPipelineScoreNames(TestFilterPipelineBase):
 
     def test_without_names(self):
         config = [
@@ -152,10 +168,10 @@ class TestFilterPipelineScoreNames(unittest.TestCase):
                  ('1245..',
                   '12345.....')]
         scores = list(fp.score(pairs))
-        self.assertEqual(
+        self.assert_scores_equal(
             scores[0],
             {'LengthFilter': {'1': [5, 9], '2': [34, 65]}})
-        self.assertEqual(
+        self.assert_scores_equal(
             scores[1],
             {'LengthFilter': {'1': [1, 1], '2': [6, 10]}})
 
@@ -177,9 +193,9 @@ class TestFilterPipelineScoreNames(unittest.TestCase):
                  ('1245..',
                   '12345.....')]
         scores = list(fp.score(pairs))
-        self.assertEqual(
+        self.assert_scores_equal(
             scores[0],
             {'LengthFilter': {'words': [5, 9], 'chars': [34, 65]}})
-        self.assertEqual(
+        self.assert_scores_equal(
             scores[1],
             {'LengthFilter': {'words': [1, 1], 'chars': [6, 10]}})
