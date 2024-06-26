@@ -39,31 +39,42 @@ See `setup.py` for possible version requirements.
 
 ## Optional libraries and tools
 
-### FastText and PyCLD2 language detection
+### FastText and PyCLD2 language identification
 
-* fasttext
-* pycld2
+The language identification methods currently supported out-of-the-box
+are [langid](https://github.com/saffsd/langid.py) and
+[lingua](https://github.com/pemistahl/lingua-py). The support for for
+[pycld2](https://github.com/aboSamoor/pycld2) and
+[fasttext models](https://fasttext.cc/docs/en/language-identification.html)
+have been changed to optional due to the lack of support especially
+for newer Python versions.
 
-These libararies are no longer updated?
+The PyCLD2 support can be installed automatically with pip by
+including the extras `[pycld2]` or `[all]` (e.g.
+`pip install opusfilter[pycld2]`).
+
+The support for FastText models can be installed automatically with
+pip by including the extras `[fasttext]` or `[all]` (e.g.
+`pip install opusfilter[fasttext]`).
 
 ### Jieba and MeCab word segmentation
 
 For Chinese tokenization (word segmentation), you can use the
 [jieba](https://github.com/fxsjy/jieba) library. It can be installed
 automatically with pip by including the extras `[jieba]` or `[all]`
-(e.g. `pip install opusfilter[all]`).
+(e.g. `pip install opusfilter[jieba]`).
 
 For Japanese tokenization (word segmentation), you can use the
 [MeCab](https://github.com/SamuraiT/mecab-python3) library. It can be installed
 automatically with pip by including the extras `[mecab]` or `[all]`
-(e.g. `pip install opusfilter[all]`).
+(e.g. `pip install opusfilter[mecab]`).
 
 ### LASER sentence embeddings
 
 For using sentence embeddings filters, you need to install
 `laserembeddings` (https://github.com/yannvgn/laserembeddings). It can
 be installed automatically with pip by including the extras `[laser]`
-or `[all]` (e.g. `pip install opusfilter[all]`). The package will also
+or `[all]` (e.g. `pip install opusfilter[laser]`). The package will also
 require a number of additional libraries, including PyTorch, jieba,
 and MeCab. Note that you need also to download the prebuild models
 with `python -m laserembeddings download-models`.
@@ -73,12 +84,12 @@ with `python -m laserembeddings download-models`.
 For using n-gram language model filters, you need to install the
 Python wrapper for VariKN (https://github.com/vsiivola/variKN). It can
 be installed automatically with pip by including the extras `[varikn]`
-or `[all]` (e.g. `pip install opusfilter[all]`).
+or `[all]` (e.g. `pip install opusfilter[varikn]`).
 
 ### Eflomal word alignment
 
 For using word alignment filters, you need to install elfomal
 (https://github.com/robertostling/eflomal). It can be installed
 automatically with pip by including the extras `[eflomal]` or `[all]`
-(e.g. `pip install opusfilter[all]`). Note that you will need `Cython`
+(e.g. `pip install opusfilter[eflomal]`). Note that you will need `Cython`
 for the installation.
