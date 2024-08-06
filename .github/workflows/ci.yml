@@ -21,21 +21,23 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: ["3.8", "3.9", "3.10", "3.11"]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
         requirements-file: ["requirements.txt"]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
+          python -m ensurepip --upgrade
+          python -m pip install --upgrade setuptools
           python -m pip install --upgrade pip
           python -m pip install flake8 pytest wheel
-          pip install -r ${{ matrix.requirements-file }}
-          python setup.py install
+          python -m pip install --no-cache-dir -r ${{ matrix.requirements-file }}
+          python -m pip install .
       - name: Lint with flake8
         run: |
           # stop the build if there are Python syntax errors or undefined names
@@ -49,7 +51,7 @@ jobs:
     needs: build-n-test
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Check for main release tag
         if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
         id: check-tag
@@ -59,7 +61,7 @@ jobs:
           fi
       - name: Set up Python 3.8
         if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: 3.8
       - name: Install pypa/build
@@ -94,9 +96,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build-n-test]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python 3.8
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: 3.8
       - name: Install dependencies to build docs

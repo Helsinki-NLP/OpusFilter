@@ -334,8 +334,8 @@ class LanguageIDFilter(FilterABC):
 
     def init_langid(self, langid_languages):
         """Initialize langid identifier"""
-        from langid.langid import LanguageIdentifier, model
-        self.identifier = LanguageIdentifier.from_modelstring(model, norm_probs=True)
+        from py3langid.langid import LanguageIdentifier, MODEL_FILE
+        self.identifier = LanguageIdentifier.from_pickled_model(MODEL_FILE, norm_probs=True)
         if langid_languages:
             self.identifier.set_languages(langid_languages)
 
@@ -344,7 +344,11 @@ class LanguageIDFilter(FilterABC):
         if not fasttext_model_path:
             raise ConfigurationError("FastText language ID method was choosen without specifying "
                                      "any path to fasttext model")
-        import fasttext
+        try:
+            import fasttext
+        except ImportError:
+            logger.warning("Could not import fasttext. Select another id_method for LanguageIDFilter.")
+            raise
         self.fasttext_model = fasttext.load_model(os.path.join(self.workdir, fasttext_model_path))
 
     def init_lingua(self, lingua_mode):
@@ -366,7 +370,11 @@ class LanguageIDFilter(FilterABC):
             return 1.0
 
         if self.id_method == 'cld2':
-            import pycld2
+            try:
+                import pycld2
+            except ImportError:
+                logger.warning("Could not import pycld2. Select another id_method for LanguageIDFilter.")
+                raise
             try:
                 clddetails = pycld2.detect(sentence, **self.cld2_options)
             except pycld2.error as err:
@@ -380,7 +388,7 @@ class LanguageIDFilter(FilterABC):
 
         if self.id_method == 'langid':
             lidetails = self.identifier.classify(sentence)
-            lilan, liconf = lidetails[0], round(lidetails[1], 2)
+            lilan, liconf = lidetails[0], round(float(lidetails[1]), 2)
             if lilan != lan:
                 liconf = 0.0
             return liconf

@@ -103,7 +103,7 @@ class TestThresholdFinder(unittest.TestCase):
         {'LengthRatioFilter': {'name': 'word', 'threshold': 1, 'unit': 'word'}},
         {'NonZeroNumeralsFilter': {'threshold': 1}},
         {'CharacterScoreFilter': {'scripts': ['latin', 'latin'], 'thresholds': [1, 1]}},
-        {'LanguageIDFilter': {'id_method': 'cld2', 'languages': ['en', 'de'], 'thresholds': [1, 1]}},
+        {'LanguageIDFilter': {'id_method': 'lingua', 'languages': ['en', 'de'], 'thresholds': [1, 1]}},
         {'TerminalPunctuationFilter': {'threshold': 1}}
     ]
 

@@ -5,7 +5,7 @@ issues page. We are also happy to consider pull requests. There are a
 few rules for pull requests:
 
 * Make a pull request to the `develop` branch instead of `master`.
-* The code should support at least Python versions from 3.8 to 3.11.
+* The code should support at least Python versions from 3.8 to 3.12.
 * Please follow [PEP 8](https://www.python.org/dev/peps/pep-0008/). Exception: The maximum line length is 127 characters instead of 79.
 * Especially for new features, please include test cases for unit testing.
 
@@ -20,7 +20,7 @@ skips the respective tests if not.)
 
 GitHub workflows defined in the project run automatically `flake8`
 checks and unit testing with `pytest` using Python 3.8, 3.9, 3.10,
-and 3.11.
+3.11, and 3.12.
 
 Especially for larger contributions, consider using a code analysis
 tool like [Pylint](https://github.com/PyCQA/pylint). Install it
