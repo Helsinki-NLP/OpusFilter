@@ -89,7 +89,7 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     scripts=["bin/opusfilter", "bin/opusfilter-autogen",
         "bin/opusfilter-cmd", "bin/opusfilter-diagram", "bin/opusfilter-duplicates",
-        "bin/opusfilter-scores", "bin/opusfilter-test"],
+        "bin/opusfilter-scores", "bin/opusfilter-test", "bin/opusfilter-curriculum"],
     install_requires=install_requires,
     tests_require=tests_require,
     extras_require={'test': tests_require, 'pycld2': pycld2_require, 'fasttext': fasttext_require,
