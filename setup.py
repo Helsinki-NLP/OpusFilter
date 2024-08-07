@@ -62,6 +62,10 @@ heliport_require = [
     'heliport>=0.10.0'
 ]
 
+curriculum_require = [
+    'k-means-constrained'
+]
+
 tests_require = [
     'pytest'
 ]
@@ -74,7 +78,7 @@ docs_require = [
 ]
 
 all_require = eflomal_require + jieba_require + mecab_require + laser_require + varikn_require + \
-    tests_require + docs_require
+    curriculum_require + tests_require + docs_require
 
 setuptools.setup(
     name="opusfilter",
@@ -95,6 +99,7 @@ setuptools.setup(
     extras_require={'test': tests_require, 'pycld2': pycld2_require, 'fasttext': fasttext_require,
                     'eflomal': eflomal_require, 'jieba': jieba_require, 'mecab': mecab_require,
                     'laser': laser_require, 'varikn': varikn_require, 'heliport': heliport_require,
+                    'curriculum': curriculum_require,
                     'docs': docs_require, 'all': all_require},
     classifiers=(
         "Programming Language :: Python :: 3",
