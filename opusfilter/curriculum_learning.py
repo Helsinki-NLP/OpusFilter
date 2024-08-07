@@ -40,8 +40,16 @@ class BabyStep:
         self.kmeans.fit(self.standard_data)
         logger.info(f'Sample label distribution (clean=0, noisy={self.k-1}): {dict(sorted(Counter(self.kmeans.labels_).items()))}')
 
+        # Low values are clean, high values are noisy
+        adjusted_centers self.kmeans.cluster_centers_ * self.direction_vector
         # The buckets are labeled from cleanest to noisiest with labels from 0 to k 
-        self.clean_order = [np.where(np.argsort(np.mean(self.kmeans.cluster_centers_, axis=1))==i)[0][0] for i in range(k)]
+        self.clean_order = [np.where(np.argsort(np.mean(adjusted_centers, axis=1))==i)[0][0] for i in range(k)]
+
+    @property
+    def direction_vector(self):
+        """Direction vector for the features (1 for CLEAN_LOW, -1 for CLEAN_HIGH)"""
+        return np.array([1 if self.filters[name].score_direction == CLEAN_LOW else -1
+                         for name in self.df.columns])
 
     def classify(self, score_file):
         self.df = load_dataframe(score_file)
