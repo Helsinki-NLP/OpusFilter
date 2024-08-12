@@ -36,6 +36,7 @@ parser.add_argument('--clusters', '-k', default=5, type=int, metavar='INT',
                     help=('Number of clusters for Kmeans clustering (default %(default)s)'))
 parser.add_argument('--seed', default=1, help='Seed for subset')
 parser.add_argument('--work-dir', default='work', help='Location of the source and target files (default %(default)s)')
+parser.add_argument('--chunksize', default=500000, type=int, help='Chunksize during Kmeans prediction (default %(default)s)')
 parser.add_argument('--overwrite', action='store_true',
                     help='Overwrite existing intermediate files')
 parser.add_argument('-o', '--output', type=argparse.FileType('w'),
@@ -49,5 +50,5 @@ if args.method == 'babystep':
     opusf = OpusFilter(config)
     opusf.execute_steps(overwrite=args.overwrite)
     
-    babystep = BabyStep(os.path.join(args.work_dir, f'sample.{args.scores}.1.gz'), k=args.clusters, output_file=args.output, workdir=args.work_dir)
+    babystep = BabyStep(os.path.join(args.work_dir, f'sample.{args.scores}.1.gz'), k=args.clusters, output_file=args.output, workdir=args.work_dir, chunksize=args.chunksize)
     babystep.classify(os.path.join(args.work_dir, args.scores))

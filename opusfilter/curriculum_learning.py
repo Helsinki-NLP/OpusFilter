@@ -10,6 +10,7 @@ import numpy as np
 
 from . import CLEAN_LOW
 from . import filters as filtermodule
+from .util import load_dataframe_in_chunks
 from .classifier import load_dataframe
 
 logger = logging.getLogger(__name__)
@@ -21,11 +22,13 @@ class BabyStep:
 
     """
 
-    def __init__(self, sample_score_file, k=5, output_file=None, workdir=None):
+    def __init__(self, sample_score_file, k=5, output_file=None, workdir=None, chunksize=500000):
         self.df = load_dataframe(sample_score_file)
         self.k = k
         self.output_file = output_file
         self.workdir = workdir
+        self.chunksize = chunksize
+
         self.filters = {}
         for name in self.df.columns:
             first_part = name.split('.')[0]
@@ -35,8 +38,8 @@ class BabyStep:
         self.standard_data = self.scaler.fit_transform(self.df)
 
         logger.info('Training KMeans with %s clusters', self.k)
-        #self.kmeans = KMeans(n_clusters=self.k, random_state=0, init='k-means++', n_init=1)
-        self.kmeans = KMeansConstrained(n_clusters=self.k, size_min=int(self.standard_data.shape[0]/self.k), random_state=0, init='k-means++', n_init=1)
+        self.kmeans = KMeans(n_clusters=self.k, random_state=0, init='k-means++', n_init=1)
+        #self.kmeans = KMeansConstrained(n_clusters=self.k, size_min=int(self.standard_data.shape[0]/self.k), random_state=0, init='k-means++', n_init=1)
         self.kmeans.fit(self.standard_data)
         logger.info(f'Sample label distribution (clean=0, noisy={self.k-1}): {dict(sorted(Counter(self.kmeans.labels_).items()))}')
 
@@ -52,15 +55,13 @@ class BabyStep:
                          for name in self.df.columns])
 
     def classify(self, score_file):
-        self.df = load_dataframe(score_file)
-        self.filters = {}
-        for name in self.df.columns:
-            first_part = name.split('.')[0]
-            filter_cls = getattr(filtermodule, first_part)
-            self.filters[name] = filter_cls
-        self.scaler = preprocessing.StandardScaler()
-        self.standard_data = self.scaler.fit_transform(self.df)
-
         logger.info(f'Dividing training data into {self.k} buckets with labels 0-{self.k-1}')
-        for label in map(lambda x: self.clean_order[x], self.kmeans.predict(self.standard_data)):
-            self.output_file.write(str(label)+'\n')
+        df_chunks = load_dataframe_in_chunks(score_file, self.chunksize)
+
+        for df in df_chunks:
+            self.standard_data = self.scaler.fit_transform(df)
+
+            for label in map(lambda x: self.clean_order[x], self.kmeans.predict(self.standard_data)):
+                self.output_file.write(str(label)+'\n')
+
+        logger.info(f'Labels written to {self.output_file.name}')
