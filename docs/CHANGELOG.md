@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - replace `langid.py` library with `py3langid`
 - update github workflows and include Python 3.12 tests
 
+### Fixed
+
+- `OpusRead` interface using `moses` format (requires `opustools >= 1.6.2`)
+
 ## [3.1.0] - 2024-06-05
 
 ### Added
