@@ -334,8 +334,14 @@ class OpusFilter:
             write=[src_out, tgt_out],
             leave_non_alignments_out=True,
             download_dir=self.output_dir)
-
-        opus_reader.printPairs()
+        try:
+            opus_reader.printPairs()
+        except Exception as err:
+            # Remove broken files
+            for outfile in [src_out, tgt_out]:
+                if os.path.isfile(outfile):
+                    os.unlink(outfile)
+            raise err
 
     @staticmethod
     def pair_generator(*filenames, tokenizers=None):
