@@ -5,7 +5,7 @@ from collections import Counter
 
 from sklearn import  preprocessing
 from sklearn.cluster import KMeans
-from k_means_constrained import KMeansConstrained
+#from k_means_constrained import KMeansConstrained
 import numpy as np
 
 from . import CLEAN_LOW
@@ -22,9 +22,9 @@ class BabyStep:
 
     """
 
-    def __init__(self, sample_score_file, k=5, output_file=None, workdir=None, chunksize=500000):
+    def __init__(self, sample_score_file, data_size, k=10, data_inc=100000, output_file=None, workdir=None, chunksize=500000):
         self.df = load_dataframe(sample_score_file)
-        self.k = k
+        self.k = k + int((data_size - data_inc)/data_inc)
         self.output_file = output_file
         self.workdir = workdir
         self.chunksize = chunksize
@@ -46,7 +46,7 @@ class BabyStep:
         # Low values are clean, high values are noisy
         adjusted_centers = self.kmeans.cluster_centers_ * self.direction_vector
         # The buckets are labeled from cleanest to noisiest with labels from 0 to k 
-        self.clean_order = [np.where(np.argsort(np.mean(adjusted_centers, axis=1))==i)[0][0] for i in range(k)]
+        self.clean_order = [np.where(np.argsort(np.mean(adjusted_centers, axis=1))==i)[0][0] for i in range(self.k)]
 
     @property
     def direction_vector(self):
