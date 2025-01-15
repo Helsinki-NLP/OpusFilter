@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- support for selection of possible languages for `lingua` language detection
+
 ## [3.2.0] - 2024-08-14
 
 ### Changed
