@@ -38,7 +38,7 @@ Parameters:
 * `id_method`: language indentification method (`langid`, `lingua`, `cld2`, `fasttext`; default `langid`)
 * `thresholds`: minimum identification confidence score for the segments (a single float or a list of floats per language)
 * `fasttext_model_path`: path for a `fasttext` model (required only for the `fasttext` method; default `null`)
-* `langid_languages`: limit detection to a list of possible languages (valid only for the `langid` method; default `null`)
+* `langid_languages`: limit detection to a list of ISO 639-1 codes for possible languages (valid only for the `langid` and `lingua` methods; default `null`)
 * `cld2_options`: a dictionary of options for the `cld2` method (valid only for the `cld2` method; default `null`)
 * `lingua_mode`: a string specifying whether to use lingua's `high` or `low` accuracy mode
 

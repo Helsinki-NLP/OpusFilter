@@ -305,6 +305,9 @@ class LanguageIDFilter(FilterABC):
         self.cld2_options = None
         self.fasttext_model = None
         self.lingua_detector = None
+        if langid_languages and id_method not in {'langid', 'lingua'}:
+            raise ConfigurationError(
+                "langid_languages option is supported only by the langid and lingua methods")
         if id_method == 'fasttext':
             self.init_fastttext(fasttext_model_path)
         else:
@@ -313,17 +316,13 @@ class LanguageIDFilter(FilterABC):
                                          "path to model was set")
         if id_method == 'langid':
             self.init_langid(langid_languages)
-        else:
-            if langid_languages:
-                raise ConfigurationError(
-                    "langid_languages option is supported only by the method langid")
         if id_method == 'cld2':
             self.cld2_options = cld2_options if cld2_options else {}
         else:
             if cld2_options:
                 raise ConfigurationError("cld2_options is supported only by the method cld2")
         if id_method == "lingua":
-            self.init_lingua(lingua_mode if lingua_mode else 'low')
+            self.init_lingua(lingua_mode if lingua_mode else 'low', langid_languages)
         else:
             if lingua_mode:
                 raise ConfigurationError("lingua_mode is supported only by the method lingua")
@@ -351,11 +350,17 @@ class LanguageIDFilter(FilterABC):
             raise
         self.fasttext_model = fasttext.load_model(os.path.join(self.workdir, fasttext_model_path))
 
-    def init_lingua(self, lingua_mode):
+    def init_lingua(self, lingua_mode, languages):
         """Initialize lingua identifier"""
-        from lingua import LanguageDetectorBuilder
-        # TODO: support lingua_languages just like langid_languages
-        from_languages = LanguageDetectorBuilder.from_all_languages()
+        from lingua import LanguageDetectorBuilder, IsoCode639_1
+        if languages:
+            for code in languages:
+                if not hasattr(IsoCode639_1, code.upper()):
+                    raise ConfigurationError(f"Language {code} not supported by lingua")
+            from_languages = LanguageDetectorBuilder.from_iso_codes_639_1(
+                *[getattr(IsoCode639_1, code.upper()) for code in languages])
+        else:
+            from_languages = LanguageDetectorBuilder.from_all_languages()
         if lingua_mode == "high":
             self.lingua_detector = from_languages.with_preloaded_language_models().build()
         elif lingua_mode == "low":

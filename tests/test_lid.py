@@ -149,3 +149,21 @@ class TestLingua(TestLangIDMethod):
         pair_expecteds = [True, False]
         for pair_score, pair_expected in zip(pair_scores, pair_expecteds):
             self.assertEqual(model.accept(pair_score), pair_expected)
+
+    def test_limited_languages(self):
+        model = LanguageIDFilter(
+            languages=['en', 'fr'], id_method='lingua', thresholds=[0.4, 0.99],
+            langid_languages=['en', 'fr', 'de', 'fi'])
+        pair_scores = model.score(self.pairs_inputs)
+        pair_expecteds = [True, False]
+        for pair_score, pair_expected in zip(pair_scores, pair_expecteds):
+            self.assertEqual(model.accept(pair_score), pair_expected)
+
+    def test_badly_limited_languages(self):
+        model = LanguageIDFilter(
+            languages=['en', 'fr'], id_method='lingua', thresholds=[0.4, 0.99],
+            langid_languages=['en', 'de', 'fi'])
+        pair_scores = model.score(self.pairs_inputs)
+        pair_expecteds = [False, False]
+        for pair_score, pair_expected in zip(pair_scores, pair_expecteds):
+            self.assertEqual(model.accept(pair_score), pair_expected)
