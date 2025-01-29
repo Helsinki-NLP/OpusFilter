@@ -35,11 +35,12 @@ Filter segments based on their language identification confidence scores.
 Parameters:
 
 * `languages`: expected languages (ISO639 language codes) for the segments
-* `id_method`: language indentification method (`langid`, `lingua`, `cld2`, `fasttext`; default `langid`)
+* `id_method`: language indentification method (`langid`, `lingua`, `cld2`, `fasttext`, `heliport`; default `langid`)
 * `thresholds`: minimum identification confidence score for the segments (a single float or a list of floats per language)
 * `fasttext_model_path`: path for a `fasttext` model (required only for the `fasttext` method; default `null`)
 * `langid_languages`: limit detection to a list of ISO 639-1 codes for possible languages (valid only for the `langid` and `lingua` methods; default `null`)
 * `cld2_options`: a dictionary of options for the `cld2` method (valid only for the `cld2` method; default `null`)
+* `heliport_options`: a dictionary of options for the `heliport` method (valid only for the `heliport` method; default `null`)
 * `lingua_mode`: a string specifying whether to use lingua's `high` or `low` accuracy mode
 
 Returned scores are the language identification confidence scores from a given identification method for the segments. The scores range from 0 to 1. In filtering, all values have to be greater than the minimum thresholds. Negative threshold can be used to skip filtering for a language.
@@ -56,3 +57,6 @@ Currently the following identification methods are supported:
 * `fasttext` :cite:`joulin-etal-2016-fasttext` and :cite:`joulin-etal-2017-bag`
   * A pretrained model can be downloaded from [fasttext.cc/docs/en/language-identification.html](https://fasttext.cc/docs/en/language-identification.html).
   * Requires [installing optional libraries](../installation.md).
+* `heliport`, a port of HeLI-OTS :cite:`jauhiainen-etal-2022-heli`
+  * See https://github.com/ZJaume/heliport
+  * The current Python interface does not support outputting confidence values. Score 1.0 is used if the correct language is predicted. If the low-confidence label `und` is returned, the language is considered correct with score 0.5.

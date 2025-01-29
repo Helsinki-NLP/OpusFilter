@@ -24,7 +24,8 @@ install_requires = [
     "subword_nmt",
     "tqdm",
     'lingua-language-detector>=1.3.0,<2.1 ; python_version < "3.10"',
-    'lingua-language-detector>=2.1.1 ; python_version >= "3.10"'
+    'lingua-language-detector>=2.1.1 ; python_version >= "3.10"',
+    "iso639-lang"
 ]
 
 pycld2_require = [
@@ -58,6 +59,10 @@ varikn_require = [
     'varikn'
 ]
 
+heliport_require = [
+    'heliport'
+]
+
 tests_require = [
     'pytest'
 ]
@@ -69,8 +74,8 @@ docs_require = [
     'sphinxcontrib-bibtex'
 ]
 
-all_require = pycld2_require + fasttext_require + eflomal_require + jieba_require + \
-    mecab_require + laser_require + varikn_require + tests_require + docs_require
+all_require = eflomal_require + jieba_require + mecab_require + laser_require + varikn_require + \
+    tests_require + docs_require
 
 setuptools.setup(
     name="opusfilter",
@@ -90,8 +95,8 @@ setuptools.setup(
     tests_require=tests_require,
     extras_require={'test': tests_require, 'pycld2': pycld2_require, 'fasttext': fasttext_require,
                     'eflomal': eflomal_require, 'jieba': jieba_require, 'mecab': mecab_require,
-                    'laser': laser_require, 'varikn': varikn_require, 'docs': docs_require,
-                    'all': all_require},
+                    'laser': laser_require, 'varikn': varikn_require, 'heliport': heliport_require,
+                    'docs': docs_require, 'all': all_require},
     classifiers=(
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",

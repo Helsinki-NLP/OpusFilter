@@ -21,6 +21,11 @@ try:
 except ImportError:
     logging.warning("Could not import pycld2")
 
+try:
+    import heliport
+except ImportError:
+    logging.warning("Could not import heliport")
+
 
 class TestLangIDMethod(unittest.TestCase):
 
@@ -165,5 +170,17 @@ class TestLingua(TestLangIDMethod):
             langid_languages=['en', 'de', 'fi'])
         pair_scores = model.score(self.pairs_inputs)
         pair_expecteds = [False, False]
+        for pair_score, pair_expected in zip(pair_scores, pair_expecteds):
+            self.assertEqual(model.accept(pair_score), pair_expected)
+
+
+class TestHeliport(TestLangIDMethod):
+
+    @unittest.skipIf('heliport' not in globals(), 'heliport not installed')
+    def test_accept(self):
+        model = LanguageIDFilter(
+            languages=['en', 'fr'], id_method='heliport', thresholds=[0.5, 0.5])
+        pair_scores = model.score(self.pairs_inputs)
+        pair_expecteds = [True, False]
         for pair_score, pair_expected in zip(pair_scores, pair_expecteds):
             self.assertEqual(model.accept(pair_score), pair_expected)

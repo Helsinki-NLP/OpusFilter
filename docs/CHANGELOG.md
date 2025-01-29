@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - support for selection of possible languages for `lingua` language detection
 - `letter_words_only` option for duplicate detection
+- support for `heliport` language detection
+
+### Changed
+
+- removed pycld2 and fasttext from the `[all]` extras
 
 ### Changed
 
