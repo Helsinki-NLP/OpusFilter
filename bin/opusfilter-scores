@@ -14,8 +14,7 @@ from tqdm import tqdm
 
 from pandas.plotting import scatter_matrix
 
-from opusfilter.util import file_open
-from opusfilter.classifier import lists_to_dicts
+from opusfilter.util import file_open, lists_to_dicts
 
 
 logger = logging.getLogger(__name__)

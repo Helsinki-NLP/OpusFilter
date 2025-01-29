@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - support for selection of possible languages for `lingua` language detection
 
+### Fixed
+
+- fix broken import in `opusfilter-scores`
+
 ## [3.2.0] - 2024-08-14
 
 ### Changed
