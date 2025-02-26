@@ -1,22 +1,26 @@
 """Hashing parallel segments"""
 
+import collections
 import functools
+import logging
 
 import regex
 import xxhash
 
-
 from . import ConfigurationError
+from .tokenization import get_tokenize
 
 
 class SegmentHasher:
     """Hasher for text segments"""
 
     not_letter = regex.compile(r'[^\p{L}]')
+    letters = regex.compile(r'^[\p{L}]+$')
     join_char = '\n'
     join_char_escaped = r'\n'
 
-    def __init__(self, compare='all', method='xxh64', hashseed=0, lowercase=False, letters_only=False):
+    def __init__(self, compare='all', method='xxh64', hashseed=0, lowercase=False,
+                 letters_only=False, letter_words_only=False, tokenizers=None):
         """Create a hasher for parallel segments
 
         Keyword arguments:
@@ -24,7 +28,12 @@ class SegmentHasher:
           method -- hash function from xxhash library, None for no hashing (default 'xxh64')
           hashseed -- integer seed for the hash algorithm (default 0)
           lowercase -- lowercase input strings before hashing
-          letters_only -- remove all non-letters from intput strings before hashing
+          letters_only -- remove all non-letters from input strings before hashing
+          letter_words_only -- remove all tokens that contain non-letter characters before hashing
+          tokenizers -- tokenizer specifications to use with letter_words_only, one per parallel segment
+
+        If letter_words_only is enabled and no tokenizer specifications are provided, it is
+        assumed that the inputs are pre-tokenized (words separated by whitespace).
 
         """
         self.compare = None
@@ -42,6 +51,8 @@ class SegmentHasher:
         self.hashfunc = functools.partial(self._xxhash_func, method=method, seed=hashseed)
         self.lowercase = lowercase
         self.letters_only = letters_only
+        self.letter_words_only = letter_words_only
+        self.tokenizer_specs = tokenizers
 
     @staticmethod
     def _xxhash_func(string, method, seed):
@@ -57,8 +68,13 @@ class SegmentHasher:
         func = getattr(xxhash, method + '_intdigest')
         return func(string.encode('utf_16_le'), seed=seed)
 
-    def preprocess(self, inputstr):
+    def preprocess(self, inputstr, tokenizer=None):
         """Preprocess string"""
+        if self.letter_words_only:
+            if tokenizer:
+                inputstr = tokenizer.tokenize(inputstr)
+            inputstr = ' '.join(token for token in inputstr.split() if self.letters.search(token))
+            logging.error(inputstr)
         if self.letters_only:
             inputstr = regex.sub(self.not_letter, '', inputstr)
         if self.lowercase:
@@ -68,11 +84,18 @@ class SegmentHasher:
 
     def apply(self, segments):
         """Hash a list of segments"""
+        tokenizers = collections.defaultdict(lambda: None)
+        if self.tokenizer_specs:
+            spec_indices = range(len(self.tokenizer_specs)) if self.compare is None else self.compare
+            for idx in spec_indices:
+                tokenizers[idx] = get_tokenize(self.tokenizer_specs[idx])
         if self.compare is None:
-            inputstr = self.join_char.join(self.preprocess(seg) for seg in segments)
+            inputstr = self.join_char.join(
+                self.preprocess(seg, tokenizer=tokenizers[idx]) for idx, seg in enumerate(segments))
         else:
             try:
-                inputstr = self.join_char.join(self.preprocess(segments[idx]) for idx in self.compare)
+                inputstr = self.join_char.join(
+                    self.preprocess(segments[idx], tokenizer=tokenizers[idx]) for idx in self.compare)
             except KeyError as err:
                 raise ConfigurationError(
                     f"The input indices {self.compare} in the compare parameter do not match input of "
