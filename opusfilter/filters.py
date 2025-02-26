@@ -328,6 +328,11 @@ class LanguageIDFilter(FilterABC):
             if lingua_mode:
                 raise ConfigurationError("lingua_mode is supported only by the method lingua")
         if id_method == "heliport":
+            if heliport_options is None:
+                heliport_options = {}
+            self.heliport_confidence_scores = True
+            if 'score_type' in heliport_options:
+                self.heliport_score_type = heliport_options.pop('score_type')
             self.init_heliport(**{} if heliport_options is None else heliport_options)
         else:
             if heliport_options is not None:
@@ -427,6 +432,12 @@ class LanguageIDFilter(FilterABC):
             return liconf
 
         if self.id_method == 'heliport':
+            # ignore_confidence = False, simple scores
+            # -> 0 (incorrect), 0.5 (und), 1 (correct)
+            # ignore_confidence = False, confidence scores
+            # -> 0 (incorrect), 0 (und), confidence (correct)
+            # ignore_confidence = True
+            # map top-k to probabilities -> 0 (incorrect), probability (correct)
             iso_code_639_3 = self.identifier.identify(sentence)
             if iso_code_639_3 == 'und':
                 # special label for too low confidence

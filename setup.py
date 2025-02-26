@@ -60,7 +60,7 @@ varikn_require = [
 ]
 
 heliport_require = [
-    'heliport'
+    'heliport>=0.9.0'
 ]
 
 tests_require = [
