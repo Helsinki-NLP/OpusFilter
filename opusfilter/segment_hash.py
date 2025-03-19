@@ -53,6 +53,7 @@ class SegmentHasher:
         self.letters_only = letters_only
         self.letter_words_only = letter_words_only
         self.tokenizer_specs = tokenizers
+        self._tokenizers = collections.defaultdict(lambda: None)
 
     @staticmethod
     def _xxhash_func(string, method, seed):
@@ -83,18 +84,19 @@ class SegmentHasher:
 
     def apply(self, segments):
         """Hash a list of segments"""
-        tokenizers = collections.defaultdict(lambda: None)
         if self.tokenizer_specs:
             spec_indices = range(len(self.tokenizer_specs)) if self.compare is None else self.compare
             for idx in spec_indices:
-                tokenizers[idx] = get_tokenize(self.tokenizer_specs[idx])
+                # Initialize tokenizers if not yet done
+                if idx not in self._tokenizers:
+                    self._tokenizers[idx] = get_tokenize(self.tokenizer_specs[idx])
         if self.compare is None:
             inputstr = self.join_char.join(
-                self.preprocess(seg, tokenizer=tokenizers[idx]) for idx, seg in enumerate(segments))
+                self.preprocess(seg, tokenizer=self._tokenizers[idx]) for idx, seg in enumerate(segments))
         else:
             try:
                 inputstr = self.join_char.join(
-                    self.preprocess(segments[idx], tokenizer=tokenizers[idx]) for idx in self.compare)
+                    self.preprocess(segments[idx], tokenizer=self._tokenizers[idx]) for idx in self.compare)
             except KeyError as err:
                 raise ConfigurationError(
                     f"The input indices {self.compare} in the compare parameter do not match input of "
