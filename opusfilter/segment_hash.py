@@ -74,7 +74,6 @@ class SegmentHasher:
             if tokenizer:
                 inputstr = tokenizer.tokenize(inputstr)
             inputstr = ' '.join(token for token in inputstr.split() if self.letters.search(token))
-            logging.error(inputstr)
         if self.letters_only:
             inputstr = regex.sub(self.not_letter, '', inputstr)
         if self.lowercase:
