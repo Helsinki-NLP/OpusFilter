@@ -14,7 +14,7 @@ Parameters:
 * `letters_only`: remove all non-letters from intput strings before hashing (optional; default `false`)
 * `letter_words_only`: remove words with non-letter characters before hashing (optional; default `false`)
 * `lowercase`: lowercase input strings before hashing (optional; default `false`)
-* `tokenizers`: load tokenizer specifications from a list (optional; use with `letters_words_only`)
+* `tokenizers`: load tokenizer specifications from a list (optional; use with `letter_words_only`)
 
 Duplicate filtering is recommended as a first step especially if you
 combine different corpus collections (e.g. data crawled from web) and
