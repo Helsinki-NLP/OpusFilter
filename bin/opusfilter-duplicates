@@ -26,7 +26,7 @@ parser.add_argument('--hash', type=str, default='xxh64',
                           'for no hashing (default "xxh64")'))
 parser.add_argument('--letters-only', action='store_true', default=False,
                     help='remove all non-letters from intput strings before hashing')
-parser.add_argument('--letters-words-only', action='store_true', default=False,
+parser.add_argument('--letter-words-only', action='store_true', default=False,
                     help='remove words with non-letter characters before hashing')
 parser.add_argument('--lowercase', action='store_true', default=False,
                     help='lowercase input strings before hashing')
