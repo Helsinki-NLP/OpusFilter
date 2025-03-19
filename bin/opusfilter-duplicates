@@ -32,7 +32,7 @@ parser.add_argument('--lowercase', action='store_true', default=False,
                     help='lowercase input strings before hashing')
 parser.add_argument('--tokenizers', type=str, metavar='JSON', default=None,
                     help=('load tokenizer specifications from a JSON list (e.g. \'[["moses", "en"], ["jieba", "zh"]]\'); '
-                          'use with --letters-words-only'))
+                          'use with --letter-words-only'))
 
 args = parser.parse_args()
 

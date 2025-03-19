@@ -31,7 +31,7 @@ between them. The syntax for the `opusfilter-duplicates` is:
 
 ```
 opusfilter-duplicates [--overlap FILE [FILE ...]] [--hash HASH] [--letters-only]
-[--letters-words-only] [--lowercase] [--tokenizers JSON] FILE [FILE ...]
+[--letter-words-only] [--lowercase] [--tokenizers JSON] FILE [FILE ...]
 ```
 
 The options are essentially the same as for [`remove_duplicates`](remove_duplicates).
