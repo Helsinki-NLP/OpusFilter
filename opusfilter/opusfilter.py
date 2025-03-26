@@ -901,7 +901,8 @@ class OpusFilter:
     def remove_duplicates(self, parameters, overwrite=False):
         """Remove duplicates from parallel lines in files"""
         self._check_extra_parameters(
-            {'inputs', 'outputs', 'compare', 'hash', 'letters_only', 'lowercase', 'overlap'}, parameters)
+            {'inputs', 'outputs', 'compare', 'hash', 'letters_only', 'letter_words_only',
+             'lowercase', 'tokenizers', 'overlap'}, parameters)
         outfiles = [os.path.join(self.output_dir, fname) for fname in parameters['outputs']]
         infiles = [os.path.join(self.output_dir, fname) for fname in parameters['inputs']]
         if len(outfiles) != len(infiles):
@@ -914,7 +915,9 @@ class OpusFilter:
             compare=parameters.get('compare', 'all'),
             method=parameters.get('hash', 'xxh64'),
             letters_only=parameters.get('letters_only', False),
+            letter_words_only=parameters.get('letter_words_only', False),
             lowercase=parameters.get('lowercase', False),
+            tokenizers=parameters.get('tokenizers')
         )
         infs = [file_open(infile) for infile in infiles]
         outfs = [file_open(outfile, 'w') for outfile in outfiles]
