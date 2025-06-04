@@ -11,7 +11,8 @@ install_requires = [
     "py3langid>=0.2.2",
     "matplotlib",
     "morfessor",
-    "opus-fast-mosestokenizer>=0.0.8.5",
+    'opus-fast-mosestokenizer==0.0.8.7 ; python_version < "3.9"',
+    'opus-fast-mosestokenizer>=0.0.8.8 ; python_version >= "3.9"',
     "pandas>=1.0.0",
     "xxhash>=3.2.0",
     "sentence-splitter",
@@ -22,7 +23,8 @@ install_requires = [
     "scikit-learn",
     "subword_nmt",
     "tqdm",
-    "lingua-language-detector>=1.3.0"
+    'lingua-language-detector>=1.3.0,<2.1 ; python_version < "3.10"',
+    'lingua-language-detector>=2.1.1 ; python_version >= "3.10"'
 ]
 
 pycld2_require = [
