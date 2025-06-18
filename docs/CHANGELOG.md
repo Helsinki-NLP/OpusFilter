@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - support for selection of possible languages for `lingua` language detection
 - `letter_words_only` option for duplicate detection
 
+### Changed
+
+- update library requirements and include Python 3.13 tests
+
 ### Fixed
 
 - fix broken import in `opusfilter-scores`
