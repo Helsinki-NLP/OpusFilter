@@ -84,7 +84,7 @@ class Cld2Filter(FilterABC):
         try:
             import pycld2
         except ImportError:
-            logger.warning("Could not import pycld2. Select another id_method for LanguageIDFilter.")
+            logger.warning("Could not import pycld2")
             raise
         try:
             clddetails = pycld2.detect(sentence, **self.options)
@@ -123,8 +123,10 @@ class FastTextFilter(FilterABC):
         try:
             import fasttext
         except ImportError:
-            logger.warning("Could not import fasttext. Select another id_method for LanguageIDFilter.")
+            logger.warning("Could not import fasttext")
             raise
+        if not model_path:
+            raise ConfigurationError("FastTextFilter requires model_path pointing to a fasttext model")
         self.fasttext_model = fasttext.load_model(os.path.join(self.workdir, model_path))
         # global options
         self.languages = languages

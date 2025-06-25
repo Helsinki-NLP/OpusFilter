@@ -76,7 +76,7 @@ class TestCLD2(TestLangIDMethod):
     def test_accept_with_options(self):
         model = Cld2Filter(
             languages=['en', 'fr'], thresholds=[0.9, 0.9],
-            cld2_options={'bestEffort': True})
+            options={'bestEffort': True})
         pair_scores = model.score(self.pairs_inputs)
         pair_expecteds = [True, False, True]
         for pair_score, pair_expected in zip(pair_scores, pair_expecteds):
@@ -107,19 +107,14 @@ class TestFasttext(TestLangIDMethod):
     def test_missing_model(self):
         with self.assertRaises(ConfigurationError):
             model = FastTextFilter(
-                languages=['en', 'fr'], id_method='fasttext', thresholds=[0.8, 0.99])
-
-    def test_wrong_method_with_model(self):
-        with self.assertRaises(ConfigurationError):
-            model = FastTextFilter(
-                languages=['en', 'fr'], thresholds=[0.8, 0.99], fasttext_model_path=self.tempdir)
+                languages=['en', 'fr'], thresholds=[0.8, 0.99])
 
     def test_fasttext_predict_lang(self):
         if self.testmodel is None:
             self.skipTest("Failed to download test resources")
         model = FastTextFilter(
             languages=['en', 'fr'], thresholds=[0.8, 0.99],
-            fasttext_model_path=self.testmodel)
+            model_path=self.testmodel)
         expected = ['en', 'fr']
         results = [model._fasttext_predict_lang(fasttext_input)[0]
                    for fasttext_input in self.fasttext_inputs]
@@ -130,7 +125,7 @@ class TestFasttext(TestLangIDMethod):
             self.skipTest("Failed to download test resources")
         model = FastTextFilter(
             languages=['en', 'fr'], thresholds=[0.8, 0.99],
-            fasttext_model_path=self.testmodel)
+            model_path=self.testmodel)
         pair_scores = model.score(self.pairs_inputs)
         pair_expecteds = [True, False]
         for pair_score, pair_expected in zip(pair_scores, pair_expecteds):
