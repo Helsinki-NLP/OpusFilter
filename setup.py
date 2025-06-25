@@ -12,7 +12,7 @@ install_requires = [
     "matplotlib",
     "morfessor",
     'opus-fast-mosestokenizer==0.0.8.7 ; python_version < "3.9"',
-    'opus-fast-mosestokenizer>=0.0.8.8 ; python_version >= "3.9"',
+    'opus-fast-mosestokenizer>=0.0.8.7 ; python_version >= "3.9"',
     "pandas>=1.0.0",
     "xxhash>=3.2.0",
     "sentence-splitter",
@@ -60,7 +60,7 @@ varikn_require = [
 ]
 
 heliport_require = [
-    'heliport>=0.9.0'
+    'heliport>=0.10.0'
 ]
 
 tests_require = [

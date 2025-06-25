@@ -8,10 +8,11 @@ import os
 import string
 from typing import Iterator, List, Tuple
 
-from iso639 import Lang
 import regex
 
 from . import FilterABC, ConfigurationError, CLEAN_LOW, CLEAN_HIGH, CLEAN_BETWEEN, CLEAN_TRUE, CLEAN_FALSE
+from .lid import Cld2Filter, FastTextFilter, HeliportConfidenceFilter, HeliportProbabilityFilter, \
+    HeliportRawScoreFilter, HeliportSimpleFilter, LangidFilter, LinguaFilter  # pylint: disable=W0611 # noqa: F401
 from .lm import CrossEntropyFilter, CrossEntropyDifferenceFilter, LMClassifierFilter  # pylint: disable=W0611 # noqa: F401
 from .util import check_args_compability
 from .word_alignment import WordAlignFilter      # pylint: disable=W0611 # noqa: F401
@@ -284,7 +285,12 @@ class CharacterScoreFilter(FilterABC):
 class LanguageIDFilter(FilterABC):
     """Language identification confidence filter
 
-    Currently this supports four methods:
+    This common filter class for different language identification
+    methods should be replaced by the respective method-specific
+    filter classes defined in the lid submodule.
+
+    For backward compatibility, this still supports four methods:
+
     * langid (default): see :cite:`lui-baldwin-2012-langid`
     * cld2: see https://github.com/CLD2Owners/cld2
     * fasttext: see :cite:`joulin-etal-2016-fasttext` and :cite:`joulin-etal-2017-bag`
@@ -298,8 +304,16 @@ class LanguageIDFilter(FilterABC):
 
     def __init__(self, languages=None, id_method='langid', thresholds=None,
                  fasttext_model_path=None, langid_languages=None, cld2_options=None,
-                 lingua_mode=None, heliport_options=None, **kwargs):
+                 lingua_mode=None, **kwargs):
         super().__init__(**kwargs)
+        suggested_filters = {
+            'langid': 'LangidFilter',
+            'cld2': 'Cld2Filter',
+            'fasttext': 'FastTextFilter',
+            'lingua': 'LinguaFilter'
+        }
+        logger.warning("LanguageIDFilter for id_method %s is deprecated, use %s instead.",
+                       id_method, suggested_filters[id_method])
         if languages is None:
             raise ConfigurationError("A list of language codes needs to be defined")
         self.identifier = None
@@ -327,16 +341,6 @@ class LanguageIDFilter(FilterABC):
         else:
             if lingua_mode:
                 raise ConfigurationError("lingua_mode is supported only by the method lingua")
-        if id_method == "heliport":
-            if heliport_options is None:
-                heliport_options = {}
-            self.heliport_confidence_scores = True
-            if 'score_type' in heliport_options:
-                self.heliport_score_type = heliport_options.pop('score_type')
-            self.init_heliport(**{} if heliport_options is None else heliport_options)
-        else:
-            if heliport_options is not None:
-                raise ConfigurationError("heliport_options is supported only by the method heliport")
         # global options
         self.languages = languages
         self.id_method = id_method
@@ -378,10 +382,6 @@ class LanguageIDFilter(FilterABC):
             self.lingua_detector = from_languages.with_low_accuracy_mode().build()
         else:
             raise ConfigurationError(f"lingua mode '{lingua_mode}' is not supported.")
-
-    def init_heliport(self, ignore_confidence=False):
-        from heliport import Identifier
-        self.identifier = Identifier(ignore_confidence=ignore_confidence)
 
     def confidence(self, sentence: str, lan: str) -> float:
         """Return confidence of the identifier"""
@@ -430,22 +430,6 @@ class LanguageIDFilter(FilterABC):
             else:
                 liconf = confidence
             return liconf
-
-        if self.id_method == 'heliport':
-            # ignore_confidence = False, simple scores
-            # -> 0 (incorrect), 0.5 (und), 1 (correct)
-            # ignore_confidence = False, confidence scores
-            # -> 0 (incorrect), 0 (und), confidence (correct)
-            # ignore_confidence = True
-            # map top-k to probabilities -> 0 (incorrect), probability (correct)
-            iso_code_639_3 = self.identifier.identify(sentence)
-            if iso_code_639_3 == 'und':
-                # special label for too low confidence
-                return 0.5
-            lang = Lang(iso_code_639_3).pt1  # convert to ISO 639-1
-            if lang != lan:
-                return 0.0
-            return 1.0
 
         raise ValueError(f"Unknown language identification method '{self.id_method}'")
 
