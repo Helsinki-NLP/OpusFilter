@@ -270,14 +270,14 @@ class HeliportConfidenceFilter(HeliportSimpleFilter):
     """
 
     score_direction = CLEAN_HIGH
-    accept_threshold = 0
+    accept_threshold = -1
     reject_threshold = 7
 
     def confidence(self, sentence: str, lan: str) -> float:
         """Return confidence of the identifier"""
         if not sentence:
             # Prevent filtering empty lines
-            return 1.0
+            return self.reject_threshold
         iso_code_639_3, score = self.identifier.identify_with_score(sentence, ignore_confidence=False)
         if iso_code_639_3 == 'und':
             # special label for too low confidence; should be considered as a possible match
@@ -317,7 +317,7 @@ class HeliportRawScoreFilter(HeliportSimpleFilter):
         """Return raw score of the identifier"""
         if not sentence:
             # Prevent filtering empty lines
-            return 1.0
+            return 0
         results = self.identifier.identify_topk_with_score(sentence, k=self.topk)
         lang_to_score = {Lang(lang).pt1: score for lang, score in results}
         return lang_to_score.get(lan, self.penalty_value)
