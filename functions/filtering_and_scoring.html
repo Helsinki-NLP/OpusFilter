@@ -1,23 +1,21 @@
+
+
 <!DOCTYPE html>
 <html class="writer-html5" lang="en">
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Filtering and scoring &mdash; OpusFilter 3.2.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+  <title>Filtering and scoring &mdash; OpusFilter 3.3.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script src="../_static/jquery.js?v=5d32c60e"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=6d170d0f"></script>
-        <script src="../_static/doctools.js?v=888ff710"></script>
-        <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=1cc24756"></script>
+      <script src="../_static/doctools.js?v=888ff710"></script>
+      <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -36,9 +34,6 @@
           <a href="../index.html" class="icon icon-home">
             OpusFilter
           </a>
-              <div class="version">
-                3.2
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -131,6 +126,10 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">compare</span></code>: select files for duplicate comparison (optional; default <code class="docutils literal notranslate"><span class="pre">all</span></code> or a list of indices)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">hash</span></code>: select hash algorithm from xxhash (optional; default <code class="docutils literal notranslate"><span class="pre">xxh64</span></code>)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">overlap</span></code>: remove overlap with a second set of files (optional; default <code class="docutils literal notranslate"><span class="pre">null</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">letters_only</span></code>: remove all non-letters from intput strings before hashing (optional; default <code class="docutils literal notranslate"><span class="pre">false</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">letter_words_only</span></code>: remove words with non-letter characters before hashing (optional; default <code class="docutils literal notranslate"><span class="pre">false</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lowercase</span></code>: lowercase input strings before hashing (optional; default <code class="docutils literal notranslate"><span class="pre">false</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tokenizers</span></code>: load tokenizer specifications from a list (optional; use with <code class="docutils literal notranslate"><span class="pre">letter_words_only</span></code>)</p></li>
 </ul>
 <p>Duplicate filtering is recommended as a first step especially if you
 combine different corpus collections (e.g. data crawled from web) and
@@ -154,6 +153,9 @@ default 64-bit XXHash algorithm should be fine for any practical data
 sizes, but if do not care about memory use and want to be extra sure
 there are no collisions, you can disable hashing by setting the <code class="docutils literal notranslate"><span class="pre">hash</span></code>
 parameter as empty string or null.</p>
+<p>For the <code class="docutils literal notranslate"><span class="pre">letter_words_only</span></code>, unless the input is pre-tokenized, you
+should select tokenizers for each of the input files. See
+<a class="reference internal" href="#tokenizer.md"><span class="xref myst">Tokenizer</span></a> for description of the tokenizer parameters.</p>
 </section>
 <section id="filter">
 <h2>filter<a class="headerlink" href="#filter" title="Permalink to this heading"></a></h2>

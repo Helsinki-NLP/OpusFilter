@@ -1,23 +1,21 @@
+
+
 <!DOCTYPE html>
 <html class="writer-html5" lang="en">
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Installation &mdash; OpusFilter 3.2.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+  <title>Installation &mdash; OpusFilter 3.3.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
   
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script src="_static/jquery.js?v=5d32c60e"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=6d170d0f"></script>
-        <script src="_static/doctools.js?v=888ff710"></script>
-        <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=1cc24756"></script>
+      <script src="_static/doctools.js?v=888ff710"></script>
+      <script src="_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -36,9 +34,6 @@
           <a href="index.html" class="icon icon-home">
             OpusFilter
           </a>
-              <div class="version">
-                3.2
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -52,7 +47,7 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#required-libraries">Required libraries</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#optional-libraries-and-tools">Optional libraries and tools</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#fasttext-and-pycld2-language-identification">FastText and PyCLD2 language identification</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fasttext-pycld2-and-heliport-language-identification">FastText, PyCLD2, and heliport language identification</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#jieba-and-mecab-word-segmentation">Jieba and MeCab word segmentation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#laser-sentence-embeddings">LASER sentence embeddings</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#varikn-n-gram-models">VariKN n-gram models</a></li>
@@ -142,7 +137,7 @@
 </ul>
 <p>Note that all required libraries are not available to install via PyPI
 on Windows OS. On Linux and MacOS, it should work directly for Python
-versions from 3.8 to 3.12.</p>
+versions from 3.8 to 3.13.</p>
 <section id="required-libraries">
 <h2>Required libraries<a class="headerlink" href="#required-libraries" title="Permalink to this heading"></a></h2>
 <ul class="simple">
@@ -169,21 +164,23 @@ versions from 3.8 to 3.12.</p>
 </section>
 <section id="optional-libraries-and-tools">
 <h2>Optional libraries and tools<a class="headerlink" href="#optional-libraries-and-tools" title="Permalink to this heading"></a></h2>
-<section id="fasttext-and-pycld2-language-identification">
-<h3>FastText and PyCLD2 language identification<a class="headerlink" href="#fasttext-and-pycld2-language-identification" title="Permalink to this heading"></a></h3>
+<section id="fasttext-pycld2-and-heliport-language-identification">
+<h3>FastText, PyCLD2, and heliport language identification<a class="headerlink" href="#fasttext-pycld2-and-heliport-language-identification" title="Permalink to this heading"></a></h3>
 <p>The language identification libraries currently supported out-of-the-box
 are <a class="reference external" href="https://github.com/adbar/py3langid">py3langid</a> and
-<a class="reference external" href="https://github.com/pemistahl/lingua-py">lingua</a>. The support for for
+<a class="reference external" href="https://github.com/pemistahl/lingua-py">lingua</a>. The support for
 <a class="reference external" href="https://github.com/aboSamoor/pycld2">PyCLD2</a> and
 <a class="reference external" href="https://fasttext.cc/docs/en/language-identification.html">FastText models</a>
 have been changed to optional due to the lack of support especially
-for newer Python versions.</p>
+for newer Python versions. Also the support for
+<a class="reference external" href="https://github.com/ZJaume/heliport">heliport</a> is optional. Please
+note that <code class="docutils literal notranslate"><span class="pre">heliport</span></code> has GPL-3.0 license.</p>
 <p>The PyCLD2 support can be installed automatically with pip by
-including the extras <code class="docutils literal notranslate"><span class="pre">[pycld2]</span></code> or <code class="docutils literal notranslate"><span class="pre">[all]</span></code> (e.g.
-<code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">opusfilter[pycld2]</span></code>).</p>
+including the extras <code class="docutils literal notranslate"><span class="pre">[pycld2]</span></code> (e.g. <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">opusfilter[pycld2]</span></code>).</p>
 <p>The support for FastText models can be installed automatically with
-pip by including the extras <code class="docutils literal notranslate"><span class="pre">[fasttext]</span></code> or <code class="docutils literal notranslate"><span class="pre">[all]</span></code> (e.g.
-<code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">opusfilter[fasttext]</span></code>).</p>
+pip by including the extras <code class="docutils literal notranslate"><span class="pre">[fasttext]</span></code> (e.g. <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">opusfilter[fasttext]</span></code>).</p>
+<p>The support for <code class="docutils literal notranslate"><span class="pre">heliport</span></code> can be installed automatically with pip by
+including the extras <code class="docutils literal notranslate"><span class="pre">[heliport]</span></code> (e.g. <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">opusfilter[heliport]</span></code>).</p>
 </section>
 <section id="jieba-and-mecab-word-segmentation">
 <h3>Jieba and MeCab word segmentation<a class="headerlink" href="#jieba-and-mecab-word-segmentation" title="Permalink to this heading"></a></h3>

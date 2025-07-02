@@ -30,7 +30,8 @@ number of duplicates in it, or two corpora for calculating the overlap
 between them. The syntax for the `opusfilter-duplicates` is:
 
 ```
-opusfilter-duplicates [--overlap FILE [FILE ...]] [--hash HASH] [--letters-only] [--lowercase] FILE [FILE ...]
+opusfilter-duplicates [--overlap FILE [FILE ...]] [--hash HASH] [--letters-only]
+[--letter-words-only] [--lowercase] [--tokenizers JSON] FILE [FILE ...]
 ```
 
 The options are essentially the same as for [`remove_duplicates`](remove_duplicates).

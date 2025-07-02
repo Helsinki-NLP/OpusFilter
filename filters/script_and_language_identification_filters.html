@@ -1,23 +1,21 @@
+
+
 <!DOCTYPE html>
 <html class="writer-html5" lang="en">
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Script and language identification filters &mdash; OpusFilter 3.2.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+  <title>Script and language identification filters &mdash; OpusFilter 3.3.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script src="../_static/jquery.js?v=5d32c60e"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=6d170d0f"></script>
-        <script src="../_static/doctools.js?v=888ff710"></script>
-        <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=1cc24756"></script>
+      <script src="../_static/doctools.js?v=888ff710"></script>
+      <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -36,9 +34,6 @@
           <a href="../index.html" class="icon icon-home">
             OpusFilter
           </a>
-              <div class="version">
-                3.2
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -69,7 +64,15 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Script and language identification filters</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#alphabetratiofilter">AlphabetRatioFilter</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#characterscorefilter">CharacterScoreFilter</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#languageidfilter">LanguageIDFilter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#languageidfilter-deprecated">LanguageIDFilter (deprecated)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#langidfilter">LangidFilter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cld2filter">Cld2Filter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#fasttextfilter">FastTextFilter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#linguafilter">LinguaFilter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#heliportsimplefilter">HeliportSimpleFilter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#heliportconfidencefilter">HeliportConfidenceFilter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#heliportrawscorefilter">HeliportRawScoreFilter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#heliportprobabilityfilter">HeliportProbabilityFilter</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="special_character_and_similarity_filters.html">Special character and similarity filters</a></li>
@@ -146,20 +149,21 @@ threshold parameter can also be given as a list.</p>
 </ul>
 <p>Returned scores are proportions of valid characters in the segments. In filtering, all values have to be equal to or greater than the minimum thresholds.</p>
 </section>
-<section id="languageidfilter">
-<h2>LanguageIDFilter<a class="headerlink" href="#languageidfilter" title="Permalink to this heading"></a></h2>
+<section id="languageidfilter-deprecated">
+<h2>LanguageIDFilter (deprecated)<a class="headerlink" href="#languageidfilter-deprecated" title="Permalink to this heading"></a></h2>
+<p><em>Note: The common LanguageIDFilter is now deprecated. Please see the method-specific language identification filters below.</em></p>
 <p>Filter segments based on their language identification confidence scores.</p>
 <p>Parameters:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">languages</span></code>: expected languages (ISO639 language codes) for the segments</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">id_method</span></code>: language indentification method (<code class="docutils literal notranslate"><span class="pre">langid</span></code>, <code class="docutils literal notranslate"><span class="pre">lingua</span></code>, <code class="docutils literal notranslate"><span class="pre">cld2</span></code>, <code class="docutils literal notranslate"><span class="pre">fasttext</span></code>; default <code class="docutils literal notranslate"><span class="pre">langid</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">id_method</span></code>: language indentification method (<code class="docutils literal notranslate"><span class="pre">langid</span></code>, <code class="docutils literal notranslate"><span class="pre">lingua</span></code>, <code class="docutils literal notranslate"><span class="pre">cld2</span></code>, <code class="docutils literal notranslate"><span class="pre">fasttext</span></code>, <code class="docutils literal notranslate"><span class="pre">heliport</span></code>; default <code class="docutils literal notranslate"><span class="pre">langid</span></code>)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">thresholds</span></code>: minimum identification confidence score for the segments (a single float or a list of floats per language)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">fasttext_model_path</span></code>: path for a <code class="docutils literal notranslate"><span class="pre">fasttext</span></code> model (required only for the <code class="docutils literal notranslate"><span class="pre">fasttext</span></code> method; default <code class="docutils literal notranslate"><span class="pre">null</span></code>)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">langid_languages</span></code>: limit detection to a list of possible languages (valid only for the <code class="docutils literal notranslate"><span class="pre">langid</span></code> method; default <code class="docutils literal notranslate"><span class="pre">null</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">langid_languages</span></code>: limit detection to a list of ISO 639-1 codes for possible languages (valid only for the <code class="docutils literal notranslate"><span class="pre">langid</span></code> and <code class="docutils literal notranslate"><span class="pre">lingua</span></code> methods; default <code class="docutils literal notranslate"><span class="pre">null</span></code>)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">cld2_options</span></code>: a dictionary of options for the <code class="docutils literal notranslate"><span class="pre">cld2</span></code> method (valid only for the <code class="docutils literal notranslate"><span class="pre">cld2</span></code> method; default <code class="docutils literal notranslate"><span class="pre">null</span></code>)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">lingua_mode</span></code>: a string specifying whether to use lingua’s <code class="docutils literal notranslate"><span class="pre">high</span></code> or <code class="docutils literal notranslate"><span class="pre">low</span></code> accuracy mode</p></li>
 </ul>
-<p>Returned scores are the language identification confidence scores from a given identification method for the segments. The scores range from 0 to 1. In filtering, all values have to be greater than the minimum thresholds. Negative threshold can be used to skip filtering for a language.</p>
+<p>Returned scores are the language identification confidence scores from a given identification method for the segments. The scores range from 0 to 1. In filtering, all values have to be greater than the minimum thresholds. A negative threshold can be used to skip filtering for a language.</p>
 <p>Currently the following identification methods are supported:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">langid</span></code> (default) :cite:<code class="docutils literal notranslate"><span class="pre">lui-baldwin-2012-langid</span></code></p>
@@ -185,6 +189,137 @@ threshold parameter can also be given as a list.</p>
 </ul>
 </li>
 </ul>
+</section>
+<section id="langidfilter">
+<h2>LangidFilter<a class="headerlink" href="#langidfilter" title="Permalink to this heading"></a></h2>
+<p>Filter segments based on the langid method :cite:<code class="docutils literal notranslate"><span class="pre">lui-baldwin-2012-langid</span></code>; see
+https://github.com/adbar/py3langid</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">languages</span></code>: expected languages (ISO639 language codes) for the segments</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">thresholds</span></code>: minimum identification confidence score for the segments (a single float or a list of floats per language)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">langid_languages</span></code>: limit detection to a list of ISO 639-1 codes for possible languages</p></li>
+</ul>
+<p>Returned scores are the language identification confidence scores for
+the segments. The scores range from 0 to 1. In filtering, all values
+have to be greater than the minimum thresholds. A negative threshold
+can be used to skip filtering for a language.</p>
+</section>
+<section id="cld2filter">
+<h2>Cld2Filter<a class="headerlink" href="#cld2filter" title="Permalink to this heading"></a></h2>
+<p>Filter segments based on the CLD2 method; see https://github.com/CLD2Owners/cld2</p>
+<p>Requires <a class="reference internal" href="../installation.html"><span class="std std-doc">installing optional libraries</span></a>.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">languages</span></code>: expected languages (ISO639 language codes) for the segments</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">thresholds</span></code>: minimum identification confidence score for the segments (a single float or a list of floats per language)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">options</span></code>: a dictionary of options for the method (see https://github.com/CLD2Owners/cld2; default <code class="docutils literal notranslate"><span class="pre">null</span></code>)</p></li>
+</ul>
+<p>Returned scores are the language identification confidence scores from
+a given identification method for the segments. The scores range from
+0 to 1. In filtering, all values have to be greater than the minimum
+thresholds. A negative threshold can be used to skip filtering for a
+language.</p>
+</section>
+<section id="fasttextfilter">
+<h2>FastTextFilter<a class="headerlink" href="#fasttextfilter" title="Permalink to this heading"></a></h2>
+<p>Filter segments based on the Fasttext language identification models
+(:cite:<code class="docutils literal notranslate"><span class="pre">joulin-etal-2016-fasttext</span></code>, :cite:<code class="docutils literal notranslate"><span class="pre">joulin-etal-2017-bag</span></code>), see
+https://github.com/CLD2Owners/cld2.</p>
+<p>Requires <a class="reference internal" href="../installation.html"><span class="std std-doc">installing optional libraries</span></a>.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">languages</span></code>: expected languages (ISO639 language codes) for the segments</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">thresholds</span></code>: minimum identification confidence score for the segments (a single float or a list of floats per language)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">model_path</span></code>: path for a <code class="docutils literal notranslate"><span class="pre">fasttext</span></code> model</p></li>
+</ul>
+<p>Returned scores are the language identification confidence scores from
+a given identification method for the segments. The scores range from
+0 to 1. In filtering, all values have to be greater than the minimum
+thresholds. A negative threshold can be used to skip filtering for a
+language.</p>
+</section>
+<section id="linguafilter">
+<h2>LinguaFilter<a class="headerlink" href="#linguafilter" title="Permalink to this heading"></a></h2>
+<p>Filter segments based on the Lingua method; see https://github.com/pemistahl/lingua-py</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">languages</span></code>: expected languages (ISO639 language codes) for the segments</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">thresholds</span></code>: minimum identification confidence score for the segments (a single float or a list of floats per language)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">langid_languages</span></code>: limit detection to a list of ISO 639-1 codes for possible languages (default <code class="docutils literal notranslate"><span class="pre">null</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lingua_mode</span></code>: a string specifying whether to use lingua’s <code class="docutils literal notranslate"><span class="pre">high</span></code> or <code class="docutils literal notranslate"><span class="pre">low</span></code> accuracy mode (default <code class="docutils literal notranslate"><span class="pre">low</span></code>)</p></li>
+</ul>
+<p>Returned scores are the language identification confidence scores from
+a given identification method for the segments. The scores range from
+0 to 1. In filtering, all values have to be greater than the minimum
+thresholds. A negative threshold can be used to skip filtering for a
+language.</p>
+</section>
+<section id="heliportsimplefilter">
+<h2>HeliportSimpleFilter<a class="headerlink" href="#heliportsimplefilter" title="Permalink to this heading"></a></h2>
+<p>Filter segments based on the HeLI-OTS method :cite:<code class="docutils literal notranslate"><span class="pre">jauhiainen-etal-2022-heli</span></code>; see
+https://github.com/ZJaume/heliport</p>
+<p>Requires <a class="reference internal" href="../installation.html"><span class="std std-doc">installing optional libraries</span></a>.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">languages</span></code>: expected languages (ISO639 language codes) for the segments</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">thresholds</span></code>: minimum identification score for the segments (a single float or a list of floats per language)</p></li>
+</ul>
+<p>This version uses three distinct score values. Score 1.0 is used if
+the method predicts the correct language. If the low-confidence label
+<code class="docutils literal notranslate"><span class="pre">und</span></code> is returned, the language is considered correct with score
+0.5. Finally, if a wrong language is predicted, the score will
+0.0. A negative threshold can be used to skip filtering for a language.</p>
+</section>
+<section id="heliportconfidencefilter">
+<h2>HeliportConfidenceFilter<a class="headerlink" href="#heliportconfidencefilter" title="Permalink to this heading"></a></h2>
+<p>Filter segments based on the HeLI-OTS method :cite:<code class="docutils literal notranslate"><span class="pre">jauhiainen-etal-2022-heli</span></code>; see
+https://github.com/ZJaume/heliport</p>
+<p>Requires <a class="reference internal" href="../installation.html"><span class="std std-doc">installing optional libraries</span></a>.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">languages</span></code>: expected languages (ISO639 language codes) for the segments</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">thresholds</span></code>: minimum identification score for the segments (a single float or a list of floats per language)</p></li>
+</ul>
+<p>This version uses the confidence value returned by the method. It is
+the difference between raw scores of the the best (lowest) and second
+best language. The maximum value is 7.0, which is a penalty value for
+the languages that do not match. The minimum value 0 is returned if
+the best language does not match. The low-confidence label <code class="docutils literal notranslate"><span class="pre">und</span></code> is
+considered as a match. A negative threshold can be used to skip
+filtering for a language.</p>
+</section>
+<section id="heliportrawscorefilter">
+<h2>HeliportRawScoreFilter<a class="headerlink" href="#heliportrawscorefilter" title="Permalink to this heading"></a></h2>
+<p>Filter segments based on the HeLI-OTS method :cite:<code class="docutils literal notranslate"><span class="pre">jauhiainen-etal-2022-heli</span></code>; see
+https://github.com/ZJaume/heliport</p>
+<p>Requires <a class="reference internal" href="../installation.html"><span class="std std-doc">installing optional libraries</span></a>.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">languages</span></code>: expected languages (ISO639 language codes) for the segments</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">thresholds</span></code>: minimum identification score for the segments (a single float or a list of floats per language)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">topk</span></code>: the number of top languages to consider (default 50)</p></li>
+</ul>
+<p>This version uses the raw scores returned by the method. A lower score
+is better. If the correct language is among the top-k languages, the
+score if that language is returned. Otherwise, the penalty value 7 is
+returned. A threshold over the penalty value can be used to skip
+filtering for a language.</p>
+</section>
+<section id="heliportprobabilityfilter">
+<h2>HeliportProbabilityFilter<a class="headerlink" href="#heliportprobabilityfilter" title="Permalink to this heading"></a></h2>
+<p>Filter segments based on the HeLI-OTS method :cite:<code class="docutils literal notranslate"><span class="pre">jauhiainen-etal-2022-heli</span></code>; see
+https://github.com/ZJaume/heliport</p>
+<p>Requires <a class="reference internal" href="../installation.html"><span class="std std-doc">installing optional libraries</span></a>.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">languages</span></code>: expected languages (ISO639 language codes) for the segments</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">thresholds</span></code>: minimum identification score for the segments (a single float or a list of floats per language)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">topk</span></code>: the number of top languages to consider (default 50)</p></li>
+</ul>
+<p>This version transforms the raw scores of of the top-k languages into
+probability-like values. If the correct language is not in the top-k
+list, zero is returned. A negative threshold can be used to skip
+filtering for a language.</p>
 </section>
 </section>
 

@@ -11,6 +11,10 @@ Parameters:
 * `compare`: select files for duplicate comparison (optional; default `all` or a list of indices)
 * `hash`: select hash algorithm from xxhash (optional; default `xxh64`)
 * `overlap`: remove overlap with a second set of files (optional; default `null`)
+* `letters_only`: remove all non-letters from intput strings before hashing (optional; default `false`)
+* `letter_words_only`: remove words with non-letter characters before hashing (optional; default `false`)
+* `lowercase`: lowercase input strings before hashing (optional; default `false`)
+* `tokenizers`: load tokenizer specifications from a list (optional; use with `letter_words_only`)
 
 Duplicate filtering is recommended as a first step especially if you
 combine different corpus collections (e.g. data crawled from web) and
@@ -37,6 +41,10 @@ default 64-bit XXHash algorithm should be fine for any practical data
 sizes, but if do not care about memory use and want to be extra sure
 there are no collisions, you can disable hashing by setting the `hash`
 parameter as empty string or null.
+
+For the `letter_words_only`, unless the input is pre-tokenized, you
+should select tokenizers for each of the input files. See
+[Tokenizer](tokenizer.md) for description of the tokenizer parameters.
 
 ## filter
 

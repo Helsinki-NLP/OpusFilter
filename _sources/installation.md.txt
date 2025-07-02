@@ -12,7 +12,7 @@ Install from source:
 
 Note that all required libraries are not available to install via PyPI
 on Windows OS. On Linux and MacOS, it should work directly for Python
-versions from 3.8 to 3.12.
+versions from 3.8 to 3.13.
 
 ## Required libraries
 
@@ -39,23 +39,29 @@ See `setup.py` for possible version requirements.
 
 ## Optional libraries and tools
 
-### FastText and PyCLD2 language identification
+### FastText, PyCLD2, and heliport language identification
 
 The language identification libraries currently supported out-of-the-box
 are [py3langid](https://github.com/adbar/py3langid) and
-[lingua](https://github.com/pemistahl/lingua-py). The support for for
+[lingua](https://github.com/pemistahl/lingua-py). The support for
 [PyCLD2](https://github.com/aboSamoor/pycld2) and
 [FastText models](https://fasttext.cc/docs/en/language-identification.html)
 have been changed to optional due to the lack of support especially
-for newer Python versions.
+for newer Python versions. Also the support for
+[heliport](https://github.com/ZJaume/heliport) is optional. Please
+note that `heliport` has GPL-3.0 license.
 
 The PyCLD2 support can be installed automatically with pip by
-including the extras `[pycld2]` or `[all]` (e.g.
-`pip install opusfilter[pycld2]`).
+including the extras `[pycld2]` (e.g. `pip install
+opusfilter[pycld2]`).
 
 The support for FastText models can be installed automatically with
-pip by including the extras `[fasttext]` or `[all]` (e.g.
-`pip install opusfilter[fasttext]`).
+pip by including the extras `[fasttext]` (e.g. `pip install
+opusfilter[fasttext]`).
+
+The support for `heliport` can be installed automatically with pip by
+including the extras `[heliport]` (e.g. `pip install
+opusfilter[heliport]`).
 
 ### Jieba and MeCab word segmentation
 
