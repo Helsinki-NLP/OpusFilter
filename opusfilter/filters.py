@@ -11,6 +11,8 @@ from typing import Iterator, List, Tuple
 import regex
 
 from . import FilterABC, ConfigurationError, CLEAN_LOW, CLEAN_HIGH, CLEAN_BETWEEN, CLEAN_TRUE, CLEAN_FALSE
+from .lid import Cld2Filter, FastTextFilter, HeliportConfidenceFilter, HeliportProbabilityFilter, \
+    HeliportRawScoreFilter, HeliportSimpleFilter, LangidFilter, LinguaFilter  # pylint: disable=W0611 # noqa: F401
 from .lm import CrossEntropyFilter, CrossEntropyDifferenceFilter, LMClassifierFilter  # pylint: disable=W0611 # noqa: F401
 from .util import check_args_compability
 from .word_alignment import WordAlignFilter      # pylint: disable=W0611 # noqa: F401
@@ -283,7 +285,12 @@ class CharacterScoreFilter(FilterABC):
 class LanguageIDFilter(FilterABC):
     """Language identification confidence filter
 
-    Currently this supports four methods:
+    This common filter class for different language identification
+    methods should be replaced by the respective method-specific
+    filter classes defined in the lid submodule.
+
+    For backward compatibility, this still supports four methods:
+
     * langid (default): see :cite:`lui-baldwin-2012-langid`
     * cld2: see https://github.com/CLD2Owners/cld2
     * fasttext: see :cite:`joulin-etal-2016-fasttext` and :cite:`joulin-etal-2017-bag`
@@ -299,6 +306,14 @@ class LanguageIDFilter(FilterABC):
                  fasttext_model_path=None, langid_languages=None, cld2_options=None,
                  lingua_mode=None, **kwargs):
         super().__init__(**kwargs)
+        suggested_filters = {
+            'langid': 'LangidFilter',
+            'cld2': 'Cld2Filter',
+            'fasttext': 'FastTextFilter',
+            'lingua': 'LinguaFilter'
+        }
+        logger.warning("LanguageIDFilter for id_method %s is deprecated, use %s instead.",
+                       id_method, suggested_filters[id_method])
         if languages is None:
             raise ConfigurationError("A list of language codes needs to be defined")
         self.identifier = None

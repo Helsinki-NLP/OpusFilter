@@ -7,7 +7,7 @@ import unittest
 import requests
 
 from opusfilter import ConfigurationError
-from opusfilter.filters import *
+from opusfilter.lid import *
 from opusfilter.util import file_download
 
 
@@ -21,6 +21,11 @@ try:
 except ImportError:
     logging.warning("Could not import pycld2")
 
+try:
+    import heliport
+except ImportError:
+    logging.warning("Could not import heliport")
+
 
 class TestLangIDMethod(unittest.TestCase):
 
@@ -33,16 +38,16 @@ class TestLangIDMethod(unittest.TestCase):
 class TestLangId(TestLangIDMethod):
 
     def test_accept(self):
-        model = LanguageIDFilter(
-            languages=['en', 'fr'], id_method='langid', thresholds=[0.8, 0.99])
+        model = LangidFilter(
+            languages=['en', 'fr'], thresholds=[0.8, 0.99])
         pair_scores = model.score(self.pairs_inputs)
         pair_expecteds = [True, False]
         for pair_score, pair_expected in zip(pair_scores, pair_expecteds):
             self.assertEqual(model.accept(pair_score), pair_expected)
 
     def test_accept_with_set_languages(self):
-        model = LanguageIDFilter(
-            languages=['en', 'fr'], id_method='langid', thresholds=[0.8, 0.99],
+        model = LangidFilter(
+            languages=['en', 'fr'], thresholds=[0.8, 0.99],
             langid_languages=['fr', 'de'])
         pair_scores = model.score(self.pairs_inputs)
         pair_expecteds = [False, False]
@@ -60,8 +65,8 @@ class TestCLD2(TestLangIDMethod):
 
     @unittest.skipIf('pycld2' not in globals(), 'pycld2 not installed')
     def test_accept(self):
-        model = LanguageIDFilter(
-            languages=['en', 'fr'], id_method='cld2', thresholds=[0.9, 0.9])
+        model = Cld2Filter(
+            languages=['en', 'fr'], thresholds=[0.9, 0.9])
         pair_scores = model.score(self.pairs_inputs)
         pair_expecteds = [True, False, False]
         for pair_score, pair_expected in zip(pair_scores, pair_expecteds):
@@ -69,9 +74,9 @@ class TestCLD2(TestLangIDMethod):
 
     @unittest.skipIf('pycld2' not in globals(), 'pycld2 not installed')
     def test_accept_with_options(self):
-        model = LanguageIDFilter(
-            languages=['en', 'fr'], id_method='cld2', thresholds=[0.9, 0.9],
-            cld2_options={'bestEffort': True})
+        model = Cld2Filter(
+            languages=['en', 'fr'], thresholds=[0.9, 0.9],
+            options={'bestEffort': True})
         pair_scores = model.score(self.pairs_inputs)
         pair_expecteds = [True, False, True]
         for pair_score, pair_expected in zip(pair_scores, pair_expecteds):
@@ -101,20 +106,15 @@ class TestFasttext(TestLangIDMethod):
 
     def test_missing_model(self):
         with self.assertRaises(ConfigurationError):
-            model = LanguageIDFilter(
-                languages=['en', 'fr'], id_method='fasttext', thresholds=[0.8, 0.99])
-
-    def test_wrong_method_with_model(self):
-        with self.assertRaises(ConfigurationError):
-            model = LanguageIDFilter(
-                languages=['en', 'fr'], thresholds=[0.8, 0.99], fasttext_model_path=self.tempdir)
+            model = FastTextFilter(
+                languages=['en', 'fr'], thresholds=[0.8, 0.99])
 
     def test_fasttext_predict_lang(self):
         if self.testmodel is None:
             self.skipTest("Failed to download test resources")
-        model = LanguageIDFilter(
-            languages=['en', 'fr'], id_method='fasttext', thresholds=[0.8, 0.99],
-            fasttext_model_path=self.testmodel)
+        model = FastTextFilter(
+            languages=['en', 'fr'], thresholds=[0.8, 0.99],
+            model_path=self.testmodel)
         expected = ['en', 'fr']
         results = [model._fasttext_predict_lang(fasttext_input)[0]
                    for fasttext_input in self.fasttext_inputs]
@@ -123,9 +123,9 @@ class TestFasttext(TestLangIDMethod):
     def test_accept(self):
         if self.testmodel is None:
             self.skipTest("Failed to download test resources")
-        model = LanguageIDFilter(
-            languages=['en', 'fr'], id_method='fasttext', thresholds=[0.8, 0.99],
-            fasttext_model_path=self.testmodel)
+        model = FastTextFilter(
+            languages=['en', 'fr'], thresholds=[0.8, 0.99],
+            model_path=self.testmodel)
         pair_scores = model.score(self.pairs_inputs)
         pair_expecteds = [True, False]
         for pair_score, pair_expected in zip(pair_scores, pair_expecteds):
@@ -135,24 +135,24 @@ class TestFasttext(TestLangIDMethod):
 class TestLingua(TestLangIDMethod):
 
     def test_accept(self):
-        model = LanguageIDFilter(
-            languages=['en', 'fr'], id_method='lingua', thresholds=[0.4, 0.99])
+        model = LinguaFilter(
+            languages=['en', 'fr'], thresholds=[0.4, 0.99])
         pair_scores = model.score(self.pairs_inputs)
         pair_expecteds = [True, False]
         for pair_score, pair_expected in zip(pair_scores, pair_expecteds):
             self.assertEqual(model.accept(pair_score), pair_expected)
 
     def test_accept_high(self):
-        model = LanguageIDFilter(
-            languages=['en', 'fr'], id_method='lingua', lingua_mode="high", thresholds=[0.5, 0.7])
+        model = LinguaFilter(
+            languages=['en', 'fr'], lingua_mode="high", thresholds=[0.5, 0.7])
         pair_scores = model.score(self.pairs_inputs)
         pair_expecteds = [True, False]
         for pair_score, pair_expected in zip(pair_scores, pair_expecteds):
             self.assertEqual(model.accept(pair_score), pair_expected)
 
     def test_limited_languages(self):
-        model = LanguageIDFilter(
-            languages=['en', 'fr'], id_method='lingua', thresholds=[0.4, 0.99],
+        model = LinguaFilter(
+            languages=['en', 'fr'], thresholds=[0.4, 0.99],
             langid_languages=['en', 'fr', 'de', 'fi'])
         pair_scores = model.score(self.pairs_inputs)
         pair_expecteds = [True, False]
@@ -160,10 +160,50 @@ class TestLingua(TestLangIDMethod):
             self.assertEqual(model.accept(pair_score), pair_expected)
 
     def test_badly_limited_languages(self):
-        model = LanguageIDFilter(
-            languages=['en', 'fr'], id_method='lingua', thresholds=[0.4, 0.99],
+        model = LinguaFilter(
+            languages=['en', 'fr'], thresholds=[0.4, 0.99],
             langid_languages=['en', 'de', 'fi'])
         pair_scores = model.score(self.pairs_inputs)
         pair_expecteds = [False, False]
+        for pair_score, pair_expected in zip(pair_scores, pair_expecteds):
+            self.assertEqual(model.accept(pair_score), pair_expected)
+
+
+class TestHeliport(TestLangIDMethod):
+
+    @unittest.skipIf('heliport' not in globals(), 'heliport not installed')
+    def test_simple_accept(self):
+        model = HeliportSimpleFilter(languages=['en', 'fr'], thresholds=[0.2, 0.2])
+        pair_scores = model.score(self.pairs_inputs)
+        pair_expecteds = [True, False]
+        for pair_score, pair_expected in zip(pair_scores, pair_expecteds):
+            self.assertEqual(model.accept(pair_score), pair_expected)
+
+    @unittest.skipIf('heliport' not in globals(), 'heliport not installed')
+    def test_confidence_accept(self):
+        model = HeliportConfidenceFilter(languages=['en', 'fr'], thresholds=[0.5, 0.5])
+        pair_scores = list(model.score(self.pairs_inputs))
+        logging.warning(pair_scores)
+        pair_expecteds = [True, False]
+        for pair_score, pair_expected in zip(pair_scores, pair_expecteds):
+            self.assertEqual(model.accept(pair_score), pair_expected)
+
+    @unittest.skipIf('heliport' not in globals(), 'heliport not installed')
+    def test_probability_accept(self):
+        model = HeliportProbabilityFilter(
+            languages=['en', 'fr'], thresholds=[0.3, 0.3], topk=50)
+        pair_scores = list(model.score(self.pairs_inputs))
+        logging.warning(pair_scores)
+        pair_expecteds = [True, False]
+        for pair_score, pair_expected in zip(pair_scores, pair_expecteds):
+            self.assertEqual(model.accept(pair_score), pair_expected)
+
+    @unittest.skipIf('heliport' not in globals(), 'heliport not installed')
+    def test_raw_accept(self):
+        model = HeliportRawScoreFilter(
+            languages=['en', 'fr'], thresholds=[5.0, 5.0], topk=50)
+        pair_scores = list(model.score(self.pairs_inputs))
+        logging.warning(pair_scores)
+        pair_expecteds = [True, False]
         for pair_score, pair_expected in zip(pair_scores, pair_expecteds):
             self.assertEqual(model.accept(pair_score), pair_expected)

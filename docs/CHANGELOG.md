@@ -9,12 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- support for selection of possible languages for `lingua` language detection
 - `letter_words_only` option for duplicate detection
+- support for selection of possible languages for `lingua` language detection
+- support for language detection based on `heliport` (a port of HeLI-OTS)
 
 ### Changed
 
 - update library requirements and include Python 3.13 tests
+- removed pycld2 and fasttext from the `[all]` extras
+- refactored all language identification filters to have their own classes and marked `LanguageIDFilter` as deprecated
 
 ### Fixed
 

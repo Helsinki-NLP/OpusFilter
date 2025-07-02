@@ -2,7 +2,6 @@
 
 import collections
 import functools
-import logging
 
 import regex
 import xxhash
