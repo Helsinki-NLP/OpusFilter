@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.3.0] - 2025-07-02
+
 ### Added
 
 - `letter_words_only` option for duplicate detection
@@ -232,7 +234,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 First tagged version.
 
 
-[Unreleased]: https://github.com/Helsinki-NLP/OpusFilter/compare/3.2.0...develop
+[Unreleased]: https://github.com/Helsinki-NLP/OpusFilter/compare/3.3.0...develop
+[3.3.0]: https://github.com/Helsinki-NLP/OpusFilter/compare/3.2.0...3.3.0
 [3.2.0]: https://github.com/Helsinki-NLP/OpusFilter/compare/3.1.0...3.2.0
 [3.1.0]: https://github.com/Helsinki-NLP/OpusFilter/compare/3.0.0...3.1.0
 [3.0.0]: https://github.com/Helsinki-NLP/OpusFilter/compare/2.6.0...3.0.0
