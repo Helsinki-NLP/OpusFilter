@@ -166,23 +166,23 @@ threshold parameter can also be given as a list.</p>
 <p>Returned scores are the language identification confidence scores from a given identification method for the segments. The scores range from 0 to 1. In filtering, all values have to be greater than the minimum thresholds. A negative threshold can be used to skip filtering for a language.</p>
 <p>Currently the following identification methods are supported:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">langid</span></code> (default) :cite:<code class="docutils literal notranslate"><span class="pre">lui-baldwin-2012-langid</span></code></p>
+<li><p><code class="docutils literal notranslate"><span class="pre">langid</span></code> (default) <span id="id1">[<a class="reference internal" href="../references.html#cite-lui-baldwin-2012-langid" title="Marco Lui and Timothy Baldwin. Langid.py: an off-the-shelf language identification tool. In Proceedings of the ACL 2012 System Demonstrations, 25–30. Jeju Island, Korea, July 2012. Association for Computational Linguistics. URL: https://aclanthology.org/P12-3005.">Lui and Baldwin, 2012</a>]</span></p>
 <ul>
-<li><p>See https://github.com/adbar/py3langid</p></li>
+<li><p>See <a class="reference external" href="https://github.com/adbar/py3langid">https://github.com/adbar/py3langid</a></p></li>
 </ul>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">lingua</span></code></p>
 <ul>
-<li><p>See https://github.com/pemistahl/lingua-py</p></li>
+<li><p>See <a class="reference external" href="https://github.com/pemistahl/lingua-py">https://github.com/pemistahl/lingua-py</a></p></li>
 </ul>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">cld2</span></code></p>
 <ul>
-<li><p>See https://github.com/CLD2Owners/cld2</p></li>
+<li><p>See <a class="reference external" href="https://github.com/CLD2Owners/cld2">https://github.com/CLD2Owners/cld2</a></p></li>
 <li><p>Requires <a class="reference internal" href="../installation.html"><span class="std std-doc">installing optional libraries</span></a>.</p></li>
 </ul>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">fasttext</span></code> :cite:<code class="docutils literal notranslate"><span class="pre">joulin-etal-2016-fasttext</span></code> and :cite:<code class="docutils literal notranslate"><span class="pre">joulin-etal-2017-bag</span></code></p>
+<li><p><code class="docutils literal notranslate"><span class="pre">fasttext</span></code> <span id="id2">[<a class="reference internal" href="../references.html#cite-joulin-etal-2016-fasttext" title="Armand Joulin, Edouard Grave, Piotr Bojanowski, Matthijs Douze, Hervé Jégou, and Tomás Mikolov. Fasttext.zip: compressing text classification models. CoRR, 2016. URL: http://arxiv.org/abs/1612.03651, arXiv:1612.03651.">Joulin <em>et al.</em>, 2016</a>]</span> and <span id="id3">[<a class="reference internal" href="../references.html#cite-joulin-etal-2017-bag" title="Armand Joulin, Edouard Grave, Piotr Bojanowski, and Tomas Mikolov. Bag of tricks for efficient text classification. In Proceedings of the 15th Conference of the European Chapter of the Association for Computational Linguistics: Volume 2, Short Papers, 427–431. Valencia, Spain, April 2017. Association for Computational Linguistics. URL: https://aclanthology.org/E17-2068.">Joulin <em>et al.</em>, 2017</a>]</span></p>
 <ul>
 <li><p>A pretrained model can be downloaded from <a class="reference external" href="https://fasttext.cc/docs/en/language-identification.html">fasttext.cc/docs/en/language-identification.html</a>.</p></li>
 <li><p>Requires <a class="reference internal" href="../installation.html"><span class="std std-doc">installing optional libraries</span></a>.</p></li>
@@ -192,8 +192,8 @@ threshold parameter can also be given as a list.</p>
 </section>
 <section id="langidfilter">
 <h2>LangidFilter<a class="headerlink" href="#langidfilter" title="Permalink to this heading"></a></h2>
-<p>Filter segments based on the langid method :cite:<code class="docutils literal notranslate"><span class="pre">lui-baldwin-2012-langid</span></code>; see
-https://github.com/adbar/py3langid</p>
+<p>Filter segments based on the langid method <span id="id4">[<a class="reference internal" href="../references.html#cite-lui-baldwin-2012-langid" title="Marco Lui and Timothy Baldwin. Langid.py: an off-the-shelf language identification tool. In Proceedings of the ACL 2012 System Demonstrations, 25–30. Jeju Island, Korea, July 2012. Association for Computational Linguistics. URL: https://aclanthology.org/P12-3005.">Lui and Baldwin, 2012</a>]</span>; see
+<a class="reference external" href="https://github.com/adbar/py3langid">https://github.com/adbar/py3langid</a>.</p>
 <p>Parameters:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">languages</span></code>: expected languages (ISO639 language codes) for the segments</p></li>
@@ -207,13 +207,13 @@ can be used to skip filtering for a language.</p>
 </section>
 <section id="cld2filter">
 <h2>Cld2Filter<a class="headerlink" href="#cld2filter" title="Permalink to this heading"></a></h2>
-<p>Filter segments based on the CLD2 method; see https://github.com/CLD2Owners/cld2</p>
+<p>Filter segments based on the CLD2 method; see <a class="reference external" href="https://github.com/CLD2Owners/cld2">https://github.com/CLD2Owners/cld2</a>.</p>
 <p>Requires <a class="reference internal" href="../installation.html"><span class="std std-doc">installing optional libraries</span></a>.</p>
 <p>Parameters:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">languages</span></code>: expected languages (ISO639 language codes) for the segments</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">thresholds</span></code>: minimum identification confidence score for the segments (a single float or a list of floats per language)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">options</span></code>: a dictionary of options for the method (see https://github.com/CLD2Owners/cld2; default <code class="docutils literal notranslate"><span class="pre">null</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">options</span></code>: a dictionary of options for the method (see <a class="reference external" href="https://github.com/CLD2Owners/cld2">https://github.com/CLD2Owners/cld2</a>; default <code class="docutils literal notranslate"><span class="pre">null</span></code>)</p></li>
 </ul>
 <p>Returned scores are the language identification confidence scores from
 a given identification method for the segments. The scores range from
@@ -224,8 +224,8 @@ language.</p>
 <section id="fasttextfilter">
 <h2>FastTextFilter<a class="headerlink" href="#fasttextfilter" title="Permalink to this heading"></a></h2>
 <p>Filter segments based on the Fasttext language identification models
-(:cite:<code class="docutils literal notranslate"><span class="pre">joulin-etal-2016-fasttext</span></code>, :cite:<code class="docutils literal notranslate"><span class="pre">joulin-etal-2017-bag</span></code>), see
-https://github.com/CLD2Owners/cld2.</p>
+(<span id="id5">Joulin <em>et al.</em> [<a class="reference internal" href="../references.html#cite-joulin-etal-2016-fasttext" title="Armand Joulin, Edouard Grave, Piotr Bojanowski, Matthijs Douze, Hervé Jégou, and Tomás Mikolov. Fasttext.zip: compressing text classification models. CoRR, 2016. URL: http://arxiv.org/abs/1612.03651, arXiv:1612.03651.">2016</a>]</span>, <span id="id6">Joulin <em>et al.</em> [<a class="reference internal" href="../references.html#cite-joulin-etal-2017-bag" title="Armand Joulin, Edouard Grave, Piotr Bojanowski, and Tomas Mikolov. Bag of tricks for efficient text classification. In Proceedings of the 15th Conference of the European Chapter of the Association for Computational Linguistics: Volume 2, Short Papers, 427–431. Valencia, Spain, April 2017. Association for Computational Linguistics. URL: https://aclanthology.org/E17-2068.">2017</a>]</span>), see
+<a class="reference external" href="https://github.com/CLD2Owners/cld2">https://github.com/CLD2Owners/cld2</a>.</p>
 <p>Requires <a class="reference internal" href="../installation.html"><span class="std std-doc">installing optional libraries</span></a>.</p>
 <p>Parameters:</p>
 <ul class="simple">
@@ -241,7 +241,7 @@ language.</p>
 </section>
 <section id="linguafilter">
 <h2>LinguaFilter<a class="headerlink" href="#linguafilter" title="Permalink to this heading"></a></h2>
-<p>Filter segments based on the Lingua method; see https://github.com/pemistahl/lingua-py</p>
+<p>Filter segments based on the Lingua method; see <a class="reference external" href="https://github.com/pemistahl/lingua-py">https://github.com/pemistahl/lingua-py</a>.</p>
 <p>Parameters:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">languages</span></code>: expected languages (ISO639 language codes) for the segments</p></li>
@@ -257,8 +257,8 @@ language.</p>
 </section>
 <section id="heliportsimplefilter">
 <h2>HeliportSimpleFilter<a class="headerlink" href="#heliportsimplefilter" title="Permalink to this heading"></a></h2>
-<p>Filter segments based on the HeLI-OTS method :cite:<code class="docutils literal notranslate"><span class="pre">jauhiainen-etal-2022-heli</span></code>; see
-https://github.com/ZJaume/heliport</p>
+<p>Filter segments based on the HeLI-OTS method <span id="id7">[<a class="reference internal" href="../references.html#cite-jauhiainen-etal-2022-heli" title="Tommi Jauhiainen, Heidi Jauhiainen, and Krister Lindén. HeLI-OTS, off-the-shelf language identifier for text. In Proceedings of the Thirteenth Language Resources and Evaluation Conference, 3912–3922. Marseille, France, June 2022. European Language Resources Association. URL: https://aclanthology.org/2022.lrec-1.416/.">Jauhiainen <em>et al.</em>, 2022</a>]</span>; see
+<a class="reference external" href="https://github.com/ZJaume/heliport">https://github.com/ZJaume/heliport</a>.</p>
 <p>Requires <a class="reference internal" href="../installation.html"><span class="std std-doc">installing optional libraries</span></a>.</p>
 <p>Parameters:</p>
 <ul class="simple">
@@ -273,8 +273,8 @@ the method predicts the correct language. If the low-confidence label
 </section>
 <section id="heliportconfidencefilter">
 <h2>HeliportConfidenceFilter<a class="headerlink" href="#heliportconfidencefilter" title="Permalink to this heading"></a></h2>
-<p>Filter segments based on the HeLI-OTS method :cite:<code class="docutils literal notranslate"><span class="pre">jauhiainen-etal-2022-heli</span></code>; see
-https://github.com/ZJaume/heliport</p>
+<p>Filter segments based on the HeLI-OTS method <span id="id8">[<a class="reference internal" href="../references.html#cite-jauhiainen-etal-2022-heli" title="Tommi Jauhiainen, Heidi Jauhiainen, and Krister Lindén. HeLI-OTS, off-the-shelf language identifier for text. In Proceedings of the Thirteenth Language Resources and Evaluation Conference, 3912–3922. Marseille, France, June 2022. European Language Resources Association. URL: https://aclanthology.org/2022.lrec-1.416/.">Jauhiainen <em>et al.</em>, 2022</a>]</span>; see
+<a class="reference external" href="https://github.com/ZJaume/heliport">https://github.com/ZJaume/heliport</a>.</p>
 <p>Requires <a class="reference internal" href="../installation.html"><span class="std std-doc">installing optional libraries</span></a>.</p>
 <p>Parameters:</p>
 <ul class="simple">
@@ -291,8 +291,8 @@ filtering for a language.</p>
 </section>
 <section id="heliportrawscorefilter">
 <h2>HeliportRawScoreFilter<a class="headerlink" href="#heliportrawscorefilter" title="Permalink to this heading"></a></h2>
-<p>Filter segments based on the HeLI-OTS method :cite:<code class="docutils literal notranslate"><span class="pre">jauhiainen-etal-2022-heli</span></code>; see
-https://github.com/ZJaume/heliport</p>
+<p>Filter segments based on the HeLI-OTS method <span id="id9">[<a class="reference internal" href="../references.html#cite-jauhiainen-etal-2022-heli" title="Tommi Jauhiainen, Heidi Jauhiainen, and Krister Lindén. HeLI-OTS, off-the-shelf language identifier for text. In Proceedings of the Thirteenth Language Resources and Evaluation Conference, 3912–3922. Marseille, France, June 2022. European Language Resources Association. URL: https://aclanthology.org/2022.lrec-1.416/.">Jauhiainen <em>et al.</em>, 2022</a>]</span>; see
+<a class="reference external" href="https://github.com/ZJaume/heliport">https://github.com/ZJaume/heliport</a>.</p>
 <p>Requires <a class="reference internal" href="../installation.html"><span class="std std-doc">installing optional libraries</span></a>.</p>
 <p>Parameters:</p>
 <ul class="simple">
@@ -308,8 +308,8 @@ filtering for a language.</p>
 </section>
 <section id="heliportprobabilityfilter">
 <h2>HeliportProbabilityFilter<a class="headerlink" href="#heliportprobabilityfilter" title="Permalink to this heading"></a></h2>
-<p>Filter segments based on the HeLI-OTS method :cite:<code class="docutils literal notranslate"><span class="pre">jauhiainen-etal-2022-heli</span></code>; see
-https://github.com/ZJaume/heliport</p>
+<p>Filter segments based on the HeLI-OTS method <span id="id10">[<a class="reference internal" href="../references.html#cite-jauhiainen-etal-2022-heli" title="Tommi Jauhiainen, Heidi Jauhiainen, and Krister Lindén. HeLI-OTS, off-the-shelf language identifier for text. In Proceedings of the Thirteenth Language Resources and Evaluation Conference, 3912–3922. Marseille, France, June 2022. European Language Resources Association. URL: https://aclanthology.org/2022.lrec-1.416/.">Jauhiainen <em>et al.</em>, 2022</a>]</span>; see
+<a class="reference external" href="https://github.com/ZJaume/heliport">https://github.com/ZJaume/heliport</a>.</p>
 <p>Requires <a class="reference internal" href="../installation.html"><span class="std std-doc">installing optional libraries</span></a>.</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">languages</span></code>: expected languages (ISO639 language codes) for the segments</p></li>

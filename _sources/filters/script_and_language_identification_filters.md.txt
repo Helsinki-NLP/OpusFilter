@@ -48,21 +48,21 @@ Returned scores are the language identification confidence scores from a given i
 
 Currently the following identification methods are supported:
 
-* `langid` (default) :cite:`lui-baldwin-2012-langid`
-  * See https://github.com/adbar/py3langid
+* `langid` (default) {cite:p}`lui-baldwin-2012-langid`
+  * See <https://github.com/adbar/py3langid>
 * `lingua`
-  * See https://github.com/pemistahl/lingua-py
+  * See <https://github.com/pemistahl/lingua-py>
 * `cld2`
-  * See https://github.com/CLD2Owners/cld2
+  * See <https://github.com/CLD2Owners/cld2>
   * Requires [installing optional libraries](../installation.md).
-* `fasttext` :cite:`joulin-etal-2016-fasttext` and :cite:`joulin-etal-2017-bag`
+* `fasttext` {cite:p}`joulin-etal-2016-fasttext` and {cite:p}`joulin-etal-2017-bag`
   * A pretrained model can be downloaded from [fasttext.cc/docs/en/language-identification.html](https://fasttext.cc/docs/en/language-identification.html).
   * Requires [installing optional libraries](../installation.md).
 
 ## LangidFilter
 
-Filter segments based on the langid method :cite:`lui-baldwin-2012-langid`; see
-https://github.com/adbar/py3langid
+Filter segments based on the langid method {cite:p}`lui-baldwin-2012-langid`; see
+<https://github.com/adbar/py3langid>.
 
 Parameters:
 
@@ -77,7 +77,7 @@ can be used to skip filtering for a language.
 
 ## Cld2Filter
 
-Filter segments based on the CLD2 method; see https://github.com/CLD2Owners/cld2
+Filter segments based on the CLD2 method; see <https://github.com/CLD2Owners/cld2>.
 
 Requires [installing optional libraries](../installation.md).
 
@@ -85,7 +85,7 @@ Parameters:
 
 * `languages`: expected languages (ISO639 language codes) for the segments
 * `thresholds`: minimum identification confidence score for the segments (a single float or a list of floats per language)
-* `options`: a dictionary of options for the method (see https://github.com/CLD2Owners/cld2; default `null`)
+* `options`: a dictionary of options for the method (see <https://github.com/CLD2Owners/cld2>; default `null`)
 
 Returned scores are the language identification confidence scores from
 a given identification method for the segments. The scores range from
@@ -96,8 +96,8 @@ language.
 ## FastTextFilter
 
 Filter segments based on the Fasttext language identification models
-(:cite:`joulin-etal-2016-fasttext`, :cite:`joulin-etal-2017-bag`), see
-https://github.com/CLD2Owners/cld2.
+({cite:t}`joulin-etal-2016-fasttext`, {cite:t}`joulin-etal-2017-bag`), see
+<https://github.com/CLD2Owners/cld2>.
 
 Requires [installing optional libraries](../installation.md).
 
@@ -115,7 +115,7 @@ language.
 
 ## LinguaFilter
 
-Filter segments based on the Lingua method; see https://github.com/pemistahl/lingua-py
+Filter segments based on the Lingua method; see <https://github.com/pemistahl/lingua-py>.
 
 Parameters:
 
@@ -132,8 +132,8 @@ language.
 
 ## HeliportSimpleFilter
 
-Filter segments based on the HeLI-OTS method :cite:`jauhiainen-etal-2022-heli`; see
-https://github.com/ZJaume/heliport
+Filter segments based on the HeLI-OTS method {cite:p}`jauhiainen-etal-2022-heli`; see
+<https://github.com/ZJaume/heliport>.
 
 Requires [installing optional libraries](../installation.md).
 
@@ -150,8 +150,8 @@ the method predicts the correct language. If the low-confidence label
 
 ## HeliportConfidenceFilter
 
-Filter segments based on the HeLI-OTS method :cite:`jauhiainen-etal-2022-heli`; see
-https://github.com/ZJaume/heliport
+Filter segments based on the HeLI-OTS method {cite:p}`jauhiainen-etal-2022-heli`; see
+<https://github.com/ZJaume/heliport>.
 
 Requires [installing optional libraries](../installation.md).
 
@@ -170,8 +170,8 @@ filtering for a language.
 
 ## HeliportRawScoreFilter
 
-Filter segments based on the HeLI-OTS method :cite:`jauhiainen-etal-2022-heli`; see
-https://github.com/ZJaume/heliport
+Filter segments based on the HeLI-OTS method {cite:p}`jauhiainen-etal-2022-heli`; see
+<https://github.com/ZJaume/heliport>.
 
 Requires [installing optional libraries](../installation.md).
 
@@ -189,8 +189,8 @@ filtering for a language.
 
 ## HeliportProbabilityFilter
 
-Filter segments based on the HeLI-OTS method :cite:`jauhiainen-etal-2022-heli`; see
-https://github.com/ZJaume/heliport
+Filter segments based on the HeLI-OTS method {cite:p}`jauhiainen-etal-2022-heli`; see
+<https://github.com/ZJaume/heliport>.
 
 Requires [installing optional libraries](../installation.md).
 
