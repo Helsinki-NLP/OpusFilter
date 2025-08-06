@@ -44,7 +44,8 @@ parameter as empty string or null.
 
 For the `letter_words_only`, unless the input is pre-tokenized, you
 should select tokenizers for each of the input files. See
-[Tokenizer](tokenizer.md) for description of the tokenizer parameters.
+[Tokenizer](../preprocessors/tokenizer.md) for description of the
+tokenizer parameters.
 
 ## filter
 
