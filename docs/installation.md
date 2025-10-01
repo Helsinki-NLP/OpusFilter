@@ -85,6 +85,12 @@ require a number of additional libraries, including PyTorch, jieba,
 and MeCab. Note that you need also to download the prebuild models
 with `python -m laserembeddings download-models`.
 
+**Note:** The current latest release `laserembeddings==1.1.2` does not
+support `torch>=2.0.0` and thus fails on Python 3.12 and above. The
+code itself works on Python 3.12 and 3.13, but you need to fix
+`pyproject.toml` to allow later `torch` versions, and install it
+manually.
+
 ### VariKN n-gram models
 
 For using n-gram language model filters, you need to install the
