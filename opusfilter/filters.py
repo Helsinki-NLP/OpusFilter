@@ -164,7 +164,7 @@ class HtmlTagFilter(FilterABC):
         except (TypeError, UnboundLocalError, NotImplementedError,
                 AssertionError, bs4.builder.ParserRejectedMarkup) as err:
             logger.warning("BeautifulSoup parsing failed for %s: %s", repr(segment), err)
-            found = True
+            found = False
         return found
 
     def score(self, pairs):

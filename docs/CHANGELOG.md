@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- changed `HtmlTagFilter` to accept broken tags in order to avoid inconsistent results
+
 ### Fixed
 
 - broken citations and links in the documentation

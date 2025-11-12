@@ -104,20 +104,10 @@ class TestHtmlTagFilter(unittest.TestCase):
     def test_broken(self):
         testfilter = HtmlTagFilter()
         cases = [['<aaa bee', 'cee dee'], ['aa br> bee', 'cee deee'],
-                 ['<p aaa bee</p', 'p>cee dee /p>'], ['', '']]
+                 ['<p aaa bee</p', 'p>cee dee /p>'], ['<![ foo', 'foo'], ['', '']]
         expected = [([False, False], True), ([False, False], True),
                     ([False, False], True), ([False, False], True),
-                    ([True, False], False)]
-        results = [(x, testfilter.accept(x)) for x in testfilter.score(cases)]
-        logging.warning(results)
-        for result, correct in zip(results, expected):
-            self.assertSequenceEqual(result, correct)
-
-    @pytest.mark.skipif(sys.version_info >= (3, 13), reason="different output for py3.13")
-    def test_broken_exception(self):
-        testfilter = HtmlTagFilter()
-        cases = [['<![ foo', 'foo']]
-        expected = [([True, False], False)]
+                    ([False, False], True), ([True, False], False)]
         results = [(x, testfilter.accept(x)) for x in testfilter.score(cases)]
         logging.warning(results)
         for result, correct in zip(results, expected):
