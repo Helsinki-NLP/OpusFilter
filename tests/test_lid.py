@@ -93,7 +93,7 @@ class TestFasttext(TestLangIDMethod):
     def setUpClass(self):
         self.tempdir = tempfile.mkdtemp()
         if 'fasttext' not in globals():
-            raise unittest.SkipTest('fasttext not installed')
+            return
         self.testmodel = os.path.join(self.tempdir, 'model.ftz')
         try:
             file_download(self.model_url, self.testmodel)
@@ -104,11 +104,13 @@ class TestFasttext(TestLangIDMethod):
     def tearDownClass(self):
         shutil.rmtree(self.tempdir)
 
+    @unittest.skipIf('fasttext' not in globals(), 'fasttext not installed')
     def test_missing_model(self):
         with self.assertRaises(ConfigurationError):
             model = FastTextFilter(
                 languages=['en', 'fr'], thresholds=[0.8, 0.99])
 
+    @unittest.skipIf('fasttext' not in globals(), 'fasttext not installed')
     def test_fasttext_predict_lang(self):
         if self.testmodel is None:
             self.skipTest("Failed to download test resources")
@@ -120,6 +122,7 @@ class TestFasttext(TestLangIDMethod):
                    for fasttext_input in self.fasttext_inputs]
         self.assertSequenceEqual(expected, results)
 
+    @unittest.skipIf('fasttext' not in globals(), 'fasttext not installed')
     def test_accept(self):
         if self.testmodel is None:
             self.skipTest("Failed to download test resources")
