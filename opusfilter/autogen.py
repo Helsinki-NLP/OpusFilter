@@ -14,6 +14,7 @@ import ruamel.yaml
 from . import CLEAN_LOW, CLEAN_HIGH, CLEAN_BETWEEN, CLEAN_TRUE, CLEAN_FALSE
 from . import OpusFilterError, ConfigurationError
 from . import filters as filtermodule
+from . import lid as lidmodule
 from .autogen_cluster import ScoreClusters
 from .classifier import load_dataframe
 from .opusfilter import OpusFilter
@@ -171,6 +172,13 @@ def parse_filter_specs(specs):
     return name, params
 
 
+def get_lang_id_filters():
+    """Return all language identification filters"""
+    names = ['LanguageIDFilter']  # old deprecated filter
+    names += [var for var in dir(lidmodule) if var.endswith('Filter')]
+    return names
+
+
 class AutoFiltersABC(metaclass=abc.ABCMeta):
     """Abstract base class for automatic filter configuration"""
 
@@ -181,13 +189,14 @@ class AutoFiltersABC(metaclass=abc.ABCMeta):
             filters = self.DEFAULT_FILTERS
         filters = [parse_filter_specs(spec) for spec in filters]
         self.filters_to_add = []
+        lang_id_filters = get_lang_id_filters()
         for filter_name, filter_params in filters:
             if filter_name == 'CharacterScoreFilter' and 'scripts' not in filter_params:
                 if not scripts:
                     logger.warning('Cannot add CharacterScoreFilter (no scripts provided)')
                     continue
                 filter_params['scripts'] = scripts
-            if filter_name == 'LanguageIDFilter' and 'languages' not in filter_params:
+            if filter_name in lang_id_filters and 'languages' not in filter_params:
                 if not langs:
                     logger.warning('Cannot add LanguageIDFilter (no languages provided)')
                     continue
@@ -217,7 +226,7 @@ class DefaultParameterFilters(AutoFiltersABC):
                        'AverageWordLengthFilter', 'AlphabetRatioFilter',
                        'TerminalPunctuationFilter', 'NonZeroNumeralsFilter',
                        'LongestCommonSubstringFilter', 'SimilarityFilter', 'RepetitionFilter',
-                       'CharacterScoreFilter', ('LanguageIDFilter', {'id_method': 'lingua'})]
+                       'CharacterScoreFilter', 'LinguaFilter']
 
     def set_filter_thresholds(self):
         """Set filter thresholds"""
