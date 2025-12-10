@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Special character and similarity filters &mdash; OpusFilter 3.3.0 documentation</title>
+  <title>Special character and similarity filters &mdash; OpusFilter 3.3.1 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=1cc24756"></script>
+      <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=b8bac34f"></script>
       <script src="../_static/doctools.js?v=888ff710"></script>
       <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="../_static/js/theme.js"></script>
@@ -126,6 +126,11 @@
 <p>The returned scores are two boolean values indicating whether the
 segments contain HTML tags. In filtering, a segment pair is accepted
 if none of the segments contains HTML tags.</p>
+<p>The beautifulsoup4 library is used for detecting HTML. Up to
+OpusFilter version 3.3.0, the behavior on broken HTML tags varies
+depending on the input and installed library versions. For newer
+versions, broken HTML is not considered as HTML, i.e., it is accepted
+by the filter.</p>
 </section>
 <section id="terminalpunctuationfilter">
 <h2>TerminalPunctuationFilter<a class="headerlink" href="#terminalpunctuationfilter" title="Permalink to this heading"></a></h2>

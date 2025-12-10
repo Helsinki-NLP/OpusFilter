@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Installation &mdash; OpusFilter 3.3.0 documentation</title>
+  <title>Installation &mdash; OpusFilter 3.3.1 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=1cc24756"></script>
+      <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=b8bac34f"></script>
       <script src="_static/doctools.js?v=888ff710"></script>
       <script src="_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="_static/js/theme.js"></script>
@@ -202,6 +202,11 @@ or <code class="docutils literal notranslate"><span class="pre">[all]</span></co
 require a number of additional libraries, including PyTorch, jieba,
 and MeCab. Note that you need also to download the prebuild models
 with <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">laserembeddings</span> <span class="pre">download-models</span></code>.</p>
+<p><strong>Note:</strong> The current latest release <code class="docutils literal notranslate"><span class="pre">laserembeddings==1.1.2</span></code> does not
+support <code class="docutils literal notranslate"><span class="pre">torch&gt;=2.0.0</span></code> and thus fails on Python 3.12 and above. The
+code itself works on Python 3.12 and 3.13, but you need to fix
+<code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> to allow later <code class="docutils literal notranslate"><span class="pre">torch</span></code> versions, and install it
+manually.</p>
 </section>
 <section id="varikn-n-gram-models">
 <h3>VariKN n-gram models<a class="headerlink" href="#varikn-n-gram-models" title="Permalink to this heading"></a></h3>
