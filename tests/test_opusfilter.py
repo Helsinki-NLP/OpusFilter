@@ -91,6 +91,29 @@ class TestOpusFilter(unittest.TestCase):
                                               {'filename': 'RF1_sv.arpa'}],
                                 'thresholds': [50.0, 50.0],
                                 'diff_threshold': 10.0}}]}},
+             {'type': 'score',
+              'parameters': {
+                  'inputs': ['RF1_sents.en', 'RF1_sents.sv'],
+                  'output': 'RF1_scores_and_decisions.en-sv.jsonl',
+                  'with_decision': True,
+                  'filters': [{'LanguageIDFilter':
+                               {'languages': ['en', 'sv'],
+                                'thresholds': [0, 0]}},
+                              {'TerminalPunctuationFilter':
+                               {'threshold': -2}},
+                              {'NonZeroNumeralsFilter': {'threshold': 0.5}},
+                              {'CharacterScoreFilter':
+                               {'scripts': ['Latin', 'Latin'],
+                                'sthreshold': [1, 1]}},
+                              {'WordAlignFilter': {'priors': 'RF1_align.priors',
+                                                   'model': 3,
+                                                   'src_threshold': 0,
+                                                   'tgt_threshold': 0}},
+                              {'CrossEntropyFilter':
+                               {'lm_params': [{'filename': 'RF1_en.arpa'},
+                                              {'filename': 'RF1_sv.arpa'}],
+                                'thresholds': [50.0, 50.0],
+                                'diff_threshold': 10.0}}]}},
              {'type': 'train_classifier',
               'parameters': {
                   'training_scores': 'RF1_scores.en-sv.jsonl',
@@ -156,6 +179,20 @@ class TestOpusFilter(unittest.TestCase):
             self.assertEqual(score['TerminalPunctuationFilter'], -0.0)
             self.assertEqual(score['NonZeroNumeralsFilter'], [0.0])
             self.assertEqual(type(score['WordAlignFilter']), list)
+
+    def test_score_with_decision(self):
+        with open(os.path.join(self.tempdir, 'RF1_scores_and_decisions.en-sv.jsonl')) as scores_file:
+            score = json.loads(scores_file.readline())
+            self.assertEqual(score['LanguageIDFilter']['scores'], [1.0, 0.98])
+            self.assertEqual(score['LanguageIDFilter']['scores'], [1.0, 0.98])
+            self.assertEqual(score['CharacterScoreFilter']['scores'], [1.0, 1.0])
+            self.assertAlmostEqual(
+                score['CrossEntropyFilter']['scores'][0], 15.214258903317491)
+            self.assertAlmostEqual(
+                score['CrossEntropyFilter']['scores'][1], 7.569084909162213)
+            self.assertEqual(score['TerminalPunctuationFilter']['scores'], -0.0)
+            self.assertEqual(score['NonZeroNumeralsFilter']['scores'], [0.0])
+            self.assertEqual(type(score['WordAlignFilter']['scores']), list)
 
     def test_classifier_probs(self):
         self.assertTrue(os.path.isfile(os.path.join(self.tempdir, 'RF1_probs.en-sv.txt')))

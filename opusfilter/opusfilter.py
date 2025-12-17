@@ -584,9 +584,10 @@ class OpusFilter:
         if not overwrite and os.path.isfile(score_out):
             logger.info("Output file exists, skipping step")
             return
+        with_decision = parameters.get('with_decision', False)
         filter_pipe = pipeline.FilterPipeline.from_config(parameters['filters'], workdir=self.output_dir)
         filter_pipe.chunksize = self.chunksize
-        scores_gen = filter_pipe.score(self.pair_generator(*infiles))
+        scores_gen = filter_pipe.score(self.pair_generator(*infiles), with_decision=with_decision)
         self._write_jsonl(scores_gen, score_out)
 
     def train_classifier(self, parameters, overwrite=False):
