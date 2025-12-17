@@ -19,6 +19,20 @@ class TestFilterPipelineBase(unittest.TestCase):
             else:
                 self.assertAlmostEqual(val1, val2, msg=f"Scores do not match for {key}: {val1} {val2}")
 
+    def assert_scores_and_decisions_equal(self, sdict1, sdict2):
+        self.assertEqual(set(sdict1), set(sdict2))  # same keys
+        for key, res1 in sdict1.items():
+            res2 = sdict2[key]
+            acc1, acc2 = res1['accept'], res2['accept']
+            val1, val2 = res1['scores'], res2['scores']
+            self.assertEqual(acc1, acc2, msg=f"Decisions do not match for {key}: {acc1} {acc2}")
+            if isinstance(val1, list):
+                self.assertEqual(len(val1), len(val2), msg=f"Scores do not match for {key}: {val1} {val2}")
+                for item1, item2 in zip(val1, val2):
+                    self.assertAlmostEqual(item1, item2, msg=f"Scores do not match for {key}: {val1} {val2}")
+            else:
+                self.assertAlmostEqual(val1, val2, msg=f"Scores do not match for {key}: {val1} {val2}")
+
 
 class TestFilterPipeline(TestFilterPipelineBase):
 
@@ -33,8 +47,8 @@ class TestFilterPipeline(TestFilterPipelineBase):
                 {'HtmlTagFilter': {}},
                 {'CharacterScoreFilter': {'scripts': ['Latin', 'Latin'],
                                           'thresholds': [1, 1]}},
-                {'LanguageIDFilter': {'languages': ['en', 'sv'],
-                                      'thresholds': [0, 0]}},
+                {'LangidFilter': {'languages': ['en', 'sv'],
+                                  'thresholds': [0, 0]}},
                 {'TerminalPunctuationFilter': {'threshold': -2}},
                 {'NonZeroNumeralsFilter': {'threshold': 0.5}}
            ]
@@ -70,7 +84,7 @@ class TestFilterPipeline(TestFilterPipelineBase):
              'AverageWordLengthFilter': [6, 19 / 3],
              'HtmlTagFilter': [False, False],
              'CharacterScoreFilter': [1.0, 1.0],
-             'LanguageIDFilter': [1.0, 1.0],
+             'LangidFilter': [1.0, 1.0],
              'TerminalPunctuationFilter': -0.0,
              'NonZeroNumeralsFilter': [1.0]})
         self.assert_scores_equal(
@@ -81,7 +95,7 @@ class TestFilterPipeline(TestFilterPipelineBase):
              'AverageWordLengthFilter': [6, 10],
              'HtmlTagFilter': [False, False],
              'CharacterScoreFilter': [1.0, 1.0],
-             'LanguageIDFilter': [0.17, 0.0],
+             'LangidFilter': [0.17, 0.0],
              'TerminalPunctuationFilter': -2.1972245773362196,
              'NonZeroNumeralsFilter': [0.8888888888888888]})
         self.assert_scores_equal(
@@ -92,9 +106,51 @@ class TestFilterPipeline(TestFilterPipelineBase):
              'AverageWordLengthFilter': [0, 0],
              'HtmlTagFilter': [False, False],
              'CharacterScoreFilter': [1.0, 1.0],
-             'LanguageIDFilter': [1.0, 1.0],
+             'LangidFilter': [1.0, 1.0],
              'TerminalPunctuationFilter': -0.0,
              'NonZeroNumeralsFilter': [1.0]})
+
+    def test_score_with_decision(self):
+        fp = FilterPipeline.from_config(self.config)
+        pairs = [('That safeguards our independence .',
+                  ('Kränkningar av svenskt territorium kommer aldrig att '
+                   'accepteras .')),
+                 ('1245..', '12345.....'),
+                 ('', '')]
+        scores = list(fp.score(pairs, with_decision=True))
+        self.assert_scores_and_decisions_equal(
+            scores[0],
+            {'LengthFilter': {'scores': [5, 9], 'accept': True},
+             'LengthRatioFilter': {'scores': 1.8, 'accept': True},
+             'LongWordFilter': {'scores': [12, 11], 'accept': True},
+             'AverageWordLengthFilter': {'scores': [6, 19 / 3], 'accept': True},
+             'HtmlTagFilter': {'scores': [False, False], 'accept': True},
+             'CharacterScoreFilter': {'scores': [1.0, 1.0], 'accept': True},
+             'LangidFilter': {'scores': [1.0, 1.0], 'accept': True},
+             'TerminalPunctuationFilter': {'scores': -0.0, 'accept': True},
+             'NonZeroNumeralsFilter': {'scores': [1.0], 'accept': True}})
+        self.assert_scores_and_decisions_equal(
+            scores[1],
+            {'LengthFilter': {'scores': [1, 1], 'accept': True},
+             'LengthRatioFilter': {'scores': 1.0, 'accept': True},
+             'LongWordFilter': {'scores': [6, 10], 'accept': True},
+             'AverageWordLengthFilter': {'scores': [6, 10], 'accept': True},
+             'HtmlTagFilter': {'scores': [False, False], 'accept': True},
+             'CharacterScoreFilter': {'scores': [1.0, 1.0], 'accept': True},
+             'LangidFilter': {'scores': [0.17, 0.0], 'accept': False},
+             'TerminalPunctuationFilter': {'scores': -2.1972245773362196, 'accept': False},
+             'NonZeroNumeralsFilter': {'scores': [0.8888888888888888], 'accept': True}})
+        self.assert_scores_and_decisions_equal(
+            scores[2],
+            {'LengthFilter': {'scores': [0, 0], 'accept': False},
+             'LengthRatioFilter': {'scores': 0, 'accept': True},
+             'LongWordFilter': {'scores': [0, 0], 'accept': True},
+             'AverageWordLengthFilter': {'scores': [0, 0], 'accept': False},
+             'HtmlTagFilter': {'scores': [False, False], 'accept': True},
+             'CharacterScoreFilter': {'scores': [1.0, 1.0], 'accept': True},
+             'LangidFilter': {'scores': [1.0, 1.0], 'accept': True},
+             'TerminalPunctuationFilter': {'scores': -0.0, 'accept': True},
+             'NonZeroNumeralsFilter': {'scores': [1.0], 'accept': True}})
 
     def test_filter(self):
         fp = FilterPipeline.from_config(self.config)

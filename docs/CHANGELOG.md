@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `with_decision` option for the score function
+
 ## [3.3.1] - 2025-12-10
 
 ### Changed

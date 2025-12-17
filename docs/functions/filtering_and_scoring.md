@@ -87,6 +87,7 @@ Parameters:
 * `output`: output file for the scores
 * `n_jobs`: number of sub processes to parallel run jobs. If not set, the default value is `default_n_jobs` in `common` section.
 * `filters`: a list of filters to apply; see below
+* `with_decision`: yield filtering decisions in addition to the scores (optional; default `false`)
 
 The filters are defined in the same manner as in the `filter`
 function. The possible accept threshold parameters of the filters do
@@ -117,3 +118,12 @@ scores or training a classifier for filtering. The JSON Lines data is
 easy to load as a [pandas](https://pandas.pydata.org/) DataFrame using
 the [`json_normalize`](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.io.json.json_normalize.html)
 method.
+
+If `with_decision` is set to true, the filtering decisions are
+included in addition to the scores. Instead of a score or list
+of scores, the output for each filter will be an object
+```
+{"scores": <SCORES>, "accept": <DECISION>}
+```
+where `<SCORES>` contain the scores and `<DECISION>` is a boolean value
+indicating whether the segment should be accepted.

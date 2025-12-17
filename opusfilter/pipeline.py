@@ -61,15 +61,18 @@ class FilterPipeline:
             renamed.append(newtuple)
         return renamed
 
-    def score(self, pairs):
+    def score(self, pairs, with_decision=False):
         """Yield dictionaries of filter scores for sentence pairs"""
 
-        def _update_score_dict(scored, namet, score):
+        def _update_score_dict(scored, namet, score, decision=None):
             for key in namet[:-1]:
                 if key not in scored:
                     scored[key] = {}
                 scored = scored[key]
-            scored[namet[-1]] = score
+            if decision is not None:
+                scored[namet[-1]] = {'scores': score, 'accept': decision}
+            else:
+                scored[namet[-1]] = score
 
         fnames = self.get_score_tuples()
         for num, chunk in enumerate(grouper(pairs, self._chunksize)):
@@ -81,7 +84,8 @@ class FilterPipeline:
             for scores in zip(*chunk_scores):
                 output = {}
                 for idx, score in enumerate(scores):
-                    _update_score_dict(output, fnames[idx], score)
+                    decision = self.filters[idx].accept(score) if with_decision else None
+                    _update_score_dict(output, fnames[idx], score, decision=decision)
                 yield output
 
     def filter(self, pairs):
