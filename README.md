@@ -65,3 +65,13 @@ A full bibliography of papers cited in the documentation and code can be found f
 ## Contributing
 
 See [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md).
+
+
+## Acknowledgements
+
+OpusFilter has partially been supported by various projects such as:
+
+* [MeMAD](https://memad.eu/) - Methods for Managing Audiovisual Data (EU Horizon 2020)
+* [FoTran](https://www.helsinki.fi/en/researchgroups/natural-language-understanding) - Found in Translation (EU ERC)
+* [HPLT](https://hplt-project.org/) - High-Performance Language Technologies (EU Horizon)
+* [GreenNLP](https://greennlp.github.io/) - Controlling the Carbon Footprint in Sustainable Language Technology (Academy of Finland ICT 2023)
