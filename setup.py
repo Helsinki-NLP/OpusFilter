@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 install_requires = [
     "setuptools",
-    "opustools>=1.6.2",
+    "opustools>=1.8.3",
     "beautifulsoup4>=4.8.0",
     "graphviz",
     "py3langid>=0.2.2",
