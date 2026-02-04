@@ -9,6 +9,6 @@ Split words into subword units using Morfessor model
 * `viterbi_max_len`: (optional; default 30)
 * `viterbi_smoothing`: (optional; default 0)
 
-See [train_morfessor](train_morfessor) for training a model and 
+See [train_morfessor](train_morfessor) for training a model and
 [Morfessor 2.0 documentation](https://morfessor.readthedocs.io/en/latest/)
 for details of the parameters.

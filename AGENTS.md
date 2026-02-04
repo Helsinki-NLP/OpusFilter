@@ -72,23 +72,23 @@ When creating new filters, follow this pattern:
 ```python
 class NewFilter(FilterABC):
     """Brief description of the filter"""
-    
+
     score_direction = CLEAN_LOW  # or CLEAN_HIGH, CLEAN_BETWEEN, etc.
     accept_threshold = <value>
     reject_threshold = <value>
-    
+
     def __init__(self, required_param, optional_param=default, **kwargs):
         # Validate parameters
         self.required_param = required_param
         self.optional_param = optional_param
         super().__init__(**kwargs)
-    
+
     def score(self, pairs):
         """Yield scores for each sentence pair"""
         for pair in pairs:
             # Calculate score
             yield score
-    
+
     def accept(self, score):
         """Return True if score passes the filter"""
         return <condition>

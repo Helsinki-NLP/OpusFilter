@@ -10,19 +10,19 @@ from opusfilter.cli.cmd import main as cmd_main
 
 class TestCmdCLI(unittest.TestCase):
     """Test cases for opusfilter-cmd command."""
-    
+
     def test_cmd_help(self):
         """Test that help is displayed."""
         with self.assertRaises(SystemExit) as cm:
             cmd_main(['--help'])
         self.assertEqual(cm.exception.code, 0)
-    
+
     def test_cmd_help_only(self):
         """Test that help is displayed without calling OpusFilter."""
         with self.assertRaises(SystemExit) as cm:
             cmd_main(['--help'])
         self.assertEqual(cm.exception.code, 0)
-    
+
     def test_installed_command(self):
         """Test that installed command works."""
         result = subprocess.run(

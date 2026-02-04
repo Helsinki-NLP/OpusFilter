@@ -188,7 +188,7 @@ values            Plot score values by line number
 
 ''')
     parser.add_argument('command', help='Subcommand to run')
-    
+
     if args is None:
         # Parse only the command, pass the rest to subcommand
         parsed_args, remaining = parser.parse_known_args(sys.argv[1:])
@@ -200,23 +200,23 @@ values            Plot score values by line number
             return 1
         parsed_args = parser.parse_args(args[:1])
         cmd_args = args[1:]
-    
+
     cmd = parsed_args.command.replace('-', '_')
     commands = ScoreCommands()
-    
+
     if not hasattr(commands, cmd):
         logger = logging.getLogger(__name__)
         logger.error('Unrecognized command "%s"', cmd)
         parser.print_help()
         sys.exit(1)
-    
+
     # Use dispatch pattern to invoke method with same name
     getattr(commands, cmd)(cmd_args)
-    
+
     # Show plots for visual commands
     if cmd in ['scatter_matrix', 'corr', 'hist', 'values']:
         plt.show()
-    
+
     return 0
 
 

@@ -22,7 +22,7 @@ maintainers = [
 ]
 keywords = [
     "parallel-corpora",
-    "corpus-filtering", 
+    "corpus-filtering",
     "natural-language-processing",
     "machine-translation",
     "data-cleaning",

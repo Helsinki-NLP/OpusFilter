@@ -15,7 +15,7 @@ def main(args=None):
     """Main entry point for opusfilter-duplicates command."""
     parser = argparse.ArgumentParser(prog='opusfilter-duplicates',
         description='Find duplicates from parallel text data using hashes and print statistics')
-    
+
     parser.add_argument('files', nargs='+', metavar='FILE', help='parallel text input file(s)')
     parser.add_argument('--overlap', '-o', nargs='+', metavar='FILE', default=None,
                         help='calculate overlap with second set of input files')
@@ -31,17 +31,17 @@ def main(args=None):
     parser.add_argument('--tokenizers', type=str, metavar='JSON', default=None,
                         help=('load tokenizer specifications from a JSON list (e.g. \'[["moses", "en"], ["jieba", "zh"]]\'); '
                               'use with --letter-words-only'))
-    
+
     args = parser.parse_args(args)
-    
+
     logging.basicConfig(level=logging.INFO)
     logging.getLogger('mosestokenizer.tokenizer.MosesTokenizer').setLevel(logging.WARNING)
-    
+
     if args.overlap and len(args.overlap) != len(args.files):
         raise ValueError("The number of the main and overlap input files should match")
-    
+
     tokenizers = json.loads(args.tokenizers) if args.tokenizers else None
-    
+
     hasher = SegmentHasher(
         compare='all',
         method=args.hash,
@@ -50,7 +50,7 @@ def main(args=None):
         lowercase=args.lowercase,
         tokenizers=tokenizers
     )
-    
+
     total = 0
     counter = collections.Counter()
     infs = [file_open(infile) for infile in args.files]
@@ -58,7 +58,7 @@ def main(args=None):
         total += 1
         key = hasher.apply(lines)
         counter[key] += 1
-    
+
     if args.overlap:
         total2 = 0
         overlap = 0
@@ -84,7 +84,7 @@ def main(args=None):
         print("Average number of duplicates: {:.1f}".format(
             sum((k * v) for k, v in counts_of_counts.items()) / sum(counts_of_counts.values())))
         print("Maximum number of duplicates: {}".format(max(counts_of_counts.keys())))
-    
+
     return 0
 
 
