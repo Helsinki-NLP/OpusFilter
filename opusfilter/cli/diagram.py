@@ -12,6 +12,9 @@ from graphviz import Digraph
 from opusfilter.util import yaml, yaml_dumps
 
 
+logger = logging.getLogger(__name__)
+
+
 def get_inputs(step):
     """Return inputs of the step."""
     params = step.get('parameters', {})
@@ -48,23 +51,22 @@ def main(args=None):
     """Main entry point for opusfilter-diagram command."""
     parser = argparse.ArgumentParser(prog='opusfilter-diagram',
         description='Draw a diagram from OpusFilter configuration')
-    
+
     parser.add_argument('yaml', metavar='FILE', help='YAML configuration file')
     parser.add_argument('output', metavar='FILE', help='output file (rendered if does not end with .dot)')
     parser.add_argument('--rankdir', default='LR', choices=['TB', 'LR'], help='graph direction (default %(default)s)')
     parser.add_argument('--exclude-params', action='store_true', help='do not write step parameters')
-    
+
     args = parser.parse_args(args)
-    
+
     logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger(__name__)
-    
-    config = yaml.load(open(args.yaml))
-    
+
+    config = yaml.load(open(args.yaml, 'r', encoding='utf-8'))
+
     graph = Digraph(comment=os.path.basename(args.yaml))
     graph.attr(rankdir=args.rankdir)
     graph.attr('node', shape='box')
-    
+
     node_outputs = {}
     used_outputs = set()
     sources = {}
@@ -97,16 +99,16 @@ def main(args=None):
             targets[fname] = target_name
             graph.node(target_name, shape='point')
             graph.edge(node_outputs[fname], target_name, label=os.path.basename(fname))
-    
+
     if args.output.endswith('.dot'):
-        with open(args.output, 'w') as fobj:
+        with open(args.output, 'w', encoding='utf-8') as fobj:
             fobj.write(graph.source)
         logger.info("Wrote %s", args.output)
     else:
         base, ext = os.path.splitext(args.output)
         out = graph.render(filename=base, format=ext.lstrip('.'), cleanup=True, view=False)
         logger.info("Wrote %s", out)
-    
+
     return 0
 
 

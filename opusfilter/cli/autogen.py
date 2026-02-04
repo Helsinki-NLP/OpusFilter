@@ -16,12 +16,15 @@ except OSError:
     pass
 
 
+logger = logging.getLogger(__name__)
+
+
 def main(args=None):
     """Main entry point for opusfilter-autogen command."""
     parser = argparse.ArgumentParser(
         prog='opusfilter-autogen',
         description='Generate initial configuration based on parallel text data')
-    
+
     parser.add_argument('--files', required=True, nargs='+', metavar='TEXTFILE', help='parallel text input file(s)')
     parser.add_argument('--langs', nargs='+', metavar='LANGCODE',
                         help='Language codes corresponding to input files. If omitted, LanguageIDFilters will not be used.')
@@ -53,15 +56,14 @@ def main(args=None):
                         help='Overwrite existing intermediate files')
     parser.add_argument('-o', '--output', type=argparse.FileType('w'),
                         default='-', metavar='CONFIGFILE', help='Output configuration file (default %(default)s)')
-    
+
     args = parser.parse_args(args)
-    
+
     logging.basicConfig(level=logging.INFO)
     logging.getLogger('mosestokenizer.tokenizer.MosesTokenizer').setLevel(logging.WARNING)
-    logger = logging.getLogger(__name__)
-    
+
     filters = [(name, json.loads(jsonstr)) for name, jsonstr in args.add_filter] if args.add_filter else None
-    
+
     if args.method == 'clustering':
         filtergen = ClusterFilters(
             files=args.files, langs=args.langs, scripts=args.scripts, filters=filters,
@@ -73,25 +75,25 @@ def main(args=None):
             inter_dir=args.inter_dir, overwrite=args.overwrite)
     else:
         filtergen = DefaultParameterFilters(langs=args.langs, scripts=args.scripts, filters=filters)
-    
+
     if args.list_defaults:
         yaml.dump(filtergen.DEFAULT_FILTERS, args.output)
         return 0
-    
+
     filters = filtergen.set_filter_thresholds()
-    
+
     if args.method == 'clustering' and args.plot is not None:
         if args.plot == '-':
             filtergen.scoredata.plot(plt)
             plt.show()
         else:
             filtergen.scoredata.plot(plt, path=args.plot)
-    
+
     generator = ConfigurationGenerator(
         files=[os.path.abspath(f) for f in args.files], langs=args.langs, workdir=args.work_dir)
     generator.add_filter(filtergen.filters)
     yaml.dump(generator.get_config(), args.output)
-    
+
     return 0
 
 

@@ -33,6 +33,7 @@ OpusFilter is a tool for filtering and processing parallel corpora. It's written
 - Support Python 3.8 to 3.13
 - Use type hints where appropriate (see existing code for patterns)
 - Maintain backward compatibility when possible
+- Do not add trailing whitespace
 
 ### Import Organization
 ```python

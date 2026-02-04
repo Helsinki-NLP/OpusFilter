@@ -9,6 +9,9 @@ from opusfilter.opusfilter import OpusFilter
 from opusfilter.util import yaml_dumps
 
 
+logger = logging.getLogger(__name__)
+
+
 def json_value(value):
     """Interpret value as JSON if possible."""
     try:
@@ -39,26 +42,25 @@ def main(args=None):
     """Main entry point for opusfilter-cmd command."""
     # Use to prevent warning from missing directory
     tmpconfig = {'common': {'output_directory': '/tmp'}}
-    
+
     parser = argparse.ArgumentParser(
         prog='opusfilter-cmd', description='Run single opusfilter function', allow_abbrev=False)
-    
+
     parser.add_argument('function', choices=OpusFilter(tmpconfig).step_functions, help='OpusFilter function')
     parser.add_argument('--overwrite', '-o', help='overwrite existing output files', action='store_true')
     parser.add_argument('--outputdir', '-d', default='.', help='output directory')
     parser.add_argument('--parameters', type=str, default=None, help='load parameters as a JSON object (e.g. \'{"inputs": ["all.gz"], "outputs": ["filtered.gz"]}\')')
-    
+
     args, remaining = parser.parse_known_args(args)
-    
+
     logging.basicConfig(level=logging.INFO)
     logging.getLogger('mosestokenizer.tokenizer.MosesTokenizer').setLevel(logging.WARNING)
-    logger = logging.getLogger(__name__)
-    
+
     if args.parameters is None:
         parameters = {}
     else:
         parameters = json.loads(args.parameters)
-    
+
     temp = copy.copy(remaining)
     name = None
     values = []
@@ -74,17 +76,17 @@ def main(args=None):
             raise ValueError("Could not parse remaining arguments: %s" % remaining)
         values.append(json_value(new))
     update_parameters(parameters, name, values)
-    
+
     configuration = {
         'common': {'output_directory': args.outputdir},
         'steps': [{'type': args.function, 'parameters': parameters}]
     }
-    
+
     logger.info("Created configuration:\n\n%s", yaml_dumps(configuration))
-    
+
     of = OpusFilter(configuration)
     of.execute_steps(overwrite=args.overwrite)
-    
+
     return 0
 
 
