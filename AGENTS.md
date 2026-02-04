@@ -18,6 +18,9 @@ OpusFilter is a tool for filtering and processing parallel corpora. It's written
 - **Check style**: `flake8 opusfilter/`
 - **Run flake8 with statistics**: `flake8 opusfilter --count --exit-zero --statistics`
 - **Run full linting (recommended for contributions)**: `pylint opusfilter/`
+- **Format code**: `black opusfilter/ opusfilter/cli/`
+- **Sort imports**: `isort opusfilter/ opusfilter/cli/`
+- **Type checking**: `mypy opusfilter/ opusfilter/cli/`
 
 ### Environment Setup
 - **Install with test dependencies**: `pip install .[test]`
