@@ -13,3 +13,4 @@ htmlcov
 *.zip
 *.gz
 venv
+opusfilter/_version.py

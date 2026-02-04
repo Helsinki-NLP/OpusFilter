@@ -1,93 +1,14 @@
 #!/usr/bin/env python3
 
-import argparse
-import logging
-import json
-import os
+import warnings
 import sys
 
-import matplotlib.pyplot as plt
+warnings.warn(
+    "Direct execution of bin/opusfilter-autogen is deprecated and will be removed in a future release. "
+    "Please use the 'autogen' command instead.",
+    DeprecationWarning,
+    stacklevel=2
+)
 
-from opusfilter.autogen import ClusterFilters, ConfigurationGenerator, DefaultParameterFilters, PercentileFilters
-from opusfilter.util import yaml
-
-try:
-    plt.style.use('seaborn-v0_8')
-except OSError:
-    pass
-
-logger = logging.getLogger(__name__)
-
-if __name__ == '__main__':
-
-    logging.basicConfig(level=logging.INFO)
-    logging.getLogger('mosestokenizer.tokenizer.MosesTokenizer').setLevel(logging.WARNING)
-
-    parser = argparse.ArgumentParser(
-        prog='opusfilter-autogen',
-        description='Generate initial configuration based on parallel text data')
-
-    parser.add_argument('--files', required=True, nargs='+', metavar='TEXTFILE', help='parallel text input file(s)')
-    parser.add_argument('--langs', nargs='+', metavar='LANGCODE',
-                        help='Language codes corresponding to the input files. If omitted, LanguageIDFilters will not be used.')
-    parser.add_argument('--scripts', nargs='+', metavar='SCRIPT', help=(
-        'Alphabetic scripts (e.g. Latin) corresponding to the input files. '
-        'If omitted, CharacterScoreFilter will not be used.'))
-    parser.add_argument('--method', choices=['defaults', 'percentiles', 'clustering'], default='clustering',
-                        help='Method for selecting filter thresholds (default: %(default)s)')
-    parser.add_argument('--sample-size', default=100000, type=int, metavar='INT',
-                        help='Max number of sentence pairs used for data-based methods (default %(default)s)')
-    parser.add_argument('--noisy-percentile', default=0.001, type=float, metavar='FLOAT',
-                        help='Proportion of the data considered to be noisy; only for percentiles method (default %(default)s)')
-    parser.add_argument('--clusters', '-k', default=2, type=int, metavar='INT',
-                        help=('Number of clusters for the clustering method; try increasing if too much data is clustered '
-                              'as noisy (default %(default)s)'))
-    parser.add_argument('--work-dir', default='work',
-                        help='Location of the source and target files for the generated configuration (default %(default)s)')
-    parser.add_argument('--inter-dir', help='Save intermediate files in this directory (use a temporary directory if not given)')
-    parser.add_argument('--plot', metavar='PATH', default=None, type=str,
-                        help=('Create histograms of feature data distributions and a scatter plot of the clustering; '
-                              'give path to plot the PDF files to, or "-" for interactive plots; only for the clustering method'))
-    parser.add_argument('--list-defaults', action='store_true', help='List default filters of the method to the output and quit')
-    parser.add_argument('--add-filter', nargs=2, action='append', default=[], metavar=('CLASS', 'JSON'),
-                        help=('Instead of using default filters, add a filter of CLASS with JSON parameters object '
-                              '("{}" for default parameters). The class name may be followed by a dot and a unique '
-                              'filter identifier in order to allow multiple filters of the same class. Example: '
-                              '--add-filter LanguageIDFilter.cld2 \'{"id_method": "cld2"}\''))
-    parser.add_argument('--overwrite', action='store_true',
-                        help='Overwrite existing intermediate files')
-    parser.add_argument('-o', '--output', type=argparse.FileType('w'),
-                        default='-', metavar='CONFIGFILE', help='Output configuration file (default %(default)s)')
-    args = parser.parse_args()
-
-    filters = [(name, json.loads(jsonstr)) for name, jsonstr in args.add_filter] if args.add_filter else None
-
-    if args.method == 'clustering':
-        filtergen = ClusterFilters(
-            files=args.files, langs=args.langs, scripts=args.scripts, filters=filters,
-            sample_size=args.sample_size, k=args.clusters, inter_dir=args.inter_dir, overwrite=args.overwrite)
-    elif args.method == 'percentiles':
-        filtergen = PercentileFilters(
-            files=args.files, langs=args.langs, scripts=args.scripts, filters=filters,
-            excluded_percentile=args.noisy_percentile, sample_size=args.sample_size,
-            inter_dir=args.inter_dir, overwrite=args.overwrite)
-    else:
-        filtergen = DefaultParameterFilters(langs=args.langs, scripts=args.scripts, filters=filters)
-
-    if args.list_defaults:
-        yaml.dump(filtergen.DEFAULT_FILTERS, args.output)
-        sys.exit(0)
-
-    filters = filtergen.set_filter_thresholds()
-
-    if args.method == 'clustering' and args.plot is not None:
-        if args.plot == '-':
-            filtergen.scoredata.plot(plt)
-            plt.show()
-        else:
-            filtergen.scoredata.plot(plt, path=args.plot)
-
-    generator = ConfigurationGenerator(
-        files=[os.path.abspath(f) for f in args.files], langs=args.langs, workdir=args.work_dir)
-    generator.add_filter(filtergen.filters)
-    yaml.dump(generator.get_config(), args.output)
+from opusfilter.cli.autogen import main
+sys.exit(main())

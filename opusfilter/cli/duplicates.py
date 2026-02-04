@@ -1,28 +1,21 @@
-#!/usr/bin/env python3
-
-import warnings
+"""Command-line interface for opusfilter-duplicates command."""
+import argparse
+import collections
+import json
+import logging
 import sys
 
-warnings.warn(
-    "Direct execution of bin/opusfilter-duplicates is deprecated and will be removed in a future release. "
-    "Please use the 'opusfilter-duplicates' command instead.",
-    DeprecationWarning,
-    stacklevel=2
-)
+from tqdm import tqdm
 
-from opusfilter.cli.duplicates import main
-sys.exit(main())
+from opusfilter.segment_hash import SegmentHasher
+from opusfilter.util import file_open
 
-logger = logging.getLogger(__name__)
 
-if __name__ == '__main__':
-
-    logging.basicConfig(level=logging.INFO)
-    logging.getLogger('mosestokenizer.tokenizer.MosesTokenizer').setLevel(logging.WARNING)
-
+def main(args=None):
+    """Main entry point for opusfilter-duplicates command."""
     parser = argparse.ArgumentParser(prog='opusfilter-duplicates',
         description='Find duplicates from parallel text data using hashes and print statistics')
-
+    
     parser.add_argument('files', nargs='+', metavar='FILE', help='parallel text input file(s)')
     parser.add_argument('--overlap', '-o', nargs='+', metavar='FILE', default=None,
                         help='calculate overlap with second set of input files')
@@ -38,14 +31,17 @@ if __name__ == '__main__':
     parser.add_argument('--tokenizers', type=str, metavar='JSON', default=None,
                         help=('load tokenizer specifications from a JSON list (e.g. \'[["moses", "en"], ["jieba", "zh"]]\'); '
                               'use with --letter-words-only'))
-
-    args = parser.parse_args()
-
+    
+    args = parser.parse_args(args)
+    
+    logging.basicConfig(level=logging.INFO)
+    logging.getLogger('mosestokenizer.tokenizer.MosesTokenizer').setLevel(logging.WARNING)
+    
     if args.overlap and len(args.overlap) != len(args.files):
         raise ValueError("The number of the main and overlap input files should match")
-
+    
     tokenizers = json.loads(args.tokenizers) if args.tokenizers else None
-
+    
     hasher = SegmentHasher(
         compare='all',
         method=args.hash,
@@ -54,7 +50,7 @@ if __name__ == '__main__':
         lowercase=args.lowercase,
         tokenizers=tokenizers
     )
-
+    
     total = 0
     counter = collections.Counter()
     infs = [file_open(infile) for infile in args.files]
@@ -62,7 +58,7 @@ if __name__ == '__main__':
         total += 1
         key = hasher.apply(lines)
         counter[key] += 1
-
+    
     if args.overlap:
         total2 = 0
         overlap = 0
@@ -88,3 +84,9 @@ if __name__ == '__main__':
         print("Average number of duplicates: {:.1f}".format(
             sum((k * v) for k, v in counts_of_counts.items()) / sum(counts_of_counts.values())))
         print("Maximum number of duplicates: {}".format(max(counts_of_counts.keys())))
+    
+    return 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())

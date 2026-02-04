@@ -46,6 +46,15 @@ jobs:
           flake8 opusfilter --count --exit-zero --statistics
       - name: Run tests with pytest
         run: pytest
+      - name: Test CLI entry points
+        run: |
+          opusfilter --help
+          opusfilter-cmd --help
+          opusfilter-scores list --help
+          opusfilter-autogen --help
+          opusfilter-test --help
+          opusfilter-diagram --help
+          opusfilter-duplicates --help
   build-n-publish:
     name: Build and publish Python 🐍 distributions 📦 to PyPI and TestPyPI
     needs: build-n-test
