@@ -1,0 +1,15 @@
+#!/usr/bin/env python3
+
+import sys
+import warnings
+
+from opusfilter.cli.slurm import main
+
+warnings.warn(
+    "opusfilter-slurm is experimental. Please report issues at "
+    "https://github.com/Helsinki-NLP/OpusFilter/issues",
+    UserWarning,
+    stacklevel=2
+)
+
+sys.exit(main())

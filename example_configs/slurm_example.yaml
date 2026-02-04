@@ -1,0 +1,155 @@
+# Example OpusFilter configuration with SLURM integration
+# This shows how to configure different steps with specific SLURM resources
+
+common:
+  output_directory: output
+  
+  # SLURM-specific configuration
+  slurm:
+    # Global defaults applied to all steps unless overridden
+    account: myaccount
+    partition: cpu
+    qos: normal
+    mail_type: END,FAIL
+    mail_user: user@example.com
+    workdir: ${HOME}/opusfilter-work
+    
+    # Modules to load for all steps
+    modules:
+      - python/3.10
+      - gcc
+    
+    # Default resource specifications (can be overridden per step)
+    default:
+      time: 02:00:00
+      mem: 4G
+      cpus-per-task: 2
+    
+    # Per-step resource specifications
+    resources:
+      # Read from OPUS - typically needs internet and moderate resources
+      opus_read:
+        time: 02:00:00
+        mem: 4G
+        cpus-per-task: 2
+        modules:
+          - opustools
+          - wget
+      
+      # Filtering can be parallelized and benefits from more resources
+      filter:
+        time: 04:00:00
+        mem: 8G
+        cpus-per-task: 4
+        # Use array jobs for parallel processing
+        array_size: 8
+        modules:
+          - scikit-learn
+      
+      # Training n-gram models can be memory intensive
+      train_ngram:
+        time: 24:00:00
+        mem: 16G
+        cpus-per-task: 8
+      
+      # Alignment training may benefit from GPU
+      train_alignment:
+        time: 12:00:00
+        mem: 32G
+        cpus-per-task: 8
+        partition: gpu
+        gres: gpu:1
+        modules:
+          - eflomal
+          - gcc/8
+      
+      # Scoring can use parallel processing
+      score:
+        time: 08:00:00
+        mem: 32G
+        cpus-per-task: 8
+        partition: gpu
+        gres: gpu:1
+        # Override n_jobs for parallel processing
+        n_jobs: 4
+
+steps:
+  # Step 1: Download data from OPUS
+  - type: opus_read
+    parameters:
+      corpus_name: ParaCrawl
+      source_language: fi
+      target_language: en
+      release: v4
+      preprocessing: raw
+      src_output: sents.fi.gz
+      tgt_output: sents.en.gz
+  
+  # Step 2: Concatenate multiple corpora
+  - type: concatenate
+    parameters:
+      inputs:
+        - sents.fi.gz
+        - sents.en.gz
+      output: concatenated.gz
+  
+  # Step 3: Train language model (Finnish)
+  - type: train_ngram
+    parameters:
+      data: concatenated.gz
+      parameters:
+        norder: 5
+        dscale: 1
+      model: fi.arpa.gz
+  
+  # Step 4: Filter data (will be parallelized)
+  - type: filter
+    parameters:
+      inputs: [sents.fi.gz, sents.en.gz]
+      outputs: [filtered.fi.gz, filtered.en.gz]
+      filters:
+        - LengthFilter:
+            unit: word
+            min_length: 1
+            max_length: 100
+        - CharacterScoreFilter:
+            scripts: [Latin, Latin]
+            thresholds: [1, 1]
+  
+  # Step 5: Train alignment model (GPU)
+  - type: train_alignment
+    parameters:
+      src_data: filtered.fi.gz
+      tgt_data: filtered.en.gz
+      parameters:
+        src_tokenizer: [moses, fi]
+        tgt_tokenizer: [moses, en]
+        model: 3
+      output: align.priors
+  
+  # Step 6: Score data with multiple filters (GPU)
+  - type: score
+    parameters:
+      inputs: [sents.fi.gz, sents.en.gz]
+      output: scores.fi-en.jsonl.gz
+      filters:
+        - LengthFilter:
+            unit: word
+            min_length: 1
+            max_length: 100
+        - CharacterScoreFilter:
+            scripts: [Latin, Latin]
+            thresholds: [1, 1]
+        - LanguageIDFilter:
+            languages: [fi, en]
+            thresholds: [0, 0]
+
+# Usage:
+# Basic usage:
+#   opusfilter-slurm config.yaml
+#
+# With options:
+#   opusfilter-slurm config.yaml --resume
+#   opusfilter-slurm config.yaml --max-concurrent 10
+#   opusfilter-slurm config.yaml --dry-run --monitor
+#   opusfilter-slurm config.yaml --workdir /scratch/my-opusfilter
