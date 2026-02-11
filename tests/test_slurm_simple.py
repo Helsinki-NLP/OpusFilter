@@ -46,25 +46,42 @@ class TestSlurmUtils(unittest.TestCase):
         from opusfilter.slurm_utils import get_ready_steps
         
         graph = {
-            '0_opus_read': {'completed': True},
+            '0_opus_read': {'deps': [], 'completed': False},
             '1_filter': {
                 'deps': ['0_opus_read'],
                 'completed': False
             },
             '2_train': {
+                'deps': [],
                 'completed': False
             }
         }
         
-        # Test with no completed jobs
+        # Test with no completed jobs - only opus_read and train have no deps
         ready = get_ready_steps(graph, [])
-        self.assertEqual(len(ready), 1)
-        self.assertEqual(ready[0], '2_train')
+        self.assertEqual(len(ready), 2)
+        self.assertIn('0_opus_read', ready)
+        self.assertIn('2_train', ready)
         
-        # Test with completed opus_read
-        ready = get_ready_steps(graph, ['0_opus_read'])
-        self.assertEqual(len(ready), 1)
-        self.assertEqual(ready[0], '2_train')
+        # Test with completed opus_read - create fresh graph
+        graph2 = {
+            '0_opus_read': {'deps': [], 'completed': True},
+            '1_filter': {
+                'deps': ['0_opus_read'],
+                'completed': False
+            },
+            '2_train': {
+                'deps': [],
+                'completed': False
+            }
+        }
+        ready = get_ready_steps(graph2, ['0_opus_read'])
+        # 0_opus_read should not be returned because it's marked as completed
+        # 1_filter needs opus_read which is completed, so it's ready
+        # 2_train has no deps, so it's ready
+        self.assertEqual(len(ready), 2)
+        self.assertIn('1_filter', ready)
+        self.assertIn('2_train', ready)
 
 
 if __name__ == '__main__':

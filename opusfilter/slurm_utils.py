@@ -10,36 +10,36 @@ logger = logging.getLogger(__name__)
 def submit_job(script_path, dependency=None, array_size=None):
     """Submit a SLURM job and return job ID."""
     cmd = ['sbatch', script_path]
-    
+
     if dependency:
         cmd.insert(1, f'--dependency=afterok:{dependency}')
-    
+
     if array_size:
         cmd.insert(1, f'--array=0-{array_size-1}')
-    
+
     result = subprocess.run(cmd, capture_output=True, text=True)
     if result.returncode != 0:
         raise RuntimeError(f"sbatch failed: {result.stderr}")
-    
+
     # Extract job ID from output
     match = re.search(r'Submitted batch job (\d+)', result.stdout)
     if not match:
         raise RuntimeError(f"Could not parse job ID from: {result.stdout}")
-    
+
     return match.group(1)
 
 
 def get_job_status(job_id):
     """Get job status from SLURM."""
-    result = subprocess.run(['squeue', '-j', job_id, '-h'], 
+    result = subprocess.run(['squeue', '-j', job_id, '-h'],
                         capture_output=True, text=True)
     if result.returncode != 0:
         return 'UNKNOWN'
-    
+
     for line in result.stdout.split('\n'):
         if line.startswith('JobState='):
             return line.split('=')[1]
-    
+
     return 'UNKNOWN'
 
 
@@ -53,13 +53,27 @@ def build_dependency_graph(steps):
     graph = {}
     for i, step in enumerate(steps):
         step_name = f"{i}_{step['type']}"
+        params = step.get('parameters', {})
+
+        # Collect all possible outputs from different field names
+        # FIXME: cli/diagram.py has get_outputs() for the same purpose
+        outputs = []
+        if 'output' in params:
+            outputs.extend(params['output'])
+        if 'outputs' in params:
+            outputs.extend(params['outputs'])
+        if 'src_output' in params:
+            outputs.append(params['src_output'])
+        if 'tgt_output' in params:
+            outputs.append(params['tgt_output'])
+
         graph[step_name] = {
             'step': step,
             'index': i,
             'deps': [],
-            'outputs': step.get('parameters', {}).get('outputs', [])
+            'outputs': outputs
         }
-    
+
     # Find dependencies
     for step_name, step_info in graph.items():
         inputs = step_info['step'].get('parameters', {}).get('inputs', [])
@@ -68,7 +82,7 @@ def build_dependency_graph(steps):
                 for other_name, other_info in graph.items():
                     if input_file in other_info['outputs']:
                         step_info['deps'].append(other_name)
-    
+
     return graph
 
 
@@ -76,8 +90,11 @@ def get_ready_steps(graph, completed_jobs):
     """Get steps whose dependencies are satisfied."""
     ready = []
     for step_name, step_info in graph.items():
-        if all(dep in completed_jobs for dep in step_info['deps']):
-            ready.append(step_name)
+        deps = step_info.get('deps', [])
+        if all(dep in completed_jobs for dep in deps):
+            # Only add steps that are not completed
+            if not step_info.get('completed', False):
+                ready.append(step_name)
     return ready
 
 

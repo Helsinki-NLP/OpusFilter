@@ -46,29 +46,54 @@ class TestSlurmUtils(unittest.TestCase):
         from opusfilter.slurm_utils import get_ready_steps
         
         graph = {
-            '0_opus_read': {'completed': True},
+            '0_opus_read': {'deps': [], 'completed': False},
             '1_filter': {
                 'deps': ['0_opus_read'],
                 'completed': False
             },
             '2_train': {
+                'deps': [],
                 'completed': False
             }
         }
         
-        # Test with no completed jobs
+        # Test with no completed jobs - only opus_read and train have no deps
         ready = get_ready_steps(graph, [])
-        self.assertEqual(len(ready), 1)
-        self.assertEqual(ready[0], '2_train')
+        self.assertEqual(len(ready), 2)
+        self.assertIn('0_opus_read', ready)
+        self.assertIn('2_train', ready)
         
-        # Test with completed opus_read
-        ready = get_ready_steps(graph, ['0_opus_read'])
-        self.assertEqual(len(ready), 1)
-        self.assertEqual(ready[0], '2_train')
+        # Test with completed opus_read - create fresh graph
+        graph2 = {
+            '0_opus_read': {'deps': [], 'completed': True},
+            '1_filter': {
+                'deps': ['0_opus_read'],
+                'completed': False
+            },
+            '2_train': {
+                'deps': [],
+                'completed': False
+            }
+        }
+        ready = get_ready_steps(graph2, ['0_opus_read'])
+        self.assertEqual(len(ready), 2)
+        self.assertIn('1_filter', ready)
+        self.assertIn('2_train', ready)
         
         # Test with completed opus_read and filter ready
-        ready = get_ready_steps(graph, ['0_opus_read', '1_filter'])
-        self.assertEqual(len(ready), 2)
+        graph3 = {
+            '0_opus_read': {'deps': [], 'completed': True},
+            '1_filter': {
+                'deps': ['0_opus_read'],
+                'completed': True
+            },
+            '2_train': {
+                'deps': [],
+                'completed': False
+            }
+        }
+        ready = get_ready_steps(graph3, ['0_opus_read', '1_filter'])
+        self.assertEqual(len(ready), 1)
         self.assertEqual(ready[0], '2_train')
 
 
