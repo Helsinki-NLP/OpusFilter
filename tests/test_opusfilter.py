@@ -11,7 +11,7 @@ from unittest import mock
 
 from opustools import OpusGet
 
-from opusfilter import ConfigurationError
+from opusfilter import ConfigurationError, OpusFilterRuntimeError
 from opusfilter.opusfilter import OpusFilter, ParallelWrapper
 from opusfilter.util import Var, VarStr, count_lines, file_open
 
@@ -193,6 +193,57 @@ class TestOpusFilter(unittest.TestCase):
             self.assertEqual(score['TerminalPunctuationFilter']['scores'], -0.0)
             self.assertEqual(score['NonZeroNumeralsFilter']['scores'], [0.0])
             self.assertEqual(type(score['WordAlignFilter']['scores']), list)
+
+    def test_unzip_columns(self):
+        """Test the unzip function with columns parameter"""
+        tempdir = tempfile.mkdtemp()
+        opusfilter = OpusFilter({'common': {'output_directory': tempdir}, 'steps': []})
+
+        # Create a test input file with 4 columns
+        input_content = "col1\tcol2\tcol3\tcol4\na\tb\tc\nd\te\tf\tg\n"
+        with open(os.path.join(tempdir, 'input.txt'), 'w') as f:
+            f.write(input_content)
+
+        # Test extracting columns 0 and 2
+        parameters = {
+            'input': 'input.txt',
+            'outputs': ['output1.txt', 'output2.txt'],
+            'separator': '\t',
+            'columns': [0, 2]
+        }
+        opusfilter.unzip(parameters)
+
+        # Check output files
+        with open(os.path.join(tempdir, 'output1.txt')) as f:
+            self.assertEqual(f.read(), 'col1\na\nd\n')
+        with open(os.path.join(tempdir, 'output2.txt')) as f:
+            self.assertEqual(f.read(), 'col3\nc\n')
+
+        # Test extracting columns 1 and 3
+        parameters2 = {
+            'input': 'input.txt',
+            'outputs': ['output3.txt', 'output4.txt'],
+            'separator': '\t',
+            'columns': [1, 3]
+        }
+        opusfilter.unzip(parameters2)
+
+        with open(os.path.join(tempdir, 'output3.txt')) as f:
+            self.assertEqual(f.read(), 'col2\nb\ne\n')
+        with open(os.path.join(tempdir, 'output4.txt')) as f:
+            self.assertEqual(f.read(), 'col4\n\ng\n')
+
+        # Test without columns parameter (default behavior)
+        parameters3 = {
+            'input': 'input.txt',
+            'outputs': ['output5.txt', 'output6.txt'],
+            'separator': '\t'
+        }
+        with self.assertRaises(ConfigurationError):
+            opusfilter.unzip(parameters3)  # Should fail because 4 columns but only 2 outputs
+
+        # Clean up
+        shutil.rmtree(tempdir)
 
     def test_classifier_probs(self):
         self.assertTrue(os.path.isfile(os.path.join(self.tempdir, 'RF1_probs.en-sv.txt')))
@@ -1087,7 +1138,7 @@ class TestUnzip(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.tempdir)
 
-    def test_head(self):
+    def test_all(self):
         parameters = {
             'input': os.path.join(self.tempdir, 'input'),
             'outputs': [os.path.join(self.tempdir, 'output_src'),
@@ -1098,6 +1149,59 @@ class TestUnzip(unittest.TestCase):
             self.assertEqual(f.read(), 'Sentence1\nSentence2\n')
         with open(os.path.join(self.tempdir, 'output_tgt')) as f:
             self.assertEqual(f.read(), 'sentence1\nsentence2\n')
+
+    def test_columns(self):
+        # Create a test input file with 4 columns
+        with open(os.path.join(self.tempdir, 'input4'), 'w') as f:
+            f.write('col1\tcol2\tcol3\tcol4\na\tb\tc\td\ne\tf\tg\th\n')
+
+        # Test extracting columns 0 and 2
+        parameters = {
+            'input': 'input4',
+            'outputs': ['output1.txt', 'output2.txt'],
+            'separator': '\t',
+            'columns': [0, 2]
+        }
+        self.opus_filter.unzip(parameters)
+
+        with open(os.path.join(self.tempdir, 'output1.txt')) as f:
+            self.assertEqual(f.read(), 'col1\na\ne\n')
+        with open(os.path.join(self.tempdir, 'output2.txt')) as f:
+            self.assertEqual(f.read(), 'col3\nc\ng\n')
+
+        # Test extracting columns 1 and 3
+        parameters = {
+            'input': 'input4',
+            'outputs': ['output3.txt', 'output4.txt'],
+            'separator': '\t',
+            'columns': [1, 3]
+        }
+        self.opus_filter.unzip(parameters)
+
+        with open(os.path.join(self.tempdir, 'output3.txt')) as f:
+            self.assertEqual(f.read(), 'col2\nb\nf\n')
+        with open(os.path.join(self.tempdir, 'output4.txt')) as f:
+            self.assertEqual(f.read(), 'col4\nd\nh\n')
+
+        # Test error when columns don't match output files
+        parameters = {
+            'input': 'input4',
+            'outputs': ['output5.txt'],
+            'separator': '\t',
+            'columns': [0, 2]
+        }
+        with self.assertRaises(ConfigurationError):
+            self.opus_filter.unzip(parameters)
+
+        # Test error when column index is out of range
+        parameters = {
+            'input': 'input4',
+            'outputs': ['output6.txt', 'output7.txt'],
+            'separator': '\t',
+            'columns': [0, 5]
+        }
+        with self.assertRaises(OpusFilterRuntimeError):
+            self.opus_filter.unzip(parameters)
 
 
 class TestPreprocess(unittest.TestCase):

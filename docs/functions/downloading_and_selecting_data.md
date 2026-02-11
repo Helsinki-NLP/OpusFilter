@@ -163,8 +163,11 @@ Parameters:
 * `input`: input file
 * `outputs`: a list of output files
 * `separator`: a string separator in the input file
+* `columns`: a list of column indices to extract; the number of indices must match the number of output files (optional)
 
 Can be used to split e.g. Moses-style (` ||| `) or tab-separated parallel text files into parts.
+
+If `columns` is specified, only those columns from the input file will be extracted and written to the corresponding output files. Columns not listed will be ignored. If not specified, all columns will be used in order.
 
 ## write
 

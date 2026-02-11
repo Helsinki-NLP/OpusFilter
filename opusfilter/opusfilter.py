@@ -951,20 +951,47 @@ class OpusFilter:
 
     def unzip(self, parameters, overwrite=False):
         """Unzip parallel segments joined in a single file into multiple files"""
-        self._check_extra_parameters({'input', 'outputs', 'separator'}, parameters)
+        self._check_extra_parameters({'input', 'outputs', 'separator', 'columns'}, parameters)
         infile = os.path.join(self.output_dir, parameters['input'])
         outfiles = [os.path.join(self.output_dir, fname) for fname in parameters['outputs']]
         if not overwrite and all(os.path.isfile(outfile) for outfile in outfiles):
-            logger.info("Output files exists, skipping step")
+            logger.info("Output file exists, skipping step")
             return
         separator = parameters['separator']
+        columns = parameters.get('columns')
+
+        # Validate columns parameter if provided
+        if columns is not None:
+            if len(columns) != len(outfiles):
+                raise ConfigurationError(f"Number of column indices ({len(columns)}) must match number of output files ({len(outfiles)})")
+            # Check if columns are valid indices
+            if not all(isinstance(col, int) and col >= 0 for col in columns):
+                raise ConfigurationError("All column indices must be non-negative integers")
+
         outfs = [file_open(outfile, 'w') for outfile in outfiles]
         with file_open(infile, 'r') as inf:
             for idx, line in tqdm(enumerate(inf)):
                 parts = line.split(separator)
-                if len(parts) != len(outfiles):
-                    raise ConfigurationError(f"Number output files do not match the {len(parts)} parts in line {idx}")
-                for part, outf in zip(parts, outfs):
+
+                # If columns is specified, extract only those columns
+                if columns is not None:
+                    # Check if all requested columns exist
+                    max_col = max(columns)
+                    if len(parts) <= max_col:
+                        raise OpusFilterRuntimeError(
+                            f"Column {max_col} does not exist in line {idx} (has {len(parts)} columns)")
+                    selected_parts = [parts[col] for col in columns]
+                else:
+                    # Use all parts if no columns specified
+                    selected_parts = parts
+
+                # Validate number of parts matches output files
+                if len(selected_parts) != len(outfiles):
+                    raise OpusFilterRuntimeError(
+                        f"Number of selected parts ({len(selected_parts)}) does not match number of output "
+                        f"files ({len(outfiles)}) in line {idx}")
+
+                for part, outf in zip(selected_parts, outfs):
                     outf.write(part.strip() + '\n')
 
     @ParallelWrapper({'inputs', 'outputs', 'preprocessors'})

@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - `with_decision` option for the score function
+- `columns` option for the unzip function
 
 ## [3.3.1] - 2025-12-10
 
