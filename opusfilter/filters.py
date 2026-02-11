@@ -7,6 +7,7 @@ import math
 import os
 import string
 from typing import Iterator, List, Tuple
+import warnings
 
 import regex
 
@@ -159,6 +160,8 @@ class HtmlTagFilter(FilterABC):
     def check(segment):
         """Return whether segment has HTML tags (or something that breaks bs4)"""
         import bs4
+        from bs4 import MarkupResemblesLocatorWarning
+        warnings.filterwarnings("ignore", category=MarkupResemblesLocatorWarning)
         try:
             found = bool(bs4.BeautifulSoup(segment, 'html.parser').find())
         except (TypeError, UnboundLocalError, NotImplementedError,
