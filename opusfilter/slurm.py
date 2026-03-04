@@ -73,6 +73,8 @@ class SlurmOpusFilter:
 
             # Find ready steps
             ready = get_ready_steps(graph, completed_steps)
+            # Filter out steps that are already running
+            ready = [s for s in ready if s not in running_jobs]
             if not ready:
                 if running_jobs:
                     time.sleep(10)
