@@ -3,15 +3,13 @@ import os
 import subprocess
 import time
 import logging
-from pathlib import Path
 
-from . import ConfigurationError
 from .opusfilter import OpusFilter
-from .util import count_lines
+from .util import convert_vars_to_strings
 from .slurm_utils import (
-    submit_job, get_job_status, cancel_job,
+    submit_job, get_job_status,
     build_dependency_graph, get_ready_steps,
-    check_step_outputs, clean_failed_outputs
+    check_step_outputs
 )
 
 logger = logging.getLogger(__name__)
@@ -96,7 +94,8 @@ class SlurmOpusFilter:
                 step_config = step_info['step']
 
                 # Check if outputs already exist
-                if not overwrite and check_step_outputs(step_config, self.output_dir):
+                constants = self.configuration.get('common', {}).get('constants', {})
+                if not overwrite and check_step_outputs(step_config, self.output_dir, constants):
                     logger.info(f"Step {step_index} ({step_config['type']}) outputs exist, skipping")
                     completed_steps.append(step_name)
                     graph[step_name]['completed'] = True
@@ -231,9 +230,11 @@ class SlurmOpusFilter:
         template_vars['command'] = ' '.join(opusfilter_cmd)
 
         # Generate cleanup command
+        step_params = step_config.get('parameters', {})
+        step_outputs = convert_vars_to_strings(step_params.get('outputs', []))
         template_vars['cleanup_command'] = f"""
         # Clean outputs on failure
-        for output in {' '.join(step_config.get('parameters', {}).get('outputs', []))}; do
+        for output in {' '.join(step_outputs)}; do
             if [ -f "${{OUTPUT_DIR}}/$output" ]; then
                 rm "${{OUTPUT_DIR}}/$output"
             fi
@@ -343,8 +344,9 @@ fi
 
     def _find_last_completed_step(self, steps):
         """Find the last completed step based on output files."""
+        constants = self.configuration.get('common', {}).get('constants', {})
         for i in range(len(steps) - 1, -1, -1):
-            if check_step_outputs(steps[i], self.output_dir):
+            if check_step_outputs(steps[i], self.output_dir, constants):
                 return i
         return None
 

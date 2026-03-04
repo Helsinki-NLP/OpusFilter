@@ -36,6 +36,17 @@ def get_inputs(step):
     return inputs
 
 
+def convert_vars_to_strings(obj):
+    """Recursively convert Var/VarStr objects to their string values."""
+    if isinstance(obj, Var):
+        return obj.value
+    elif isinstance(obj, dict):
+        return {key: convert_vars_to_strings(val) for key, val in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_vars_to_strings(item) for item in obj]
+    return obj
+
+
 def get_outputs(step):
     """Return output filenames for a step."""
     params = step.get('parameters', {})
