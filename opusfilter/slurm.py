@@ -65,11 +65,18 @@ class SlurmOpusFilter:
 
         # Main execution loop
         step_index = 0
+        failed_steps = []
         while completed_steps or step_index < len(steps):
             # Check status of running jobs first
             if running_jobs:
-                completed = self._check_running_jobs(running_jobs, graph)
+                completed, failed = self._check_running_jobs(running_jobs, graph)
                 completed_steps.extend(completed)
+                failed_steps.extend(failed)
+
+            # Stop if any step has failed
+            if failed_steps:
+                logger.error(f"Workflow failed: {len(failed_steps)} step(s) failed")
+                return False
 
             # Find ready steps
             ready = get_ready_steps(graph, completed_steps)
@@ -127,7 +134,10 @@ class SlurmOpusFilter:
         # Monitor final jobs
         if running_jobs:
             logger.info("Waiting for final jobs to complete...")
-            self._wait_for_completion(running_jobs, graph, completed_steps)
+            success = self._wait_for_completion(running_jobs, graph, completed_steps)
+            if not success:
+                logger.error("Workflow failed: some jobs failed")
+                return False
 
         # Print summary
         self._print_summary(completed_steps)
@@ -299,6 +309,7 @@ fi
     def _check_running_jobs(self, running_jobs, graph):
         """Check status of running jobs. Returns list of completed step names."""
         to_remove = []
+        failed_steps = []
         for step_name, job_id in running_jobs.items():
             if job_id.startswith('dryrun_'):
                 logger.info(f"Step {step_name} completed successfully (dry run)")
@@ -313,17 +324,20 @@ fi
                     to_remove.append(step_name)
                 else:
                     logger.error(f"Step {step_name} failed with status {status}")
+                    graph[step_name]['failed'] = True
                     to_remove.append(step_name)
+                    failed_steps.append(step_name)
 
         completed = []
         for step_name in to_remove:
             del running_jobs[step_name]
             completed.append(step_name)
-        return completed
+        return completed, failed_steps
 
     def _wait_for_completion(self, running_jobs, graph, completed_steps):
-        """Wait for all jobs to complete."""
+        """Wait for all jobs to complete. Returns True if all succeeded, False if any failed."""
         job_ids = list(running_jobs.values())
+        failed_steps = []
         while job_ids:
             for job_id in job_ids[:]:
                 if job_id.startswith('dryrun_'):
@@ -340,9 +354,14 @@ fi
                             if status == 'COMPLETED':
                                 graph[step_name]['completed'] = True
                                 completed_steps.append(step_name)
+                            else:
+                                logger.error(f"Step {step_name} failed with status {status}")
+                                graph[step_name]['failed'] = True
+                                failed_steps.append(step_name)
                     job_ids.remove(job_id)
             if job_ids:
                 time.sleep(30)
+        return len(failed_steps) == 0
 
     def _find_last_completed_step(self, steps):
         """Find the last completed step based on output files."""
