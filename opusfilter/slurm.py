@@ -82,6 +82,7 @@ class SlurmOpusFilter:
             ready = get_ready_steps(graph, completed_steps)
             # Filter out steps that are already running
             ready = [s for s in ready if s not in running_jobs]
+            logger.debug(f"Ready steps: {ready}, Running: {list(running_jobs.keys())}, Completed: {completed_steps}")
             if not ready:
                 if running_jobs:
                     time.sleep(10)
@@ -114,10 +115,11 @@ class SlurmOpusFilter:
                 deps = step_info['deps']
                 dependency_id = None
                 if deps:
-                    # Use the first dependency (SLURM handles chain dependencies)
-                    dep_names = [d for d in deps if d in self.job_ids]
-                    if dep_names:
-                        dependency_id = self.job_ids[dep_names[0]]
+                    # Check running jobs and job_ids for pending dependencies
+                    for dep in deps:
+                        if dep in self.job_ids:
+                            dependency_id = self.job_ids[dep]
+                            break
 
                 # Submit job
                 try:
@@ -138,6 +140,11 @@ class SlurmOpusFilter:
             if not success:
                 logger.error("Workflow failed: some jobs failed")
                 return False
+
+        # Check if any steps failed
+        if any(step_info.get('failed', False) for step_info in graph.values()):
+            logger.error("Workflow failed: some steps failed")
+            return False
 
         # Print summary
         self._print_summary(completed_steps)
