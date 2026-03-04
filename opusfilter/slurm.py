@@ -175,9 +175,11 @@ class SlurmOpusFilter:
         script_path = os.path.join(self.workdir, "scripts", script_name)
 
         # Prepare template variables
+        # Partition: check step resources first, then top-level slurm config, then default
+        partition = resources.get('partition') or self.slurm_config.get('partition') or 'cpu'
         template_vars = {
             'job_name': f"opusfilter_{step_index}_{step_type}",
-            'partition': resources.get('partition', 'cpu'),
+            'partition': partition,
             'account': self.slurm_config.get('account', ''),
             'time': resources.get('time', '02:00:00'),
             'mem': resources.get('mem', '4G'),
