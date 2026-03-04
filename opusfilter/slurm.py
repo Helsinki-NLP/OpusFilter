@@ -68,18 +68,24 @@ class SlurmOpusFilter:
         # Main execution loop
         step_index = 0
         while completed_steps or step_index < len(steps):
+            # Check status of running jobs first
+            if running_jobs:
+                completed = self._check_running_jobs(running_jobs, graph)
+                completed_steps.extend(completed)
+
             # Find ready steps
             ready = get_ready_steps(graph, completed_steps)
             if not ready:
                 if running_jobs:
-                    # Check status of running jobs
-                    self._check_running_jobs(running_jobs)
                     time.sleep(10)
                     continue
-                else:
-                    # No ready steps and no running jobs - something's wrong
-                    logger.error("Workflow deadlock detected!")
+                # Check if all steps are completed
+                all_completed = all(step_info.get('completed', False) for step_info in graph.values())
+                if all_completed:
                     break
+                # No ready steps and no running jobs - something's wrong
+                logger.error("Workflow deadlock detected!")
+                break
 
             # Submit as many as allowed up to max_concurrent
             to_submit = ready[:self.max_concurrent - len(running_jobs)]
@@ -120,7 +126,7 @@ class SlurmOpusFilter:
         # Monitor final jobs
         if running_jobs:
             logger.info("Waiting for final jobs to complete...")
-            self._wait_for_completion(list(running_jobs.values()))
+            self._wait_for_completion(running_jobs, graph, completed_steps)
 
         # Print summary
         self._print_summary(completed_steps)
@@ -285,28 +291,50 @@ fi
 
         return script_path
 
-    def _check_running_jobs(self, running_jobs):
-        """Check status of running jobs."""
+    def _check_running_jobs(self, running_jobs, graph):
+        """Check status of running jobs. Returns list of completed step names."""
         to_remove = []
         for step_name, job_id in running_jobs.items():
+            if job_id.startswith('dryrun_'):
+                logger.info(f"Step {step_name} completed successfully (dry run)")
+                to_remove.append(step_name)
+                graph[step_name]['completed'] = True
+                continue
             status = get_job_status(job_id)
             if status in ['COMPLETED', 'FAILED', 'CANCELLED']:
                 if status == 'COMPLETED':
                     logger.info(f"Step {step_name} completed successfully")
+                    graph[step_name]['completed'] = True
                     to_remove.append(step_name)
                 else:
                     logger.error(f"Step {step_name} failed with status {status}")
-                to_remove.append(step_name)
+                    to_remove.append(step_name)
 
+        completed = []
         for step_name in to_remove:
             del running_jobs[step_name]
+            completed.append(step_name)
+        return completed
 
-    def _wait_for_completion(self, job_ids):
+    def _wait_for_completion(self, running_jobs, graph, completed_steps):
         """Wait for all jobs to complete."""
+        job_ids = list(running_jobs.values())
         while job_ids:
             for job_id in job_ids[:]:
+                if job_id.startswith('dryrun_'):
+                    for step_name, jid in running_jobs.items():
+                        if jid == job_id:
+                            graph[step_name]['completed'] = True
+                            completed_steps.append(step_name)
+                    job_ids.remove(job_id)
+                    continue
                 status = get_job_status(job_id)
                 if status in ['COMPLETED', 'FAILED', 'CANCELLED']:
+                    for step_name, jid in running_jobs.items():
+                        if jid == job_id:
+                            if status == 'COMPLETED':
+                                graph[step_name]['completed'] = True
+                                completed_steps.append(step_name)
                     job_ids.remove(job_id)
             if job_ids:
                 time.sleep(30)

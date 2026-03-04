@@ -1,7 +1,6 @@
 """Command-line interface for opusfilter-diagram command."""
 import argparse
 import collections
-import copy
 import json
 import logging
 import os
@@ -9,42 +8,10 @@ import sys
 
 from graphviz import Digraph
 
-from opusfilter.util import yaml, yaml_dumps
+from opusfilter.util import yaml, yaml_dumps, get_inputs, get_outputs, get_other_params
 
 
 logger = logging.getLogger(__name__)
-
-
-def get_inputs(step):
-    """Return inputs of the step."""
-    params = step.get('parameters', {})
-    inputs = params.get('inputs', [])
-    if inputs and isinstance(inputs[0], list):
-        # Some steps may have sublists as inputs
-        inputs = [item for sublist in inputs for item in sublist]
-    for single_input in ['input', 'src_input', 'tgt_input']:
-        if single_input in params:
-            inputs.append(params[single_input])
-    return inputs
-
-
-def get_outputs(step):
-    """Return outputs of the step."""
-    params = step.get('parameters', {})
-    outputs = params.get('outputs', [])
-    for single_output in ['output', 'src_output', 'tgt_output']:
-        if single_output in params:
-            outputs.append(single_output)
-    return outputs
-
-
-def get_other_params(step):
-    """Return parameters of the step excluding i/o."""
-    params = copy.copy(step.get('parameters', {}))
-    for to_remove in ['input', 'inputs', 'output', 'outputs', 'src_output', 'tgt_output']:
-        if to_remove in params:
-            del params[to_remove]
-    return params
 
 
 def main(args=None):

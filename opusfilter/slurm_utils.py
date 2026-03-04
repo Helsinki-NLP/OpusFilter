@@ -4,6 +4,8 @@ import re
 import logging
 from pathlib import Path
 
+from opusfilter.util import get_inputs, get_outputs
+
 logger = logging.getLogger(__name__)
 
 
@@ -53,19 +55,7 @@ def build_dependency_graph(steps):
     graph = {}
     for i, step in enumerate(steps):
         step_name = f"{i}_{step['type']}"
-        params = step.get('parameters', {})
-
-        # Collect all possible outputs from different field names
-        # FIXME: cli/diagram.py has get_outputs() for the same purpose
-        outputs = []
-        if 'output' in params:
-            outputs.extend(params['output'])
-        if 'outputs' in params:
-            outputs.extend(params['outputs'])
-        if 'src_output' in params:
-            outputs.append(params['src_output'])
-        if 'tgt_output' in params:
-            outputs.append(params['tgt_output'])
+        outputs = get_outputs(step)
 
         graph[step_name] = {
             'step': step,
@@ -76,7 +66,7 @@ def build_dependency_graph(steps):
 
     # Find dependencies
     for step_name, step_info in graph.items():
-        inputs = step_info['step'].get('parameters', {}).get('inputs', [])
+        inputs = get_inputs(step_info['step'])
         if inputs:
             for input_file in inputs:
                 for other_name, other_info in graph.items():
@@ -100,7 +90,7 @@ def get_ready_steps(graph, completed_jobs):
 
 def check_step_outputs(step, output_dir):
     """Check if all outputs exist and are non-empty."""
-    outputs = step.get('parameters', {}).get('outputs', [])
+    outputs = get_outputs(step)
     if not outputs:
         return True
     for output in outputs:
@@ -115,7 +105,7 @@ def check_step_outputs(step, output_dir):
 
 def clean_failed_outputs(step, output_dir):
     """Remove outputs from failed step."""
-    outputs = step.get('parameters', {}).get('outputs', [])
+    outputs = get_outputs(step)
     for output in outputs:
         path = Path(output_dir) / output
         if path.exists():

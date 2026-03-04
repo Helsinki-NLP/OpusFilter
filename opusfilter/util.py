@@ -1,6 +1,7 @@
 """Utility functions"""
 
 import bz2
+import copy
 import gzip
 import importlib
 import io
@@ -19,6 +20,44 @@ from . import ConfigurationError
 
 
 logger = logging.getLogger(__name__)
+
+TRAINING_STEP_TYPES = {'train_ngram', 'train_alignment', 'train_bpe', 'train_spm'}
+
+
+def get_inputs(step):
+    """Return inputs of the step."""
+    params = step.get('parameters', {})
+    inputs = params.get('inputs', [])
+    if inputs and isinstance(inputs[0], list):
+        inputs = [item for sublist in inputs for item in sublist]
+    for single_input in ['input', 'src_input', 'tgt_input']:
+        if single_input in params:
+            inputs.append(params[single_input])
+    return inputs
+
+
+def get_outputs(step):
+    """Return output filenames for a step."""
+    params = step.get('parameters', {})
+    outputs = params.get('outputs', [])
+    if isinstance(outputs, str):
+        outputs = [outputs]
+    for single_output in ['output', 'src_output', 'tgt_output']:
+        if single_output in params:
+            outputs.append(params[single_output])
+    step_type = step.get('type', '')
+    if step_type in TRAINING_STEP_TYPES and 'model' in params:
+        outputs.append(params['model'])
+    return outputs
+
+
+def get_other_params(step):
+    """Return parameters of the step excluding i/o."""
+    params = copy.copy(step.get('parameters', {}))
+    for to_remove in ['input', 'inputs', 'output', 'outputs', 'src_output', 'tgt_output', 'model']:
+        if to_remove in params:
+            del params[to_remove]
+    return params
 
 
 def lists_to_dicts(obj):
