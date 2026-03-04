@@ -116,7 +116,6 @@ resources:
 
 ### Monitoring and Resumption
 
-- `--monitor`: Interactive job status monitoring
 - `--resume`: Skip completed steps, continue from failures
 - Automatic cleanup of failed outputs
 
@@ -137,7 +136,6 @@ resources:
    - Parallelizes within step, not just between steps
 
 4. **Monitor Progress**
-   - Use `--monitor` for long-running workflows
    - Check logs in `${workdir}/logs/`
    - Set up email notifications
 

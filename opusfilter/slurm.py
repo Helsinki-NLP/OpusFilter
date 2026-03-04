@@ -38,7 +38,7 @@ class SlurmOpusFilter:
         # Load OpusFilter
         self.opusfilter = OpusFilter(configuration)
 
-    def run(self, overwrite=False, resume=False, monitor=False):
+    def run(self, overwrite=False, resume=False):
         """Run the workflow on SLURM."""
         logger.info(f"Starting SLURM workflow execution (dry_run={self.dry_run})")
 
@@ -154,9 +154,6 @@ class SlurmOpusFilter:
 
         # Print summary
         self._print_summary(completed_steps)
-
-        if monitor:
-            self._monitor_jobs()
 
     def _submit_step(self, step_index, step_config, dependency_id=None, overwrite=False):
         """Submit a single step as a SLURM job."""
@@ -392,14 +389,3 @@ fi
             logger.info(f"  ✓ {step_name}")
         logger.info(f"Output directory: {self.output_dir}")
         logger.info("=" * 50)
-
-    def _monitor_jobs(self):
-        """Interactive job monitoring."""
-        logger.info("Starting job monitoring (press Ctrl+C to stop)")
-        try:
-            while True:
-                # Show job status
-                subprocess.run(['squeue', '-u', self.email])
-                time.sleep(60)
-        except KeyboardInterrupt:
-            logger.info("Monitoring stopped by user")

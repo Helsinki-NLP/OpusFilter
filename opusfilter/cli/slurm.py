@@ -21,8 +21,6 @@ def main(args=None):
         help='resume from last completed step', action='store_true')
     parser.add_argument('--dry-run', '-n',
         help='show what would be done without submitting jobs', action='store_true')
-    parser.add_argument('--monitor', '-m',
-        help='monitor job progress after submission', action='store_true')
     parser.add_argument('--max-concurrent', type=int, default=None,
         help='maximum number of concurrent jobs')
     parser.add_argument('--workdir',
@@ -46,7 +44,7 @@ def main(args=None):
         email=args.email,
         dry_run=args.dry_run)
 
-    slurm_filter.run(overwrite=args.overwrite, resume=args.resume, monitor=args.monitor)
+    slurm_filter.run(overwrite=args.overwrite, resume=args.resume)
 
     return 0
 
