@@ -82,7 +82,7 @@ class SlurmOpusFilter:
             ready = get_ready_steps(graph, completed_steps)
             # Filter out steps that are already running
             ready = [s for s in ready if s not in running_jobs]
-            logger.debug(f"Ready steps: {ready}, Running: {list(running_jobs.keys())}, Completed: {completed_steps}")
+            logger.info(f"Loop: ready={ready}, running={list(running_jobs.keys())}, completed={completed_steps}")
             if not ready:
                 if running_jobs:
                     time.sleep(10)
@@ -115,11 +115,16 @@ class SlurmOpusFilter:
                 deps = step_info['deps']
                 dependency_id = None
                 if deps:
+                    logger.info(f"Step {step_name} has dependencies: {deps}")
+                    logger.info(f"Current job_ids: {self.job_ids}")
                     # Check running jobs and job_ids for pending dependencies
                     for dep in deps:
                         if dep in self.job_ids:
                             dependency_id = self.job_ids[dep]
+                            logger.info(f"Setting dependency: {step_name} depends on {dep} -> job {dependency_id}")
                             break
+                    if dependency_id is None:
+                        logger.warning(f"Step {step_name} has deps {deps} but none found in job_ids")
 
                 # Submit job
                 try:
@@ -315,6 +320,7 @@ fi
 
     def _check_running_jobs(self, running_jobs, graph):
         """Check status of running jobs. Returns list of completed step names."""
+        logger.debug(f"Checking status of {len(running_jobs)} running jobs: {running_jobs}")
         to_remove = []
         failed_steps = []
         for step_name, job_id in running_jobs.items():
@@ -324,6 +330,7 @@ fi
                 graph[step_name]['completed'] = True
                 continue
             status = get_job_status(job_id)
+            logger.info(f"Job {job_id} ({step_name}) status: {status}")
             if status in ['COMPLETED', 'FAILED', 'CANCELLED']:
                 if status == 'COMPLETED':
                     logger.info(f"Step {step_name} completed successfully")
