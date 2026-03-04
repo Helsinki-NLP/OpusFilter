@@ -436,11 +436,17 @@ class Var:
     def __str__(self):
         return self.__repr__()
 
+    def __fspath__(self):
+        return self.value
+
 
 @ruamel.yaml.yaml_object(yaml)
 class VarStr(Var):
     """String template formatted using variables"""
     yaml_tag = '!varstr'
+
+    def __str__(self):
+        return self.value
 
 
 def yaml_dumps(obj):
