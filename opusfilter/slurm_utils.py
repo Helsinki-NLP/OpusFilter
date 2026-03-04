@@ -66,16 +66,17 @@ def submit_job(script_path, dependency=None, array_size=None):
 
 def get_job_status(job_id):
     """Get job status from SLURM."""
-    result = subprocess.run(['squeue', '-j', job_id, '-h'],
-                        capture_output=True, text=True)
+    result = subprocess.run(
+        ['squeue', '-j', job_id, '-h', '--format="%T"', '--states=all'],
+        capture_output=True, text=True)
     if result.returncode != 0:
-        return 'UNKNOWN'
-
-    for line in result.stdout.split('\n'):
-        if line.startswith('JobState='):
-            return line.split('=')[1]
-
-    return 'UNKNOWN'
+        # Already completed and no longer seen by squeue?
+        result = subprocess.run(
+            ['sacct', '-j', job_id, '--noheader', '--allocations', '--format=State'],
+            capture_output=True, text=True)
+        if result.returncode != 0:
+            return 'UNKNOWN'
+    return result.stdout.strip('" \n')
 
 
 def cancel_job(job_id):
@@ -103,7 +104,7 @@ def build_dependency_graph(steps):
         if inputs:
             for input_file in inputs:
                 for other_name, other_info in graph.items():
-                    if input_file in other_info['outputs']:
+                    if input_file in other_info['outputs'] and not other_name in step_info['deps']:
                         step_info['deps'].append(other_name)
 
     return graph

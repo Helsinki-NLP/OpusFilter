@@ -85,6 +85,7 @@ class SlurmOpusFilter:
             logger.info(f"Loop: ready={ready}, running={list(running_jobs.keys())}, completed={completed_steps}")
             if not ready:
                 if running_jobs:
+                    logger.info("Waiting...")
                     time.sleep(10)
                     continue
                 # Check if all steps are completed
@@ -211,7 +212,6 @@ class SlurmOpusFilter:
             'mail_type': self.slurm_config.get('mail_type', 'END,FAIL'),
             'mail_user': self.email or '',
             'step_index': step_index,
-            'work_dir': self.workdir,
             'output_dir': self.output_dir,
             'module_loads': '',
             'command': '',
@@ -292,9 +292,6 @@ export OPUSFILTER_STEP={step_index}
 export OUTPUT_DIR={output_dir}
 export PYTHONUNBUFFERED=1
 
-# Change to work directory
-cd {work_dir}
-
 # Create output directory if needed
 mkdir -p {output_dir}
 
@@ -320,7 +317,7 @@ fi
 
     def _check_running_jobs(self, running_jobs, graph):
         """Check status of running jobs. Returns list of completed step names."""
-        logger.debug(f"Checking status of {len(running_jobs)} running jobs: {running_jobs}")
+        logger.info(f"Checking status of {len(running_jobs)} running jobs: {running_jobs}")
         to_remove = []
         failed_steps = []
         for step_name, job_id in running_jobs.items():
