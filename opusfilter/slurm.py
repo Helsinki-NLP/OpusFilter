@@ -49,7 +49,8 @@ class SlurmOpusFilter:
             return
 
         # Expand steps with variables into individual substeps
-        steps = expand_steps_with_variables(original_steps)
+        common_constants = self.configuration.get('common', {}).get('constants', {})
+        steps = expand_steps_with_variables(original_steps, common_constants)
         logger.info(f"Expanded {len(original_steps)} steps into {len(steps)} substeps")
 
         # Build dependency graph

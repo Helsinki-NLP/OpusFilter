@@ -41,8 +41,12 @@ def expand_step_parameters(obj, namespace):
     return obj
 
 
-def expand_steps_with_variables(steps):
+def expand_steps_with_variables(steps, common_constants=None):
     """Expand steps with variables into individual substeps.
+
+    Args:
+        steps: List of step configurations
+        common_constants: Dictionary of common constants from config (optional)
 
     Returns a list of expanded steps. Steps without variables are returned
     as-is. Steps with variables are expanded into multiple substeps, each
@@ -56,6 +60,7 @@ def expand_steps_with_variables(steps):
     For zipped dependencies (same step with variables), substep B[idx]
     corresponds to substep A[idx] from the previous step.
     """
+    common_constants = common_constants or {}
     expanded = []
     for original_idx, step in enumerate(steps):
         variables = step.get('variables', {})
@@ -63,7 +68,10 @@ def expand_steps_with_variables(steps):
             expanded_step = copy.deepcopy(step)
             expanded_step['_original_index'] = original_idx
             expanded_step['_substep_index'] = None
-            expanded_step['_expanded_parameters'] = step.get('parameters', {})
+            # Expand parameters with common constants even for non-variable steps
+            namespace = copy.copy(common_constants)
+            namespace.update(step.get('constants', {}))
+            expanded_step['_expanded_parameters'] = expand_step_parameters(step.get('parameters', {}), namespace)
             expanded.append(expanded_step)
             continue
 
@@ -72,7 +80,9 @@ def expand_steps_with_variables(steps):
             logger.warning(f"Step {original_idx} ({step.get('type')}): variable value lists are empty, skipping")
             continue
 
-        namespace = copy.copy(step.get('constants', {}))
+        # Start with common constants, then add step-level constants
+        namespace = copy.copy(common_constants)
+        namespace.update(step.get('constants', {}))
         for idx in range(num_choices):
             for key, values in variables.items():
                 namespace[key] = values[idx]
