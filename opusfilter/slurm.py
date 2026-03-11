@@ -9,7 +9,8 @@ from .util import convert_vars_to_strings
 from .slurm_utils import (
     submit_job, get_job_status,
     build_dependency_graph, get_ready_steps,
-    check_step_outputs
+    check_step_outputs, expand_steps_with_variables,
+    _get_step_name
 )
 
 logger = logging.getLogger(__name__)
@@ -42,10 +43,14 @@ class SlurmOpusFilter:
         """Run the workflow on SLURM."""
         logger.info(f"Starting SLURM workflow execution (dry_run={self.dry_run})")
 
-        steps = self.configuration.get('steps', [])
-        if not steps:
+        original_steps = self.configuration.get('steps', [])
+        if not original_steps:
             logger.warning("No steps defined in configuration")
             return
+
+        # Expand steps with variables into individual substeps
+        steps = expand_steps_with_variables(original_steps)
+        logger.info(f"Expanded {len(original_steps)} steps into {len(steps)} substeps")
 
         # Build dependency graph
         graph = build_dependency_graph(steps)
@@ -60,7 +65,7 @@ class SlurmOpusFilter:
                 steps = steps[last_completed + 1:]
                 # Update graph
                 graph = build_dependency_graph(steps)
-                completed_steps = [f"{i}_{steps[i]['type']}"
+                completed_steps = [_get_step_name(original_steps[i], i)
                                 for i in range(last_completed + 1)]
 
         # Main execution loop
@@ -104,10 +109,13 @@ class SlurmOpusFilter:
                 step_index = step_info['index']
                 step_config = step_info['step']
 
+                # Use original step index for CLI --single option
+                original_step_index = step_info.get('original_index', step_index)
+
                 # Check if outputs already exist
                 constants = self.configuration.get('common', {}).get('constants', {})
                 if not overwrite and check_step_outputs(step_config, self.output_dir, constants):
-                    logger.info(f"Step {step_index} ({step_config['type']}) outputs exist, skipping")
+                    logger.info(f"Step {original_step_index} ({step_config['type']}) outputs exist, skipping")
                     completed_steps.append(step_name)
                     graph[step_name]['completed'] = True
                     continue
@@ -129,12 +137,12 @@ class SlurmOpusFilter:
 
                 # Submit job
                 try:
-                    job_id = self._submit_step(step_index, step_config, dependency_id, overwrite)
+                    job_id = self._submit_step(original_step_index, step_config, dependency_id, overwrite)
                     self.job_ids[step_name] = job_id
                     running_jobs[step_name] = job_id
-                    logger.info(f"Submitted step {step_index} ({step_config['type']}) as job {job_id}")
+                    logger.info(f"Submitted step {original_step_index} ({step_config['type']}, substep {step_info.get('substep_index')}) as job {job_id}")
                 except Exception as e:
-                    logger.error(f"Failed to submit step {step_index}: {e}")
+                    logger.error(f"Failed to submit step {original_step_index}: {e}")
                     break
 
             step_index += len(to_submit)
@@ -190,16 +198,21 @@ class SlurmOpusFilter:
     def _create_batch_script(self, step_index, step_config, resources, dependency_id=None, overwrite=False):
         """Create a SLURM batch script for a step."""
         step_type = step_config['type']
+        substep_idx = step_config.get('_substep_index')
 
-        # Script path
-        script_name = f"step_{step_index}_{step_type}.sbatch"
+        # Script path - include substep index if present
+        if substep_idx is not None:
+            script_name = f"step_{step_index}_{step_type}_{substep_idx}.sbatch"
+        else:
+            script_name = f"step_{step_index}_{step_type}.sbatch"
         script_path = os.path.join(self.workdir, "scripts", script_name)
 
         # Prepare template variables
         # Partition: check step resources first, then top-level slurm config, then default
         partition = resources.get('partition') or self.slurm_config.get('partition') or 'cpu'
+        job_name_suffix = f"_{substep_idx}" if substep_idx is not None else ""
         template_vars = {
-            'job_name': f"opusfilter_{step_index}_{step_type}",
+            'job_name': f"opusfilter_{step_index}_{step_type}{job_name_suffix}",
             'partition': partition,
             'account': self.slurm_config.get('account', ''),
             'time': resources.get('time', '02:00:00'),
@@ -250,8 +263,11 @@ class SlurmOpusFilter:
 
         template_vars['command'] = ' '.join(opusfilter_cmd)
 
-        # Generate cleanup command
-        step_params = step_config.get('parameters', {})
+        # Generate cleanup command - use expanded parameters if available
+        if '_expanded_parameters' in step_config:
+            step_params = step_config['_expanded_parameters']
+        else:
+            step_params = step_config.get('parameters', {})
         step_outputs = convert_vars_to_strings(step_params.get('outputs', []))
         template_vars['cleanup_command'] = f"""
         # Clean outputs on failure

@@ -151,5 +151,5 @@ steps:
 # With options:
 #   opusfilter-slurm config.yaml --resume
 #   opusfilter-slurm config.yaml --max-concurrent 10
-#   opusfilter-slurm config.yaml --dry-run --monitor
+#   opusfilter-slurm config.yaml --dry-run
 #   opusfilter-slurm config.yaml --workdir /scratch/my-opusfilter

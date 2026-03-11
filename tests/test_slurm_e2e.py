@@ -63,8 +63,7 @@ class TestSlurmEndToEnd(unittest.TestCase):
 
                 # Verify run was called
                 mock_instance.run.assert_called_once_with(
-                    overwrite=False, resume=False, monitor=False
-                )
+                    overwrite=False, resume=False)
 
 
 if __name__ == '__main__':
