@@ -98,11 +98,23 @@ def expand_steps_with_variables(steps, common_constants=None):
 
 
 def submit_job(script_path, dependency=None, array_size=None):
-    """Submit a SLURM job and return job ID."""
+    """Submit a SLURM job and return job ID.
+
+    Args:
+        script_path: Path to the SLURM batch script
+        dependency: Single job ID (str) or collection of job IDs (list/set)
+                    for afterok dependency. Multiple deps are colon-separated.
+        array_size: If set, create an array job with this many elements
+    """
     cmd = ['sbatch', script_path]
 
     if dependency:
-        cmd.insert(1, f'--dependency=afterok:{dependency}')
+        if isinstance(dependency, (list, set, tuple)):
+            dep_str = ':'.join(str(d) for d in dependency if d)
+            if dep_str:
+                cmd.insert(1, f'--dependency=afterok:{dep_str}')
+        else:
+            cmd.insert(1, f'--dependency=afterok:{dependency}')
 
     if array_size:
         cmd.insert(1, f'--array=0-{array_size-1}')
@@ -171,9 +183,11 @@ def build_dependency_graph(steps):
         # Use expanded parameters if available
         if '_expanded_parameters' in step_info['step']:
             expanded_params = step_info['step']['_expanded_parameters']
-            inputs = get_inputs({'parameters': expanded_params})
+            step = copy.copy(step_info['step'])
+            step['parameters'] = expanded_params
         else:
-            inputs = get_inputs(step_info['step'])
+            step = step_info['step']
+        inputs = get_inputs(step)
 
         if inputs:
             for input_file in inputs:

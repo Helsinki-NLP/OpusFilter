@@ -33,6 +33,11 @@ def get_inputs(step):
     for single_input in ['input', 'src_input', 'tgt_input']:
         if single_input in params:
             inputs.append(params[single_input])
+    step_type = step.get('type', '')
+    if step_type in TRAINING_STEP_TYPES:
+        for data_input in ['data', 'src_data', 'tgt_data']:
+            if data_input in params:
+                inputs.append(params[data_input])
     return inputs
 
 
@@ -40,9 +45,9 @@ def convert_vars_to_strings(obj):
     """Recursively convert Var/VarStr objects to their string values."""
     if isinstance(obj, Var):
         return obj.value
-    elif isinstance(obj, dict):
+    if isinstance(obj, dict):
         return {key: convert_vars_to_strings(val) for key, val in obj.items()}
-    elif isinstance(obj, list):
+    if isinstance(obj, list):
         return [convert_vars_to_strings(item) for item in obj]
     return obj
 
@@ -65,9 +70,14 @@ def get_outputs(step):
 def get_other_params(step):
     """Return parameters of the step excluding i/o."""
     params = copy.copy(step.get('parameters', {}))
-    for to_remove in ['input', 'inputs', 'output', 'outputs', 'src_output', 'tgt_output', 'model']:
+    for to_remove in ['input', 'inputs', 'output', 'outputs', 'src_output', 'tgt_output']:
         if to_remove in params:
             del params[to_remove]
+    step_type = step.get('type', '')
+    if step_type in TRAINING_STEP_TYPES:
+        for to_remove in ['data', 'src_data', 'tgt_data']:
+            if to_remove in params:
+                del params[to_remove]
     return params
 
 

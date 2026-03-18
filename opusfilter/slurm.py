@@ -55,6 +55,8 @@ class SlurmOpusFilter:
 
         # Build dependency graph
         graph = build_dependency_graph(steps)
+        for key, value in graph.items():
+            logger.debug("Dependencies found for %s: %s", key, value['deps'])
         completed_steps = []
         running_jobs = {}
 
@@ -105,6 +107,25 @@ class SlurmOpusFilter:
             # Submit as many as allowed up to max_concurrent
             to_submit = ready[:self.max_concurrent - len(running_jobs)]
 
+            # First pass: collect all dependency job IDs for each step
+            # This includes deps from previous batches AND from current batch
+            step_deps = {}
+            batch_job_ids = {}  # Track job IDs in current batch
+            for step_name in to_submit:
+                step_info = graph[step_name]
+                deps = step_info['deps']
+
+                # Collect all dependency job IDs
+                dep_ids = set()
+                for dep in deps:
+                    if dep in self.job_ids:
+                        dep_ids.add(self.job_ids[dep])
+                    if dep in batch_job_ids:
+                        dep_ids.add(batch_job_ids[dep])
+
+                step_deps[step_name] = dep_ids
+
+            # Second pass: submit all jobs with their complete dependency lists
             for step_name in to_submit:
                 step_info = graph[step_name]
                 step_index = step_info['index']
@@ -121,25 +142,18 @@ class SlurmOpusFilter:
                     graph[step_name]['completed'] = True
                     continue
 
-                # Get dependencies for this step
-                deps = step_info['deps']
-                dependency_id = None
-                if deps:
-                    logger.info(f"Step {step_name} has dependencies: {deps}")
-                    logger.info(f"Current job_ids: {self.job_ids}")
-                    # Check running jobs and job_ids for pending dependencies
-                    for dep in deps:
-                        if dep in self.job_ids:
-                            dependency_id = self.job_ids[dep]
-                            logger.info(f"Setting dependency: {step_name} depends on {dep} -> job {dependency_id}")
-                            break
-                    if dependency_id is None:
-                        logger.warning(f"Step {step_name} has deps {deps} but none found in job_ids")
+                # Get all dependency job IDs for this step
+                dependency_ids = step_deps[step_name]
+                if dependency_ids:
+                    logger.info(f"Step {step_name} has dependencies: {step_info['deps']} -> job IDs: {dependency_ids}")
+                elif step_info['deps']:
+                    logger.warning(f"Step {step_name} has deps {step_info['deps']} but none found in job_ids")
 
                 # Submit job
                 try:
-                    job_id = self._submit_step(original_step_index, step_config, dependency_id, overwrite)
+                    job_id = self._submit_step(original_step_index, step_config, dependency_ids, overwrite)
                     self.job_ids[step_name] = job_id
+                    batch_job_ids[step_name] = job_id
                     running_jobs[step_name] = job_id
                     logger.info(f"Submitted step {original_step_index} ({step_config['type']}, substep {step_info.get('substep_index')}) as job {job_id}")
                 except Exception as e:
