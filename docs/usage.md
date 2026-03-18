@@ -249,6 +249,50 @@ there are values in the lists. Note that if you need to use the
 same lists of variable values in multiple steps, you can exploit
 the standard YAML node anchors and references.
 
+## Step Dependencies
+
+By default, OpusFilter detects dependencies between steps automatically
+by matching input files to output files. However, some steps have
+implicit file dependencies that are not captured through standard
+input/output parameters.
+
+For example, `LMClassifierFilter` loads model files specified in
+`lm_params.*.filename`, but these are not automatically detected as
+dependencies because they are nested in filter configurations.
+
+Use the `depends_on` field to explicitly declare these dependencies:
+
+```yaml
+steps:
+  # Step that produces model files
+  - type: train_ngram
+    parameters:
+      data: data.txt.gz
+      model: model.arpa.gz
+
+  # Step that uses the model (implicit dependency via lm_params)
+  - type: filter
+    parameters:
+      inputs: [data.txt.gz]
+      outputs: [filtered.txt.gz]
+      filters:
+        - LMClassifierFilter:
+            lm_params:
+              en: {filename: model.arpa.gz}
+    depends_on:
+      - model.arpa.gz
+```
+
+The `depends_on` field supports:
+- Single file: `depends_on: model.arpa.gz`
+- Multiple files: `depends_on: [file1.gz, file2.gz]`
+- Variable expansion: `depends_on: ['!varstr "{lang}.arpa.gz"']`
+
+Note: The `depends_on` field is primarily used by `opusfilter-slurm`
+for SLURM job scheduling and `opusfilter-diagram` for visualization.
+The standard `opusfilter` command runs steps sequentially and does
+not require explicit dependency declaration.
+
 ## Running a single command
 
 If you need to run a single OpusFilter function wihtout the need of

@@ -124,6 +124,9 @@ steps:
 # always gets score one, which is also here the filtering threshold.
 # Without relative_score, the scores would be normalized label
 # probabilities that sum up to one.
+#
+# Note: depends_on is used because LMClassifierFilter requires model
+# files that are not in the standard inputs/outputs fields.
 - type: filter
   parameters:
     inputs:
@@ -143,11 +146,20 @@ steps:
         labels: [sv, !var lang]
         relative_score: true
         thresholds: [1.0, 1.0]
+  depends_on:
+    - de.arpa.gz
+    - en.arpa.gz
+    - fr.arpa.gz
+    - sv.arpa.gz
+    - pooled.arpa.gz
   variables:
     lang: [de, en, fr]
 
 # Use filterfalse for checking the segments that the filter removes.
 # Here it is applied to each monolingual file.
+#
+# Note: depends_on is used because LMClassifierFilter requires model
+# files that are not in the standard inputs/outputs fields.
 - type: filter
   parameters:
     inputs: [!var inputfile]
@@ -159,6 +171,12 @@ steps:
         relative_score: true
         thresholds: [1.0]
     filterfalse: true
+  depends_on:
+    - de.arpa.gz
+    - en.arpa.gz
+    - fr.arpa.gz
+    - sv.arpa.gz
+    - pooled.arpa.gz
   variables:
     lang: [de, en, fr, sv]
     inputfile:

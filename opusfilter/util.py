@@ -25,7 +25,11 @@ TRAINING_STEP_TYPES = {'train_ngram', 'train_alignment', 'train_bpe', 'train_spm
 
 
 def get_inputs(step):
-    """Return inputs of the step."""
+    """Return inputs of the step.
+
+    Includes explicit inputs from parameters plus implicit inputs from
+    depends_on field (for files required by the step but not in standard I/O).
+    """
     params = step.get('parameters', {})
     inputs = params.get('inputs', [])
     if inputs and isinstance(inputs[0], list):
@@ -38,6 +42,11 @@ def get_inputs(step):
         for data_input in ['data', 'src_data', 'tgt_data']:
             if data_input in params:
                 inputs.append(params[data_input])
+    # Add implicit inputs from depends_on field
+    depends_on = step.get('depends_on', [])
+    if isinstance(depends_on, str):
+        depends_on = [depends_on]
+    inputs.extend(depends_on)
     return inputs
 
 

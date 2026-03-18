@@ -56,6 +56,7 @@ def expand_steps_with_variables(steps, common_constants=None):
     - _original_index: original step index
     - _substep_index: index within variable combinations (None if no variables)
     - _expanded_parameters: parameters with variables resolved
+    - _expanded_depends_on: depends_on field with variables resolved
 
     For zipped dependencies (same step with variables), substep B[idx]
     corresponds to substep A[idx] from the previous step.
@@ -72,6 +73,9 @@ def expand_steps_with_variables(steps, common_constants=None):
             namespace = copy.copy(common_constants)
             namespace.update(step.get('constants', {}))
             expanded_step['_expanded_parameters'] = expand_step_parameters(step.get('parameters', {}), namespace)
+            # Expand depends_on field if present
+            if 'depends_on' in step:
+                expanded_step['_expanded_depends_on'] = expand_step_parameters(step['depends_on'], namespace)
             expanded.append(expanded_step)
             continue
 
@@ -91,6 +95,9 @@ def expand_steps_with_variables(steps, common_constants=None):
             expanded_step['_original_index'] = original_idx
             expanded_step['_substep_index'] = idx
             expanded_step['_expanded_parameters'] = expand_step_parameters(step.get('parameters', {}), namespace)
+            # Expand depends_on field if present
+            if 'depends_on' in step:
+                expanded_step['_expanded_depends_on'] = expand_step_parameters(step['depends_on'], namespace)
             expanded.append(expanded_step)
             logger.debug(f"Expanded step {original_idx} ({step.get('type')}) substep {idx}: {namespace}")
 
@@ -157,6 +164,9 @@ def build_dependency_graph(steps):
     For expanded steps (with _expanded_parameters), uses resolved parameters
     to determine inputs/outputs. For zipped dependencies (same original step
     with variables), matches substeps by _substep_index.
+
+    Supports explicit dependencies via 'depends_on' field in step config,
+    which should contain a list of output filenames that this step depends on.
     """
     graph = {}
     for i, step in enumerate(steps):
@@ -178,7 +188,7 @@ def build_dependency_graph(steps):
             'outputs': outputs
         }
 
-    # Find dependencies
+    # Find dependencies from inputs/outputs matching
     for step_name, step_info in graph.items():
         # Use expanded parameters if available
         if '_expanded_parameters' in step_info['step']:

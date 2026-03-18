@@ -240,20 +240,39 @@ The SLURM integration outputs standard OpusFilter files that can be used with:
 
 ## Advanced Usage
 
-### Custom Job Dependencies
-For complex workflows, explicitly specify dependencies:
+### Explicit Dependencies (depends_on)
+
+Some steps have implicit file dependencies that are not tracked through standard input/output fields. For example, `LMClassifierFilter` loads model files specified in `lm_params.*.filename`, but these are not automatically detected as dependencies.
+
+Use the `depends_on` field to explicitly declare these dependencies:
 
 ```yaml
 steps:
-  - type: step1
+  # Step that produces model files
+  - type: train_ngram
     parameters:
-      outputs: [file1]
-      depends_on: [setup]  # Explicit dependency
-      
-  - type: step2
+      data: data.txt.gz
+      model: model.arpa.gz
+
+  # Step that uses the model (implicit dependency via lm_params)
+  - type: filter
     parameters:
-      inputs: [file1]
+      inputs: [data.txt.gz]
+      outputs: [filtered.txt.gz]
+      filters:
+        - LMClassifierFilter:
+            lm_params:
+              en: {filename: model.arpa.gz}
+    depends_on:
+      - model.arpa.gz
 ```
+
+The `depends_on` field supports:
+- Single file (string): `depends_on: model.arpa.gz`
+- Multiple files (list): `depends_on: [file1.gz, file2.gz]`
+- Variable expansion: `depends_on: ['!varstr "{lang}.arpa.gz"']`
+
+This ensures the filter step waits for the train_ngram step to complete before starting.
 
 ### Resource Usage Collection
 Track actual resource usage:
