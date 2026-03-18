@@ -165,7 +165,7 @@ def build_dependency_graph(steps):
         # Use expanded parameters if available
         if '_expanded_parameters' in step:
             expanded_params = step['_expanded_parameters']
-            outputs = get_outputs({'parameters': expanded_params})
+            outputs = get_outputs({'type': step.get('type'), 'parameters': expanded_params})
         else:
             outputs = get_outputs(step)
 
@@ -247,7 +247,7 @@ def check_step_outputs(step, output_dir, constants=None):
         namespace.update(step.get('constants', {}))
         expanded_params = expand_step_parameters(step.get('parameters', {}), namespace)
 
-    outputs = get_outputs({'parameters': expanded_params})
+    outputs = get_outputs({'type': step.get('type'), 'parameters': expanded_params})
     if not outputs:
         return True
     for output in outputs:
@@ -274,7 +274,7 @@ def clean_failed_outputs(step, output_dir, constants=None):
         namespace.update(step.get('constants', {}))
         expanded_params = expand_step_parameters(step.get('parameters', {}), namespace)
 
-    outputs = get_outputs({'parameters': expanded_params})
+    outputs = get_outputs({'type': step.get('type'), 'parameters': expanded_params})
     for output in outputs:
         path = Path(output_dir) / output
         if path.exists():
