@@ -72,95 +72,121 @@ class SlurmOpusFilter:
                                 for i in range(last_completed + 1)]
 
         # Main execution loop
-        step_index = 0
         failed_steps = []
-        while completed_steps or step_index < len(steps):
-            # Check status of running jobs first
-            if running_jobs:
-                completed, failed = self._check_running_jobs(running_jobs, graph)
-                completed_steps.extend(completed)
-                failed_steps.extend(failed)
-
-            # Stop if any step has failed
-            if failed_steps:
-                logger.error(f"Workflow failed: {len(failed_steps)} step(s) failed")
-                return False
-
+        while True:
             # Find ready steps
             ready = get_ready_steps(graph, completed_steps)
             # Filter out steps that are already running
             ready = [s for s in ready if s not in running_jobs]
-            logger.info(f"Loop: ready={ready}, running={list(running_jobs.keys())}, completed={completed_steps}")
-            if not ready:
-                if running_jobs:
-                    logger.info("Waiting...")
+
+            if ready:
+                logger.info(f"Loop: ready={ready}, running={list(running_jobs.keys())}, completed={completed_steps}")
+
+                # Check if we can submit more (respect max_concurrent)
+                slots_available = self.max_concurrent - len(running_jobs)
+                if slots_available <= 0:
+                    # At capacity - check status and wait
+                    if running_jobs:
+                        completed, failed = self._check_running_jobs(running_jobs, graph)
+                        completed_steps.extend(completed)
+                        failed_steps.extend(failed)
+                        if failed_steps:
+                            logger.error(f"Workflow failed: {len(failed_steps)} step(s) failed")
+                            return False
+                        if completed:
+                            continue
+                    logger.info(f"At max_concurrent ({self.max_concurrent}), waiting for jobs to complete...")
                     time.sleep(10)
                     continue
-                # Check if all steps are completed
-                all_completed = all(step_info.get('completed', False) for step_info in graph.values())
-                if all_completed:
-                    break
-                # No ready steps and no running jobs - something's wrong
-                logger.error("Workflow deadlock detected!")
-                break
 
-            # Submit as many as allowed up to max_concurrent
-            to_submit = ready[:self.max_concurrent - len(running_jobs)]
+                # Submit as many as allowed up to max_concurrent
+                to_submit = ready[:slots_available]
 
-            # First pass: collect all dependency job IDs for each step
-            # This includes deps from previous batches AND from current batch
-            step_deps = {}
-            batch_job_ids = {}  # Track job IDs in current batch
-            for step_name in to_submit:
-                step_info = graph[step_name]
-                deps = step_info['deps']
+                # First pass: collect all dependency job IDs for each step
+                # This includes deps from previous batches AND from current batch
+                step_deps = {}
+                batch_job_ids = {}  # Track job IDs in current batch
+                for step_name in to_submit:
+                    step_info = graph[step_name]
+                    deps = step_info['deps']
 
-                # Collect all dependency job IDs
-                dep_ids = set()
-                for dep in deps:
-                    if dep in self.job_ids:
-                        dep_ids.add(self.job_ids[dep])
-                    if dep in batch_job_ids:
-                        dep_ids.add(batch_job_ids[dep])
+                    # Collect all dependency job IDs
+                    dep_ids = set()
+                    for dep in deps:
+                        if dep in self.job_ids:
+                            dep_ids.add(self.job_ids[dep])
+                        if dep in batch_job_ids:
+                            dep_ids.add(batch_job_ids[dep])
 
-                step_deps[step_name] = dep_ids
+                    step_deps[step_name] = dep_ids
 
-            # Second pass: submit all jobs with their complete dependency lists
-            for step_name in to_submit:
-                step_info = graph[step_name]
-                step_index = step_info['index']
-                step_config = step_info['step']
+                # Second pass: submit all jobs with their complete dependency lists
+                for step_name in to_submit:
+                    step_info = graph[step_name]
+                    step_index = step_info['index']
+                    step_config = step_info['step']
 
-                # Use original step index for CLI --single option
-                original_step_index = step_info.get('original_index', step_index)
+                    # Use original step index for CLI --single option
+                    original_step_index = step_info.get('original_index', step_index)
 
-                # Check if outputs already exist
-                constants = self.configuration.get('common', {}).get('constants', {})
-                if not overwrite and check_step_outputs(step_config, self.output_dir, constants):
-                    logger.info(f"Step {original_step_index} ({step_config['type']}) outputs exist, skipping")
-                    completed_steps.append(step_name)
-                    graph[step_name]['completed'] = True
+                    # Check if outputs already exist
+                    constants = self.configuration.get('common', {}).get('constants', {})
+                    if not overwrite and check_step_outputs(step_config, self.output_dir, constants):
+                        logger.info(f"Step {original_step_index} ({step_config['type']}) outputs exist, skipping")
+                        completed_steps.append(step_name)
+                        graph[step_name]['completed'] = True
+                        continue
+
+                    # Get all dependency job IDs for this step
+                    dependency_ids = step_deps[step_name]
+                    if dependency_ids:
+                        logger.info(f"Step {step_name} has dependencies: {step_info['deps']} -> job IDs: {dependency_ids}")
+                    elif step_info['deps']:
+                        logger.warning(f"Step {step_name} has deps {step_info['deps']} but none found in job_ids")
+
+                    # Submit job
+                    try:
+                        job_id = self._submit_step(original_step_index, step_config, dependency_ids, overwrite)
+                        self.job_ids[step_name] = job_id
+                        batch_job_ids[step_name] = job_id
+                        running_jobs[step_name] = job_id
+                        logger.info(f"Submitted step {original_step_index} ({step_config['type']}, substep {step_info.get('substep_index')}) as job {job_id}")
+                    except Exception as e:
+                        logger.error(f"Failed to submit step {original_step_index}: {e}")
+                        break
+
+                # After submitting, loop back immediately to check for newly ready steps
+                continue
+
+            # No ready steps
+            if running_jobs:
+                # Check status of running jobs
+                logger.info(f"Waiting: running={list(running_jobs.keys())}, completed={completed_steps}")
+                completed, failed = self._check_running_jobs(running_jobs, graph)
+                completed_steps.extend(completed)
+                failed_steps.extend(failed)
+
+                # Stop if any step has failed
+                if failed_steps:
+                    logger.error(f"Workflow failed: {len(failed_steps)} step(s) failed")
+                    return False
+
+                # If we have new completed jobs, loop back to check for ready steps
+                if completed:
                     continue
 
-                # Get all dependency job IDs for this step
-                dependency_ids = step_deps[step_name]
-                if dependency_ids:
-                    logger.info(f"Step {step_name} has dependencies: {step_info['deps']} -> job IDs: {dependency_ids}")
-                elif step_info['deps']:
-                    logger.warning(f"Step {step_name} has deps {step_info['deps']} but none found in job_ids")
+                # No new completions, wait before checking again
+                logger.info("Waiting for jobs to complete...")
+                time.sleep(10)
+                continue
 
-                # Submit job
-                try:
-                    job_id = self._submit_step(original_step_index, step_config, dependency_ids, overwrite)
-                    self.job_ids[step_name] = job_id
-                    batch_job_ids[step_name] = job_id
-                    running_jobs[step_name] = job_id
-                    logger.info(f"Submitted step {original_step_index} ({step_config['type']}, substep {step_info.get('substep_index')}) as job {job_id}")
-                except Exception as e:
-                    logger.error(f"Failed to submit step {original_step_index}: {e}")
-                    break
-
-            step_index += len(to_submit)
+            # Check if all steps are completed
+            all_completed = all(step_info.get('completed', False) for step_info in graph.values())
+            if all_completed:
+                break
+            # No ready steps and no running jobs - something's wrong
+            logger.error("Workflow deadlock detected!")
+            break
 
         # Monitor final jobs
         if running_jobs:
