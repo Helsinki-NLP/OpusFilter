@@ -38,7 +38,7 @@ class DataframeTests(unittest.TestCase):
     @classmethod
     def tearDownClass(self):
         shutil.rmtree(self.tempdir)
-    
+
     def test_load_dataframe(self):
         df = load_dataframe(self.jsonl_data)
         logging.info(df)

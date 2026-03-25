@@ -1,0 +1,92 @@
+"""Command-line interface for opusfilter-duplicates command."""
+import argparse
+import collections
+import json
+import logging
+import sys
+
+from tqdm import tqdm
+
+from opusfilter.segment_hash import SegmentHasher
+from opusfilter.util import file_open
+
+
+def main(args=None):
+    """Main entry point for opusfilter-duplicates command."""
+    parser = argparse.ArgumentParser(prog='opusfilter-duplicates',
+        description='Find duplicates from parallel text data using hashes and print statistics')
+
+    parser.add_argument('files', nargs='+', metavar='FILE', help='parallel text input file(s)')
+    parser.add_argument('--overlap', '-o', nargs='+', metavar='FILE', default=None,
+                        help='calculate overlap with second set of input files')
+    parser.add_argument('--hash', type=str, default='xxh64',
+                        help=('hash function from xxhash library, empty string '
+                              'for no hashing (default "xxh64")'))
+    parser.add_argument('--letters-only', action='store_true', default=False,
+                        help='remove all non-letters from intput strings before hashing')
+    parser.add_argument('--letter-words-only', action='store_true', default=False,
+                        help='remove words with non-letter characters before hashing')
+    parser.add_argument('--lowercase', action='store_true', default=False,
+                        help='lowercase input strings before hashing')
+    parser.add_argument('--tokenizers', type=str, metavar='JSON', default=None,
+                        help=('load tokenizer specifications from a JSON list (e.g. \'[["moses", "en"], ["jieba", "zh"]]\'); '
+                              'use with --letter-words-only'))
+
+    args = parser.parse_args(args)
+
+    logging.basicConfig(level=logging.INFO)
+    logging.getLogger('mosestokenizer.tokenizer.MosesTokenizer').setLevel(logging.WARNING)
+
+    if args.overlap and len(args.overlap) != len(args.files):
+        raise ValueError("The number of the main and overlap input files should match")
+
+    tokenizers = json.loads(args.tokenizers) if args.tokenizers else None
+
+    hasher = SegmentHasher(
+        compare='all',
+        method=args.hash,
+        letters_only=args.letters_only,
+        letter_words_only=args.letter_words_only,
+        lowercase=args.lowercase,
+        tokenizers=tokenizers
+    )
+
+    total = 0
+    counter = collections.Counter()
+    infs = [file_open(infile) for infile in args.files]
+    for lines in tqdm(zip(*infs)):
+        total += 1
+        key = hasher.apply(lines)
+        counter[key] += 1
+
+    if args.overlap:
+        total2 = 0
+        overlap = 0
+        overlap_counter = collections.Counter()
+        infs = [file_open(infile) for infile in args.overlap]
+        for lines in tqdm(zip(*infs)):
+            total2 += 1
+            key = hasher.apply(lines)
+            if key in counter:
+                overlap += 1
+                overlap_counter[key] += 1
+        print("Total segments in 1st: {}".format(total))
+        print("Total segments in 2nd: {}".format(total2))
+        print("Overlapping segments: {} ({:.1f}% in 1st, {:.1f}% in 2nd)".format(
+            overlap, 100 * overlap / total, 100 * overlap / total2))
+        print("Overlapping unique segments: {}".format(len(overlap_counter)))
+    else:
+        counts_of_counts = collections.Counter(counter.values())
+        uniq = sum(counts_of_counts.values())
+        print("Total segments: {}".format(total))
+        print("Unique segments: {} ({:.1f}%)".format(uniq, 100 * uniq / total))
+        print("Segments occurring once: {}".format(counts_of_counts[1]))
+        print("Average number of duplicates: {:.1f}".format(
+            sum((k * v) for k, v in counts_of_counts.items()) / sum(counts_of_counts.values())))
+        print("Maximum number of duplicates: {}".format(max(counts_of_counts.keys())))
+
+    return 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())

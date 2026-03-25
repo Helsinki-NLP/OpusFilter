@@ -1,12 +1,178 @@
 [build-system]
 requires = [
-    "setuptools>=42",
-    "setuptools_scm[toml]>=3.4",
+    "setuptools>=65",
+    "setuptools_scm[toml]>=6.4",
     "wheel"
 ]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools_scm]
+[project]
+name = "opusfilter"
+dynamic = ["version"]
+description = "Toolbox for filtering and processing parallel corpora"
+readme = "README.md"
+license = "MIT"
+authors = [
+    {name = "Mikko Aulamo", email = "mikko.aulamo@helsinki.fi"},
+    {name = "Sami Virpioja", email = "sami.virpioja@helsinki.fi"}
+]
+maintainers = [
+    {name = "Mikko Aulamo", email = "mikko.aulamo@helsinki.fi"},
+    {name = "Sami Virpioja", email = "sami.virpioja@helsinki.fi"}
+]
+keywords = [
+    "parallel-corpora",
+    "corpus-filtering",
+    "natural-language-processing",
+    "machine-translation",
+    "data-cleaning",
+    "nlp",
+    "text-processing"
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Text Processing :: Linguistic",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Operating System :: OS Independent",
+]
+requires-python = ">=3.9"
+dependencies = [
+    "setuptools",
+    "opustools>=1.8.3",
+    "beautifulsoup4>=4.8.0",
+    "graphviz",
+    "py3langid>=0.2.2",
+    "matplotlib",
+    "morfessor",
+    'opus-fast-mosestokenizer>=0.0.8.11',
+    "pandas>=1.0.0",
+    "xxhash>=3.2.0",
+    "sentence-splitter",
+    "rapidfuzz",
+    "ruamel.yaml>=0.15.0",
+    "regex",
+    "requests",
+    "scikit-learn",
+    "subword_nmt",
+    "tqdm",
+    'lingua-language-detector>=2.2.0 ; python_version >= "3.12"',
+    'lingua-language-detector>=1.3.0,<2.2 ; python_version >= "3.10" and python_version < "3.12"',
+    'lingua-language-detector>=1.3.0,<2.1 ; python_version < "3.10"',
+    "iso639-lang"
+]
 
+[project.optional-dependencies]
+pycld2 = [
+    "pycld2"
+]
+fasttext = [
+    "py3langid<0.3.0",
+    "fasttext"
+]
+eflomal = [
+    'eflomal>=2.0.0'
+]
+jieba = [
+    'jieba>=0.42'
+]
+mecab = [
+    'mecab-python3>=1.0.8',
+    'unidic-lite'
+]
+laser = [
+    'laserembeddings'
+]
+varikn = [
+    'varikn'
+]
+heliport = [
+    'heliport>=0.10.0'
+]
+test = [
+    'pytest'
+]
+docs = [
+    'myst-parser',
+    'sphinx',
+    'sphinx-rtd-theme',
+    'sphinxcontrib-bibtex'
+]
+all = [
+    "opusfilter[pycld2,fasttext,eflomal,jieba,mecab,laser,varikn,heliport,test,docs]"
+]
+dev = [
+    "pytest",
+    "pytest-cov",
+    "black",
+    "isort",
+    "pylint",
+    "mypy"
+]
+
+[project.urls]
+Homepage = "https://github.com/Helsinki-NLP/OpusFilter"
+Documentation = "https://helsinki-nlp.github.io/OpusFilter/"
+Repository = "https://github.com/Helsinki-NLP/OpusFilter.git"
+"Bug Tracker" = "https://github.com/Helsinki-NLP/OpusFilter/issues"
+Changelog = "https://github.com/Helsinki-NLP/OpusFilter/blob/main/docs/CHANGELOG.md"
+"Paper (ACL 2020)" = "https://www.aclweb.org/anthology/2020.acl-demos.20"
+
+[tool.setuptools]
+packages = ["opusfilter"]
+include-package-data = true
+[project.scripts]
+opusfilter = "opusfilter.cli.main:main"
+opusfilter-autogen = "opusfilter.cli.autogen:main"
+opusfilter-cmd = "opusfilter.cli.cmd:main"
+opusfilter-test = "opusfilter.cli.test:main"
+opusfilter-scores = "opusfilter.cli.scores:main"
+opusfilter-diagram = "opusfilter.cli.diagram:main"
+opusfilter-duplicates = "opusfilter.cli.duplicates:main"
+
+[tool.setuptools_scm]
+write_to = "opusfilter/_version.py"
+
+# Development and testing tools configuration
 [tool.pytest.ini_options]
 filterwarnings = ["ignore::UserWarning"]
+testpaths = ["tests"]
+
+[tool.flake8]
+max-line-length = 127
+max-complexity = 18
+extend-ignore = ["E203", "W503"]
+
+[tool.pylint]
+max-line-length = 127
+disable = [
+    "C0330",  # Wrong hanging indentation
+    "C0326",  # Bad whitespace
+    "R0913",  # Too many arguments
+    "R0912",  # Too many branches
+    "R0915",  # Too many statements
+    "R1708",  # Do not use 'continue' in a finally block
+]
+
+[tool.black]
+line-length = 127
+target-version = ['py38']
+
+[tool.isort]
+profile = "black"
+line_length = 127
+multi_line_output = 3
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true

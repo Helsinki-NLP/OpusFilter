@@ -8,11 +8,11 @@ Include optional Python libraries:
 
 Install from source:
 * `pip install .` or
-* `python setup.py install`
+* `pip install -e .`
 
 Note that all required libraries are not available to install via PyPI
 on Windows OS. On Linux and MacOS, it should work directly for Python
-versions from 3.8 to 3.14.
+versions from 3.9 to 3.14.
 
 ## Required libraries
 
@@ -35,7 +35,7 @@ versions from 3.8 to 3.14.
 * xxhash
 * lingua-language-detector
 
-See `setup.py` for possible version requirements.
+See `pyproject.toml` for possible version requirements.
 
 ## Optional libraries and tools
 

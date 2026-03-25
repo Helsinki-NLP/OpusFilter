@@ -22,7 +22,7 @@ only a single step (`--single`). It the latter, the user has to
 make sure that all input files for the step already exist. The first
 step has number 1, and -1 points to the last step, -2 to the second to
 last, and so on. The `--n-jobs` option indicate number of processes to
-use when running `score`, `filter` and `preprocess` steps. This value will 
+use when running `score`, `filter` and `preprocess` steps. This value will
 overwrite `default_n_jobs` in the `common` section.
 
 By default, existing output files will be re-used, and the steps
