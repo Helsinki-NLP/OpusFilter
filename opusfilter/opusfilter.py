@@ -70,6 +70,14 @@ def dict_set(key, value, dictionary):
         dictionary = dictionary[first]
 
 
+def _run_parallel_task(func_name, obj, parameters, overwrite):
+    """Global helper function for ParallelWrapper"""
+    func = getattr(obj, func_name)
+    if hasattr(func, "__wrapped__"):
+        func = func.__wrapped__
+    func(obj, parameters, overwrite)
+
+
 class ParallelWrapper:
     """Decorator for parallelizing OpusFilter steps
 
@@ -155,6 +163,8 @@ class ParallelWrapper:
         in_chunked_files, out_chunked_files = self.split(infiles, outfiles, n_jobs)
         # run jobs in parallel
         sub_processes = []
+        # Python>=3.14 restricts passing internal functions in multiprocessing, so pass its name instead
+        func_name = self.func.__name__
         for intmpfiles, outtmpfiles in zip(in_chunked_files, out_chunked_files):
             parameters_i = copy.deepcopy(parameters)
             parameters_i["inputs"] = intmpfiles
@@ -162,7 +172,10 @@ class ParallelWrapper:
                 parameters_i["outputs"] = [os.path.relpath(path, obj.output_dir) for path in outtmpfiles]
             elif "output" in parameters:  # function `score` use `output` instead of `outputs`
                 parameters_i["output"] = os.path.relpath(outtmpfiles[0], obj.output_dir)
-            process = multiprocessing.Process(target=self.func, args=(obj, parameters_i, overwrite))
+            process = multiprocessing.Process(
+                target=_run_parallel_task,
+                args=(func_name, obj, parameters_i, overwrite)
+            )
             process.daemon = True
             process.start()
             sub_processes.append(process)

@@ -1434,6 +1434,17 @@ class TestParallel(unittest.TestCase):
             count_lines(os.path.join(self.tempdir, 'RF1_sents.en'))
 
 
+@ParallelWrapper({'inputs', 'outputs', 'limit'})
+def _mock_parallel_func(obj, parameters, overwrite=False):
+    """Test function for TestParallelWrapper"""
+    inputs = parameters['inputs']
+    outputs = parameters['outputs']
+    for input_, output in zip(inputs, outputs):
+        input_ = os.path.join(obj.output_dir, input_)
+        output = os.path.join(obj.output_dir, output)
+        shutil.copyfile(input_, output)
+
+
 class TestParallelWrapper(unittest.TestCase):
     def setUp(self):
         self.parameters = [
@@ -1478,15 +1489,7 @@ class TestParallelWrapper(unittest.TestCase):
         mock_obj.output_dir = tempfile.mkdtemp()
         mock_obj.default_n_jobs = 1
         mock_obj._check_extra_parameters = OpusFilter._check_extra_parameters
-
-        @ParallelWrapper({'inputs', 'outputs', 'limit'})
-        def func(self, parameters, overwrite=False):
-            inputs = parameters['inputs']
-            outputs = parameters['outputs']
-            for input_, output in zip(inputs, outputs):
-                input_ = os.path.join(self.output_dir, input_)
-                output = os.path.join(self.output_dir, output)
-                shutil.copyfile(input_, output)
+        mock_obj._mock_parallel_func = _mock_parallel_func
 
         for param in self.parameters:
             format = param.get('format', None)
@@ -1503,7 +1506,7 @@ class TestParallelWrapper(unittest.TestCase):
                     fin.write("{}\n".format(i))
                 fin.close()
             n_jobs = param["n_jobs"]
-            func(mock_obj, {'inputs': rel_inputs, 'outputs': rel_outputs, "n_jobs": n_jobs,
+            _mock_parallel_func(mock_obj, {'inputs': rel_inputs, 'outputs': rel_outputs, "n_jobs": n_jobs,
                             "limit": param.get('limit', None)}, overwrite=True)
             for output in outputs:
                 if param.get("limit", None) is not None:

@@ -38,49 +38,51 @@ def update_parameters(parameters, name, values):
     parameters[name].extend(values)
 
 
-# Use to prevent warning from missing directory
-tmpconfig = {'common': {'output_directory': '/tmp'}}
+if __name__ == '__main__':
 
-logging.basicConfig(level=logging.INFO)
-logging.getLogger('mosestokenizer.tokenizer.MosesTokenizer').setLevel(logging.WARNING)
+    # Use to prevent warning from missing directory
+    tmpconfig = {'common': {'output_directory': '/tmp'}}
 
-parser = argparse.ArgumentParser(
-    prog='opusfilter-cmd', description='Run single opusfilter function', allow_abbrev=False)
+    logging.basicConfig(level=logging.INFO)
+    logging.getLogger('mosestokenizer.tokenizer.MosesTokenizer').setLevel(logging.WARNING)
 
-parser.add_argument('function', choices=OpusFilter(tmpconfig).step_functions, help='OpusFilter function')
-parser.add_argument('--overwrite', '-o', help='overwrite existing output files', action='store_true')
-parser.add_argument('--outputdir', '-d', default='.', help='output directory')
-parser.add_argument('--parameters', type=str, default=None, help='load parameters as a JSON object (e.g. \'{"inputs": ["all.gz"], "outputs": ["filtered.gz"]}\')')
+    parser = argparse.ArgumentParser(
+        prog='opusfilter-cmd', description='Run single opusfilter function', allow_abbrev=False)
 
-args, remaining = parser.parse_known_args()
+    parser.add_argument('function', choices=OpusFilter(tmpconfig).step_functions, help='OpusFilter function')
+    parser.add_argument('--overwrite', '-o', help='overwrite existing output files', action='store_true')
+    parser.add_argument('--outputdir', '-d', default='.', help='output directory')
+    parser.add_argument('--parameters', type=str, default=None, help='load parameters as a JSON object (e.g. \'{"inputs": ["all.gz"], "outputs": ["filtered.gz"]}\')')
 
-if args.parameters is None:
-    parameters = {}
-else:
-    parameters = json.loads(args.parameters)
+    args, remaining = parser.parse_known_args()
 
-temp = copy.copy(remaining)
-name = None
-values = []
-while temp:
-    new = temp.pop(0)
-    if new.startswith('--'):
-        if name is not None:
-            update_parameters(parameters, name, values)
-        name = new[2:].replace('-', '_')
-        values = []
-        continue
-    if name is None:
-        raise ValueError("Could not parse remaining arguments: %s" % remaining)
-    values.append(json_value(new))
-update_parameters(parameters, name, values)
+    if args.parameters is None:
+        parameters = {}
+    else:
+        parameters = json.loads(args.parameters)
 
-configuration = {
-    'common': {'output_directory': args.outputdir},
-    'steps': [{'type': args.function, 'parameters': parameters}]
-}
+    temp = copy.copy(remaining)
+    name = None
+    values = []
+    while temp:
+        new = temp.pop(0)
+        if new.startswith('--'):
+            if name is not None:
+                update_parameters(parameters, name, values)
+            name = new[2:].replace('-', '_')
+            values = []
+            continue
+        if name is None:
+            raise ValueError("Could not parse remaining arguments: %s" % remaining)
+        values.append(json_value(new))
+    update_parameters(parameters, name, values)
 
-logger.info("Created configuration:\n\n%s", yaml_dumps(configuration))
+    configuration = {
+        'common': {'output_directory': args.outputdir},
+        'steps': [{'type': args.function, 'parameters': parameters}]
+    }
 
-of = OpusFilter(configuration)
-of.execute_steps(overwrite=args.overwrite)
+    logger.info("Created configuration:\n\n%s", yaml_dumps(configuration))
+
+    of = OpusFilter(configuration)
+    of.execute_steps(overwrite=args.overwrite)
