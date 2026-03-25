@@ -26,6 +26,7 @@ from . import segment_hash
 from . import tokenization
 from . import word_alignment
 from .util import file_open, text_file_open, file_download, Var, VarStr, count_lines
+from .validate import validate_configuration
 
 
 logger = logging.getLogger(__name__)
@@ -190,6 +191,7 @@ class OpusFilter:
     """Apply filters to language data"""
 
     def __init__(self, configuration):
+        validate_configuration(configuration)
         self.configuration = configuration
         self.output_dir = configuration.get('common', {}).get('output_directory')
         if not self.output_dir:

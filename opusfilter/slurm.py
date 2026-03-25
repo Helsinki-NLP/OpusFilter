@@ -12,6 +12,8 @@ from .slurm_utils import (
     check_step_outputs, expand_steps_with_variables,
     _get_step_name
 )
+from .validate import validate_configuration
+
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +23,7 @@ class SlurmOpusFilter:
 
     def __init__(self, configuration, workdir=None, max_concurrent=None,
                  email=None, dry_run=False):
+        validate_configuration(configuration)
         self.configuration = configuration
         self.output_dir = configuration.get('common', {}).get('output_directory', '.')
         self.workdir = workdir or os.path.expandvars(
