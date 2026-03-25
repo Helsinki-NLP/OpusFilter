@@ -30,7 +30,7 @@ OpusFilter is a tool for filtering and processing parallel corpora. It's written
 
 ### General Rules
 - Follow PEP 8 with a maximum line length of 127 characters (not 79)
-- Support Python 3.8 to 3.13
+- Support Python 3.9 to 3.14
 - Use type hints where appropriate (see existing code for patterns)
 - Maintain backward compatibility when possible
 - Do not add trailing whitespace

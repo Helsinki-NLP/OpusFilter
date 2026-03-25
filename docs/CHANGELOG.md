@@ -13,6 +13,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `columns` option for the unzip function
 - support for Python 3.14
 
+### Changed
+
+- modernize packaging and CLI scripts
+
+### Removed
+
+- support for Python 3.8
+
 ## [3.3.1] - 2025-12-10
 
 ### Changed
