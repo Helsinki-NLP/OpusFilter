@@ -1,18 +1,21 @@
 """SLURM integration for OpusFilter workflows."""
 import os
-import subprocess
 import time
 import logging
+from pathlib import Path
 
 from .opusfilter import OpusFilter
-from .util import convert_vars_to_strings
+from .util import convert_vars_to_strings, expand_steps_with_variables
 from .slurm_utils import (
     submit_job, get_job_status,
     build_dependency_graph, get_ready_steps,
-    check_step_outputs, expand_steps_with_variables,
-    _get_step_name
+    check_step_outputs, _get_step_name
 )
 from .validate import validate_configuration
+
+
+TEMPLATE_DIR = Path(__file__).parent.parent / 'templates' / 'slurm'
+STEP_TEMPLATE_PATH = TEMPLATE_DIR / 'step_template.sbatch'
 
 
 logger = logging.getLogger(__name__)
@@ -244,15 +247,12 @@ class SlurmOpusFilter:
         step_type = step_config['type']
         substep_idx = step_config.get('_substep_index')
 
-        # Script path - include substep index if present
         if substep_idx is not None:
             script_name = f"step_{step_index}_{step_type}_{substep_idx}.sbatch"
         else:
             script_name = f"step_{step_index}_{step_type}.sbatch"
         script_path = os.path.join(self.workdir, "scripts", script_name)
 
-        # Prepare template variables
-        # Partition: check step resources first, then top-level slurm config, then default
         partition = resources.get('partition') or self.slurm_config.get('partition') or 'cpu'
         job_name_suffix = f"_{substep_idx}" if substep_idx is not None else ""
         template_vars = {
@@ -265,7 +265,6 @@ class SlurmOpusFilter:
             'log_dir': os.path.join(self.workdir, "logs"),
             'mail_type': self.slurm_config.get('mail_type', 'END,FAIL'),
             'mail_user': self.email or '',
-            'step_index': step_index,
             'output_dir': self.output_dir,
             'module_loads': '',
             'command': '',
@@ -275,21 +274,17 @@ class SlurmOpusFilter:
             'dependency_spec': ''
         }
 
-        # Add array specification
         if 'array_size' in resources:
             template_vars['array_spec'] = (
                 f"#SBATCH --array=0-{resources['array_size']-1}%{self.max_concurrent}\n"
             )
 
-        # Add GPU specification
         if 'gres' in resources:
             template_vars['gres_spec'] = f"#SBATCH --gres={resources['gres']}\n"
 
-        # Add dependency specification
         if dependency_id:
             template_vars['dependency_spec'] = f"#SBATCH --dependency=afterok:{dependency_id}\n"
 
-        # Add module loads
         modules = resources.get('modules', [])
         if modules:
             global_modules = self.slurm_config.get('modules', [])
@@ -302,72 +297,30 @@ class SlurmOpusFilter:
             os.path.abspath(self.configuration.get('_config_file', 'config.yaml')),
             '--single', str(step_index + 1)
         ]
+        if substep_idx is not None:
+            opusfilter_cmd.extend(['--substep', str(substep_idx + 1)])  # 1-based
         if overwrite and self.output_dir:
             opusfilter_cmd.append('--overwrite')
 
         template_vars['command'] = ' '.join(opusfilter_cmd)
 
-        # Generate cleanup command - use expanded parameters if available
-        if '_expanded_parameters' in step_config:
-            step_params = step_config['_expanded_parameters']
-        else:
-            step_params = step_config.get('parameters', {})
+        # Generate cleanup command
+        step_params = step_config.get('parameters', {})
         step_outputs = convert_vars_to_strings(step_params.get('outputs', []))
-        template_vars['cleanup_command'] = f"""
-        # Clean outputs on failure
-        for output in {' '.join(step_outputs)}; do
-            if [ -f "${{OUTPUT_DIR}}/$output" ]; then
-                rm "${{OUTPUT_DIR}}/$output"
-            fi
-        done
-        """
+        if step_outputs:
+            template_vars['cleanup_command'] = f"""
+for output in {' '.join(step_outputs)}; do
+    if [ -f "${{OUTPUT_DIR}}/$output" ]; then
+        rm "${{OUTPUT_DIR}}/$output"
+    fi
+done"""
 
-        # Create script from template
-        template = """#!/bin/bash
-#SBATCH --job-name={job_name}
-#SBATCH --partition={partition}
-#SBATCH --account={account}
-#SBATCH --time={time}
-#SBATCH --mem={mem}
-#SBATCH --cpus-per-task={cpus}
-#SBATCH --output={log_dir}/{job_name}_%j.out
-#SBATCH --error={log_dir}/{job_name}_%j.err
-#SBATCH --mail-type={mail_type}
-#SBATCH --mail-user={mail_user}
-{array_spec}
-{gres_spec}
-{dependency_spec}
-
-# Set exit on error
-set -e
-
-# Load modules
-{module_loads}
-
-# Environment setup
-export OPUSFILTER_STEP={step_index}
-export OUTPUT_DIR={output_dir}
-export PYTHONUNBUFFERED=1
-
-# Create output directory if needed
-mkdir -p {output_dir}
-
-# Execute command
-{command}
-
-# Check exit code
-if [ $? -eq 0 ]; then
-    echo "Step completed successfully"
-else
-    echo "Step failed with exit code $?"
-    {cleanup_command}
-fi
-"""
+        # Load template from file
+        template = STEP_TEMPLATE_PATH.read_text()
 
         with open(script_path, 'w') as f:
             f.write(template.format(**template_vars))
 
-        # Make script executable
         os.chmod(script_path, 0o755)
 
         return script_path

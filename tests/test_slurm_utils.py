@@ -98,7 +98,7 @@ class TestSlurmUtils(unittest.TestCase):
 
     def test_expand_steps_with_variables_depends_on(self):
         """Test that depends_on field is expanded correctly."""
-        from opusfilter.slurm_utils import expand_steps_with_variables
+        from opusfilter.util import expand_steps_with_variables
 
         steps = [
             {
@@ -166,7 +166,8 @@ class TestSlurmUtils(unittest.TestCase):
 
     def test_build_dependency_graph_depends_on_variables(self):
         """Test depends_on with variable expansion."""
-        from opusfilter.slurm_utils import expand_steps_with_variables, build_dependency_graph
+        from opusfilter.util import expand_steps_with_variables
+        from opusfilter.slurm_utils import build_dependency_graph
 
         steps = [
             {

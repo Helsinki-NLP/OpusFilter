@@ -491,3 +491,156 @@ def count_lines(filename):
     """Count lines in a file"""
     with file_open(filename) as fobj:
         return sum(1 for _ in fobj)
+
+
+def expand_step_parameters(obj, namespace):
+    """Expand Var and VarStr objects in obj using namespace."""
+    if isinstance(obj, list):
+        return [expand_step_parameters(x, namespace) for x in obj]
+    if isinstance(obj, dict):
+        return {expand_step_parameters(key, namespace): expand_step_parameters(value, namespace)
+                for key, value in obj.items()}
+    if isinstance(obj, VarStr):
+        try:
+            return obj.value.format(**namespace)
+        except (KeyError, IndexError):
+            return obj.value
+    if isinstance(obj, Var):
+        return namespace.get(obj.value, obj.value)
+    return obj
+
+
+def expand_single_step(step, substep_index, common_constants=None):
+    """Expand a single step for a specific substep index.
+
+    Args:
+        step: Step configuration dict
+        substep_index: Which substep to expand (0-indexed)
+        common_constants: Dictionary of common constants from config
+
+    Returns:
+        Step config with variables expanded for the given substep.
+        Sets 'parameters' to expanded values and clears 'variables'.
+    """
+    common_constants = common_constants or {}
+    variables = step.get('variables', {})
+
+    if not variables:
+        namespace = copy.copy(common_constants)
+        namespace.update(step.get('constants', {}))
+        expanded_params = expand_step_parameters(step.get('parameters', {}), namespace)
+        result = copy.deepcopy(step)
+        result['parameters'] = expanded_params
+        result['variables'] = {}
+        return result
+
+    lengths = set()
+    for key, value in variables.items():
+        if not isinstance(value, list):
+            raise ConfigurationError(f"Variable {key} does not define a list")
+        lengths.add(len(value))
+    if len(lengths) > 1:
+        raise ConfigurationError(
+            f"Variables have inconsistent lengths: {lengths}. "
+            "All variables must have the same number of values."
+        )
+    num_choices = list(lengths)[0] if lengths else 0
+
+    if substep_index < 0 or substep_index >= num_choices:
+        raise ConfigurationError(
+            f"Substep index {substep_index} is out of range for step with {num_choices} variants"
+        )
+
+    namespace = copy.copy(common_constants)
+    namespace.update(step.get('constants', {}))
+    for key, values in variables.items():
+        namespace[key] = values[substep_index]
+
+    result = copy.deepcopy(step)
+    result['parameters'] = expand_step_parameters(step.get('parameters', {}), namespace)
+    result['variables'] = {}
+    return result
+
+
+def expand_steps_with_variables(steps, common_constants=None):
+    """Expand steps with variables into individual substeps.
+
+    Args:
+        steps: List of step configurations
+        common_constants: Dictionary of common constants from config (optional)
+
+    Returns a list of expanded steps. Steps without variables are returned
+    as-is. Steps with variables are expanded into multiple substeps, each
+    with resolved parameters.
+
+    Each expanded step includes:
+    - _original_index: original step index
+    - _substep_index: index within variable combinations (None if no variables)
+    - _expanded_parameters: parameters with variables resolved
+    - _expanded_depends_on: depends_on field with variables resolved
+
+    For zipped dependencies (same step with variables), substep B[idx]
+    corresponds to substep A[idx] from the previous step.
+    """
+    common_constants = common_constants or {}
+    expanded = []
+    for original_idx, step in enumerate(steps):
+        variables = step.get('variables', {})
+        if not variables:
+            expanded_step = copy.deepcopy(step)
+            expanded_step['_original_index'] = original_idx
+            expanded_step['_substep_index'] = None
+            namespace = copy.copy(common_constants)
+            namespace.update(step.get('constants', {}))
+            expanded_step['_expanded_parameters'] = expand_step_parameters(
+                step.get('parameters', {}), namespace
+            )
+            if 'depends_on' in step:
+                expanded_step['_expanded_depends_on'] = expand_step_parameters(
+                    step['depends_on'], namespace
+                )
+            expanded.append(expanded_step)
+            continue
+
+        lengths = set()
+        for key, value in variables.items():
+            if not isinstance(value, list):
+                raise ConfigurationError(f"Variable {key} does not define a list")
+            lengths.add(len(value))
+        if len(lengths) > 1:
+            raise ConfigurationError(
+                f"Variables have inconsistent lengths: {lengths}. "
+                "All variables must have the same number of values."
+            )
+        num_choices = list(lengths)[0] if lengths else 0
+
+        if not num_choices:
+            logger.warning(
+                f"Step {original_idx} ({step.get('type')}): "
+                "variable value lists are empty, skipping"
+            )
+            continue
+
+        namespace = copy.copy(common_constants)
+        namespace.update(step.get('constants', {}))
+        for idx in range(num_choices):
+            for key, values in variables.items():
+                namespace[key] = values[idx]
+
+            expanded_step = copy.deepcopy(step)
+            expanded_step['_original_index'] = original_idx
+            expanded_step['_substep_index'] = idx
+            expanded_step['_expanded_parameters'] = expand_step_parameters(
+                step.get('parameters', {}), namespace
+            )
+            if 'depends_on' in step:
+                expanded_step['_expanded_depends_on'] = expand_step_parameters(
+                    step['depends_on'], namespace
+                )
+            expanded.append(expanded_step)
+            logger.debug(
+                f"Expanded step {original_idx} ({step.get('type')}) "
+                f"substep {idx}: {namespace}"
+            )
+
+    return expanded
