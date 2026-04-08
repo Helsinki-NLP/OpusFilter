@@ -50,13 +50,33 @@ def get_job_status(job_id):
         ['squeue', '-j', job_id, '-h', '--format="%T"', '--states=all'],
         capture_output=True, text=True)
     if result.returncode != 0:
-        # Already completed and no longer seen by squeue?
         result = subprocess.run(
-            ['sacct', '-j', job_id, '--noheader', '--allocations', '--format=State'],
+            ['sacct', '-j', job_id, '-no', '--state=failed,completed,timedout,cancelled',
+             '--format=State'],
             capture_output=True, text=True)
-        if result.returncode != 0:
-            return 'UNKNOWN'
-    return result.stdout.strip('" \n')
+        if result.returncode == 0 and result.stdout.strip():
+            state = result.stdout.strip().split('\n')[-1].strip()
+            if state in ['COMPLETED', 'FAILED', 'TIMEDOUT', 'CANCELLED']:
+                return state
+        return 'UNKNOWN'
+    status = result.stdout.strip('" \n')
+    if not status:
+        return 'UNKNOWN'
+    return status
+
+
+def is_job_completed(job_id):
+    """Check if a job has completed (successfully or not)."""
+    status = get_job_status(job_id)
+    return status in ['COMPLETED', 'FAILED', 'CANCELLED', 'TIMEDOUT']
+
+
+def get_job_final_status(job_id):
+    """Get final status of a job (completed or failed), or None if still running."""
+    status = get_job_status(job_id)
+    if status in ['COMPLETED', 'FAILED', 'CANCELLED', 'TIMEDOUT']:
+        return status
+    return None
 
 
 def cancel_job(job_id):

@@ -7,7 +7,7 @@ from pathlib import Path
 from .opusfilter import OpusFilter
 from .util import convert_vars_to_strings, expand_steps_with_variables
 from .slurm_utils import (
-    submit_job, get_job_status,
+    submit_job, get_job_status, is_job_completed, get_job_final_status,
     build_dependency_graph, get_ready_steps,
     check_step_outputs, _get_step_name
 )
@@ -108,32 +108,41 @@ class SlurmOpusFilter:
                 # Submit as many as allowed up to max_concurrent
                 to_submit = ready[:slots_available]
 
-                # First pass: collect all dependency job IDs for each step
-                # This includes deps from previous batches AND from current batch
+                # First pass: collect dependency job IDs and handle completed deps
                 step_deps = {}
-                batch_job_ids = {}  # Track job IDs in current batch
+                batch_job_ids = {}
+                newly_completed = []  # Track dependencies that completed during this loop
                 for step_name in to_submit:
                     step_info = graph[step_name]
                     deps = step_info['deps']
 
-                    # Collect all dependency job IDs
                     dep_ids = set()
                     for dep in deps:
                         if dep in self.job_ids:
-                            dep_ids.add(self.job_ids[dep])
+                            dep_id = self.job_ids[dep]
+                            if is_job_completed(dep_id):
+                                logger.info(f"Step {step_name}: dependency {dep} (job {dep_id}) completed, not using as dependency")
+                                newly_completed.append(dep)
+                                continue
+                            dep_ids.add(dep_id)
                         if dep in batch_job_ids:
                             dep_ids.add(batch_job_ids[dep])
 
                     step_deps[step_name] = dep_ids
 
-                # Second pass: submit all jobs with their complete dependency lists
+                # Add newly completed dependencies to completed_steps if not already there
+                for dep in newly_completed:
+                    if dep not in completed_steps:
+                        completed_steps.append(dep)
+
+                # Second pass: submit all jobs with their valid dependency lists
                 for step_name in to_submit:
                     step_info = graph[step_name]
                     step_index = step_info['index']
                     step_config = step_info['step']
 
-                    # Use original step index for CLI --single option
-                    original_step_index = step_info.get('original_index', step_index)
+                    # Use original step index for CLI --single option (1-based)
+                    original_step_index = step_info.get('original_index', step_index) + 1
 
                     # Check if outputs already exist
                     constants = self.configuration.get('common', {}).get('constants', {})
@@ -143,7 +152,7 @@ class SlurmOpusFilter:
                         graph[step_name]['completed'] = True
                         continue
 
-                    # Get all dependency job IDs for this step
+                    # Get valid dependency job IDs for this step
                     dependency_ids = step_deps[step_name]
                     if dependency_ids:
                         logger.info(f"Step {step_name} has dependencies: {step_info['deps']} -> job IDs: {dependency_ids}")
@@ -295,7 +304,7 @@ class SlurmOpusFilter:
         opusfilter_cmd = [
             'python', '-m', 'opusfilter.cli.main',
             os.path.abspath(self.configuration.get('_config_file', 'config.yaml')),
-            '--single', str(step_index + 1)
+            '--single', str(step_index)
         ]
         if substep_idx is not None:
             opusfilter_cmd.extend(['--substep', str(substep_idx + 1)])  # 1-based
