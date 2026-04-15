@@ -7,7 +7,7 @@ from pathlib import Path
 from .opusfilter import OpusFilter
 from .util import convert_vars_to_strings, expand_steps_with_variables
 from .slurm_utils import (
-    submit_job, get_job_status, is_job_completed, get_job_final_status,
+    submit_job, get_job_status, is_job_completed,
     build_dependency_graph, get_ready_steps,
     check_step_outputs, _get_step_name
 )
@@ -74,8 +74,10 @@ class SlurmOpusFilter:
                 steps = steps[last_completed + 1:]
                 # Update graph
                 graph = build_dependency_graph(steps)
-                completed_steps = [_get_step_name(original_steps[i], i)
-                                for i in range(last_completed + 1)]
+                completed_steps = [
+                    _get_step_name(original_steps[i], i)
+                    for i in range(last_completed + 1)
+                ]
 
         # Main execution loop
         failed_steps = []
@@ -121,7 +123,9 @@ class SlurmOpusFilter:
                         if dep in self.job_ids:
                             dep_id = self.job_ids[dep]
                             if is_job_completed(dep_id):
-                                logger.info(f"Step {step_name}: dependency {dep} (job {dep_id}) completed, not using as dependency")
+                                logger.info(
+                                    f"Step {step_name}: dependency {dep} "
+                                    f"(job {dep_id}) completed, not using as dependency")
                                 newly_completed.append(dep)
                                 continue
                             dep_ids.add(dep_id)
@@ -165,7 +169,9 @@ class SlurmOpusFilter:
                         self.job_ids[step_name] = job_id
                         batch_job_ids[step_name] = job_id
                         running_jobs[step_name] = job_id
-                        logger.info(f"Submitted step {original_step_index} ({step_config['type']}, substep {step_info.get('substep_index')}) as job {job_id}")
+                        logger.info(
+                            f"Submitted step {original_step_index} ({step_config['type']}, "
+                            f"substep {step_info.get('substep_index')}) as job {job_id}")
                     except Exception as e:
                         logger.error(f"Failed to submit step {original_step_index}: {e}")
                         break
@@ -411,3 +417,85 @@ done"""
             logger.info(f"  ✓ {step_name}")
         logger.info(f"Output directory: {self.output_dir}")
         logger.info("=" * 50)
+
+    def submit_all_steps(self, overwrite=False, resume=False):
+        """Submit all steps without polling.
+
+        Returns:
+            Tuple of (job_ids dict, graph dict, steps list) for manifest creation.
+            job_ids maps step_name -> SLURM job ID
+        """
+        original_steps = self.configuration.get('steps', [])
+        if not original_steps:
+            logger.warning("No steps defined in configuration")
+            return {}, {}, []
+
+        common_constants = self.configuration.get('common', {}).get('constants', {})
+        steps = expand_steps_with_variables(original_steps, common_constants)
+        logger.info(f"Expanded {len(original_steps)} steps into {len(steps)} substeps")
+
+        graph = build_dependency_graph(steps)
+        for key, value in graph.items():
+            logger.debug("Dependencies found for %s: %s", key, value['deps'])
+
+        job_ids = {}
+        completed_steps = []
+
+        if resume:
+            last_completed = self._find_last_completed_step(steps)
+            if last_completed is not None:
+                logger.info(f"Resuming: skipping {last_completed + 1} completed steps")
+                completed_steps = [
+                    _get_step_name(original_steps[i], i)
+                    for i in range(last_completed + 1)
+                ]
+                completed_step_names = set(completed_steps)
+
+                new_graph = {}
+                for step_name, info in graph.items():
+                    filtered_deps = [d for d in info['deps'] if d not in completed_step_names]
+                    new_graph[step_name] = {**info, 'deps': filtered_deps}
+                graph = new_graph
+
+                for i, step in enumerate(steps[:last_completed + 1]):
+                    step_name = _get_step_name(step, i)
+                    job_ids[step_name] = "completed"
+
+        while True:
+            ready = get_ready_steps(graph, completed_steps)
+            if not ready:
+                break
+
+            for step_name in ready:
+                step_info = graph[step_name]
+                step_index = step_info['index']
+                step_config = step_info['step']
+                original_step_index = step_info.get('original_index', step_index) + 1
+
+                constants = self.configuration.get('common', {}).get('constants', {})
+                if not overwrite and check_step_outputs(step_config, self.output_dir, constants):
+                    logger.info(f"Step {original_step_index} ({step_config['type']}) outputs exist, skipping")
+                    completed_steps.append(step_name)
+                    continue
+
+                dep_ids = set()
+                for dep in step_info['deps']:
+                    if dep in job_ids:
+                        dep_id = job_ids[dep]
+                        if not is_job_completed(dep_id):
+                            dep_ids.add(dep_id)
+
+                try:
+                    job_id = self._submit_step(original_step_index, step_config, dep_ids, overwrite)
+                    job_ids[step_name] = job_id
+                    completed_steps.append(step_name)
+                    logger.info(
+                        f"Submitted step {original_step_index} ({step_config['type']}) "
+                        f"as job {job_id}"
+                    )
+                except Exception as e:
+                    logger.error(f"Failed to submit step {original_step_index}: {e}")
+                    raise
+
+        logger.info(f"Submitted {len(job_ids)} jobs total")
+        return job_ids, graph, steps

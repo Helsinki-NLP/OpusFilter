@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 def main(args=None):
     """Main entry point for opusfilter-slurm command."""
-    parser = argparse.ArgumentParser(prog='opusfilter-slurm',
+    parser = argparse.ArgumentParser(prog='opusfilter-slurm-run',
         description='Run OpusFilter workflows on SLURM clusters')
 
     parser.add_argument('config', metavar='CONFIG', help='YAML configuration file')

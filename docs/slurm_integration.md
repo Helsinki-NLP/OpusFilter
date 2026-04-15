@@ -1,15 +1,14 @@
 # OpusFilter SLURM Integration
 
-OpusFilter now supports running workflows on SLURM clusters with resource-optimized job scheduling.
+OpusFilter supports running workflows on SLURM clusters with resource-optimized job scheduling.
 
 ## Overview
 
-The `opusfilter-slurm` command converts OpusFilter workflows into SLURM jobs, handling:
-- Automatic dependency management
-- Per-step resource allocation
-- Concurrent execution of independent steps
-- Job monitoring and status tracking
-- Resume capability
+The SLURM integration provides three commands:
+
+- `opusfilter-slurm-submit`: Pre-submit all jobs and exit immediately
+- `opusfilter-slurm-run`: Run with polling and monitoring
+- `opusfilter-slurm-status`: Check workflow status from a manifest
 
 ## Installation
 
@@ -47,17 +46,81 @@ steps:
       # ...
 ```
 
-2. Run the workflow:
+2. Choose a mode:
 
 ```bash
-# Basic execution
-opusfilter-slurm config.yaml
+# Option 1: Pre-submit and monitor separately (recommended for long workflows)
+opusfilter-slurm-submit config.yaml --workdir /scratch/myproject-work
+opusfilter-slurm-status /scratch/myproject-work --watch
 
-# With options
-opusfilter-slurm config.yaml \
+# Option 2: Run with built-in monitoring
+opusfilter-slurm-run config.yaml \
     --resume \
     --max-concurrent 10 \
     --workdir /scratch/myproject-work
+```
+
+## Commands
+
+### opusfilter-slurm-submit
+
+Pre-submit all SLURM jobs and exit immediately. Jobs run via SLURM dependencies without a persistent process.
+
+```bash
+opusfilter-slurm-submit CONFIG [--workdir DIR] [--resume] [--dry-run] [--overwrite]
+```
+
+Options:
+- `--workdir DIR`: Working directory for scripts and logs
+- `--resume`: Skip completed steps based on output files
+- `--dry-run`: Show what would be submitted without submitting
+- `--overwrite`: Overwrite existing manifest
+
+After submission, a `manifest.json` file is created in the workdir. Use `opusfilter-slurm-status` to monitor progress.
+
+### opusfilter-slurm-run
+
+Run the workflow with polling and monitoring. This keeps a persistent process that monitors job completion and submits new jobs as dependencies are satisfied.
+
+```bash
+opusfilter-slurm-run CONFIG [--workdir DIR] [--resume] [--dry-run] [--overwrite]
+                           [--max-concurrent N] [--email ADDRESS]
+```
+
+Options:
+- `--workdir DIR`: Working directory for scripts and logs
+- `--resume`: Skip completed steps based on output files
+- `--dry-run`: Show what would be done without submitting
+- `--overwrite`: Overwrite existing output files
+- `--max-concurrent N`: Maximum concurrent jobs (default: 4)
+- `--email ADDRESS`: Override email for notifications
+
+### opusfilter-slurm-status
+
+Check status of a pre-submitted workflow.
+
+```bash
+opusfilter-slurm-status PATH [--json] [--cancel] [--watch] [--watch-interval SECONDS]
+```
+
+Options:
+- `--json`: Output status as JSONLines
+- `--cancel`: Cancel remaining jobs if any have failed
+- `--watch`: Watch mode: refresh status periodically
+- `--watch-interval SECONDS`: Seconds between refresh (default: 30)
+
+Example output:
+
+```
+JobID      Step                    Status       Runtime    Node
+--------   ---------------------   ---------    --------   ------
+123456     1_opus_read            COMPLETED    00:02:30   -
+123457     2_filter_1             RUNNING      00:15:42   node07
+123458     2_filter_2             RUNNING      00:01:23   node12
+123459     3_score                PENDING      -          -
+
+3/4 completed, 2 running, 0 failed
+Status: Running - 3/4 completed, 2 running, 0 failed
 ```
 
 ## Configuration
@@ -104,7 +167,7 @@ resources:
 
 ### Concurrent Execution
 
-- Independent steps run simultaneously (up to `--max-concurrent`)
+- Independent steps run simultaneously (up to `--max-concurrent` with `opusfilter-slurm-run`)
 - Efficient resource utilization
 - Reduced queue wait times
 
@@ -121,23 +184,24 @@ resources:
 
 ## Best Practices
 
-1. **Estimate Resources**
+1. **For Long Workflows**: Use `opusfilter-slurm-submit` + `opusfilter-slurm-status`
+   - No persistent process needed
+   - Run status checker in tmux or as a separate job
+   - Can disconnect from login node while jobs run
+
+2. **Estimate Resources**
    - Start with conservative time/memory limits
    - Check actual usage with `seff` after completion
    - Adjust based on historical data
 
-2. **Organize Workflows**
+3. **Organize Workflows**
    - Place I/O-intensive steps early (opus_read, concatenate)
    - Group similar resource requirements
    - Avoid unnecessary dependencies
 
-3. **Use Arrays**
+4. **Use Arrays**
    - Enable array_size for filter/score steps
    - Parallelizes within step, not just between steps
-
-4. **Monitor Progress**
-   - Check logs in `${workdir}/logs/`
-   - Set up email notifications
 
 ## Example Workflow
 
@@ -231,6 +295,17 @@ steps:
 - Increase memory if OOM errors occur
 - Use appropriate partition (cpu/gpu)
 
+### Status Check Shows Failures
+If `opusfilter-slurm-status` shows failed jobs:
+
+```bash
+# View failed job details
+opusfilter-slurm-status /scratch/work --json | grep FAILED
+
+# Cancel remaining jobs
+opusfilter-slurm-status /scratch/work --cancel
+```
+
 ## Integration with Other Tools
 
 The SLURM integration outputs standard OpusFilter files that can be used with:
@@ -273,6 +348,26 @@ The `depends_on` field supports:
 - Variable expansion: `depends_on: ['!varstr "{lang}.arpa.gz"']`
 
 This ensures the filter step waits for the train_ngram step to complete before starting.
+
+### Running as a SLURM Job
+
+For very long workflows, you can submit the submit/status commands themselves as SLURM jobs:
+
+```bash
+# submit_wrapper.sh
+#!/bin/bash
+#SBATCH --job-name=opusfilter
+#SBATCH --time=7-00:00:00
+#SBATCH --cpus-per-task=2
+#SBATCH --mem=4G
+
+source ~/.bashrc
+conda activate opusfilter
+opusfilter-slurm-submit config.yaml --workdir /scratch/work
+opusfilter-slurm-status /scratch/work --watch
+```
+
+Submit with: `sbatch submit_wrapper.sh`
 
 ### Resource Usage Collection
 Track actual resource usage:

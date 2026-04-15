@@ -140,7 +140,9 @@ opusfilter-test = "opusfilter.cli.test:main"
 opusfilter-scores = "opusfilter.cli.scores:main"
 opusfilter-diagram = "opusfilter.cli.diagram:main"
 opusfilter-duplicates = "opusfilter.cli.duplicates:main"
-opusfilter-slurm = "opusfilter.cli.slurm:main"
+opusfilter-slurm-run = "opusfilter.cli.slurm:main"
+opusfilter-slurm-submit = "opusfilter.cli.slurm_submit:main"
+opusfilter-slurm-status = "opusfilter.cli.slurm_status:main"
 
 [tool.setuptools_scm]
 write_to = "opusfilter/_version.py"

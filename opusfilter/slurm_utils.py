@@ -1,9 +1,11 @@
 """Utilities for SLURM job and dependency management."""
 import copy
+import json
 import subprocess
 import re
 import logging
 from pathlib import Path
+from datetime import datetime
 
 from opusfilter.util import get_inputs, get_outputs, expand_step_parameters
 
@@ -215,3 +217,159 @@ def clean_failed_outputs(step, output_dir, constants=None):
         path = Path(output_dir) / output
         if path.exists():
             path.unlink()
+
+
+def write_manifest(path, config_file, steps, graph, job_ids, workdir):
+    """Write workflow manifest to JSON.
+
+    Args:
+        path: Path to write manifest JSON file
+        config_file: Path to original configuration file
+        steps: List of expanded steps
+        graph: Dependency graph dict
+        job_ids: Dict mapping step_name -> SLURM job ID
+        workdir: Working directory path
+    """
+    manifest = {
+        "version": "1.0",
+        "config": str(config_file),
+        "submitted_at": datetime.now().isoformat(),
+        "workdir": str(workdir),
+        "jobs": {}
+    }
+
+    for step_name, step_info in graph.items():
+        job_id = job_ids.get(step_name)
+        if job_id:
+            script_path = _get_script_path(workdir, step_info)
+            manifest["jobs"][job_id] = {
+                "step": step_name,
+                "original_step": step_info.get("original_index", 0),
+                "substep_index": step_info.get("substep_index"),
+                "step_type": step_info["step"].get("type", "unknown"),
+                "deps": step_info.get("deps", []),
+                "script": script_path
+            }
+
+    with open(path, 'w') as f:
+        json.dump(manifest, f, indent=2)
+
+
+def read_manifest(path):
+    """Read workflow manifest from JSON file.
+
+    Args:
+        path: Path to manifest JSON file or directory containing manifest.json
+
+    Returns:
+        Manifest dict with 'jobs', 'config', 'workdir', etc.
+    """
+    path = Path(path)
+    if path.is_dir():
+        path = path / "manifest.json"
+
+    if not path.exists():
+        raise FileNotFoundError(f"Manifest not found: {path}")
+
+    with open(path) as f:
+        return json.load(f)
+
+
+def _get_script_path(workdir, step_info):
+    """Generate expected script path for a step."""
+    step_type = step_info["step"].get("type", "unknown")
+    original_idx = step_info.get("original_index", 0) + 1
+    substep_idx = step_info.get("substep_index")
+
+    if substep_idx is not None:
+        script_name = f"step_{original_idx}_{step_type}_{substep_idx + 1}.sbatch"
+    else:
+        script_name = f"step_{original_idx}_{step_type}.sbatch"
+
+    return str(Path(workdir) / "scripts" / script_name)
+
+
+def get_detailed_job_status(job_id):
+    """Get detailed job status from SLURM.
+
+    Args:
+        job_id: SLURM job ID
+
+    Returns:
+        Dict with 'status', 'runtime', 'node', 'job_name'
+    """
+    result = {
+        "status": "UNKNOWN",
+        "runtime": None,
+        "node": None,
+        "job_name": None
+    }
+
+    # Try squeue first for running jobs
+    proc = subprocess.run(
+        ['squeue', '-j', job_id, '-h', '--format="%j|%T|%l|%N"'],
+        capture_output=True, text=True)
+    if proc.returncode == 0 and proc.stdout.strip():
+        parts = proc.stdout.strip().strip('"').split('|')
+        if len(parts) >= 4:
+            result["job_name"] = parts[0]
+            result["status"] = parts[1]
+            result["runtime"] = parts[2]
+            result["node"] = parts[3] if parts[3] != "N/A" else None
+        elif len(parts) >= 2:
+            result["status"] = parts[1]
+        return result
+
+    # Fallback to sacct for completed/failed jobs
+    proc = subprocess.run(
+        ['sacct', '-j', job_id, '-no', '--state=failed,completed,timedout,cancelled',
+         '--format=JobName,State,Elapsed,NodeList'],
+        capture_output=True, text=True)
+    if proc.returncode == 0 and proc.stdout.strip():
+        lines = proc.stdout.strip().split('\n')
+        for line in reversed(lines):
+            parts = line.strip().split('|')
+            if len(parts) >= 4 and parts[0]:
+                result["job_name"] = parts[0]
+                result["status"] = parts[1]
+                result["runtime"] = parts[2] if parts[2] != "00:00:00" else None
+                result["node"] = parts[3] if parts[3] != "(" else None
+                break
+        if result["status"] == "UNKNOWN" and len(lines) > 0:
+            parts = lines[-1].strip().split('|')
+            if len(parts) >= 2:
+                result["status"] = parts[1]
+
+    return result
+
+
+def get_manifest_status(manifest):
+    """Get status for all jobs in a manifest.
+
+    Args:
+        manifest: Manifest dict from read_manifest()
+
+    Returns:
+        List of dicts with job_id, step, status, runtime, node
+    """
+    results = []
+    for job_id, job_info in manifest.get("jobs", {}).items():
+        details = get_detailed_job_status(job_id)
+        results.append({
+            "job_id": job_id,
+            "step": job_info["step"],
+            "step_type": job_info.get("step_type", "unknown"),
+            "status": details["status"],
+            "runtime": details["runtime"],
+            "node": details["node"]
+        })
+
+    # Sort by original_step, then substep_index
+    def sort_key(r):
+        step_parts = r["step"].split("_")
+        original = int(step_parts[0]) if step_parts[0].isdigit() else 0
+        substep = int(step_parts[-1]) if step_parts[-1].isdigit() else 0
+        return (original, substep)
+
+    results.sort(key=sort_key)
+    return results
