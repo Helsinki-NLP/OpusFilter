@@ -110,7 +110,7 @@ def print_status_table(statuses):
 
     header = (
         f"{'JobID':<10} {'Step':<28} {'Status':<12} {'Runtime':<10} "
-        f"{'Depends On':<20}"
+        f"{'Node':<12} {'Depends On':<22}"
     )
     separator = "-" * len(header)
 
@@ -128,6 +128,7 @@ def print_status_table(statuses):
 
         status_str = status['status']
         runtime = status['runtime'] or '-'
+        node = status['node'] or '-'
         dep_jobs = status.get('dep_jobs', [])
         if dep_jobs:
             step_deps = status.get('deps', [])
@@ -140,7 +141,7 @@ def print_status_table(statuses):
 
         print(
             f"{job_id:<10} {step_display:<28} {status_str:<12} "
-            f"{runtime:<10} {deps_display:<20}"
+            f"{runtime:<10} {node:<12} {deps_display:<22}"
         )
 
 
