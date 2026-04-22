@@ -298,7 +298,16 @@ class SlurmOpusFilter:
             template_vars['gres_spec'] = f"#SBATCH --gres={resources['gres']}\n"
 
         if dependency_id:
-            template_vars['dependency_spec'] = f"#SBATCH --dependency=afterok:{dependency_id}\n"
+            if isinstance(dependency_id, (set, list, tuple)):
+                dep_str = ':'.join(str(d) for d in dependency_id if d)
+            else:
+                dep_str = str(dependency_id)
+            if dep_str:
+                template_vars['dependency_spec'] = f"#SBATCH --dependency=afterok:{dep_str}\n"
+            else:
+                template_vars['dependency_spec'] = ''
+        else:
+            template_vars['dependency_spec'] = ''
 
         modules = resources.get('modules', [])
         if modules:
