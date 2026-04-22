@@ -458,7 +458,9 @@ done"""
                 graph = new_graph
 
                 for i, step in enumerate(steps[:last_completed + 1]):
-                    step_name = _get_step_name(step, i)
+                    step_name = _get_step_name(
+                        original_steps[step.get('_original_index', i)],
+                        step.get('_original_index', i))
                     job_ids[step_name] = "completed"
 
         while True:
@@ -476,6 +478,7 @@ done"""
                 if not overwrite and check_step_outputs(step_config, self.output_dir, constants):
                     logger.info(f"Step {original_step_index} ({step_config['type']}) outputs exist, skipping")
                     completed_steps.append(step_name)
+                    graph[step_name]['completed'] = True
                     continue
 
                 dep_ids = set()
@@ -489,6 +492,7 @@ done"""
                     job_id = self._submit_step(original_step_index, step_config, dep_ids, overwrite)
                     job_ids[step_name] = job_id
                     completed_steps.append(step_name)
+                    graph[step_name]['completed'] = True
                     logger.info(
                         f"Submitted step {original_step_index} ({step_config['type']}) "
                         f"as job {job_id}"
