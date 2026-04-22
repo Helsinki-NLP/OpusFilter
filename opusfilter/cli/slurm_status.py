@@ -132,10 +132,12 @@ def print_status_table(statuses):
         dep_jobs = status.get('dep_jobs', [])
         if dep_jobs:
             step_deps = status.get('deps', [])
-            if step_deps:
-                deps_display = f"{','.join(step_deps)} ({','.join(dep_jobs)})"
+            if len(dep_jobs) > 1:
+                deps_display = f"{step_deps[0]} ({dep_jobs[0]}) +{len(dep_jobs)-1} more"
+            elif step_deps:
+                deps_display = f"{step_deps[0]} ({dep_jobs[0]})"
             else:
-                deps_display = ','.join(dep_jobs)
+                deps_display = dep_jobs[0]
         else:
             deps_display = '-'
 
