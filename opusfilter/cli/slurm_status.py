@@ -55,7 +55,16 @@ def run_status(manifest, output_json=False, cancel_on_failure=False,
 
         if output_json:
             for status in statuses:
-                print(json.dumps(status))
+                output = {
+                    "job_id": status["job_id"],
+                    "step": status["step"],
+                    "status": status["status"],
+                    "runtime": status["runtime"],
+                    "node": status["node"],
+                    "deps": status.get("deps", []),
+                    "dep_jobs": status.get("dep_jobs", [])
+                }
+                print(json.dumps(output))
         else:
             print_status_table(statuses)
 
@@ -100,7 +109,8 @@ def print_status_table(statuses):
         return
 
     header = (
-        f"{'JobID':<10} {'Step':<25} {'Status':<12} {'Runtime':<10} {'Node':<15}"
+        f"{'JobID':<10} {'Step':<28} {'Status':<12} {'Runtime':<10} "
+        f"{'Depends On':<20}"
     )
     separator = "-" * len(header)
 
@@ -118,9 +128,20 @@ def print_status_table(statuses):
 
         status_str = status['status']
         runtime = status['runtime'] or '-'
-        node = status['node'] or '-'
+        dep_jobs = status.get('dep_jobs', [])
+        if dep_jobs:
+            step_deps = status.get('deps', [])
+            if step_deps:
+                deps_display = f"{','.join(step_deps)} ({','.join(dep_jobs)})"
+            else:
+                deps_display = ','.join(dep_jobs)
+        else:
+            deps_display = '-'
 
-        print(f"{job_id:<10} {step_display:<25} {status_str:<12} {runtime:<10} {node:<15}")
+        print(
+            f"{job_id:<10} {step_display:<28} {status_str:<12} "
+            f"{runtime:<10} {deps_display:<20}"
+        )
 
 
 def cancel_remaining_jobs(manifest, statuses):

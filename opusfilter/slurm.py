@@ -491,15 +491,18 @@ done"""
                     continue
 
                 dep_ids = set()
+                dep_jobs_list = []
                 for dep in step_info['deps']:
                     if dep in job_ids:
                         dep_id = job_ids[dep]
                         if not is_job_completed(dep_id):
                             dep_ids.add(dep_id)
+                            dep_jobs_list.append(dep_id)
 
                 try:
                     job_id = self._submit_step(original_step_index, step_config, dep_ids, overwrite)
                     job_ids[step_name] = job_id
+                    graph[step_name]['dep_jobs'] = dep_jobs_list
                     completed_steps.append(step_name)
                     graph[step_name]['completed'] = True
                     logger.info(

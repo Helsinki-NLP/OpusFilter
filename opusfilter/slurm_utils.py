@@ -248,6 +248,7 @@ def write_manifest(path, config_file, steps, graph, job_ids, workdir):
                 "substep_index": step_info.get("substep_index"),
                 "step_type": step_info["step"].get("type", "unknown"),
                 "deps": step_info.get("deps", []),
+                "dep_jobs": list(step_info.get("dep_jobs", [])),
                 "script": script_path
             }
 
@@ -361,7 +362,9 @@ def get_manifest_status(manifest):
             "step_type": job_info.get("step_type", "unknown"),
             "status": details["status"],
             "runtime": details["runtime"],
-            "node": details["node"]
+            "node": details["node"],
+            "deps": job_info.get("deps", []),
+            "dep_jobs": job_info.get("dep_jobs", [])
         })
 
     # Sort by original_step, then substep_index
