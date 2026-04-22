@@ -310,7 +310,7 @@ def get_detailed_job_status(job_id):
     # Try squeue first for running jobs
     proc = subprocess.run(
         ['squeue', '-j', job_id, '-h', '-o', '%j|%T|%M|%N'],
-        capture_output=True, text=True, stderr=subprocess.DEVNULL)
+        capture_output=True, text=True)
     if proc.returncode == 0 and proc.stdout.strip():
         parts = proc.stdout.strip().strip('"').split('|')
         if len(parts) >= 4:
@@ -327,7 +327,7 @@ def get_detailed_job_status(job_id):
     proc = subprocess.run(
         ['sacct', '-j', job_id, '--noheader', '--allocations',
          '--format=JobName,State,Elapsed,NodeList'],
-        capture_output=True, text=True, stderr=subprocess.DEVNULL)
+        capture_output=True, text=True)
     if proc.returncode == 0 and proc.stdout.strip():
         lines = proc.stdout.strip().split('\n')
         for line in reversed(lines):
