@@ -52,9 +52,10 @@ def get_job_status(job_id):
         ['squeue', '-j', job_id, '-h', '--format="%T"', '--states=all'],
         capture_output=True, text=True)
     if result.returncode != 0:
+        # Already completed and no longer seen by squeue?
         result = subprocess.run(
-            ['sacct', '-j', job_id, '-no', '--state=failed,completed,timedout,cancelled',
-             '--format=State'],
+            ['sacct', '-j', job_id, '--noheader', '--allocations',
+             '--state=failed,completed,timedout,cancelled', '--format=State'],
             capture_output=True, text=True)
         if result.returncode == 0 and result.stdout.strip():
             state = result.stdout.strip().split('\n')[-1].strip()
@@ -308,8 +309,8 @@ def get_detailed_job_status(job_id):
 
     # Try squeue first for running jobs
     proc = subprocess.run(
-        ['squeue', '-j', job_id, '-h', '--format="%j|%T|%l|%N"'],
-        capture_output=True, text=True)
+        ['squeue', '-j', job_id, '-h', '-o', '%j|%T|%M|%N'],
+        capture_output=True, text=True, stderr=subprocess.DEVNULL)
     if proc.returncode == 0 and proc.stdout.strip():
         parts = proc.stdout.strip().strip('"').split('|')
         if len(parts) >= 4:
@@ -319,28 +320,24 @@ def get_detailed_job_status(job_id):
             result["node"] = parts[3] if parts[3] != "N/A" else None
         elif len(parts) >= 2:
             result["status"] = parts[1]
-        return result
+        if result["status"] != "UNKNOWN":
+            return result
 
     # Fallback to sacct for completed/failed jobs
     proc = subprocess.run(
-        ['sacct', '-j', job_id, '-no', '--state=failed,completed,timedout,cancelled',
+        ['sacct', '-j', job_id, '--noheader', '--allocations',
          '--format=JobName,State,Elapsed,NodeList'],
-        capture_output=True, text=True)
+        capture_output=True, text=True, stderr=subprocess.DEVNULL)
     if proc.returncode == 0 and proc.stdout.strip():
         lines = proc.stdout.strip().split('\n')
         for line in reversed(lines):
-            parts = line.strip().split('|')
+            parts = line.strip().split()
             if len(parts) >= 4 and parts[0]:
                 result["job_name"] = parts[0]
                 result["status"] = parts[1]
                 result["runtime"] = parts[2] if parts[2] != "00:00:00" else None
                 result["node"] = parts[3] if parts[3] != "(" else None
                 break
-        if result["status"] == "UNKNOWN" and len(lines) > 0:
-            parts = lines[-1].strip().split('|')
-            if len(parts) >= 2:
-                result["status"] = parts[1]
-
     return result
 
 
