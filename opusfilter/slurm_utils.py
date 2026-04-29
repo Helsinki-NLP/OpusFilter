@@ -314,7 +314,7 @@ def get_detailed_job_status(job_id):
     # Try squeue first for running jobs
     try:
         proc = subprocess.run(
-            ['squeue', '-j', job_id, '-h', '-o', '%j|%T|%l|%N'],
+            ['squeue', '-j', job_id, '-h', '-o', '%j|%T|%M|%N'],
             stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
         if proc.returncode == 0 and proc.stdout.strip():
             parts = proc.stdout.strip().strip('"').split('|')
@@ -335,25 +335,18 @@ def get_detailed_job_status(job_id):
     # Fallback to sacct for completed/failed jobs
     try:
         proc = subprocess.run(
-            ['sacct', '-j', job_id, '--noformat=JobName,State,Elapsed,NodeList'],
+            ['sacct', '-j', job_id, '--noheader', '--allocations', '--format=JobName,State,Elapsed,NodeList'],
             stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
         if proc.returncode == 0 and proc.stdout.strip():
             lines = proc.stdout.strip().split('\n')
             for line in reversed(lines):
-                parts = line.strip().split('|')
-                if len(parts) >= 4 and parts[0]:
+                parts = [p.strip() for p in line.strip().split()]
+                if len(parts) >= 4 and parts[0] and parts[0] != 'JobName':
                     result["job_name"] = parts[0]
                     result["status"] = parts[1]
                     result["runtime"] = parts[2] if parts[2] != "00:00:00" else None
-                    result["node"] = parts[3] if parts[3] != "(" else None
+                    result["node"] = parts[3] if not parts[3].startswith("None") else None
                     break
-            # Check all lines for status if not found
-            if result["status"] == "UNKNOWN":
-                for line in lines:
-                    parts = line.strip().split('|')
-                    if len(parts) >= 2 and parts[1] and parts[1] != "UNKNOWN":
-                        result["status"] = parts[1]
-                        break
     except FileNotFoundError:
         # sacct not available
         pass
@@ -373,7 +366,7 @@ def get_detailed_job_status(job_id):
                 result["job_name"] = parts[0]
                 result["status"] = parts[1]
                 result["runtime"] = parts[2] if parts[2] != "00:00:00" else None
-                result["node"] = parts[3] if parts[3] != "(" else None
+                result["node"] = parts[3] if not parts[3].startswith("None") else None
                 break
     return result
 
