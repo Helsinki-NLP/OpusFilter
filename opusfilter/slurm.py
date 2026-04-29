@@ -263,20 +263,6 @@ class SlurmOpusFilter:
         # Print summary
         self._print_summary(completed_steps)
 
-        # Write manifest for status checking
-        manifest_path = os.path.join(self.workdir, "manifest.json")
-        try:
-            write_manifest(
-                manifest_path,
-                self.configuration.get('_config_file', 'unknown'),
-                steps,
-                graph,
-                self.job_ids,
-                self.workdir)
-            logger.info(f"Manifest written to {manifest_path}")
-        except Exception as e:
-            logger.warning(f"Could not write manifest: {e}")
-
     def _submit_step(self, step_index, step_config, dependency_id=None, overwrite=False):
         """Submit a single step as a SLURM job."""
         # Get SLURM resources for this step
@@ -515,6 +501,7 @@ done"""
         )
         logger.info(f"Initial manifest written to {manifest_path}")
 
+        resumed_from_manifest = False
         if resume:
             manifest_path = os.path.join(self.workdir, "manifest.json")
             if os.path.exists(manifest_path):
@@ -528,6 +515,7 @@ done"""
                         completed_steps.append(step_name)
                         graph[step_name]['completed'] = True
                 logger.info(f"Resumed from manifest: {len(job_ids)} jobs already submitted")
+                resumed_from_manifest = True
             else:
                 last_completed = self._find_last_completed_step(steps)
                 if last_completed is not None:
@@ -549,6 +537,22 @@ done"""
                             original_steps[step.get('_original_index', i)],
                             step.get('_original_index', i))
                         job_ids[step_name] = "completed"
+
+        # Write initial manifest with all steps (job_id=null for pending)
+        manifest_path = os.path.join(self.workdir, "manifest.json")
+        if not resumed_from_manifest or not os.path.exists(manifest_path):
+            write_manifest(
+                manifest_path,
+                self.configuration.get('_config_file', 'unknown'),
+                steps,
+                graph,
+                job_ids,
+                self.workdir,
+                include_pending=True
+            )
+            logger.info(f"Initial manifest written to {manifest_path}")
+        else:
+            logger.info(f"Using existing manifest: {manifest_path}")
 
         while True:
             ready = get_ready_steps(graph, completed_steps)
@@ -606,16 +610,4 @@ done"""
                     raise
 
         logger.info(f"Submitted {len(job_ids)} jobs total")
-
-        # Write manifest
-        manifest_path = os.path.join(self.workdir, "manifest.json")
-        write_manifest(
-            manifest_path,
-            self.configuration.get('_config_file', 'unknown'),
-            steps,
-            graph,
-            job_ids,
-            self.workdir)
-        logger.info(f"Manifest written to {manifest_path}")
-
         return job_ids, graph, steps
