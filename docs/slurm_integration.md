@@ -6,8 +6,8 @@ OpusFilter supports running workflows on SLURM clusters with resource-optimized 
 
 The SLURM integration provides three commands:
 
-- `opusfilter-slurm-submit`: Pre-submit all jobs and exit immediately
 - `opusfilter-slurm-run`: Run with polling and monitoring
+- `opusfilter-slurm-submit`: Pre-submit all jobs and exit immediately
 - `opusfilter-slurm-status`: Check workflow status from a manifest
 
 ## Installation
@@ -62,22 +62,6 @@ opusfilter-slurm-run config.yaml \
 
 ## Commands
 
-### opusfilter-slurm-submit
-
-Pre-submit all SLURM jobs and exit immediately. Jobs run via SLURM dependencies without a persistent process.
-
-```bash
-opusfilter-slurm-submit CONFIG [--workdir DIR] [--resume] [--dry-run] [--overwrite]
-```
-
-Options:
-- `--workdir DIR`: Working directory for scripts and logs
-- `--resume`: Skip completed steps based on output files
-- `--dry-run`: Show what would be submitted without submitting
-- `--overwrite`: Overwrite existing manifest
-
-After submission, a `manifest.json` file is created in the workdir. Use `opusfilter-slurm-status` to monitor progress.
-
 ### opusfilter-slurm-run
 
 Run the workflow with polling and monitoring. This keeps a persistent process that monitors job completion and submits new jobs as dependencies are satisfied.
@@ -94,6 +78,22 @@ Options:
 - `--overwrite`: Overwrite existing output files
 - `--max-concurrent N`: Maximum concurrent jobs (default: 4)
 - `--email ADDRESS`: Override email for notifications
+
+### opusfilter-slurm-submit
+
+Pre-submit all SLURM jobs and exit immediately. Jobs run via SLURM dependencies without a persistent process.
+
+```bash
+opusfilter-slurm-submit CONFIG [--workdir DIR] [--resume] [--dry-run] [--overwrite]
+```
+
+Options:
+- `--workdir DIR`: Working directory for scripts and logs
+- `--resume`: Skip completed steps based on output files
+- `--dry-run`: Show what would be submitted without submitting
+- `--overwrite`: Overwrite existing manifest
+
+After submission, a `manifest.json` file is created in the workdir. Use `opusfilter-slurm-status` to monitor progress.
 
 ### opusfilter-slurm-status
 

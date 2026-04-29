@@ -6,7 +6,6 @@ import os
 
 from opusfilter.util import yaml
 from opusfilter.slurm import SlurmOpusFilter
-from opusfilter.slurm_utils import write_manifest
 
 logger = logging.getLogger(__name__)
 
@@ -61,14 +60,6 @@ def main(args=None):
     if args.dry_run:
         logger.info("Dry run complete. No jobs submitted.")
         return 0
-
-    write_manifest(
-        manifest_path,
-        config_path,
-        steps,
-        graph,
-        job_ids,
-        workdir)
 
     logger.info(f"Manifest written to {manifest_path}")
     logger.info(f"Use 'opusfilter-slurm-status {workdir}' to monitor progress.")

@@ -9,7 +9,7 @@ from .util import convert_vars_to_strings, expand_steps_with_variables
 from .slurm_utils import (
     submit_job, get_job_status, is_job_completed,
     build_dependency_graph, get_ready_steps,
-    check_step_outputs, _get_step_name
+    check_step_outputs, _get_step_name, write_manifest, read_manifest
 )
 from .validate import validate_configuration
 
@@ -65,19 +65,46 @@ class SlurmOpusFilter:
             logger.debug("Dependencies found for %s: %s", key, value['deps'])
         completed_steps = []
         running_jobs = {}
+        self.job_ids = {}
+
+        # Write initial manifest with all steps (job_id=null for pending)
+        manifest_path = os.path.join(self.workdir, "manifest.json")
+        write_manifest(
+            manifest_path,
+            self.configuration.get('_config_file', 'unknown'),
+            steps,
+            graph,
+            self.job_ids,
+            self.workdir,
+            include_pending=True
+        )
+        logger.info(f"Initial manifest written to {manifest_path}")
 
         # Resume from last completed step if requested
         if resume:
-            last_completed = self._find_last_completed_step(steps)
-            if last_completed is not None:
-                logger.info(f"Resuming from step {last_completed + 1}")
-                steps = steps[last_completed + 1:]
-                # Update graph
-                graph = build_dependency_graph(steps)
-                completed_steps = [
-                    _get_step_name(original_steps[i], i)
-                    for i in range(last_completed + 1)
-                ]
+            manifest_path = os.path.join(self.workdir, "manifest.json")
+            if os.path.exists(manifest_path):
+                # Read existing manifest to get submitted job IDs
+                existing = read_manifest(manifest_path)
+                for job_info in existing.get("jobs", []):
+                    job_id = job_info.get("job_id")
+                    if job_id and job_id != "completed":
+                        step_name = job_info["step"]
+                        self.job_ids[step_name] = job_id
+                        completed_steps.append(step_name)
+                        graph[step_name]['completed'] = True
+                logger.info(f"Resumed from manifest: {len(self.job_ids)} jobs already submitted")
+            else:
+                last_completed = self._find_last_completed_step(steps)
+                if last_completed is not None:
+                    logger.info(f"Resuming from step {last_completed + 1}")
+                    steps = steps[last_completed + 1:]
+                    # Update graph
+                    graph = build_dependency_graph(steps)
+                    completed_steps = [
+                        _get_step_name(original_steps[i], i)
+                        for i in range(last_completed + 1)
+                    ]
 
         # Main execution loop
         failed_steps = []
@@ -172,6 +199,17 @@ class SlurmOpusFilter:
                         logger.info(
                             f"Submitted step {original_step_index} ({step_config['type']}, "
                             f"substep {step_info.get('substep_index')}) as job {job_id}")
+
+                        # Update manifest with new job ID
+                        write_manifest(
+                            manifest_path,
+                            self.configuration.get('_config_file', 'unknown'),
+                            steps,
+                            graph,
+                            self.job_ids,
+                            self.workdir,
+                            include_pending=True
+                        )
                     except Exception as e:
                         logger.error(f"Failed to submit step {original_step_index}: {e}")
                         break
@@ -225,6 +263,20 @@ class SlurmOpusFilter:
         # Print summary
         self._print_summary(completed_steps)
 
+        # Write manifest for status checking
+        manifest_path = os.path.join(self.workdir, "manifest.json")
+        try:
+            write_manifest(
+                manifest_path,
+                self.configuration.get('_config_file', 'unknown'),
+                steps,
+                graph,
+                self.job_ids,
+                self.workdir)
+            logger.info(f"Manifest written to {manifest_path}")
+        except Exception as e:
+            logger.warning(f"Could not write manifest: {e}")
+
     def _submit_step(self, step_index, step_config, dependency_id=None, overwrite=False):
         """Submit a single step as a SLURM job."""
         # Get SLURM resources for this step
@@ -236,7 +288,7 @@ class SlurmOpusFilter:
 
         if self.dry_run:
             logger.info(f"[DRY RUN] Would submit: {script_path}")
-            return f"dryrun_{step_index}"
+            return f"dryrun_{step_index}_{step_config.get('type', 'unknown')}"
 
         # Determine if this step should use array jobs
         array_size = None
@@ -450,27 +502,53 @@ done"""
         job_ids = {}
         completed_steps = []
 
+        # Write initial manifest with all steps (job_id=null for pending)
+        manifest_path = os.path.join(self.workdir, "manifest.json")
+        write_manifest(
+            manifest_path,
+            self.configuration.get('_config_file', 'unknown'),
+            steps,
+            graph,
+            job_ids,
+            self.workdir,
+            include_pending=True
+        )
+        logger.info(f"Initial manifest written to {manifest_path}")
+
         if resume:
-            last_completed = self._find_last_completed_step(steps)
-            if last_completed is not None:
-                logger.info(f"Resuming: skipping {last_completed + 1} completed steps")
-                completed_steps = [
-                    _get_step_name(original_steps[i], i)
-                    for i in range(last_completed + 1)
-                ]
-                completed_step_names = set(completed_steps)
+            manifest_path = os.path.join(self.workdir, "manifest.json")
+            if os.path.exists(manifest_path):
+                # Read existing manifest to get submitted job IDs
+                existing = read_manifest(manifest_path)
+                for job_info in existing.get("jobs", []):
+                    job_id = job_info.get("job_id")
+                    if job_id and job_id != "completed":
+                        step_name = job_info["step"]
+                        job_ids[step_name] = job_id
+                        completed_steps.append(step_name)
+                        graph[step_name]['completed'] = True
+                logger.info(f"Resumed from manifest: {len(job_ids)} jobs already submitted")
+            else:
+                last_completed = self._find_last_completed_step(steps)
+                if last_completed is not None:
+                    logger.info(f"Resuming: skipping {last_completed + 1} completed steps")
+                    completed_steps = [
+                        _get_step_name(original_steps[i], i)
+                        for i in range(last_completed + 1)
+                    ]
+                    completed_step_names = set(completed_steps)
 
-                new_graph = {}
-                for step_name, info in graph.items():
-                    filtered_deps = [d for d in info['deps'] if d not in completed_step_names]
-                    new_graph[step_name] = {**info, 'deps': filtered_deps}
-                graph = new_graph
+                    new_graph = {}
+                    for step_name, info in graph.items():
+                        filtered_deps = [d for d in info['deps'] if d not in completed_step_names]
+                        new_graph[step_name] = {**info, 'deps': filtered_deps}
+                    graph = new_graph
 
-                for i, step in enumerate(steps[:last_completed + 1]):
-                    step_name = _get_step_name(
-                        original_steps[step.get('_original_index', i)],
-                        step.get('_original_index', i))
-                    job_ids[step_name] = "completed"
+                    for i, step in enumerate(steps[:last_completed + 1]):
+                        step_name = _get_step_name(
+                            original_steps[step.get('_original_index', i)],
+                            step.get('_original_index', i))
+                        job_ids[step_name] = "completed"
 
         while True:
             ready = get_ready_steps(graph, completed_steps)
@@ -495,6 +573,9 @@ done"""
                 for dep in step_info['deps']:
                     if dep in job_ids:
                         dep_id = job_ids[dep]
+                        # Skip dry run job IDs
+                        if isinstance(dep_id, str) and dep_id.startswith('dryrun_'):
+                            continue
                         if not is_job_completed(dep_id):
                             dep_ids.add(dep_id)
                             dep_jobs_list.append(dep_id)
@@ -509,9 +590,32 @@ done"""
                         f"Submitted step {original_step_index} ({step_config['type']}) "
                         f"as job {job_id}"
                     )
+
+                    # Update manifest with new job ID
+                    write_manifest(
+                        manifest_path,
+                        self.configuration.get('_config_file', 'unknown'),
+                        steps,
+                        graph,
+                        job_ids,
+                        self.workdir,
+                        include_pending=True
+                    )
                 except Exception as e:
                     logger.error(f"Failed to submit step {original_step_index}: {e}")
                     raise
 
         logger.info(f"Submitted {len(job_ids)} jobs total")
+
+        # Write manifest
+        manifest_path = os.path.join(self.workdir, "manifest.json")
+        write_manifest(
+            manifest_path,
+            self.configuration.get('_config_file', 'unknown'),
+            steps,
+            graph,
+            job_ids,
+            self.workdir)
+        logger.info(f"Manifest written to {manifest_path}")
+
         return job_ids, graph, steps

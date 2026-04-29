@@ -220,7 +220,7 @@ def clean_failed_outputs(step, output_dir, constants=None):
             path.unlink()
 
 
-def write_manifest(path, config_file, steps, graph, job_ids, workdir):
+def write_manifest(path, config_file, steps, graph, job_ids, workdir, include_pending=False):
     """Write workflow manifest to JSON.
 
     Args:
@@ -230,20 +230,22 @@ def write_manifest(path, config_file, steps, graph, job_ids, workdir):
         graph: Dependency graph dict
         job_ids: Dict mapping step_name -> SLURM job ID
         workdir: Working directory path
+        include_pending: If True, include steps not yet submitted (job_id=null)
     """
     manifest = {
         "version": "1.0",
         "config": str(config_file),
         "submitted_at": datetime.now().isoformat(),
         "workdir": str(workdir),
-        "jobs": {}
+        "jobs": []
     }
 
     for step_name, step_info in graph.items():
         job_id = job_ids.get(step_name)
-        if job_id:
+        if job_id or include_pending:
             script_path = _get_script_path(workdir, step_info)
-            manifest["jobs"][job_id] = {
+            manifest["jobs"].append({
+                "job_id": job_id,
                 "step": step_name,
                 "original_step": step_info.get("original_index", 0),
                 "substep_index": step_info.get("substep_index"),
@@ -251,7 +253,7 @@ def write_manifest(path, config_file, steps, graph, job_ids, workdir):
                 "deps": step_info.get("deps", []),
                 "dep_jobs": list(step_info.get("dep_jobs", [])),
                 "script": script_path
-            }
+            })
 
     with open(path, 'w') as f:
         json.dump(manifest, f, indent=2)
@@ -295,7 +297,7 @@ def get_detailed_job_status(job_id):
     """Get detailed job status from SLURM.
 
     Args:
-        job_id: SLURM job ID
+        job_id: SLURM job ID (string or int)
 
     Returns:
         Dict with 'status', 'runtime', 'node', 'job_name'
@@ -307,21 +309,56 @@ def get_detailed_job_status(job_id):
         "job_name": None
     }
 
+    job_id = str(job_id)
+
     # Try squeue first for running jobs
-    proc = subprocess.run(
-        ['squeue', '-j', job_id, '-h', '-o', '%j|%T|%M|%N'],
-        capture_output=True, text=True)
-    if proc.returncode == 0 and proc.stdout.strip():
-        parts = proc.stdout.strip().strip('"').split('|')
-        if len(parts) >= 4:
-            result["job_name"] = parts[0]
-            result["status"] = parts[1]
-            result["runtime"] = parts[2]
-            result["node"] = parts[3] if parts[3] != "N/A" else None
-        elif len(parts) >= 2:
-            result["status"] = parts[1]
-        if result["status"] != "UNKNOWN":
-            return result
+    try:
+        proc = subprocess.run(
+            ['squeue', '-j', job_id, '-h', '-o', '%j|%T|%l|%N'],
+            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
+        if proc.returncode == 0 and proc.stdout.strip():
+            parts = proc.stdout.strip().strip('"').split('|')
+            if len(parts) >= 4:
+                result["job_name"] = parts[0]
+                result["status"] = parts[1]
+                result["runtime"] = parts[2]
+                result["node"] = parts[3] if parts[3] != "N/A" else None
+            elif len(parts) >= 2:
+                result["status"] = parts[1]
+            if result["status"] != "UNKNOWN":
+                return result
+    except FileNotFoundError:
+        # squeue not available (not on cluster)
+        result["status"] = "UNKNOWN (no squeue)"
+        return result
+
+    # Fallback to sacct for completed/failed jobs
+    try:
+        proc = subprocess.run(
+            ['sacct', '-j', job_id, '--noformat=JobName,State,Elapsed,NodeList'],
+            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
+        if proc.returncode == 0 and proc.stdout.strip():
+            lines = proc.stdout.strip().split('\n')
+            for line in reversed(lines):
+                parts = line.strip().split('|')
+                if len(parts) >= 4 and parts[0]:
+                    result["job_name"] = parts[0]
+                    result["status"] = parts[1]
+                    result["runtime"] = parts[2] if parts[2] != "00:00:00" else None
+                    result["node"] = parts[3] if parts[3] != "(" else None
+                    break
+            # Check all lines for status if not found
+            if result["status"] == "UNKNOWN":
+                for line in lines:
+                    parts = line.strip().split('|')
+                    if len(parts) >= 2 and parts[1] and parts[1] != "UNKNOWN":
+                        result["status"] = parts[1]
+                        break
+    except FileNotFoundError:
+        # sacct not available
+        pass
+
+    return result
 
     # Fallback to sacct for completed/failed jobs
     proc = subprocess.run(
@@ -351,10 +388,17 @@ def get_manifest_status(manifest):
         List of dicts with job_id, step, status, runtime, node
     """
     results = []
-    for job_id, job_info in manifest.get("jobs", {}).items():
-        details = get_detailed_job_status(job_id)
+    for job_info in manifest.get("jobs", []):
+        job_id = job_info.get("job_id")
+        if job_id and not str(job_id).startswith("dryrun_"):
+            details = get_detailed_job_status(job_id)
+        else:
+            if job_id:
+                details = {"status": "DRY_RUN", "runtime": None, "node": None}
+            else:
+                details = {"status": "PENDING", "runtime": None, "node": None}
         results.append({
-            "job_id": job_id,
+            "job_id": job_id or '-',
             "step": job_info["step"],
             "step_type": job_info.get("step_type", "unknown"),
             "status": details["status"],
