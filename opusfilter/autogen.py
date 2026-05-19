@@ -240,7 +240,7 @@ class DefaultParameterFilters(AutoFiltersABC):
 
     @staticmethod
     def get_filter_parameters(filter_name, filter_params):
-        """Return parameters for filter of the given class""">>>>>>> bfc7761 (use k-means-constrained with baby step)
+        """Return parameters for filter of the given class"""
 
         filter_cls = getattr(filtermodule, filter_name)
         defaults = get_default_parameters(filter_name)
