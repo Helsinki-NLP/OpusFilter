@@ -30,7 +30,7 @@ parser = argparse.ArgumentParser(
 parser.add_argument('--scores', required=True, metavar='SCOREFILE', help='jsonl score file')
 parser.add_argument('--data-size', required=True, type=int, metavar='INT',
                     help='Number of sentence pairs in training set (to calculate number of buckets')
-parser.add_argument('--method', choices=['babystep', 'bs-constrained'], default='babystep',
+parser.add_argument('--method', choices=['babystep'], default='babystep',
                     help='Curriulum method (default: %(default)s)')
 parser.add_argument('--sample-size', default=100000, type=int, metavar='INT',
                     help='Max number of sentence pairs used for data-based methods (default %(default)s)')

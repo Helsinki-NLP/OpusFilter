@@ -6,7 +6,6 @@ from statistics import geometric_mean
 
 from sklearn import  preprocessing
 from sklearn.cluster import KMeans
-#from k_means_constrained import KMeansConstrained
 import numpy as np
 
 from . import CLEAN_LOW
@@ -40,14 +39,12 @@ class BabyStep:
 
         logger.info('Training KMeans with %s clusters', self.k)
         self.kmeans = KMeans(n_clusters=self.k, random_state=0, init='k-means++', n_init=1)
-        #self.kmeans = KMeansConstrained(n_clusters=self.k, size_min=int(self.standard_data.shape[0]/self.k), random_state=0, init='k-means++', n_init=1)
         self.kmeans.fit(self.standard_data)
         logger.info(f'Sample label distribution (clean=0, noisy={self.k-1}): {dict(sorted(Counter(self.kmeans.labels_).items()))}')
 
         # Low values are clean, high values are noisy
         adjusted_centers = self.kmeans.cluster_centers_ * self.direction_vector
     
-        print(gmean)
         if gmean:
             temp_centers = adjusted_centers + abs(adjusted_centers.min()) + 0.01
             means = [geometric_mean(m) for m in temp_centers]
