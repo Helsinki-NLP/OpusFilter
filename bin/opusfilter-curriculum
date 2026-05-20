@@ -2,12 +2,9 @@
 
 import argparse
 import logging
-import json
 import os
-import sys
 
 import matplotlib.pyplot as plt
-import ruamel.yaml
 
 from opusfilter.curriculum_learning import BabyStep
 from opusfilter.autogen import ConfigurationGenerator
@@ -38,10 +35,12 @@ parser.add_argument('--clusters', '-k', default=10, type=int, metavar='INT',
                     help=('Number of clusters for Kmeans clustering for the first b sentence pairs (default %(default)s)'))
 parser.add_argument('--data_inc', '-b', default=100000, type=int, metavar='INT',
                     help=('Number of clusters is k + (data_size-b)/b (default %(default)s)'))
-parser.add_argument('--gmean', action='store_true', help='Use geometric mean instead of arithmetic mean when comparing cluster centers')
+parser.add_argument('--gmean', action='store_true',
+                    help='Use geometric mean instead of arithmetic mean when comparing cluster centers')
 parser.add_argument('--seed', default=1, help='Seed for subset')
 parser.add_argument('--work-dir', default='work', help='Location of the source and target files (default %(default)s)')
-parser.add_argument('--chunksize', default=500000, type=int, help='Chunksize during Kmeans prediction (default %(default)s)')
+parser.add_argument('--chunksize', default=500000, type=int,
+                    help='Chunksize during Kmeans prediction (default %(default)s)')
 parser.add_argument('--overwrite', action='store_true',
                     help='Overwrite existing intermediate files')
 parser.add_argument('-o', '--output', type=argparse.FileType('w'),
@@ -54,6 +53,8 @@ if args.method == 'babystep':
     config = config_gen.get_config()
     opusf = OpusFilter(config)
     opusf.execute_steps(overwrite=args.overwrite)
-    
-    babystep = BabyStep(os.path.join(args.work_dir, f'sample.{args.scores}.1.gz'), data_size=args.data_size, k=args.clusters, data_inc=args.data_inc, gmean=args.gmean, output_file=args.output, workdir=args.work_dir, chunksize=args.chunksize)
+
+    babystep = BabyStep(os.path.join(args.work_dir, f'sample.{args.scores}.1.gz'), data_size=args.data_size,
+                        k=args.clusters, data_inc=args.data_inc, gmean=args.gmean, output_file=args.output,
+                        workdir=args.work_dir, chunksize=args.chunksize)
     babystep.classify(os.path.join(args.work_dir, args.scores))
