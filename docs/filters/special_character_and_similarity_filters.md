@@ -8,6 +8,12 @@ The returned scores are two boolean values indicating whether the
 segments contain HTML tags. In filtering, a segment pair is accepted
 if none of the segments contains HTML tags.
 
+The beautifulsoup4 library is used for detecting HTML. Up to
+OpusFilter version 3.3.0, the behavior on broken HTML tags varies
+depending on the input and installed library versions. For newer
+versions, broken HTML is not considered as HTML, i.e., it is accepted
+by the filter.
+
 ## TerminalPunctuationFilter
 
 Filter segments based on a penalty score with respect to the

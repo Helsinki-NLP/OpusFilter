@@ -35,6 +35,24 @@ class TestFilterPipeline(unittest.TestCase):
             logging.debug("Testing non-letter %s", example)
             self.assertEqual(hasher.preprocess(example), '')
 
+    def test_letter_words_only_preprocess(self):
+        """Test preprocessing options"""
+        inputs = ["This is a test case <n> .", "There are 42 cases left , if you trust t84at"]
+        expected_outputs = ["This is a test case", "There are cases left if you trust"]
+        hasher = SegmentHasher(letter_words_only=True)
+        for input_, expected in zip(inputs, expected_outputs):
+            output = hasher.preprocess(input_)
+            self.assertEqual(output, expected)
+
+    def test_letter_words_only_with_tokenization(self):
+        """Test preprocessing options"""
+        segs1 = ["This is a test case <4>.", "There are 42 cases left, if you trust t84at"]
+        segs2 = ["this is a test case <5>!", "there are 12 cases left - if you trust m3"]
+        hasher = SegmentHasher(letter_words_only=True, lowercase=True, tokenizers=[('moses', 'en')])
+        for seg1, seg2 in zip(segs1, segs2):
+            out1, out2 = hasher.apply([seg1]), hasher.apply([seg2])
+            self.assertEqual(out1, out2)
+
     def _test_multiple(self, hasher, segment, variants, results):
         for variant, result in zip(variants, results):
             match = (hasher.apply(segment) == hasher.apply(variant))

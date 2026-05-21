@@ -7,7 +7,8 @@ beautifulsoup4>=4.8.2
 graphviz>=0.16
 py3langid==0.3.0
 matplotlib>=3.3.0
-opus-fast-mosestokenizer>=0.0.8.5
+opus-fast-mosestokenizer==0.0.8.7 ; python_version < "3.9"
+opus-fast-mosestokenizer>=0.0.8.8 ; python_version >= "3.9"
 pandas>=1.0.0
 xxhash==3.2.0
 rapidfuzz>=2.0.5
@@ -21,4 +22,5 @@ mecab-python3>=1.0.8
 unidic-lite==1.0.8
 subword-nmt==0.3.8
 Morfessor==2.0.6
-lingua-language-detector==2.0.2
+lingua-language-detector==2.0.2 ; python_version < "3.10"
+lingua-language-detector==2.1.1 ; python_version >= "3.10"

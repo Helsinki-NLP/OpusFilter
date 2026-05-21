@@ -7,11 +7,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.3.1] - 2025-12-10
+
+### Changed
+
+- changed `HtmlTagFilter` to accept broken tags in order to avoid inconsistent results
+- update required `opus-fast-mosestokenizer` version for better platform support
+
+### Fixed
+
+- broken citations and links in the documentation
+
+## [3.3.0] - 2025-07-02
+
+### Added
+
+- `letter_words_only` option for duplicate detection
+- support for selection of possible languages for `lingua` language detection
+- support for language detection based on `heliport` (a port of HeLI-OTS)
+
+### Changed
+
+- update library requirements and include Python 3.13 tests
+- removed pycld2 and fasttext from the `[all]` extras
+- refactored all language identification filters to have their own classes and marked `LanguageIDFilter` as deprecated
+
+### Fixed
+
+- fix broken import in `opusfilter-scores`
+
+## [3.2.0] - 2024-08-14
+
 ### Changed
 
 - make `pycld2` and `fasttext` libraries optional
 - replace `langid.py` library with `py3langid`
 - update github workflows and include Python 3.12 tests
+
+### Fixed
+
+- `OpusRead` interface using `moses` format (requires `opustools >= 1.6.2`)
 
 ## [3.1.0] - 2024-06-05
 
@@ -210,7 +245,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 First tagged version.
 
 
-[Unreleased]: https://github.com/Helsinki-NLP/OpusFilter/compare/3.1.0...develop
+[Unreleased]: https://github.com/Helsinki-NLP/OpusFilter/compare/3.3.1...develop
+[3.3.1]: https://github.com/Helsinki-NLP/OpusFilter/compare/3.3.0...3.3.1
+[3.3.0]: https://github.com/Helsinki-NLP/OpusFilter/compare/3.2.0...3.3.0
+[3.2.0]: https://github.com/Helsinki-NLP/OpusFilter/compare/3.1.0...3.2.0
 [3.1.0]: https://github.com/Helsinki-NLP/OpusFilter/compare/3.0.0...3.1.0
 [3.0.0]: https://github.com/Helsinki-NLP/OpusFilter/compare/2.6.0...3.0.0
 [2.6.0]: https://github.com/Helsinki-NLP/OpusFilter/compare/2.5.1...2.6.0

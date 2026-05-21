@@ -12,7 +12,7 @@ Install from source:
 
 Note that all required libraries are not available to install via PyPI
 on Windows OS. On Linux and MacOS, it should work directly for Python
-versions from 3.8 to 3.12.
+versions from 3.8 to 3.13.
 
 ## Required libraries
 
@@ -39,23 +39,29 @@ See `setup.py` for possible version requirements.
 
 ## Optional libraries and tools
 
-### FastText and PyCLD2 language identification
+### FastText, PyCLD2, and heliport language identification
 
 The language identification libraries currently supported out-of-the-box
 are [py3langid](https://github.com/adbar/py3langid) and
-[lingua](https://github.com/pemistahl/lingua-py). The support for for
+[lingua](https://github.com/pemistahl/lingua-py). The support for
 [PyCLD2](https://github.com/aboSamoor/pycld2) and
 [FastText models](https://fasttext.cc/docs/en/language-identification.html)
 have been changed to optional due to the lack of support especially
-for newer Python versions.
+for newer Python versions. Also the support for
+[heliport](https://github.com/ZJaume/heliport) is optional. Please
+note that `heliport` has GPL-3.0 license.
 
 The PyCLD2 support can be installed automatically with pip by
-including the extras `[pycld2]` or `[all]` (e.g.
-`pip install opusfilter[pycld2]`).
+including the extras `[pycld2]` (e.g. `pip install
+opusfilter[pycld2]`).
 
 The support for FastText models can be installed automatically with
-pip by including the extras `[fasttext]` or `[all]` (e.g.
-`pip install opusfilter[fasttext]`).
+pip by including the extras `[fasttext]` (e.g. `pip install
+opusfilter[fasttext]`).
+
+The support for `heliport` can be installed automatically with pip by
+including the extras `[heliport]` (e.g. `pip install
+opusfilter[heliport]`).
 
 ### Jieba and MeCab word segmentation
 
@@ -72,24 +78,30 @@ automatically with pip by including the extras `[mecab]` or `[all]`
 ### LASER sentence embeddings
 
 For using sentence embeddings filters, you need to install
-`laserembeddings` (https://github.com/yannvgn/laserembeddings). It can
+`laserembeddings` (<https://github.com/yannvgn/laserembeddings>). It can
 be installed automatically with pip by including the extras `[laser]`
 or `[all]` (e.g. `pip install opusfilter[laser]`). The package will also
 require a number of additional libraries, including PyTorch, jieba,
 and MeCab. Note that you need also to download the prebuild models
 with `python -m laserembeddings download-models`.
 
+**Note:** The current latest release `laserembeddings==1.1.2` does not
+support `torch>=2.0.0` and thus fails on Python 3.12 and above. The
+code itself works on Python 3.12 and 3.13, but you need to fix
+`pyproject.toml` to allow later `torch` versions, and install it
+manually.
+
 ### VariKN n-gram models
 
 For using n-gram language model filters, you need to install the
-Python wrapper for VariKN (https://github.com/vsiivola/variKN). It can
+Python wrapper for VariKN (<https://github.com/vsiivola/variKN>). It can
 be installed automatically with pip by including the extras `[varikn]`
 or `[all]` (e.g. `pip install opusfilter[varikn]`).
 
 ### Eflomal word alignment
 
 For using word alignment filters, you need to install elfomal
-(https://github.com/robertostling/eflomal). It can be installed
+(<https://github.com/robertostling/eflomal>). It can be installed
 automatically with pip by including the extras `[eflomal]` or `[all]`
 (e.g. `pip install opusfilter[eflomal]`). Note that you will need `Cython`
 for the installation.

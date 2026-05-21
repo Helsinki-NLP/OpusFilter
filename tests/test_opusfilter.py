@@ -223,6 +223,25 @@ class TestOpusFilter(unittest.TestCase):
         shutil.rmtree('test_creating_dir')
 
 
+class TestOpusRead(unittest.TestCase):
+
+    def test_preprocessing(self):
+        outfiles = ['RF1_sents.en', 'RF1_sents.sv']
+        for pre_type in ['xml', 'raw', 'moses', 'parsed']:
+            with tempfile.TemporaryDirectory() as tempdir:
+                opusfilter = OpusFilter(
+                    {'common': {'output_directory': tempdir},
+                     'steps': [
+                         {'type': 'opus_read', 'parameters': {
+                             'corpus_name': 'RF', 'source_language': 'en', 'target_language': 'sv', 'release': 'latest',
+                             'preprocessing': pre_type, 'src_output': outfiles[0], 'tgt_output': outfiles[1],
+                             'suppress_prompts': True}}
+                     ]})
+                opusfilter.execute_steps()
+                for outfile in outfiles:
+                    self.assertTrue(os.path.isfile(os.path.join(tempdir, outfile)))
+
+
 class TestExtraKeyErrors(unittest.TestCase):
 
     def test_read_from_opus(self):
@@ -230,7 +249,8 @@ class TestExtraKeyErrors(unittest.TestCase):
             {'steps': [
                 {'type': 'opus_read', 'parameters': {
                     'corpus_name': 'RF', 'source_language': 'en', 'target_language': 'sv', 'relase': 'latest',
-                    'preprocessing': 'xml', 'src_output': 'RF1_sents.en', 'tgt_output': 'RF1_sents.sv'}}
+                    'preprocessing': 'xml', 'src_output': 'RF1_sents.en', 'tgt_output': 'RF1_sents.sv',
+                    'suppress_prompts': True}}
             ]})
         with self.assertRaises(ConfigurationError):
             opusfilter.execute_steps()

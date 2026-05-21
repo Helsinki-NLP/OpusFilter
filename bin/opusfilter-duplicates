@@ -3,6 +3,7 @@
 import argparse
 import collections
 import logging
+import json
 
 from tqdm import tqdm
 
@@ -24,20 +25,29 @@ parser.add_argument('--hash', type=str, default='xxh64',
                     help=('hash function from xxhash library, empty string '
                           'for no hashing (default "xxh64")'))
 parser.add_argument('--letters-only', action='store_true', default=False,
-                    help='lowercase input strings before hashing')
-parser.add_argument('--lowercase', action='store_true', default=False,
                     help='remove all non-letters from intput strings before hashing')
+parser.add_argument('--letter-words-only', action='store_true', default=False,
+                    help='remove words with non-letter characters before hashing')
+parser.add_argument('--lowercase', action='store_true', default=False,
+                    help='lowercase input strings before hashing')
+parser.add_argument('--tokenizers', type=str, metavar='JSON', default=None,
+                    help=('load tokenizer specifications from a JSON list (e.g. \'[["moses", "en"], ["jieba", "zh"]]\'); '
+                          'use with --letter-words-only'))
 
 args = parser.parse_args()
 
 if args.overlap and len(args.overlap) != len(args.files):
     raise ValueError("The number of the main and overlap input files should match")
 
+tokenizers = json.loads(args.tokenizers) if args.tokenizers else None
+
 hasher = SegmentHasher(
     compare='all',
     method=args.hash,
     letters_only=args.letters_only,
-    lowercase=args.lowercase
+    letter_words_only=args.letter_words_only,
+    lowercase=args.lowercase,
+    tokenizers=tokenizers
 )
 
 total = 0

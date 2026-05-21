@@ -5,13 +5,13 @@ with open("README.md", "r") as fh:
 
 install_requires = [
     "setuptools",
-    "opustools",
+    "opustools>=1.6.2",
     "beautifulsoup4>=4.8.0",
     "graphviz",
     "py3langid>=0.2.2",
     "matplotlib",
     "morfessor",
-    "opus-fast-mosestokenizer>=0.0.8.5",
+    'opus-fast-mosestokenizer>=0.0.8.11',
     "pandas>=1.0.0",
     "xxhash>=3.2.0",
     "sentence-splitter",
@@ -22,7 +22,9 @@ install_requires = [
     "scikit-learn",
     "subword_nmt",
     "tqdm",
-    "lingua-language-detector>=1.3.0"
+    'lingua-language-detector>=1.3.0,<2.1 ; python_version < "3.10"',
+    'lingua-language-detector>=2.1.1 ; python_version >= "3.10"',
+    "iso639-lang"
 ]
 
 pycld2_require = [
@@ -56,8 +58,8 @@ varikn_require = [
     'varikn'
 ]
 
-curriculum_require = [
-    'k-means-constrained'
+heliport_require = [
+    'heliport>=0.10.0'
 ]
 
 tests_require = [
@@ -71,8 +73,8 @@ docs_require = [
     'sphinxcontrib-bibtex'
 ]
 
-all_require = pycld2_require + fasttext_require + eflomal_require + jieba_require + \
-    mecab_require + laser_require + varikn_require + curriculum_require + tests_require + docs_require
+all_require = eflomal_require + jieba_require + mecab_require + laser_require + varikn_require + \
+    tests_require + docs_require
 
 setuptools.setup(
     name="opusfilter",
@@ -92,7 +94,7 @@ setuptools.setup(
     tests_require=tests_require,
     extras_require={'test': tests_require, 'pycld2': pycld2_require, 'fasttext': fasttext_require,
                     'eflomal': eflomal_require, 'jieba': jieba_require, 'mecab': mecab_require,
-                    'laser': laser_require, 'varikn': varikn_require, 'curriculum': curriculum_require,
+                    'laser': laser_require, 'varikn': varikn_require, 'heliport': heliport_require,
                     'docs': docs_require, 'all': all_require},
     classifiers=(
         "Programming Language :: Python :: 3",

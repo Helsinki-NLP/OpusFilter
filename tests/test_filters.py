@@ -2,8 +2,11 @@ import logging
 import os
 import requests
 import shutil
+import sys
 import tempfile
 import unittest
+
+import pytest
 
 from opusfilter.filters import *
 
@@ -101,11 +104,10 @@ class TestHtmlTagFilter(unittest.TestCase):
     def test_broken(self):
         testfilter = HtmlTagFilter()
         cases = [['<aaa bee', 'cee dee'], ['aa br> bee', 'cee deee'],
-                 ['<p aaa bee</p', 'p>cee dee /p>'], ['', ''],
-                 ['<![ foo', 'foo']]
+                 ['<p aaa bee</p', 'p>cee dee /p>'], ['<![ foo', 'foo'], ['', '']]
         expected = [([False, False], True), ([False, False], True),
                     ([False, False], True), ([False, False], True),
-                    ([True, False], False)]
+                    ([False, False], True), ([True, False], False)]
         results = [(x, testfilter.accept(x)) for x in testfilter.score(cases)]
         logging.warning(results)
         for result, correct in zip(results, expected):

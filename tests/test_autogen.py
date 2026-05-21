@@ -11,7 +11,7 @@ from pandas import json_normalize
 
 import opustools
 
-from opusfilter import FilterABC, ConfigurationError, filters
+from opusfilter import FilterABC, ConfigurationError, filters, lid as lid_filters
 from opusfilter.autogen import ConfigurationGenerator, DefaultParameterFilters, \
     parse_filter_specs, PercentileFilters, PercentileAdjuster, ClusterFilters
 from opusfilter.opusfilter import OpusFilter
@@ -162,6 +162,8 @@ class TestPercentileAdjuster(unittest.TestCase):
     # These have arguments without defaults
     expected_failures = {'CharacterScoreFilter', 'CrossEntropyFilter', 'CrossEntropyDifferenceFilter',
                          'LMClassifierFilter', 'LanguageIDFilter', 'RegExpFilter', 'SentenceEmbeddingFilter'}
+    # All language identification filters
+    expected_failures.update(name for name in dir(lid_filters) if name.endswith('Filter'))
 
     def test_default_parameters(self):
         for filter_name, filter_cls in inspect.getmembers(filters, inspect.isclass):

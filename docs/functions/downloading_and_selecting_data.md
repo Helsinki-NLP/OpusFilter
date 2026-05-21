@@ -11,10 +11,15 @@ Parameters:
 * `source_language`: language code for the source language
 * `target_language`: language code for the target language
 * `release`: version of the corpus in OPUS
-* `preprocessing`: `raw` for untokenized and `xml` for tokenized segments
+* `preprocessing`: `moses` or `raw` for untokenized and `xml` for tokenized segments
 * `src_output`: output file for source language
 * `tgt_output`: output file for target language
 * `suppress_prompts`: `false` (default) prompts user to confirm before download, `true` to download without prompting
+
+The `moses` preprocessing type (available with `OpusTools` version
+1.6.2 and above) is recommended for those corpora for which it
+exists. The output is equivalent to `raw`, but in some cases it can
+significantly reduce the amount of data downloaded in the process.
 
 ## concatenate
 

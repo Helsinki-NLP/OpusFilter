@@ -4,9 +4,8 @@ import logging
 from collections import Counter
 from statistics import geometric_mean
 
-from sklearn import  preprocessing
+from sklearn import preprocessing
 from sklearn.cluster import KMeans
-#from k_means_constrained import KMeansConstrained
 import numpy as np
 
 from . import CLEAN_LOW
@@ -16,14 +15,17 @@ from .classifier import load_dataframe
 
 logger = logging.getLogger(__name__)
 
+
 class BabyStep:
     """Cluster segments by filter scores
 
-    Train k-means clustering and split training data into buckets.
+    Train k-means clustering and split training data into buckets of
+    increasing noise levels.
 
     """
 
-    def __init__(self, sample_score_file, data_size, k=10, data_inc=100000, gmean=False, output_file=None, workdir=None, chunksize=500000):
+    def __init__(self, sample_score_file, data_size, k=10, data_inc=100000, gmean=False, output_file=None,
+                 workdir=None, chunksize=500000):
         self.df = load_dataframe(sample_score_file)
         self.k = k + int((data_size - data_inc)/data_inc)
         self.output_file = output_file
@@ -40,22 +42,21 @@ class BabyStep:
 
         logger.info('Training KMeans with %s clusters', self.k)
         self.kmeans = KMeans(n_clusters=self.k, random_state=0, init='k-means++', n_init=1)
-        #self.kmeans = KMeansConstrained(n_clusters=self.k, size_min=int(self.standard_data.shape[0]/self.k), random_state=0, init='k-means++', n_init=1)
         self.kmeans.fit(self.standard_data)
-        logger.info(f'Sample label distribution (clean=0, noisy={self.k-1}): {dict(sorted(Counter(self.kmeans.labels_).items()))}')
+        logger.info(f'Sample label distribution (clean=0, noisy={self.k-1}): '
+                    f'{dict(sorted(Counter(self.kmeans.labels_).items()))}')
 
         # Low values are clean, high values are noisy
         adjusted_centers = self.kmeans.cluster_centers_ * self.direction_vector
-    
-        print(gmean)
+
         if gmean:
             temp_centers = adjusted_centers + abs(adjusted_centers.min()) + 0.01
             means = [geometric_mean(m) for m in temp_centers]
         else:
             means = np.mean(adjusted_centers, axis=1)
 
-        # The buckets are labeled from cleanest to noisiest with labels from 0 to k 
-        self.clean_order = [np.where(np.argsort(means)==i)[0][0] for i in range(self.k)]
+        # The buckets are labeled from cleanest to noisiest with labels from 0 to k
+        self.clean_order = [np.where(np.argsort(means) == i)[0][0] for i in range(self.k)]
 
     @property
     def direction_vector(self):
