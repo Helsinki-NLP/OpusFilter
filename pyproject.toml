@@ -97,6 +97,9 @@ varikn = [
 heliport = [
     'heliport>=0.10.0'
 ]
+huggingface = [
+    'datasets>=2.14.0'
+]
 test = [
     'pytest'
 ]

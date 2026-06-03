@@ -1,5 +1,48 @@
 # Downloading and selecting data
 
+## hf_read
+
+Read a parallel corpus from the [Hugging Face Datasets](https://huggingface.co/datasets)
+library.
+
+Parameters:
+
+* `path`: dataset path on Hugging Face (e.g. `Helsinki-NLP/nemotron-cc-translated`)
+* `src_config` / `tgt_config`: source and target language configs (cross-config mode)
+* `src_field` / `tgt_field`: field names for source and target text (single-config mode)
+* `src_lang` / `tgt_lang`: language codes for the `translation` column (alternative to `src_field`/`tgt_field`)
+* `src_output`: output file for source language
+* `tgt_output`: output file for target language
+* `config`: dataset config/name (optional)
+* `id_field`: field name for alignment between configs in cross-config mode (required for cross-config)
+* `newline_replacement`: character to replace embedded newlines with in plain-text output (default: space)
+* `split`: which dataset split to use (default: `train`)
+* `streaming`: whether to stream the dataset (default: `true`)
+* `trust_remote_code`: whether to trust remote code in dataset loading (default: `false`)
+* `kwargs`: additional keyword arguments passed to `datasets.load_dataset`
+
+Two modes are available:
+
+**Single-config mode** (`config` + `src_field`/`tgt_field` or `src_lang`/`tgt_lang`):
+Both source and target are read from the same dataset config. Use
+`src_field` and `tgt_field` to specify the column names, or
+`src_lang`/`tgt_lang` for datasets with a `translation` column.
+
+**Cross-config mode** (`src_config` + `tgt_config` + `id_field`):
+Source and target are in different dataset configs, aligned by a
+common identifier. The `id_field` parameter specifies which field
+holds the shared identifier. Both configs are read in sorted order
+and merged by this ID in a memory-efficient streaming fashion.
+
+Requires the `huggingface` extra:
+```
+pip install opusfilter[huggingface]
+```
+
+For datasets with multi-line text (e.g. web-crawled data), use the
+`.jsonl` file extension in `src_output` and `tgt_output` to produce
+JSONL output, which preserves embedded newlines within each segment.
+
 ## opus_read
 
 Read a corpus from the OPUS corpus collection {cite:p}`tiedemann-2012-parallel` using
@@ -179,3 +222,14 @@ Parameters:
 * `data`: input data to write to the output (converted to a string if not already)
 
 Useful mostly for testing.
+
+---
+
+Note on file formats: All functions transparently support **JSONL**
+files (`.jsonl` extension, optionally followed by a compression suffix
+like ``.jsonl.gz``, ``.jsonl.bz2``, or ``.jsonl.xz``) in addition to
+plain text (`.txt`/`.gz`/`.bz2`).
+In JSONL mode, each segment is stored as a single JSON-encoded line,
+which correctly handles text with embedded newlines (common in
+web-crawled data). Simply use the `.jsonl` extension in input/output
+file names to enable this format.

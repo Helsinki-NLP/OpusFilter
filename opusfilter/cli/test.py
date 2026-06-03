@@ -8,7 +8,7 @@ import sys
 from tqdm import tqdm
 
 from opusfilter.pipeline import FilterPipeline
-from opusfilter.util import file_open, yaml
+from opusfilter.util import file_open, text_file_open, yaml
 
 
 logger = logging.getLogger(__name__)
@@ -42,7 +42,7 @@ def main(args=None):
         config.append({name: json.loads(jsonstr)})
 
     filter_pipe = FilterPipeline.from_config(config)
-    infs = [file_open(infile) for infile in args.files]
+    infs = [text_file_open(infile) for infile in args.files]
     total = 0
     counter = collections.Counter()
     logger.info("Calculating total")

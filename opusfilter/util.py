@@ -196,6 +196,150 @@ def file_open(filename, mode='r', encoding='utf8'):
     return open(filename, mode=mode, encoding=encoding)  # pylint: disable=R1732
 
 
+class _JsonlTextReader:
+    """Wraps a readable file object to transparently parse JSONL.
+
+    Each line is parsed as JSON; if the result is a string it is used
+    directly, otherwise the *text* key is extracted.  This lets both
+    ``json.dumps(text)`` and ``{"text": text}`` formats round-trip
+    correctly.
+    """
+
+    def __init__(self, fobj):
+        self._fobj = fobj
+
+    def readline(self):
+        line = self._fobj.readline()
+        if not line:
+            return line
+        obj = json.loads(line.rstrip('\n'))
+        text = obj if isinstance(obj, str) else obj['text']
+        return text + '\n'
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        line = self.readline()
+        if not line:
+            raise StopIteration
+        return line
+
+    def close(self):
+        self._fobj.close()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *a):
+        self.close()
+
+
+class _JsonlTextWriter:
+    """Wraps a writable file object to transparently write JSONL.
+
+    Each call to ``write(text)`` serialises *text* as a JSON string
+    and appends ``\\n``, producing one valid JSON line per record.
+
+    A trailing ``\\n`` in *text* (the record-separator convention
+    used throughout the pipeline) is stripped before serialisation
+    so that it is not embedded in the JSON value.
+    """
+
+    def __init__(self, fobj):
+        self._fobj = fobj
+
+    def write(self, text):
+        if text.endswith('\n'):
+            text = text[:-1]
+        self._fobj.write(json.dumps(text, ensure_ascii=False) + '\n')
+
+    def close(self):
+        self._fobj.close()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *a):
+        self.close()
+
+
+class _PlainTextWriter:
+    """Wraps a writable file object to warn on embedded newlines.
+
+    Writing text with embedded newlines to a non-JSONL file inflates
+    line-based counts, which can cause misalignment in downstream
+    steps that rely on ``wc -l`` or equivalent.  A warning is issued
+    once per file when the first embedded newline is detected.
+    """
+
+    def __init__(self, fobj, filename):
+        self._fobj = fobj
+        self._filename = filename
+        self._newline_warned = False
+
+    def write(self, text):
+        if not self._newline_warned:
+            content = text[:-1] if text.endswith('\n') else text
+            if '\n' in content:
+                logger.warning(
+                    "Text written to %s contains embedded newlines. "
+                    "This inflates line-based counts and may cause "
+                    "misalignment in downstream steps. Use a .jsonl "
+                    "file to preserve multi-line segments.",
+                    self._filename)
+                self._newline_warned = True
+        self._fobj.write(text)
+
+    def flush(self):
+        self._fobj.flush()
+
+    def close(self):
+        self._fobj.close()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *a):
+        self.close()
+
+
+def _strip_compression_suffix(filename):
+    """Remove a recognised compression suffix from *filename*."""
+    for ext in ('.gz', '.bz2', '.xz'):
+        if filename.endswith(ext):
+            return filename[:-len(ext)]
+    return filename
+
+
+def text_file_open(filename, mode='r', encoding='utf8'):
+    """Open a text file with transparent JSONL support.
+
+    When *filename* ends with ``.jsonl`` (possibly followed by a
+    compression suffix such as ``.gz``, ``.bz2`` or ``.xz``):
+
+    * ``'r'`` — each ``readline()`` / iteration returns the
+      deserialised text (``json.dumps(text)`` or ``{"text": text}``
+      are both accepted).
+    * ``'w'`` / ``'a'`` / ``'x'`` — each ``write(text)`` serialises
+      *text* via ``json.dumps`` and writes one JSON line.
+
+    For any other extension the behaviour is identical to
+    :func:`file_open`.
+    """
+    is_jsonl = _strip_compression_suffix(filename).endswith('.jsonl')
+    fobj = file_open(filename, mode=mode, encoding=encoding)
+    if not is_jsonl:
+        if 'w' in mode or 'a' in mode or 'x' in mode:
+            return _PlainTextWriter(fobj, filename)
+        return fobj
+    if 'r' in mode:
+        return _JsonlTextReader(fobj)
+    if 'w' in mode or 'a' in mode or 'x' in mode:
+        return _JsonlTextWriter(fobj)
+    return fobj
+
+
 def is_file_empty(filename):
     """Return whether compressed or plain file is empty"""
     with file_open(filename) as fobj:
