@@ -70,6 +70,15 @@ The corpus files processed by OpusFilter are UTF-8 text files that
 contain one segment per line. Compressed files are read and written if
 the file ends with `.gz` (gzip) or `.bz2` (bzip2).
 
+Segments that contain embedded newlines (common in web-crawled data)
+can be handled safely using **JSONL** format (file extension `.jsonl`,
+optionally with a compression suffix like `.jsonl.gz`).
+When a file has the `.jsonl` extension, OpusFilter automatically
+encodes each segment as a single JSON-encoded line, so embedded
+newlines do not inflate line counts. All file operations (`read`,
+`write`, `filter`, `split`, `concatenate`, etc.) support JSONL files
+transparently.
+
 A bit more complex example that downloads both ParaCrawl and WMT-News
 sets from OPUS, concatenates the output files, and filters them so
 that only the segment pairs for which both languages have segment

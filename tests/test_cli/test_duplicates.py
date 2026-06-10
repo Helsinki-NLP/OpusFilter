@@ -19,7 +19,7 @@ class TestDuplicatesCLI(unittest.TestCase):
             duplicates_main(['--help'])
         self.assertEqual(cm.exception.code, 0)
 
-    @patch('opusfilter.cli.duplicates.file_open')
+    @patch('opusfilter.util.file_open')
     def test_duplicates_with_duplicates(self, mock_open):
         """Test duplicate detection with actual duplicates."""
         # Mock files with duplicate segments
@@ -32,7 +32,7 @@ class TestDuplicatesCLI(unittest.TestCase):
         # Check that three files were opened
         self.assertEqual(mock_open.call_count, 3)
 
-    @patch('opusfilter.cli.duplicates.file_open')
+    @patch('opusfilter.util.file_open')
     def test_overlap_statistics(self, mock_open):
         # Setup mock files for first set
         mock_file1 = io.StringIO('segment1\nsegment2\n')

@@ -8,7 +8,7 @@ import sys
 from tqdm import tqdm
 
 from opusfilter.segment_hash import SegmentHasher
-from opusfilter.util import file_open
+from opusfilter.util import file_open, text_file_open
 
 
 def main(args=None):
@@ -53,7 +53,7 @@ def main(args=None):
 
     total = 0
     counter = collections.Counter()
-    infs = [file_open(infile) for infile in args.files]
+    infs = [text_file_open(infile) for infile in args.files]
     for lines in tqdm(zip(*infs)):
         total += 1
         key = hasher.apply(lines)
@@ -63,7 +63,7 @@ def main(args=None):
         total2 = 0
         overlap = 0
         overlap_counter = collections.Counter()
-        infs = [file_open(infile) for infile in args.overlap]
+        infs = [text_file_open(infile) for infile in args.overlap]
         for lines in tqdm(zip(*infs)):
             total2 += 1
             key = hasher.apply(lines)

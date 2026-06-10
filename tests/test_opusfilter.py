@@ -1445,6 +1445,399 @@ def _mock_parallel_func(obj, parameters, overwrite=False):
         shutil.copyfile(input_, output)
 
 
+class TestHFRead(unittest.TestCase):
+
+    def setUp(self):
+        self.tempdir = tempfile.mkdtemp()
+        self.opus_filter = OpusFilter(
+            {'common': {'output_directory': self.tempdir}, 'steps': []})
+        # Mock the datasets module so tests work without the library installed
+        self.mock_load = mock.MagicMock()
+        self.mock_datasets = mock.MagicMock()
+        self.mock_datasets.load_dataset = self.mock_load
+        self.mock_datasets.__version__ = '2.14.0'
+        self.patcher = mock.patch.dict(
+            'sys.modules', {'datasets': self.mock_datasets})
+        self.patcher.start()
+        # Mock subprocess isolation so tests run in-process (needed for
+        # the datasets mock to be visible to the worker code).
+        self._mock_process()
+        # Mock os._exit so it doesn't kill the test runner
+        self.exit_patcher = mock.patch('os._exit')
+        self.exit_patcher.start()
+
+    def _mock_process(self):
+        class FakeProcess:
+            exitcode = 0
+            def __init__(self, target, args):
+                self._target = target
+                self._args = args
+            def start(self):
+                self._target(*self._args)
+            def join(self):
+                pass
+        self.mp_patcher = mock.patch(
+            'multiprocessing.get_context',
+            return_value=mock.MagicMock(Process=FakeProcess))
+        self.mp_patcher.start()
+
+    def tearDown(self):
+        shutil.rmtree(self.tempdir)
+        self.exit_patcher.stop()
+        self.patcher.stop()
+        self.mp_patcher.stop()
+
+    def test_read_simple_fields(self):
+        self.mock_load.return_value = [
+            {'src': 'Hello world', 'tgt': 'Hei maailma'},
+            {'src': 'Good morning', 'tgt': 'Hyvää huomenta'},
+        ]
+        parameters = {
+            'dataset': 'test-dataset',
+            'src_output': 'sents.src',
+            'tgt_output': 'sents.tgt',
+        }
+        self.opus_filter.read_from_hf(parameters)
+        with open(os.path.join(self.tempdir, 'sents.src')) as f:
+            self.assertEqual(f.read(), 'Hello world\nGood morning\n')
+        with open(os.path.join(self.tempdir, 'sents.tgt')) as f:
+            self.assertEqual(f.read(), 'Hei maailma\nHyvää huomenta\n')
+
+    def test_read_translation_column(self):
+        self.mock_load.return_value = [
+            {'translation': {'en': 'Hello world', 'fr': 'Bonjour le monde'}},
+            {'translation': {'en': 'Good morning', 'fr': 'Bonjour'}},
+        ]
+        parameters = {
+            'dataset': 'test-dataset',
+            'src_lang': 'en',
+            'tgt_lang': 'fr',
+            'src_output': 'sents.en',
+            'tgt_output': 'sents.fr',
+        }
+        self.opus_filter.read_from_hf(parameters)
+        with open(os.path.join(self.tempdir, 'sents.en')) as f:
+            self.assertEqual(f.read(), 'Hello world\nGood morning\n')
+        with open(os.path.join(self.tempdir, 'sents.fr')) as f:
+            self.assertEqual(f.read(), 'Bonjour le monde\nBonjour\n')
+
+    def test_read_max_rows(self):
+        self.mock_load.return_value = [
+            {'src': f'Source {i}', 'tgt': f'Target {i}'} for i in range(100)
+        ]
+        parameters = {
+            'dataset': 'test-dataset',
+            'src_output': 'sents.src',
+            'tgt_output': 'sents.tgt',
+            'max_rows': 3,
+        }
+        self.opus_filter.read_from_hf(parameters)
+        with open(os.path.join(self.tempdir, 'sents.src')) as f:
+            self.assertEqual(f.read(), 'Source 0\nSource 1\nSource 2\n')
+        with open(os.path.join(self.tempdir, 'sents.tgt')) as f:
+            self.assertEqual(f.read(), 'Target 0\nTarget 1\nTarget 2\n')
+
+    def test_read_overwrite(self):
+        self.mock_load.return_value = [
+            {'src': 'Hello', 'tgt': 'Hei'},
+        ]
+        parameters = {
+            'dataset': 'test-dataset',
+            'src_output': 'sents.src',
+            'tgt_output': 'sents.tgt',
+        }
+        self.opus_filter.read_from_hf(parameters)
+        # Second read with overwrite=False should skip
+        self.mock_load.return_value = [
+            {'src': 'New', 'tgt': 'Uusi'},
+        ]
+        self.opus_filter.read_from_hf(parameters)
+        with open(os.path.join(self.tempdir, 'sents.src')) as f:
+            self.assertEqual(f.read(), 'Hello\n')
+        # With overwrite=True
+        self.opus_filter.read_from_hf(parameters, overwrite=True)
+        with open(os.path.join(self.tempdir, 'sents.src')) as f:
+            self.assertEqual(f.read(), 'New\n')
+
+    def test_read_custom_fields(self):
+        self.mock_load.return_value = [
+            {'source_text': 'Hello', 'target_text': 'Hei'},
+        ]
+        parameters = {
+            'dataset': 'test-dataset',
+            'src_field': 'source_text',
+            'tgt_field': 'target_text',
+            'src_output': 'sents.src',
+            'tgt_output': 'sents.tgt',
+        }
+        self.opus_filter.read_from_hf(parameters)
+        with open(os.path.join(self.tempdir, 'sents.src')) as f:
+            self.assertEqual(f.read(), 'Hello\n')
+        with open(os.path.join(self.tempdir, 'sents.tgt')) as f:
+            self.assertEqual(f.read(), 'Hei\n')
+
+    def test_read_config_and_split(self):
+        self.mock_load.return_value = [
+            {'src': 'Hello', 'tgt': 'Hei'},
+        ]
+        parameters = {
+            'dataset': 'test-dataset',
+            'config': 'en-fi',
+            'split': 'test',
+            'src_output': 'sents.src',
+            'tgt_output': 'sents.tgt',
+        }
+        self.opus_filter.read_from_hf(parameters)
+        self.mock_load.assert_called_with(
+            'test-dataset', 'en-fi', split='test', streaming=True)
+        with open(os.path.join(self.tempdir, 'sents.src')) as f:
+            self.assertEqual(f.read(), 'Hello\n')
+
+    def test_read_cross_config_merge_join(self):
+        self.mock_load.side_effect = [
+            [{'text': 'Hello world', 'id': '1'},
+             {'text': 'Good morning', 'id': '2'},
+             {'text': 'How are you', 'id': '3'}],
+            [{'text': 'Hei maailma', 'id': '1'},
+             {'text': 'Hyvää huomenta', 'id': '2'},
+             {'text': 'Mitä kuuluu', 'id': '3'}],
+        ]
+        parameters = {
+            'dataset': 'Helsinki-NLP/nemotron-cc-translated',
+            'src_config': 'eng',
+            'tgt_config': 'bos',
+            'src_field': 'text',
+            'tgt_field': 'text',
+            'id_field': 'id',
+            'src_output': 'sents.en',
+            'tgt_output': 'sents.bs',
+        }
+        self.opus_filter.read_from_hf(parameters)
+        with open(os.path.join(self.tempdir, 'sents.en')) as f:
+            self.assertEqual(f.read(), 'Hello world\nGood morning\nHow are you\n')
+        with open(os.path.join(self.tempdir, 'sents.bs')) as f:
+            self.assertEqual(f.read(), 'Hei maailma\nHyvää huomenta\nMitä kuuluu\n')
+
+    def test_read_cross_config_skip_unmatched(self):
+        self.mock_load.side_effect = [
+            [{'text': 'Hello', 'id': '1'},
+             {'text': 'World', 'id': '3'},
+             {'text': 'Extra src', 'id': '5'}],
+            [{'text': 'Hei', 'id': '1'},
+             {'text': 'Maailma', 'id': '3'},
+             {'text': 'Extra tgt', 'id': '4'}],
+        ]
+        parameters = {
+            'dataset': 'test',
+            'src_config': 'eng',
+            'tgt_config': 'bos',
+            'src_field': 'text',
+            'tgt_field': 'text',
+            'id_field': 'id',
+            'src_output': 'sents.src',
+            'tgt_output': 'sents.tgt',
+        }
+        self.opus_filter.read_from_hf(parameters)
+        with open(os.path.join(self.tempdir, 'sents.src')) as f:
+            self.assertEqual(f.read(), 'Hello\nWorld\n')
+        with open(os.path.join(self.tempdir, 'sents.tgt')) as f:
+            self.assertEqual(f.read(), 'Hei\nMaailma\n')
+
+    def test_read_cross_config_max_rows(self):
+        data_a = [{'text': f'Src {i}', 'id': str(i)} for i in range(10)]
+        data_b = [{'text': f'Tgt {i}', 'id': str(i)} for i in range(10)]
+        self.mock_load.side_effect = [data_a, data_b]
+        parameters = {
+            'dataset': 'test',
+            'src_config': 'a',
+            'tgt_config': 'b',
+            'src_field': 'text',
+            'tgt_field': 'text',
+            'id_field': 'id',
+            'src_output': 'sents.src',
+            'tgt_output': 'sents.tgt',
+            'max_rows': 3,
+        }
+        self.opus_filter.read_from_hf(parameters)
+        with open(os.path.join(self.tempdir, 'sents.src')) as f:
+            self.assertEqual(f.read(), 'Src 0\nSrc 1\nSrc 2\n')
+        with open(os.path.join(self.tempdir, 'sents.tgt')) as f:
+            self.assertEqual(f.read(), 'Tgt 0\nTgt 1\nTgt 2\n')
+
+    def test_read_cross_config_uneven_counts(self):
+        self.mock_load.side_effect = [
+            [{'text': 'A', 'id': '1'},
+             {'text': 'B', 'id': '2'},
+             {'text': 'C', 'id': '3'},
+             {'text': 'D', 'id': '4'}],
+            [{'text': 'X', 'id': '1'},
+             {'text': 'Z', 'id': '3'}],
+        ]
+        parameters = {
+            'dataset': 'test',
+            'src_config': 'eng',
+            'tgt_config': 'bos',
+            'src_field': 'text',
+            'tgt_field': 'text',
+            'id_field': 'id',
+            'src_output': 'sents.src',
+            'tgt_output': 'sents.tgt',
+        }
+        self.opus_filter.read_from_hf(parameters)
+        with open(os.path.join(self.tempdir, 'sents.src')) as f:
+            self.assertEqual(f.read(), 'A\nC\n')
+        with open(os.path.join(self.tempdir, 'sents.tgt')) as f:
+            self.assertEqual(f.read(), 'X\nZ\n')
+
+    def test_read_file_exists_skip(self):
+        # Create output files first
+        with open(os.path.join(self.tempdir, 'sents.src'), 'w') as f:
+            f.write('Old\n')
+        with open(os.path.join(self.tempdir, 'sents.tgt'), 'w') as f:
+            f.write('Vanha\n')
+        parameters = {
+            'dataset': 'test-dataset',
+            'src_output': 'sents.src',
+            'tgt_output': 'sents.tgt',
+        }
+        # Should skip without overwrite
+        self.opus_filter.read_from_hf(parameters)
+        self.mock_load.assert_not_called()
+        # With overwrite should proceed
+        self.mock_load.return_value = [{'src': 'New', 'tgt': 'Uusi'}]
+        self.opus_filter.read_from_hf(parameters, overwrite=True)
+        self.mock_load.assert_called()
+
+    def test_read_newline_replacement(self):
+        self.mock_load.return_value = [
+            {'src': 'Hello\nworld', 'tgt': 'Hei\nmaailma'},
+            {'src': 'Line1\nLine2\nLine3', 'tgt': 'Rivi1\nRivi2\nRivi3'},
+        ]
+        parameters = {
+            'dataset': 'test-dataset',
+            'src_output': 'sents.src',
+            'tgt_output': 'sents.tgt',
+        }
+        self.opus_filter.read_from_hf(parameters)
+        with open(os.path.join(self.tempdir, 'sents.src')) as f:
+            lines = f.read().splitlines()
+            self.assertEqual(len(lines), 2)
+            self.assertNotIn('\n', lines[0])
+            self.assertNotIn('\n', lines[1])
+        with open(os.path.join(self.tempdir, 'sents.tgt')) as f:
+            lines = f.read().splitlines()
+            self.assertEqual(len(lines), 2)
+            self.assertNotIn('\n', lines[0])
+
+    def test_read_newline_replacement_custom(self):
+        self.mock_load.return_value = [
+            {'src': 'Hello\nworld', 'tgt': 'Hei\nmaailma'},
+        ]
+        parameters = {
+            'dataset': 'test-dataset',
+            'src_output': 'sents.src',
+            'tgt_output': 'sents.tgt',
+            'newline_replacement': ' <br> ',
+        }
+        self.opus_filter.read_from_hf(parameters)
+        with open(os.path.join(self.tempdir, 'sents.src')) as f:
+            self.assertEqual(f.read(), 'Hello <br> world\n')
+        with open(os.path.join(self.tempdir, 'sents.tgt')) as f:
+            self.assertEqual(f.read(), 'Hei <br> maailma\n')
+
+    def test_read_jsonl_output(self):
+        self.mock_load.return_value = [
+            {'src': 'Hello\nworld', 'tgt': 'Hei\nmaailma'},
+            {'src': 'Good\nmorning', 'tgt': 'Hyvää\nhuomenta'},
+        ]
+        parameters = {
+            'dataset': 'test-dataset',
+            'src_output': 'sents.src.jsonl',
+            'tgt_output': 'sents.tgt.jsonl',
+        }
+        self.opus_filter.read_from_hf(parameters)
+        import json
+        with open(os.path.join(self.tempdir, 'sents.src.jsonl')) as f:
+            records = [json.loads(line) for line in f]
+        self.assertEqual(len(records), 2)
+        self.assertEqual(records[0], 'Hello\nworld')
+        self.assertEqual(records[1], 'Good\nmorning')
+        with open(os.path.join(self.tempdir, 'sents.tgt.jsonl')) as f:
+            records = [json.loads(line) for line in f]
+        self.assertEqual(len(records), 2)
+        self.assertEqual(records[0], 'Hei\nmaailma')
+
+
+class TestPairGenerator(unittest.TestCase):
+    """Tests for OpusFilter.pair_generator"""
+
+    def test_plain_text_files(self):
+        import tempfile
+        tmpdir = tempfile.mkdtemp()
+        try:
+            src = os.path.join(tmpdir, 'src.txt')
+            tgt = os.path.join(tmpdir, 'tgt.txt')
+            with open(src, 'w') as f:
+                f.write('Hello\nGood\n')
+            with open(tgt, 'w') as f:
+                f.write('Hei\nHyvä\n')
+            pairs = list(OpusFilter.pair_generator(src, tgt))
+            self.assertEqual(pairs, [('Hello', 'Hei'), ('Good', 'Hyvä')])
+        finally:
+            import shutil
+            shutil.rmtree(tmpdir)
+
+    def test_jsonl_files(self):
+        import tempfile
+        tmpdir = tempfile.mkdtemp()
+        try:
+            src = os.path.join(tmpdir, 'src.jsonl')
+            tgt = os.path.join(tmpdir, 'tgt.jsonl')
+            with open(src, 'w') as f:
+                f.write('"Hello"\n"Good"\n')
+            with open(tgt, 'w') as f:
+                f.write('"Hei"\n"Hyvä"\n')
+            pairs = list(OpusFilter.pair_generator(src, tgt))
+            self.assertEqual(pairs, [('Hello', 'Hei'), ('Good', 'Hyvä')])
+        finally:
+            import shutil
+            shutil.rmtree(tmpdir)
+
+    def test_jsonl_with_embedded_newlines(self):
+        import tempfile
+        tmpdir = tempfile.mkdtemp()
+        try:
+            src = os.path.join(tmpdir, 'src.jsonl')
+            tgt = os.path.join(tmpdir, 'tgt.jsonl')
+            with open(src, 'w') as f:
+                f.write('"Hello\\nworld"\n"Good\\nmorning"\n')
+            with open(tgt, 'w') as f:
+                f.write('"Hei\\nmaailma"\n"Hyvää\\nhuomenta"\n')
+            pairs = list(OpusFilter.pair_generator(src, tgt))
+            self.assertEqual(len(pairs), 2)
+            self.assertEqual(pairs[0][0], 'Hello\nworld')
+            self.assertEqual(pairs[0][1], 'Hei\nmaailma')
+        finally:
+            import shutil
+            shutil.rmtree(tmpdir)
+
+    def test_jsonl_object_format_fallback(self):
+        import tempfile
+        tmpdir = tempfile.mkdtemp()
+        try:
+            src = os.path.join(tmpdir, 'src.jsonl')
+            tgt = os.path.join(tmpdir, 'tgt.jsonl')
+            with open(src, 'w') as f:
+                f.write('{"text": "Hello"}\n')
+            with open(tgt, 'w') as f:
+                f.write('{"text": "Hei"}\n')
+            pairs = list(OpusFilter.pair_generator(src, tgt))
+            self.assertEqual(pairs, [('Hello', 'Hei')])
+        finally:
+            import shutil
+            shutil.rmtree(tmpdir)
+
+
 class TestParallelWrapper(unittest.TestCase):
     def setUp(self):
         self.parameters = [

@@ -25,7 +25,7 @@ from . import subwords
 from . import segment_hash
 from . import tokenization
 from . import word_alignment
-from .util import file_open, file_download, Var, VarStr, count_lines
+from .util import file_open, text_file_open, file_download, Var, VarStr, count_lines
 
 
 logger = logging.getLogger(__name__)
@@ -110,7 +110,7 @@ class ParallelWrapper:
         chunk_size = int(math.ceil(count_lines(infiles[0]) / n_jobs))
         in_chunked_files = []
         out_chunked_files = []
-        infileobjs = [file_open(infile) for infile in infiles]
+        infileobjs = [text_file_open(infile) for infile in infiles]
         for i, lines in enumerate(zip(*infileobjs)):
             if i % chunk_size == 0:
                 intmpfiles = [tempfile.mkstemp(dir=os.path.dirname(infile),
@@ -129,7 +129,7 @@ class ParallelWrapper:
     def merge(in_chunked_files, outfiles, out_chunked_files, limit):
         """merge temporary files into final files and delete temporary files"""
         for outfile, parts in zip(outfiles, zip(*out_chunked_files)):
-            with file_open(outfile, 'w') as out:
+            with text_file_open(outfile, 'w') as out:
                 finput = chain.from_iterable(file_open(part) for part in parts)
                 for i, line in enumerate(finput):
                     out.write(line)
@@ -203,6 +203,7 @@ class OpusFilter:
         self.default_n_jobs = configuration.get('common', {}).get('default_n_jobs', 1)
         self.step_functions = {
             'opus_read': self.read_from_opus,
+            'hf_read': self.read_from_hf,
             'filter': self.filter_data,
             'concatenate': self.concatenate,
             'subset': self.get_subset,
@@ -356,13 +357,190 @@ class OpusFilter:
                     os.unlink(outfile)
             raise err
 
+    def read_from_hf(self, parameters, overwrite=False):
+        """Download and read a corpus from Hugging Face Datasets
+
+        Reads sentence pairs from a Hugging Face dataset and writes
+        source and target sentences to separate output files.
+
+        Two modes are supported:
+
+        **Single-config mode** (default):
+        Source and target within one config, accessed via:
+        - Direct columns: ``src_field`` / ``tgt_field`` (default ``'src'`` / ``'tgt'``)
+        - ``translation`` column: ``src_lang`` / ``tgt_lang`` extract texts
+          from language-keyed dicts.
+
+        **Cross-config mode** (for datasets like
+        ``Helsinki-NLP/nemotron-cc-translated`` where each config holds one
+        language and records are linked by an ID field):
+        Use ``src_config`` and ``tgt_config`` to specify the two configs.
+        ``id_field`` (required) names the column containing the record ID.
+        Rows are matched by ID via a streaming merge-join (O(1) memory,
+        assumes both configs are sorted by the ID field).
+
+        """
+        self._check_extra_parameters(
+            {'dataset', 'config', 'src_config', 'tgt_config', 'id_field',
+             'split', 'src_field', 'tgt_field', 'src_lang', 'tgt_lang',
+             'src_output', 'tgt_output', 'max_rows', 'newline_replacement'},
+            parameters)
+        src_out = os.path.join(self.output_dir, parameters['src_output'])
+        tgt_out = os.path.join(self.output_dir, parameters['tgt_output'])
+        if not overwrite and os.path.isfile(src_out) and os.path.isfile(tgt_out):
+            logger.info("Output files exists, skipping step")
+            return
+        # Run in a subprocess to isolate datasets' background threads
+        # which otherwise cause a GIL crash at shutdown.
+        import multiprocessing as mp
+        ctx = mp.get_context('spawn')
+        proc = ctx.Process(
+            target=OpusFilter._hf_read_worker,
+            args=(parameters, self.output_dir))
+        proc.start()
+        proc.join()
+        if proc.exitcode != 0:
+            raise OpusFilterRuntimeError(
+                f"hf_read subprocess failed with exit code {proc.exitcode}")
+
+    @staticmethod
+    def _hf_read_worker(parameters, output_dir):
+        """Run hf_read in a subprocess (isolates datasets threads).
+
+        After writing is complete, the process is terminated immediately
+        via ``os._exit(0)`` to skip Python's module shutdown sequence,
+        which would otherwise crash on C-level threads spawned by
+        pyarrow / ``datasets``.
+        """
+        src_field = parameters.get('src_field', 'src')
+        tgt_field = parameters.get('tgt_field', 'tgt')
+        src_lang = parameters.get('src_lang')
+        tgt_lang = parameters.get('tgt_lang')
+        max_rows = parameters.get('max_rows')
+        split = parameters.get('split', 'train')
+        newline_replacement = parameters.get('newline_replacement', ' ')
+        src_out = os.path.join(output_dir, parameters['src_output'])
+        tgt_out = os.path.join(output_dir, parameters['tgt_output'])
+        if src_out.endswith('.jsonl') or tgt_out.endswith('.jsonl'):
+            newline_replacement = None
+        src_config = parameters.get('src_config')
+        tgt_config = parameters.get('tgt_config')
+        with text_file_open(src_out, 'w') as src_f:
+            with text_file_open(tgt_out, 'w') as tgt_f:
+                if src_config and tgt_config:
+                    OpusFilter._read_hf_cross_config(
+                        parameters['dataset'], src_config, tgt_config,
+                        src_field, tgt_field, split, max_rows,
+                        parameters['id_field'], src_f, tgt_f,
+                        newline_replacement)
+                else:
+                    OpusFilter._read_hf_single_config(
+                        parameters['dataset'], parameters.get('config'),
+                        src_field, tgt_field, src_lang, tgt_lang,
+                        split, max_rows, src_f, tgt_f,
+                        newline_replacement)
+        os._exit(0)
+
+    @staticmethod
+    def _read_hf_single_config(dataset_name, config, src_field, tgt_field,
+                                src_lang, tgt_lang, split, max_rows,
+                                src_f, tgt_f, newline_replacement=' '):
+        """Read pairs from a single Hugging Face dataset config"""
+        from datasets import load_dataset
+        dataset = load_dataset(
+            dataset_name, config, split=split, streaming=True)
+        for idx, example in enumerate(dataset):
+            if max_rows and idx >= max_rows:
+                break
+            if src_lang and tgt_lang and 'translation' in example and isinstance(
+                    example['translation'], dict):
+                src_text = example['translation'][src_lang]
+                tgt_text = example['translation'][tgt_lang]
+            else:
+                src_text = example[src_field]
+                tgt_text = example[tgt_field]
+            src_text = src_text.rstrip()
+            tgt_text = tgt_text.rstrip()
+            if newline_replacement is not None:
+                src_text = src_text.replace('\n', newline_replacement)
+                tgt_text = tgt_text.replace('\n', newline_replacement)
+            src_f.write(src_text + '\n')
+            tgt_f.write(tgt_text + '\n')
+
+    @staticmethod
+    def _read_hf_cross_config(dataset_name, src_config, tgt_config,
+                               src_field, tgt_field, split, max_rows,
+                               id_field, src_f, tgt_f,
+                               newline_replacement=' '):
+        """Join two configs by ID using a streaming merge-join.
+
+        Both configs must be sorted by *id_field*.  Records whose ID
+        appears in only one side are silently skipped.
+        """
+        from datasets import load_dataset
+        src_dataset = load_dataset(
+            dataset_name, src_config, split=split, streaming=True)
+        tgt_dataset = load_dataset(
+            dataset_name, tgt_config, split=split, streaming=True)
+        src_it = iter(src_dataset)
+        tgt_it = iter(tgt_dataset)
+        paired = 0
+        src_only = 0
+        tgt_only = 0
+        try:
+            src_ex = next(src_it)
+            tgt_ex = next(tgt_it)
+        except StopIteration:
+            return
+        while True:
+            if max_rows and paired >= max_rows:
+                break
+            src_id = src_ex[id_field]
+            tgt_id = tgt_ex[id_field]
+            if src_id == tgt_id:
+                src_text = src_ex[src_field].rstrip()
+                tgt_text = tgt_ex[tgt_field].rstrip()
+                if newline_replacement is not None:
+                    src_text = src_text.replace('\n', newline_replacement)
+                    tgt_text = tgt_text.replace('\n', newline_replacement)
+                src_f.write(src_text + '\n')
+                tgt_f.write(tgt_text + '\n')
+                paired += 1
+                try:
+                    src_ex = next(src_it)
+                    tgt_ex = next(tgt_it)
+                except StopIteration:
+                    break
+            elif src_id < tgt_id:
+                src_only += 1
+                try:
+                    src_ex = next(src_it)
+                except StopIteration:
+                    break
+            else:
+                tgt_only += 1
+                try:
+                    tgt_ex = next(tgt_it)
+                except StopIteration:
+                    break
+        if src_only:
+            logger.info("Skipped %d source-only rows (no ID match in target)",
+                        src_only)
+        if tgt_only:
+            logger.info("Skipped %d target-only rows (no ID match in source)",
+                        tgt_only)
+
     @staticmethod
     def pair_generator(*filenames, tokenizers=None):
-        """Yield and optionally tokenize sentence pairs from given files"""
+        """Yield and optionally tokenize sentence pairs from given files
+
+        Files ending with ``.jsonl`` are parsed transparently via
+        :func:`text_file_open`.
+        """
         if tokenizers is None:
             tokenizers = [None] * len(filenames)
         tokenize_funcs = [tokenization.get_tokenize(tokenizer) for tokenizer in tokenizers]
-        files = [file_open(fname) for fname in filenames]
+        files = [text_file_open(fname) for fname in filenames]
         lines = [f.readline() for f in files]
         while all(lines):
             yield tuple(tokenize(line.rstrip()) for tokenize, line in zip(tokenize_funcs, lines))
@@ -395,7 +573,7 @@ class OpusFilter:
         else:
             pairs = filter_pipe.filter(tqdm(pairs_gen))
         limit = parameters.get('limit')
-        outfileobjs = [file_open(fname, 'w') for fname in outfiles]
+        outfileobjs = [text_file_open(fname, 'w') for fname in outfiles]
         for idx, pair in enumerate(pairs):
             for item, fobj in zip(pair, outfileobjs):
                 fobj.write(item+'\n')
@@ -411,10 +589,10 @@ class OpusFilter:
         if not overwrite and os.path.isfile(outfile):
             logger.info("Output file exists, skipping step")
             return
-        with file_open(outfile, 'w') as outf:
+        with text_file_open(outfile, 'w') as outf:
             for infile in parameters['inputs']:
                 logger.info("opening %s", os.path.join(self.output_dir, infile))
-                with file_open(os.path.join(self.output_dir, infile)) as inf:
+                with text_file_open(os.path.join(self.output_dir, infile)) as inf:
                     for line in inf:
                         outf.write(line.rstrip() + '\n')
 
@@ -466,26 +644,26 @@ class OpusFilter:
         if total < size:
             logger.warning("Number of lines (%s) is smaller than requested size (%s)", total, size)
             for infname, outfname in zip(infiles, outfiles):
-                with file_open(infname) as inf, file_open(outfname, 'w') as outf:
+                with text_file_open(infname) as inf, text_file_open(outfname, 'w') as outf:
                     for line in inf:
                         outf.write(line)
         elif shuffle_subset:
             sample = random.sample(range(total), size)
-            with file_open(infiles[0]) as inf, file_open(outfiles[0], 'w') as outf:
+            with text_file_open(infiles[0]) as inf, text_file_open(outfiles[0], 'w') as outf:
                 for line in self._yield_subset(inf, sample):
                     outf.write(line)
             for infname, outfname in zip(infiles[1:], outfiles[1:]):
-                with file_open(infname) as inf:
+                with text_file_open(infname) as inf:
                     lines = list(self._yield_subset(inf, sample))
                 random.shuffle(lines)
-                with file_open(outfname, 'w') as outf:
+                with text_file_open(outfname, 'w') as outf:
                     for line in lines:
                         outf.write(line)
         else:
             sample = random.sample(range(total), size)
             for infname, outfname in zip(infiles, outfiles):
-                with file_open(infname) as inf, \
-                     file_open(outfname, 'w') as outf:
+                with text_file_open(infname) as inf, \
+                     text_file_open(outfname, 'w') as outf:
                     for line in self._yield_subset(inf, sample):
                         outf.write(line)
 
@@ -715,9 +893,9 @@ class OpusFilter:
                 order.reverse()
         for infile, outfile in zip(infiles, outfiles):
             logger.info("Sorting file %s", infile)
-            with file_open(infile, 'r') as fobj:
+            with text_file_open(infile, 'r') as fobj:
                 lines = [line.rstrip() for line in tqdm(fobj)]
-            with file_open(outfile, 'w') as fobj:
+            with text_file_open(outfile, 'w') as fobj:
                 for idx in tqdm(order):
                     fobj.write(lines[idx] + '\n')
 
@@ -768,7 +946,7 @@ class OpusFilter:
         step = parameters.get('step', 1)
         for infile, outfile in zip(infiles, outfiles):
             logger.info("Processing file %s", infile)
-            with file_open(infile, 'r') as inf, file_open(outfile, 'w') as outf:
+            with text_file_open(infile, 'r') as inf, text_file_open(outfile, 'w') as outf:
                 for line in tqdm(itertools.islice(inf, start, stop, step)):
                     outf.write(line)
 
@@ -785,7 +963,7 @@ class OpusFilter:
         num = parameters['n']
         for infile, outfile in zip(infiles, outfiles):
             logger.info("Processing file %s", infile)
-            with file_open(infile, 'r') as inf, file_open(outfile, 'w') as outf:
+            with text_file_open(infile, 'r') as inf, text_file_open(outfile, 'w') as outf:
                 for line in tqdm(itertools.islice(inf, num)):
                     outf.write(line)
 
@@ -802,7 +980,7 @@ class OpusFilter:
         num = parameters['n']
         for infile, outfile in zip(infiles, outfiles):
             logger.info("Processing file %s", infile)
-            with file_open(infile, 'r') as inf, file_open(outfile, 'w') as outf:
+            with text_file_open(infile, 'r') as inf, text_file_open(outfile, 'w') as outf:
                 tmp = []
                 for line in tqdm(inf):
                     tmp.append(line)
@@ -814,7 +992,7 @@ class OpusFilter:
     @classmethod
     def _multipair_gen(cls, lists_of_files):
         """Generator for lines in lists of parallel files"""
-        infs = [[file_open(infile) for infile in infiles] for infiles in lists_of_files]
+        infs = [[text_file_open(infile) for infile in infiles] for infiles in lists_of_files]
         lines = [[fobj.readline() for fobj in flist] for flist in infs]
         while all(line for linelist in lines for line in linelist):
             yield lines
@@ -842,7 +1020,7 @@ class OpusFilter:
         skip_duplicates = parameters.get('skip_duplicates', True)
         sample_k = parameters.get('k', None)
         random.seed(parameters.get('seed', None))
-        outfs = [file_open(outfile, 'w') for outfile in outfiles]
+        outfs = [text_file_open(outfile, 'w') for outfile in outfiles]
         for lines in tqdm(self._multipair_gen(infilelists)):
             if skip_empty:
                 lines = [
@@ -885,9 +1063,9 @@ class OpusFilter:
             method=parameters.get('hash', 'xxh64'),
             hashseed=parameters.get('seed', 0)
         )
-        infs = [file_open(fname) for fname in infiles]
-        outfs = [file_open(fname, 'w') for fname in outfiles]
-        outfs_2 = [file_open(fname, 'w') for fname in outfiles_2]
+        infs = [text_file_open(fname) for fname in infiles]
+        outfs = [text_file_open(fname, 'w') for fname in outfiles]
+        outfs_2 = [text_file_open(fname, 'w') for fname in outfiles_2]
         hits = 0
         total = 0
         for lines in tqdm(zip(*infs)):
@@ -907,7 +1085,7 @@ class OpusFilter:
     @classmethod
     def _hash_counter(cls, files, hasher):
         """Collect hash values from segment pairs in files"""
-        infs = [file_open(infile) for infile in files]
+        infs = [text_file_open(infile) for infile in files]
         counter = collections.Counter(hasher.apply(lines) for lines in tqdm(zip(*infs)))
         cls._close_files(*infs)
         return counter
@@ -933,8 +1111,8 @@ class OpusFilter:
             lowercase=parameters.get('lowercase', False),
             tokenizers=parameters.get('tokenizers')
         )
-        infs = [file_open(infile) for infile in infiles]
-        outfs = [file_open(outfile, 'w') for outfile in outfiles]
+        infs = [text_file_open(infile) for infile in infiles]
+        outfs = [text_file_open(outfile, 'w') for outfile in outfiles]
         overlap = parameters.get('overlap', None)
         if overlap:
             overlap_counter = self._hash_counter(overlap, hasher)
@@ -981,8 +1159,8 @@ class OpusFilter:
             if not all(isinstance(col, int) and col >= 0 for col in columns):
                 raise ConfigurationError("All column indices must be non-negative integers")
 
-        outfs = [file_open(outfile, 'w') for outfile in outfiles]
-        with file_open(infile, 'r') as inf:
+        outfs = [text_file_open(outfile, 'w') for outfile in outfiles]
+        with text_file_open(infile, 'r') as inf:
             for idx, line in tqdm(enumerate(inf)):
                 parts = line.split(separator)
 
@@ -1020,7 +1198,7 @@ class OpusFilter:
             return
         preprocess_pipe = pipeline.PreprocessorPipeline.from_config(parameters['preprocessors'], workdir=self.output_dir)
         pairs = preprocess_pipe.process(self.pair_generator(*infiles))
-        outfileobjs = [file_open(fname, 'w') for fname in outfiles]
+        outfileobjs = [text_file_open(fname, 'w') for fname in outfiles]
         for pair in tqdm(pairs):
             for item, fobj in zip(pair, outfileobjs):
                 fobj.write(item + '\n')
