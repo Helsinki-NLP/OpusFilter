@@ -155,8 +155,8 @@ def _get_step_name(step, index):
     original_idx = step.get('_original_index', index)
 
     if substep_idx is not None:
-        return f"{original_idx}_{step_type}_{substep_idx}"
-    return f"{original_idx}_{step_type}"
+        return f"{original_idx + 1}_{step_type}_{substep_idx + 1}"
+    return f"{original_idx + 1}_{step_type}"
 
 
 def get_ready_steps(graph, completed_jobs):
@@ -246,8 +246,8 @@ def write_manifest(path, config_file, steps, graph, job_ids, workdir, include_pe
             manifest["jobs"].append({
                 "job_id": job_id,
                 "step": step_name,
-                "original_step": step_info.get("original_index", 0),
-                "substep_index": step_info.get("substep_index"),
+                "original_step": step_info.get("original_index", 0) + 1,
+                "substep_index": step_info.get("substep_index") + 1 if step_info.get("substep_index") is not None else None,
                 "step_type": step_info["step"].get("type", "unknown"),
                 "deps": step_info.get("deps", []),
                 "dep_jobs": list(step_info.get("dep_jobs", [])),

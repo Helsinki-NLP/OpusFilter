@@ -117,11 +117,11 @@ class TestSlurmIntegration(unittest.TestCase):
         graph = build_dependency_graph(self.config['steps'])
 
         # Check that filter depends on opus_read
-        filter_deps = graph['1_filter']['deps']
-        self.assertIn('0_opus_read', filter_deps)
+        filter_deps = graph['2_filter']['deps']
+        self.assertIn('1_opus_read', filter_deps)
 
         # Check that opus_read has no dependencies
-        opus_read_deps = graph['0_opus_read']['deps']
+        opus_read_deps = graph['1_opus_read']['deps']
         self.assertEqual(len(opus_read_deps), 0)
 
 
