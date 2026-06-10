@@ -8,7 +8,7 @@ from . import ConfigurationError
 
 
 KNOWN_STEP_TYPES: Set[str] = {
-    'opus_read', 'filter', 'concatenate', 'subset', 'train_bpe',
+    'opus_read', 'hf_read', 'filter', 'concatenate', 'subset', 'train_bpe',
     'train_morfessor', 'train_ngram', 'train_alignment', 'train_nearest_neighbors',
     'score', 'train_classifier', 'classify', 'join', 'sort', 'head', 'tail',
     'slice', 'product', 'remove_duplicates', 'split', 'unzip', 'preprocess',
