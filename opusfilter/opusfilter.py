@@ -117,7 +117,7 @@ class ParallelWrapper:
                 intmpfiles = [tempfile.mkstemp(dir=os.path.dirname(infile),
                               suffix=f".part{str(i // chunk_size)}.{os.path.basename(infile)}")[1] for infile in infiles]
                 in_chunked_files.append(intmpfiles)
-                intmpfiles_objs = [file_open(intmpfile, mode="w") for intmpfile in intmpfiles]
+                intmpfiles_objs = [text_file_open(intmpfile, mode="w") for intmpfile in intmpfiles]
                 outtmpfiles = [tempfile.mktemp(dir=os.path.dirname(outfile),
                                suffix=f".part{str(i // chunk_size)}.{os.path.basename(outfile)}") for outfile in outfiles]
                 out_chunked_files.append(outtmpfiles)
@@ -131,7 +131,7 @@ class ParallelWrapper:
         """merge temporary files into final files and delete temporary files"""
         for outfile, parts in zip(outfiles, zip(*out_chunked_files)):
             with text_file_open(outfile, 'w') as out:
-                finput = chain.from_iterable(file_open(part) for part in parts)
+                finput = chain.from_iterable(text_file_open(part) for part in parts)
                 for i, line in enumerate(finput):
                     out.write(line)
                     if limit and i >= limit - 1:
