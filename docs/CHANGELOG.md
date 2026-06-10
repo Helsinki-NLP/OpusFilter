@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `with_decision` option for the score function
 - `columns` option for the unzip function
 - support for Python 3.14
+- `hf_read` function for reading data from Hugging Face datasets
+- support for encoding text in JSONL files to preserve newlines
 
 ### Changed
 
