@@ -290,15 +290,15 @@ class SlurmOpusFilter:
         substep_idx = step_config.get('_substep_index')
 
         if substep_idx is not None:
-            script_name = f"step_{step_index + 1}_{step_type}_{substep_idx + 1}.sbatch"
+            script_name = f"step_{step_index}_{step_type}_{substep_idx + 1}.sbatch"
         else:
-            script_name = f"step_{step_index + 1}_{step_type}.sbatch"
+            script_name = f"step_{step_index}_{step_type}.sbatch"
         script_path = os.path.join(self.workdir, "scripts", script_name)
 
         partition = resources.get('partition') or self.slurm_config.get('partition') or 'cpu'
         job_name_suffix = f"_{substep_idx + 1}" if substep_idx is not None else ""
         template_vars = {
-            'job_name': f"opusfilter_{step_index + 1}_{step_type}{job_name_suffix}",
+            'job_name': f"opusfilter_{step_index}_{step_type}{job_name_suffix}",
             'partition': partition,
             'account': self.slurm_config.get('account', ''),
             'time': resources.get('time', '02:00:00'),
