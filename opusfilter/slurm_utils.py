@@ -51,21 +51,20 @@ def get_job_status(job_id):
     result = subprocess.run(
         ['squeue', '-j', job_id, '-h', '--format="%T"', '--states=all'],
         capture_output=True, text=True)
-    if result.returncode != 0:
-        # Already completed and no longer seen by squeue?
-        result = subprocess.run(
-            ['sacct', '-j', job_id, '--noheader', '--allocations',
-             '--state=failed,completed,timedout,cancelled', '--format=State'],
-            capture_output=True, text=True)
-        if result.returncode == 0 and result.stdout.strip():
-            state = result.stdout.strip().split('\n')[-1].strip()
-            if state in ['COMPLETED', 'FAILED', 'TIMEDOUT', 'CANCELLED']:
-                return state
-        return 'UNKNOWN'
-    status = result.stdout.strip('" \n')
-    if not status:
-        return 'UNKNOWN'
-    return status
+    if result.returncode == 0:
+        status = result.stdout.strip('" \n')
+        if status:
+            return status
+    # Job not found in squeue (purged) or squeue unavailable — try sacct
+    result = subprocess.run(
+        ['sacct', '-j', job_id, '--noheader', '--allocations',
+         '--state=failed,completed,timedout,cancelled', '--format=State'],
+        capture_output=True, text=True)
+    if result.returncode == 0 and result.stdout.strip():
+        state = result.stdout.strip().split('\n')[-1].strip()
+        if state in ['COMPLETED', 'FAILED', 'TIMEDOUT', 'CANCELLED']:
+            return state
+    return 'UNKNOWN'
 
 
 def is_job_completed(job_id):
