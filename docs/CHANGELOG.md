@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - support for Python 3.14
 - `hf_read` function for reading data from Hugging Face datasets
 - support for encoding text in JSONL files to preserve newlines
+- `opusfilter-slurm-*` commands for running OpusFilter workflows in SLRUM clusters
 
 ### Changed
 
