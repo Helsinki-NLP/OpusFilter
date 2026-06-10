@@ -318,6 +318,13 @@ class OpusFilter:
     def read_from_opus(self, parameters, overwrite=False):
         """Download and read a corpus from OPUS using OpusTools
 
+        Sentence pairs can be filtered inline with an optional
+        ``filters`` parameter (same filter config format as the
+        ``filter`` step). When filters are present, OpusTools'
+        output is written to a temporary file, read back, filtered,
+        and written to the final output — avoiding the need for
+        a separate ``filter`` step after reading.
+
         For details, see:
         * OPUS corpus collection :cite:`tiedemann-2016-parallel`.
         * OpusTools :cite:`aulamo-etal-2020-opustools`.
@@ -326,7 +333,8 @@ class OpusFilter:
         from opustools import OpusRead
         self._check_extra_parameters(
             {'src_output', 'tgt_output', 'suppress_prompts', 'release', 'corpus_name',
-             'source_language', 'target_language', 'preprocessing'}, parameters)
+             'source_language', 'target_language', 'preprocessing', 'filters',
+             'filterfalse'}, parameters)
         src_out = os.path.join(self.output_dir, parameters['src_output'])
         tgt_out = os.path.join(self.output_dir, parameters['tgt_output'])
         if not overwrite and os.path.isfile(src_out) and os.path.isfile(tgt_out):
@@ -340,6 +348,16 @@ class OpusFilter:
             logger.info("No release version provided for corpus %s, using 'latest'",
                         parameters['corpus_name'])
             parameters['release'] = 'latest'
+        filters = parameters.get('filters', [])
+        tmp_files = []
+        write_targets = [src_out, tgt_out]
+        if filters:
+            fd_src, tmp_src = tempfile.mkstemp(dir=self.output_dir, suffix='.opus_tmp')
+            fd_tgt, tmp_tgt = tempfile.mkstemp(dir=self.output_dir, suffix='.opus_tmp')
+            os.close(fd_src)
+            os.close(fd_tgt)
+            tmp_files = [tmp_src, tmp_tgt]
+            write_targets = tmp_files
         opus_reader = OpusRead(
             directory=parameters['corpus_name'],
             source=parameters['source_language'],
@@ -347,17 +365,37 @@ class OpusFilter:
             release=parameters['release'],
             suppress_prompts=parameters['suppress_prompts'],
             preprocess=parameters['preprocessing'], write_mode='moses',
-            write=[src_out, tgt_out],
+            write=write_targets,
             leave_non_alignments_out=True,
             download_dir=self.output_dir)
         try:
             opus_reader.printPairs()
         except Exception as err:
-            # Remove broken files
             for outfile in [src_out, tgt_out]:
                 if os.path.isfile(outfile):
                     os.unlink(outfile)
+            for tmpf in tmp_files:
+                if os.path.isfile(tmpf):
+                    os.unlink(tmpf)
             raise err
+        if filters:
+            try:
+                from .pipeline import FilterPipeline
+                filter_pipe = FilterPipeline.from_config(filters, workdir=self.output_dir)
+                pair_gen = self.pair_generator(*tmp_files)
+                if parameters.get('filterfalse', False):
+                    pair_gen = filter_pipe.filterfalse(pair_gen)
+                else:
+                    pair_gen = filter_pipe.filter(pair_gen)
+                with text_file_open(src_out, 'w') as src_f, \
+                     text_file_open(tgt_out, 'w') as tgt_f:
+                    for src_text, tgt_text in pair_gen:
+                        src_f.write(src_text + '\n')
+                        tgt_f.write(tgt_text + '\n')
+            finally:
+                for tmpf in tmp_files:
+                    if os.path.isfile(tmpf):
+                        os.unlink(tmpf)
 
     def read_from_hf(self, parameters, overwrite=False):
         """Download and read a corpus from Hugging Face Datasets
@@ -385,7 +423,8 @@ class OpusFilter:
         self._check_extra_parameters(
             {'dataset', 'config', 'src_config', 'tgt_config', 'id_field',
              'split', 'src_field', 'tgt_field', 'src_lang', 'tgt_lang',
-             'src_output', 'tgt_output', 'max_rows', 'newline_replacement'},
+             'src_output', 'tgt_output', 'max_rows', 'newline_replacement',
+             'filters', 'filterfalse'},
             parameters)
         src_out = os.path.join(self.output_dir, parameters['src_output'])
         tgt_out = os.path.join(self.output_dir, parameters['tgt_output'])
@@ -427,27 +466,36 @@ class OpusFilter:
             newline_replacement = None
         src_config = parameters.get('src_config')
         tgt_config = parameters.get('tgt_config')
+        if src_config and tgt_config:
+            pair_gen = OpusFilter._read_hf_cross_config(
+                parameters['dataset'], src_config, tgt_config,
+                src_field, tgt_field, split, max_rows,
+                parameters['id_field'], newline_replacement)
+        else:
+            pair_gen = OpusFilter._read_hf_single_config(
+                parameters['dataset'], parameters.get('config'),
+                src_field, tgt_field, src_lang, tgt_lang,
+                split, max_rows, newline_replacement)
+        filters = parameters.get('filters', [])
+        if filters:
+            from .pipeline import FilterPipeline
+            filter_pipe = FilterPipeline.from_config(filters, workdir=output_dir)
+            if parameters.get('filterfalse', False):
+                pair_gen = filter_pipe.filterfalse(pair_gen)
+            else:
+                pair_gen = filter_pipe.filter(pair_gen)
         with text_file_open(src_out, 'w') as src_f:
             with text_file_open(tgt_out, 'w') as tgt_f:
-                if src_config and tgt_config:
-                    OpusFilter._read_hf_cross_config(
-                        parameters['dataset'], src_config, tgt_config,
-                        src_field, tgt_field, split, max_rows,
-                        parameters['id_field'], src_f, tgt_f,
-                        newline_replacement)
-                else:
-                    OpusFilter._read_hf_single_config(
-                        parameters['dataset'], parameters.get('config'),
-                        src_field, tgt_field, src_lang, tgt_lang,
-                        split, max_rows, src_f, tgt_f,
-                        newline_replacement)
+                for src_text, tgt_text in pair_gen:
+                    src_f.write(src_text + '\n')
+                    tgt_f.write(tgt_text + '\n')
         os._exit(0)
 
     @staticmethod
     def _read_hf_single_config(dataset_name, config, src_field, tgt_field,
                                 src_lang, tgt_lang, split, max_rows,
-                                src_f, tgt_f, newline_replacement=' '):
-        """Read pairs from a single Hugging Face dataset config"""
+                                newline_replacement=' '):
+        """Yield (src, tgt) text pairs from a single Hugging Face dataset config"""
         from datasets import load_dataset
         dataset = load_dataset(
             dataset_name, config, split=split, streaming=True)
@@ -466,15 +514,13 @@ class OpusFilter:
             if newline_replacement is not None:
                 src_text = src_text.replace('\n', newline_replacement)
                 tgt_text = tgt_text.replace('\n', newline_replacement)
-            src_f.write(src_text + '\n')
-            tgt_f.write(tgt_text + '\n')
+            yield src_text, tgt_text
 
     @staticmethod
     def _read_hf_cross_config(dataset_name, src_config, tgt_config,
-                               src_field, tgt_field, split, max_rows,
-                               id_field, src_f, tgt_f,
-                               newline_replacement=' '):
-        """Join two configs by ID using a streaming merge-join.
+                                src_field, tgt_field, split, max_rows,
+                                id_field, newline_replacement=' '):
+        """Yield (src, tgt) pairs from Hugging Face cross-config merge-join.
 
         Both configs must be sorted by *id_field*.  Records whose ID
         appears in only one side are silently skipped.
@@ -505,8 +551,7 @@ class OpusFilter:
                 if newline_replacement is not None:
                     src_text = src_text.replace('\n', newline_replacement)
                     tgt_text = tgt_text.replace('\n', newline_replacement)
-                src_f.write(src_text + '\n')
-                tgt_f.write(tgt_text + '\n')
+                yield src_text, tgt_text
                 paired += 1
                 try:
                     src_ex = next(src_it)

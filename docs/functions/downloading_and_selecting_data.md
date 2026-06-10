@@ -17,6 +17,8 @@ Parameters:
 * `id_field`: field name for alignment between configs in cross-config mode (required for cross-config)
 * `newline_replacement`: character to replace embedded newlines with in plain-text output (default: space)
 * `split`: which dataset split to use (default: `train`)
+* `filters`: an optional list of filter configurations (same format as the `filter` step) to apply before writing — avoids a separate `filter` step after reading
+* `filterfalse`: if `true` and `filters` is set, write only pairs that are *rejected* by the filters (default: `false`)
 * `streaming`: whether to stream the dataset (default: `true`)
 * `trust_remote_code`: whether to trust remote code in dataset loading (default: `false`)
 * `kwargs`: additional keyword arguments passed to `datasets.load_dataset`
@@ -43,6 +45,65 @@ For datasets with multi-line text (e.g. web-crawled data), use the
 `.jsonl` file extension in `src_output` and `tgt_output` to produce
 JSONL output, which preserves embedded newlines within each segment.
 
+Example: loading a selection of language pairs from
+`Helsinki-NLP/nemotron-cc-translated` using cross-config mode:
+
+```yaml
+steps:
+  - type: hf_read
+    parameters:
+      dataset: Helsinki-NLP/nemotron-cc-translated
+      src_config: eng
+      tgt_config: !var lang
+      id_field: warc_record_id
+      src_field: text
+      tgt_field: text
+      src_output: !varstr "nemotron/{lang}.en.jsonl.gz"
+      tgt_output: !varstr "nemotron/en.{lang}.jsonl.gz"
+    variables:
+      lang: [eus, gle, glg, isl, mkd, swe]
+```
+
+The dataset uses per-language configs named with
+[ISO 639-3](https://en.wikipedia.org/wiki/ISO_639-3) three-letter codes
+(e.g. `eus` for Basque, `isl` for Icelandic). Each config has a `text`
+field and a `warc_record_id` field that aligns sentences across
+languages. The `id_field: warc_record_id` parameter ensures correct
+alignment even when language configs have different row counts.
+
+Inline filtering can be added to avoid writing all pairs before
+filtering — data flows from the HF dataset through the filter pipeline
+and only accepted pairs are written to disk:
+
+```yaml
+steps:
+  - type: hf_read
+    parameters:
+      dataset: Helsinki-NLP/nemotron-cc-translated
+      src_config: eng
+      tgt_config: !var lang
+      id_field: warc_record_id
+      src_field: text
+      tgt_field: text
+      src_output: !varstr "filtered.{lang}.jsonl.gz"
+      tgt_output: !varstr "filtered.eng.jsonl.gz"
+      max_rows: 50000
+      filters:
+        - LengthFilter:
+            min_length: 3
+            max_length: 250
+            unit: word
+        - LengthRatioFilter:
+            threshold: 3
+            unit: char
+        - AlphabetRatioFilter:
+            threshold: 0.5
+        - LongWordFilter:
+            threshold: 40
+    variables:
+      lang: [eus, gle, glg, isl, mkd, swe]
+```
+
 ## opus_read
 
 Read a corpus from the OPUS corpus collection {cite:p}`tiedemann-2012-parallel` using
@@ -58,6 +119,8 @@ Parameters:
 * `src_output`: output file for source language
 * `tgt_output`: output file for target language
 * `suppress_prompts`: `false` (default) prompts user to confirm before download, `true` to download without prompting
+* `filters`: an optional list of filter configurations (same format as the `filter` step) to apply before writing — avoids a separate `filter` step after reading. OpusTools output is written to a temporary file, filtered, and then written to the final output.
+* `filterfalse`: if `true` and `filters` is set, write only pairs that are *rejected* by the filters (default: `false`)
 
 The `moses` preprocessing type (available with `OpusTools` version
 1.6.2 and above) is recommended for those corpora for which it
