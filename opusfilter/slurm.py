@@ -30,7 +30,7 @@ class SlurmOpusFilter:
         self.configuration = configuration
         self.output_dir = configuration.get('common', {}).get('output_directory', '.')
         self.workdir = workdir or os.path.expandvars(
-            configuration.get('common', {}).get('slurm', {}).get('workdir', '${HOME}/opusfilter-work'))
+            configuration.get('common', {}).get('slurm', {}).get('workdir', '.'))
         self.max_concurrent = max_concurrent or 4
         self.email = email or configuration.get('common', {}).get('slurm', {}).get('mail_user')
         self.dry_run = dry_run
@@ -125,9 +125,6 @@ class SlurmOpusFilter:
                         completed, failed = self._check_running_jobs(running_jobs, graph)
                         completed_steps.extend(completed)
                         failed_steps.extend(failed)
-                        if failed_steps:
-                            logger.error(f"Workflow failed: {len(failed_steps)} step(s) failed")
-                            return False
                         if completed:
                             continue
                     logger.info(f"At max_concurrent ({self.max_concurrent}), waiting for jobs to complete...")
@@ -225,11 +222,6 @@ class SlurmOpusFilter:
                 completed_steps.extend(completed)
                 failed_steps.extend(failed)
 
-                # Stop if any step has failed
-                if failed_steps:
-                    logger.error(f"Workflow failed: {len(failed_steps)} step(s) failed")
-                    return False
-
                 # If we have new completed jobs, loop back to check for ready steps
                 if completed:
                     continue
@@ -250,14 +242,11 @@ class SlurmOpusFilter:
         # Monitor final jobs
         if running_jobs:
             logger.info("Waiting for final jobs to complete...")
-            success = self._wait_for_completion(running_jobs, graph, completed_steps)
-            if not success:
-                logger.error("Workflow failed: some jobs failed")
-                return False
+            self._wait_for_completion(running_jobs, graph, completed_steps)
 
         # Check if any steps failed
         if any(step_info.get('failed', False) for step_info in graph.values()):
-            logger.error("Workflow failed: some steps failed")
+            logger.error(f"Workflow failed: {sum(1 for s in graph.values() if s.get('failed'))} step(s) failed")
             return False
 
         # Print summary
@@ -388,39 +377,35 @@ done"""
         return script_path
 
     def _check_running_jobs(self, running_jobs, graph):
-        """Check status of running jobs. Returns list of completed step names."""
+        """Check status of running jobs. Returns (completed, failed) lists."""
         logger.info(f"Checking status of {len(running_jobs)} running jobs: {running_jobs}")
-        to_remove = []
+        completed = []
         failed_steps = []
-        for step_name, job_id in running_jobs.items():
+        for step_name, job_id in list(running_jobs.items()):
             if job_id.startswith('dryrun_'):
                 logger.info(f"Step {step_name} completed successfully (dry run)")
-                to_remove.append(step_name)
                 graph[step_name]['completed'] = True
+                del running_jobs[step_name]
+                completed.append(step_name)
                 continue
             status = get_job_status(job_id)
             logger.info(f"Job {job_id} ({step_name}) status: {status}")
             if status in ['COMPLETED', 'FAILED', 'CANCELLED']:
+                del running_jobs[step_name]
                 if status == 'COMPLETED':
                     logger.info(f"Step {step_name} completed successfully")
                     graph[step_name]['completed'] = True
-                    to_remove.append(step_name)
+                    completed.append(step_name)
                 else:
                     logger.error(f"Step {step_name} failed with status {status}")
                     graph[step_name]['failed'] = True
-                    to_remove.append(step_name)
                     failed_steps.append(step_name)
 
-        completed = []
-        for step_name in to_remove:
-            del running_jobs[step_name]
-            completed.append(step_name)
         return completed, failed_steps
 
     def _wait_for_completion(self, running_jobs, graph, completed_steps):
-        """Wait for all jobs to complete. Returns True if all succeeded, False if any failed."""
+        """Wait for all jobs to complete."""
         job_ids = list(running_jobs.values())
-        failed_steps = []
         while job_ids:
             for job_id in job_ids[:]:
                 if job_id.startswith('dryrun_'):
@@ -440,11 +425,9 @@ done"""
                             else:
                                 logger.error(f"Step {step_name} failed with status {status}")
                                 graph[step_name]['failed'] = True
-                                failed_steps.append(step_name)
                     job_ids.remove(job_id)
             if job_ids:
                 time.sleep(30)
-        return len(failed_steps) == 0
 
     def _find_last_completed_step(self, steps):
         """Find the last completed step based on output files."""
