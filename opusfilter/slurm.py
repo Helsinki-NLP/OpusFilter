@@ -144,6 +144,11 @@ class SlurmOpusFilter:
 
                     dep_ids = set()
                     for dep in deps:
+                        if dep in completed_steps:
+                            logger.info(
+                                f"Step {step_name}: dependency {dep} already completed, not using as dependency")
+                            newly_completed.append(dep)
+                            continue
                         if dep in self.job_ids:
                             dep_id = self.job_ids[dep]
                             if is_job_completed(dep_id):
@@ -558,6 +563,8 @@ done"""
                 dep_ids = set()
                 dep_jobs_list = []
                 for dep in step_info['deps']:
+                    if dep in completed_steps:
+                        continue
                     if dep in job_ids:
                         dep_id = job_ids[dep]
                         # Skip dry run job IDs
