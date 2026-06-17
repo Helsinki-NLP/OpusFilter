@@ -11,6 +11,7 @@ import operator
 import os
 import pickle
 import random
+import sys
 import tempfile
 from itertools import chain
 
@@ -643,12 +644,20 @@ class OpusFilter:
             pairs = filter_pipe.filter(tqdm(pairs_gen))
         limit = parameters.get('limit')
         outfileobjs = [text_file_open(fname, 'w') for fname in outfiles]
-        for idx, pair in enumerate(pairs):
+        log_progress = not sys.stderr.isatty()
+        log_interval = 100000
+        written = 0
+        for pair in pairs:
             for item, fobj in zip(pair, outfileobjs):
                 fobj.write(item+'\n')
                 fobj.flush()
-            if limit and idx >= limit - 1:
+            written += 1
+            if log_progress and written % log_interval == 0:
+                logger.info("filter: %d accepted pairs written", written)
+            if limit and written >= limit:
                 break
+        if log_progress and (written % log_interval != 0 or written == 0):
+            logger.info("filter: %d accepted pairs written", written)
         self._close_files(*outfileobjs)
 
     def concatenate(self, parameters, overwrite=False):
