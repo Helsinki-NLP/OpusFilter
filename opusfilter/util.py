@@ -323,6 +323,9 @@ class _JsonlTextWriter:
             text = text[:-1]
         self._fobj.write(json.dumps(text, ensure_ascii=False) + '\n')
 
+    def flush(self):
+        self._fobj.flush()
+
     def close(self):
         self._fobj.close()
 
