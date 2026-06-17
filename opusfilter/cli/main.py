@@ -7,6 +7,17 @@ from opusfilter.opusfilter import OpusFilter
 from opusfilter.util import yaml, expand_single_step
 
 
+def _silence_tqdm():
+    """Disable tqdm when stderr is not a TTY (e.g. SLURM log files)."""
+    if not sys.stderr.isatty():
+        from tqdm import tqdm as _tqdm
+        _orig_init = _tqdm.__init__
+        def _init(self, *args, **kwargs):
+            kwargs.setdefault('disable', True)
+            return _orig_init(self, *args, **kwargs)
+        _tqdm.__init__ = _init
+
+
 def main(args=None):
     """Main entry point for opusfilter command."""
     parser = argparse.ArgumentParser(prog='opusfilter',
@@ -24,6 +35,7 @@ def main(args=None):
 
     args = parser.parse_args(args)
 
+    _silence_tqdm()
     logging.basicConfig(level=logging.INFO)
     logging.getLogger('mosestokenizer.tokenizer.MosesTokenizer').setLevel(logging.WARNING)
 

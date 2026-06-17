@@ -453,6 +453,7 @@ class OpusFilter:
         which would otherwise crash on C-level threads spawned by
         pyarrow / ``datasets``.
         """
+        logging.basicConfig(level=logging.INFO)
 
         class _IterCount:
             """Counts items consumed from an iterator"""
