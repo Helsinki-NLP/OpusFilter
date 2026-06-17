@@ -453,6 +453,19 @@ class OpusFilter:
         which would otherwise crash on C-level threads spawned by
         pyarrow / ``datasets``.
         """
+
+        class _IterCount:
+            """Counts items consumed from an iterator"""
+            __slots__ = ('it', 'count')
+            def __init__(self, it):
+                self.it = iter(it)
+                self.count = 0
+            def __next__(self):
+                self.count += 1
+                return next(self.it)
+            def __iter__(self):
+                return self
+
         src_field = parameters.get('src_field', 'src')
         tgt_field = parameters.get('tgt_field', 'tgt')
         src_lang = parameters.get('src_lang')
@@ -467,41 +480,53 @@ class OpusFilter:
         src_config = parameters.get('src_config')
         tgt_config = parameters.get('tgt_config')
         if src_config and tgt_config:
-            pair_gen = OpusFilter._read_hf_cross_config(
+            raw_gen = OpusFilter._read_hf_cross_config(
                 parameters['dataset'], src_config, tgt_config,
-                src_field, tgt_field, split, max_rows,
+                src_field, tgt_field, split,
                 parameters['id_field'], newline_replacement)
         else:
-            pair_gen = OpusFilter._read_hf_single_config(
+            raw_gen = OpusFilter._read_hf_single_config(
                 parameters['dataset'], parameters.get('config'),
                 src_field, tgt_field, src_lang, tgt_lang,
-                split, max_rows, newline_replacement)
+                split, newline_replacement)
         filters = parameters.get('filters', [])
         if filters:
             from .pipeline import FilterPipeline
             filter_pipe = FilterPipeline.from_config(filters, workdir=output_dir)
+            counter = _IterCount(raw_gen)
             if parameters.get('filterfalse', False):
-                pair_gen = filter_pipe.filterfalse(pair_gen)
+                pair_gen = filter_pipe.filterfalse(counter)
             else:
-                pair_gen = filter_pipe.filter(pair_gen)
+                pair_gen = filter_pipe.filter(counter)
+        else:
+            counter = None
+            pair_gen = raw_gen
+        written = 0
         with text_file_open(src_out, 'w') as src_f:
             with text_file_open(tgt_out, 'w') as tgt_f:
                 for src_text, tgt_text in pair_gen:
                     src_f.write(src_text + '\n')
                     tgt_f.write(tgt_text + '\n')
+                    written += 1
+                    if max_rows and written >= max_rows:
+                        break
+        if counter is not None:
+            pct = (1 - written / counter.count) * 100 if counter.count else 0
+            logger.info("hf_read: %d read, %d written (%.1f%% rejected)",
+                        counter.count, written, pct)
+        else:
+            logger.info("hf_read: %d pairs written", written)
         os._exit(0)
 
     @staticmethod
     def _read_hf_single_config(dataset_name, config, src_field, tgt_field,
-                                src_lang, tgt_lang, split, max_rows,
+                                src_lang, tgt_lang, split,
                                 newline_replacement=' '):
         """Yield (src, tgt) text pairs from a single Hugging Face dataset config"""
         from datasets import load_dataset
         dataset = load_dataset(
             dataset_name, config, split=split, streaming=True)
-        for idx, example in enumerate(dataset):
-            if max_rows and idx >= max_rows:
-                break
+        for example in dataset:
             if src_lang and tgt_lang and 'translation' in example and isinstance(
                     example['translation'], dict):
                 src_text = example['translation'][src_lang]
@@ -518,8 +543,8 @@ class OpusFilter:
 
     @staticmethod
     def _read_hf_cross_config(dataset_name, src_config, tgt_config,
-                                src_field, tgt_field, split, max_rows,
-                                id_field, newline_replacement=' '):
+                                src_field, tgt_field, split, id_field,
+                                newline_replacement=' '):
         """Yield (src, tgt) pairs from Hugging Face cross-config merge-join.
 
         Both configs must be sorted by *id_field*.  Records whose ID
@@ -532,7 +557,6 @@ class OpusFilter:
             dataset_name, tgt_config, split=split, streaming=True)
         src_it = iter(src_dataset)
         tgt_it = iter(tgt_dataset)
-        paired = 0
         src_only = 0
         tgt_only = 0
         try:
@@ -541,8 +565,6 @@ class OpusFilter:
         except StopIteration:
             return
         while True:
-            if max_rows and paired >= max_rows:
-                break
             src_id = src_ex[id_field]
             tgt_id = tgt_ex[id_field]
             if src_id == tgt_id:
@@ -552,7 +574,6 @@ class OpusFilter:
                     src_text = src_text.replace('\n', newline_replacement)
                     tgt_text = tgt_text.replace('\n', newline_replacement)
                 yield src_text, tgt_text
-                paired += 1
                 try:
                     src_ex = next(src_it)
                     tgt_ex = next(tgt_it)
