@@ -32,10 +32,11 @@ def main(args=None):
     configuration = yaml.load(open(config_path))
     configuration['_config_file'] = config_path
 
-    workdir = args.workdir or os.path.expandvars(
-        configuration.get('common', {}).get('slurm', {}).get(
-            'workdir', '${HOME}/opusfilter-work'))
-    workdir = os.path.abspath(os.path.expandvars(workdir))
+    slurm_filter = SlurmOpusFilter(
+        configuration,
+        workdir=args.workdir,
+        dry_run=args.dry_run)
+    workdir = slurm_filter.workdir
 
     manifest_path = os.path.join(workdir, 'manifest.json')
     if os.path.exists(manifest_path) and not args.resume and not args.overwrite:
@@ -43,11 +44,6 @@ def main(args=None):
             f"Manifest already exists at {manifest_path}. "
             "Use --overwrite to replace or --resume to continue.")
         return 1
-
-    slurm_filter = SlurmOpusFilter(
-        configuration,
-        workdir=workdir,
-        dry_run=args.dry_run)
 
     try:
         job_ids, graph, steps = slurm_filter.submit_all_steps(
