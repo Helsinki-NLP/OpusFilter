@@ -144,17 +144,19 @@ class SlurmOpusFilter:
 
                     dep_ids = set()
                     for dep in deps:
-                        if dep in completed_steps:
-                            logger.info(
-                                f"Step {step_name}: dependency {dep} already completed, not using as dependency")
-                            newly_completed.append(dep)
-                            continue
                         if dep in self.job_ids:
                             dep_id = self.job_ids[dep]
-                            if is_job_completed(dep_id):
+                            dep_status = get_job_status(dep_id)
+                            if dep_status in ['COMPLETED', 'FAILED', 'CANCELLED', 'TIMEDOUT']:
                                 logger.info(
                                     f"Step {step_name}: dependency {dep} "
-                                    f"(job {dep_id}) completed, not using as dependency")
+                                    f"(job {dep_id}) {dep_status.lower()}, not using as dependency")
+                                newly_completed.append(dep)
+                                continue
+                            if dep_status == 'UNKNOWN':
+                                logger.info(
+                                    f"Step {step_name}: dependency {dep} (job {dep_id}) "
+                                    f"purged from SLURM, treating as completed")
                                 newly_completed.append(dep)
                                 continue
                             dep_ids.add(dep_id)
@@ -563,16 +565,18 @@ done"""
                 dep_ids = set()
                 dep_jobs_list = []
                 for dep in step_info['deps']:
-                    if dep in completed_steps:
-                        continue
                     if dep in job_ids:
                         dep_id = job_ids[dep]
                         # Skip dry run job IDs
                         if isinstance(dep_id, str) and dep_id.startswith('dryrun_'):
                             continue
-                        if not is_job_completed(dep_id):
-                            dep_ids.add(dep_id)
-                            dep_jobs_list.append(dep_id)
+                        dep_status = get_job_status(dep_id)
+                        if dep_status in ['COMPLETED', 'FAILED', 'CANCELLED', 'TIMEDOUT']:
+                            continue
+                        if dep_status == 'UNKNOWN':
+                            continue
+                        dep_ids.add(dep_id)
+                        dep_jobs_list.append(dep_id)
 
                 try:
                     job_id = self._submit_step(original_step_index, step_config, dep_ids, overwrite)
