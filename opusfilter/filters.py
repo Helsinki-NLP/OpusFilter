@@ -163,6 +163,11 @@ class HtmlTagFilter(FilterABC):
         from bs4 import MarkupResemblesLocatorWarning
         warnings.filterwarnings("ignore", category=MarkupResemblesLocatorWarning)
         try:
+            from bs4 import XMLParsedAsHTMLWarning
+            warnings.filterwarnings("ignore", category=XMLParsedAsHTMLWarning)
+        except ImportError:
+            pass
+        try:
             found = bool(bs4.BeautifulSoup(segment, 'html.parser').find())
         except (TypeError, UnboundLocalError, NotImplementedError,
                 AssertionError, bs4.builder.ParserRejectedMarkup) as err:

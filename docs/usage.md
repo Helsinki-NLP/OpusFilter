@@ -12,18 +12,23 @@ sections:
 
 The syntax for the `opusfilter` command is
 ```
-opusfilter [--overwrite] [--last LAST] [--single SINGLE] [--n-jobs N_JOBS] CONFIG
+opusfilter [--overwrite] [--last LAST] [--single SINGLE] [--substep SUBSTEP] [--n-jobs N_JOBS] CONFIG
 ```
 where `CONFIG` is path to the configuration file.
 The script will run the steps one by one and stops when the final step
 has been processed (if no exceptions were raised). The script has
 options for setting the last step to run (`--last`) and running
-only a single step (`--single`). It the latter, the user has to
+only a single step (`--single`). In the latter case, the user has to
 make sure that all input files for the step already exist. The first
 step has number 1, and -1 points to the last step, -2 to the second to
 last, and so on. The `--n-jobs` option indicate number of processes to
 use when running `score`, `filter` and `preprocess` steps. This value will
 overwrite `default_n_jobs` in the `common` section.
+
+When using `--single` with a step that has [variables](#variables-and-constants),
+use `--substep` to run a specific variant. For example, if a step has
+`variables: {lang: [de, en, fr]}`, then `--substep 2` runs the English
+variant (1 for the first, 2 for the second, etc.).
 
 By default, existing output files will be re-used, and the steps
 producing them skipped. The `--overwrite` option will force overwrite
@@ -248,6 +253,55 @@ have the same length. The step is expanded into as many substeps as
 there are values in the lists. Note that if you need to use the
 same lists of variable values in multiple steps, you can exploit
 the standard YAML node anchors and references.
+
+When running steps with the `opusfilter` command, all variants are
+executed sequentially. Use the `--single` and `--substep` options
+to run a specific variant. For example, `opusfilter config.yaml --single 3 --substep 2`
+runs the second variant of step 3.
+
+## Step Dependencies
+
+By default, OpusFilter detects dependencies between steps automatically
+by matching input files to output files. However, some steps have
+implicit file dependencies that are not captured through standard
+input/output parameters.
+
+For example, `LMClassifierFilter` loads model files specified in
+`lm_params.*.filename`, but these are not automatically detected as
+dependencies because they are nested in filter configurations.
+
+Use the `depends_on` field to explicitly declare these dependencies:
+
+```yaml
+steps:
+  # Step that produces model files
+  - type: train_ngram
+    parameters:
+      data: data.txt.gz
+      model: model.arpa.gz
+
+  # Step that uses the model (implicit dependency via lm_params)
+  - type: filter
+    parameters:
+      inputs: [data.txt.gz]
+      outputs: [filtered.txt.gz]
+      filters:
+        - LMClassifierFilter:
+            lm_params:
+              en: {filename: model.arpa.gz}
+    depends_on:
+      - model.arpa.gz
+```
+
+The `depends_on` field supports:
+- Single file: `depends_on: model.arpa.gz`
+- Multiple files: `depends_on: [file1.gz, file2.gz]`
+- Variable expansion: `depends_on: ['!varstr "{lang}.arpa.gz"']`
+
+Note: The `depends_on` field is primarily used by `opusfilter-slurm`
+for SLURM job scheduling and `opusfilter-diagram` for visualization.
+The standard `opusfilter` command runs steps sequentially and does
+not require explicit dependency declaration.
 
 ## Running a single command
 

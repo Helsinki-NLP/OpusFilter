@@ -77,3 +77,82 @@ class TestYAMLDumps(unittest.TestCase):
         string = yaml_dumps(obj)
         obj2 = yaml.load(string)
         self.assertSequenceEqual(obj, obj2)
+
+
+class TestGetInputsOutputs(unittest.TestCase):
+
+    def test_get_inputs_basic(self):
+        step = {
+            'parameters': {
+                'inputs': ['file1.txt', 'file2.txt']
+            }
+        }
+        inputs = get_inputs(step)
+        self.assertEqual(inputs, ['file1.txt', 'file2.txt'])
+
+    def test_get_inputs_single(self):
+        step = {
+            'parameters': {
+                'input': 'single.txt'
+            }
+        }
+        inputs = get_inputs(step)
+        self.assertEqual(inputs, ['single.txt'])
+
+    def test_get_inputs_nested(self):
+        step = {
+            'parameters': {
+                'inputs': [['file1.txt', 'file2.txt'], ['file3.txt']]
+            }
+        }
+        inputs = get_inputs(step)
+        self.assertEqual(inputs, ['file1.txt', 'file2.txt', 'file3.txt'])
+
+    def test_get_inputs_depends_on(self):
+        step = {
+            'parameters': {
+                'inputs': ['data.txt']
+            },
+            'depends_on': ['model1.arpa.gz', 'model2.arpa.gz']
+        }
+        inputs = get_inputs(step)
+        self.assertEqual(inputs, ['data.txt', 'model1.arpa.gz', 'model2.arpa.gz'])
+
+    def test_get_inputs_depends_on_string(self):
+        step = {
+            'parameters': {
+                'inputs': ['data.txt']
+            },
+            'depends_on': 'single.arpa.gz'
+        }
+        inputs = get_inputs(step)
+        self.assertEqual(inputs, ['data.txt', 'single.arpa.gz'])
+
+    def test_get_outputs_basic(self):
+        step = {
+            'parameters': {
+                'outputs': ['out1.txt', 'out2.txt']
+            }
+        }
+        outputs = get_outputs(step)
+        self.assertEqual(outputs, ['out1.txt', 'out2.txt'])
+
+    def test_get_outputs_single(self):
+        step = {
+            'parameters': {
+                'output': 'single.txt'
+            }
+        }
+        outputs = get_outputs(step)
+        self.assertEqual(outputs, ['single.txt'])
+
+    def test_get_outputs_training(self):
+        step = {
+            'type': 'train_ngram',
+            'parameters': {
+                'data': 'data.txt',
+                'model': 'model.arpa.gz'
+            }
+        }
+        outputs = get_outputs(step)
+        self.assertEqual(outputs, ['model.arpa.gz'])

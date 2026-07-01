@@ -357,6 +357,103 @@ class TestExtraKeyErrors(unittest.TestCase):
             opusfilter.execute_steps()
 
 
+class TestOpusReadWithFilters(unittest.TestCase):
+    """Tests for inline filtering in opus_read"""
+
+    def test_with_filters(self):
+        test_data_src = 'Hi\nHello world\nA\nShort\n'
+        test_data_tgt = 'Hei\nHei maailma\nB\nLyhyt\n'
+
+        class FakeOpusRead:
+            def __init__(self, **kwargs):
+                self.write = kwargs.get('write', [])
+                self.directory = kwargs.get('directory')
+            def printPairs(self):
+                with open(self.write[0], 'w') as f:
+                    f.write(test_data_src)
+                with open(self.write[1], 'w') as f:
+                    f.write(test_data_tgt)
+
+        with tempfile.TemporaryDirectory() as tempdir:
+            opusfilter = OpusFilter(
+                {'common': {'output_directory': tempdir}, 'steps': []})
+            with mock.patch('opustools.OpusRead', FakeOpusRead):
+                parameters = {
+                    'corpus_name': 'test', 'source_language': 'en', 'target_language': 'sv',
+                    'release': 'latest', 'preprocessing': 'xml',
+                    'src_output': 'out.src', 'tgt_output': 'out.tgt',
+                    'suppress_prompts': True,
+                    'filters': [{'LengthFilter': {'min_length': 3, 'max_length': 100, 'unit': 'char'}}],
+                }
+                opusfilter.read_from_opus(parameters)
+                with open(os.path.join(tempdir, 'out.src')) as f:
+                    self.assertEqual(f.read(), 'Hello world\nShort\n')
+                with open(os.path.join(tempdir, 'out.tgt')) as f:
+                    self.assertEqual(f.read(), 'Hei maailma\nLyhyt\n')
+
+    def test_with_filters_filterfalse(self):
+        test_data_src = 'Hi\nHello world\nA\nShort\n'
+        test_data_tgt = 'Hei\nHei maailma\nB\nLyhyt\n'
+
+        class FakeOpusRead:
+            def __init__(self, **kwargs):
+                self.write = kwargs.get('write', [])
+                self.directory = kwargs.get('directory')
+            def printPairs(self):
+                with open(self.write[0], 'w') as f:
+                    f.write(test_data_src)
+                with open(self.write[1], 'w') as f:
+                    f.write(test_data_tgt)
+
+        with tempfile.TemporaryDirectory() as tempdir:
+            opusfilter = OpusFilter(
+                {'common': {'output_directory': tempdir}, 'steps': []})
+            with mock.patch('opustools.OpusRead', FakeOpusRead):
+                parameters = {
+                    'corpus_name': 'test', 'source_language': 'en', 'target_language': 'sv',
+                    'release': 'latest', 'preprocessing': 'xml',
+                    'src_output': 'out.src', 'tgt_output': 'out.tgt',
+                    'suppress_prompts': True,
+                    'filters': [{'LengthFilter': {'min_length': 3, 'max_length': 100, 'unit': 'char'}}],
+                    'filterfalse': True,
+                }
+                opusfilter.read_from_opus(parameters)
+                with open(os.path.join(tempdir, 'out.src')) as f:
+                    self.assertEqual(f.read(), 'Hi\nA\n')
+                with open(os.path.join(tempdir, 'out.tgt')) as f:
+                    self.assertEqual(f.read(), 'Hei\nB\n')
+
+    def test_without_filters(self):
+        test_data_src = 'Hello\nWorld\n'
+        test_data_tgt = 'Hei\nMaailma\n'
+
+        class FakeOpusRead:
+            def __init__(self, **kwargs):
+                self.write = kwargs.get('write', [])
+                self.directory = kwargs.get('directory')
+            def printPairs(self):
+                with open(self.write[0], 'w') as f:
+                    f.write(test_data_src)
+                with open(self.write[1], 'w') as f:
+                    f.write(test_data_tgt)
+
+        with tempfile.TemporaryDirectory() as tempdir:
+            opusfilter = OpusFilter(
+                {'common': {'output_directory': tempdir}, 'steps': []})
+            with mock.patch('opustools.OpusRead', FakeOpusRead):
+                parameters = {
+                    'corpus_name': 'test', 'source_language': 'en', 'target_language': 'sv',
+                    'release': 'latest', 'preprocessing': 'xml',
+                    'src_output': 'out.src', 'tgt_output': 'out.tgt',
+                    'suppress_prompts': True,
+                }
+                opusfilter.read_from_opus(parameters)
+                with open(os.path.join(tempdir, 'out.src')) as f:
+                    self.assertEqual(f.read(), test_data_src)
+                with open(os.path.join(tempdir, 'out.tgt')) as f:
+                    self.assertEqual(f.read(), test_data_tgt)
+
+
 class TestSort(unittest.TestCase):
 
     def setUp(self):
@@ -1766,6 +1863,100 @@ class TestHFRead(unittest.TestCase):
             records = [json.loads(line) for line in f]
         self.assertEqual(len(records), 2)
         self.assertEqual(records[0], 'Hei\nmaailma')
+
+    def test_read_with_filters(self):
+        self.mock_load.return_value = [
+            {'src': 'Hi', 'tgt': 'Hei'},
+            {'src': 'Hello world', 'tgt': 'Hei maailma'},
+            {'src': 'A', 'tgt': 'B'},
+            {'src': 'Short', 'tgt': 'Lyhyt'},
+        ]
+        parameters = {
+            'dataset': 'test-dataset',
+            'src_output': 'sents.src',
+            'tgt_output': 'sents.tgt',
+            'filters': [{'LengthFilter': {'min_length': 3, 'max_length': 100, 'unit': 'char'}}],
+        }
+        self.opus_filter.read_from_hf(parameters)
+        with open(os.path.join(self.tempdir, 'sents.src')) as f:
+            self.assertEqual(f.read(), 'Hello world\nShort\n')
+        with open(os.path.join(self.tempdir, 'sents.tgt')) as f:
+            self.assertEqual(f.read(), 'Hei maailma\nLyhyt\n')
+
+    def test_read_with_filters_filterfalse(self):
+        self.mock_load.return_value = [
+            {'src': 'Hi', 'tgt': 'Hei'},
+            {'src': 'Hello world', 'tgt': 'Hei maailma'},
+            {'src': 'A', 'tgt': 'B'},
+            {'src': 'Short', 'tgt': 'Lyhyt'},
+        ]
+        parameters = {
+            'dataset': 'test-dataset',
+            'src_output': 'sents.src',
+            'tgt_output': 'sents.tgt',
+            'filters': [{'LengthFilter': {'min_length': 3, 'max_length': 100, 'unit': 'char'}}],
+            'filterfalse': True,
+        }
+        self.opus_filter.read_from_hf(parameters)
+        with open(os.path.join(self.tempdir, 'sents.src')) as f:
+            self.assertEqual(f.read(), 'Hi\nA\n')
+        with open(os.path.join(self.tempdir, 'sents.tgt')) as f:
+            self.assertEqual(f.read(), 'Hei\nB\n')
+
+    def test_read_with_multiple_filters(self):
+        self.mock_load.return_value = [
+            {'src': 'Hello world', 'tgt': 'Hei maailma'},
+            {'src': 'A1 B2 C3', 'tgt': 'X1 Y2 Z3'},
+            {'src': 'Short', 'tgt': 'Lyhyt'},
+        ]
+        parameters = {
+            'dataset': 'test-dataset',
+            'src_output': 'sents.src',
+            'tgt_output': 'sents.tgt',
+            'filters': [
+                {'LengthFilter': {'min_length': 2, 'max_length': 100, 'unit': 'word'}},
+                {'AlphabetRatioFilter': {'threshold': 0.5}},
+            ],
+        }
+        self.opus_filter.read_from_hf(parameters)
+        with open(os.path.join(self.tempdir, 'sents.src')) as f:
+            self.assertEqual(f.read(), 'Hello world\n')
+        with open(os.path.join(self.tempdir, 'sents.tgt')) as f:
+            self.assertEqual(f.read(), 'Hei maailma\n')
+
+    def test_read_with_filters_and_max_rows(self):
+        self.mock_load.return_value = [
+            {'src': f'Src {i}', 'tgt': f'Tgt {i}'} for i in range(100)
+        ]
+        parameters = {
+            'dataset': 'test-dataset',
+            'src_output': 'sents.src',
+            'tgt_output': 'sents.tgt',
+            'max_rows': 5,
+            'filters': [{'LengthFilter': {'min_length': 5, 'unit': 'char'}}],
+        }
+        self.opus_filter.read_from_hf(parameters)
+        with open(os.path.join(self.tempdir, 'sents.src')) as f:
+            lines = f.read().splitlines()
+        self.assertLessEqual(len(lines), 5)
+        for line in lines:
+            self.assertGreaterEqual(len(line), 5)
+
+    def test_read_with_empty_filters_list(self):
+        self.mock_load.return_value = [
+            {'src': 'Hello', 'tgt': 'Hei'},
+        ]
+        parameters = {
+            'dataset': 'test-dataset',
+            'src_output': 'sents.src',
+            'tgt_output': 'sents.tgt',
+            'filters': [],
+        }
+        self.opus_filter.read_from_hf(parameters)
+        with open(os.path.join(self.tempdir, 'sents.src')) as f:
+            self.assertEqual(f.read(), 'Hello\n')
+        with open(os.path.join(self.tempdir, 'sents.tgt')) as f:
+            self.assertEqual(f.read(), 'Hei\n')
 
 
 class TestPairGenerator(unittest.TestCase):

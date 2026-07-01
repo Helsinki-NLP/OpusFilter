@@ -11,6 +11,7 @@ import operator
 import os
 import pickle
 import random
+import sys
 import tempfile
 from itertools import chain
 
@@ -26,6 +27,7 @@ from . import segment_hash
 from . import tokenization
 from . import word_alignment
 from .util import file_open, text_file_open, file_download, Var, VarStr, count_lines
+from .validate import validate_configuration
 
 
 logger = logging.getLogger(__name__)
@@ -116,7 +118,7 @@ class ParallelWrapper:
                 intmpfiles = [tempfile.mkstemp(dir=os.path.dirname(infile),
                               suffix=f".part{str(i // chunk_size)}.{os.path.basename(infile)}")[1] for infile in infiles]
                 in_chunked_files.append(intmpfiles)
-                intmpfiles_objs = [file_open(intmpfile, mode="w") for intmpfile in intmpfiles]
+                intmpfiles_objs = [text_file_open(intmpfile, mode="w") for intmpfile in intmpfiles]
                 outtmpfiles = [tempfile.mktemp(dir=os.path.dirname(outfile),
                                suffix=f".part{str(i // chunk_size)}.{os.path.basename(outfile)}") for outfile in outfiles]
                 out_chunked_files.append(outtmpfiles)
@@ -130,7 +132,7 @@ class ParallelWrapper:
         """merge temporary files into final files and delete temporary files"""
         for outfile, parts in zip(outfiles, zip(*out_chunked_files)):
             with text_file_open(outfile, 'w') as out:
-                finput = chain.from_iterable(file_open(part) for part in parts)
+                finput = chain.from_iterable(text_file_open(part) for part in parts)
                 for i, line in enumerate(finput):
                     out.write(line)
                     if limit and i >= limit - 1:
@@ -190,6 +192,7 @@ class OpusFilter:
     """Apply filters to language data"""
 
     def __init__(self, configuration):
+        validate_configuration(configuration)
         self.configuration = configuration
         self.output_dir = configuration.get('common', {}).get('output_directory')
         if not self.output_dir:
@@ -316,6 +319,13 @@ class OpusFilter:
     def read_from_opus(self, parameters, overwrite=False):
         """Download and read a corpus from OPUS using OpusTools
 
+        Sentence pairs can be filtered inline with an optional
+        ``filters`` parameter (same filter config format as the
+        ``filter`` step). When filters are present, OpusTools'
+        output is written to a temporary file, read back, filtered,
+        and written to the final output — avoiding the need for
+        a separate ``filter`` step after reading.
+
         For details, see:
         * OPUS corpus collection :cite:`tiedemann-2016-parallel`.
         * OpusTools :cite:`aulamo-etal-2020-opustools`.
@@ -324,7 +334,8 @@ class OpusFilter:
         from opustools import OpusRead
         self._check_extra_parameters(
             {'src_output', 'tgt_output', 'suppress_prompts', 'release', 'corpus_name',
-             'source_language', 'target_language', 'preprocessing'}, parameters)
+             'source_language', 'target_language', 'preprocessing', 'filters',
+             'filterfalse'}, parameters)
         src_out = os.path.join(self.output_dir, parameters['src_output'])
         tgt_out = os.path.join(self.output_dir, parameters['tgt_output'])
         if not overwrite and os.path.isfile(src_out) and os.path.isfile(tgt_out):
@@ -338,6 +349,16 @@ class OpusFilter:
             logger.info("No release version provided for corpus %s, using 'latest'",
                         parameters['corpus_name'])
             parameters['release'] = 'latest'
+        filters = parameters.get('filters', [])
+        tmp_files = []
+        write_targets = [src_out, tgt_out]
+        if filters:
+            fd_src, tmp_src = tempfile.mkstemp(dir=self.output_dir, suffix='.opus_tmp')
+            fd_tgt, tmp_tgt = tempfile.mkstemp(dir=self.output_dir, suffix='.opus_tmp')
+            os.close(fd_src)
+            os.close(fd_tgt)
+            tmp_files = [tmp_src, tmp_tgt]
+            write_targets = tmp_files
         opus_reader = OpusRead(
             directory=parameters['corpus_name'],
             source=parameters['source_language'],
@@ -345,17 +366,37 @@ class OpusFilter:
             release=parameters['release'],
             suppress_prompts=parameters['suppress_prompts'],
             preprocess=parameters['preprocessing'], write_mode='moses',
-            write=[src_out, tgt_out],
+            write=write_targets,
             leave_non_alignments_out=True,
             download_dir=self.output_dir)
         try:
             opus_reader.printPairs()
         except Exception as err:
-            # Remove broken files
             for outfile in [src_out, tgt_out]:
                 if os.path.isfile(outfile):
                     os.unlink(outfile)
+            for tmpf in tmp_files:
+                if os.path.isfile(tmpf):
+                    os.unlink(tmpf)
             raise err
+        if filters:
+            try:
+                from .pipeline import FilterPipeline
+                filter_pipe = FilterPipeline.from_config(filters, workdir=self.output_dir)
+                pair_gen = self.pair_generator(*tmp_files)
+                if parameters.get('filterfalse', False):
+                    pair_gen = filter_pipe.filterfalse(pair_gen)
+                else:
+                    pair_gen = filter_pipe.filter(pair_gen)
+                with text_file_open(src_out, 'w') as src_f, \
+                     text_file_open(tgt_out, 'w') as tgt_f:
+                    for src_text, tgt_text in pair_gen:
+                        src_f.write(src_text + '\n')
+                        tgt_f.write(tgt_text + '\n')
+            finally:
+                for tmpf in tmp_files:
+                    if os.path.isfile(tmpf):
+                        os.unlink(tmpf)
 
     def read_from_hf(self, parameters, overwrite=False):
         """Download and read a corpus from Hugging Face Datasets
@@ -383,7 +424,8 @@ class OpusFilter:
         self._check_extra_parameters(
             {'dataset', 'config', 'src_config', 'tgt_config', 'id_field',
              'split', 'src_field', 'tgt_field', 'src_lang', 'tgt_lang',
-             'src_output', 'tgt_output', 'max_rows', 'newline_replacement'},
+             'src_output', 'tgt_output', 'max_rows', 'newline_replacement',
+             'filters', 'filterfalse'},
             parameters)
         src_out = os.path.join(self.output_dir, parameters['src_output'])
         tgt_out = os.path.join(self.output_dir, parameters['tgt_output'])
@@ -412,6 +454,20 @@ class OpusFilter:
         which would otherwise crash on C-level threads spawned by
         pyarrow / ``datasets``.
         """
+        logging.basicConfig(level=logging.INFO)
+
+        class _IterCount:
+            """Counts items consumed from an iterator"""
+            __slots__ = ('it', 'count')
+            def __init__(self, it):
+                self.it = iter(it)
+                self.count = 0
+            def __next__(self):
+                self.count += 1
+                return next(self.it)
+            def __iter__(self):
+                return self
+
         src_field = parameters.get('src_field', 'src')
         tgt_field = parameters.get('tgt_field', 'tgt')
         src_lang = parameters.get('src_lang')
@@ -425,33 +481,54 @@ class OpusFilter:
             newline_replacement = None
         src_config = parameters.get('src_config')
         tgt_config = parameters.get('tgt_config')
+        if src_config and tgt_config:
+            raw_gen = OpusFilter._read_hf_cross_config(
+                parameters['dataset'], src_config, tgt_config,
+                src_field, tgt_field, split,
+                parameters['id_field'], newline_replacement)
+        else:
+            raw_gen = OpusFilter._read_hf_single_config(
+                parameters['dataset'], parameters.get('config'),
+                src_field, tgt_field, src_lang, tgt_lang,
+                split, newline_replacement)
+        filters = parameters.get('filters', [])
+        if filters:
+            from .pipeline import FilterPipeline
+            filter_pipe = FilterPipeline.from_config(filters, workdir=output_dir)
+            counter = _IterCount(raw_gen)
+            if parameters.get('filterfalse', False):
+                pair_gen = filter_pipe.filterfalse(counter)
+            else:
+                pair_gen = filter_pipe.filter(counter)
+        else:
+            counter = None
+            pair_gen = raw_gen
+        written = 0
         with text_file_open(src_out, 'w') as src_f:
             with text_file_open(tgt_out, 'w') as tgt_f:
-                if src_config and tgt_config:
-                    OpusFilter._read_hf_cross_config(
-                        parameters['dataset'], src_config, tgt_config,
-                        src_field, tgt_field, split, max_rows,
-                        parameters['id_field'], src_f, tgt_f,
-                        newline_replacement)
-                else:
-                    OpusFilter._read_hf_single_config(
-                        parameters['dataset'], parameters.get('config'),
-                        src_field, tgt_field, src_lang, tgt_lang,
-                        split, max_rows, src_f, tgt_f,
-                        newline_replacement)
+                for src_text, tgt_text in pair_gen:
+                    src_f.write(src_text + '\n')
+                    tgt_f.write(tgt_text + '\n')
+                    written += 1
+                    if max_rows and written >= max_rows:
+                        break
+        if counter is not None:
+            pct = (1 - written / counter.count) * 100 if counter.count else 0
+            logger.info("hf_read: %d read, %d written (%.1f%% rejected)",
+                        counter.count, written, pct)
+        else:
+            logger.info("hf_read: %d pairs written", written)
         os._exit(0)
 
     @staticmethod
     def _read_hf_single_config(dataset_name, config, src_field, tgt_field,
-                                src_lang, tgt_lang, split, max_rows,
-                                src_f, tgt_f, newline_replacement=' '):
-        """Read pairs from a single Hugging Face dataset config"""
+                                src_lang, tgt_lang, split,
+                                newline_replacement=' '):
+        """Yield (src, tgt) text pairs from a single Hugging Face dataset config"""
         from datasets import load_dataset
         dataset = load_dataset(
             dataset_name, config, split=split, streaming=True)
-        for idx, example in enumerate(dataset):
-            if max_rows and idx >= max_rows:
-                break
+        for example in dataset:
             if src_lang and tgt_lang and 'translation' in example and isinstance(
                     example['translation'], dict):
                 src_text = example['translation'][src_lang]
@@ -464,15 +541,13 @@ class OpusFilter:
             if newline_replacement is not None:
                 src_text = src_text.replace('\n', newline_replacement)
                 tgt_text = tgt_text.replace('\n', newline_replacement)
-            src_f.write(src_text + '\n')
-            tgt_f.write(tgt_text + '\n')
+            yield src_text, tgt_text
 
     @staticmethod
     def _read_hf_cross_config(dataset_name, src_config, tgt_config,
-                               src_field, tgt_field, split, max_rows,
-                               id_field, src_f, tgt_f,
-                               newline_replacement=' '):
-        """Join two configs by ID using a streaming merge-join.
+                                src_field, tgt_field, split, id_field,
+                                newline_replacement=' '):
+        """Yield (src, tgt) pairs from Hugging Face cross-config merge-join.
 
         Both configs must be sorted by *id_field*.  Records whose ID
         appears in only one side are silently skipped.
@@ -484,7 +559,6 @@ class OpusFilter:
             dataset_name, tgt_config, split=split, streaming=True)
         src_it = iter(src_dataset)
         tgt_it = iter(tgt_dataset)
-        paired = 0
         src_only = 0
         tgt_only = 0
         try:
@@ -493,8 +567,6 @@ class OpusFilter:
         except StopIteration:
             return
         while True:
-            if max_rows and paired >= max_rows:
-                break
             src_id = src_ex[id_field]
             tgt_id = tgt_ex[id_field]
             if src_id == tgt_id:
@@ -503,9 +575,7 @@ class OpusFilter:
                 if newline_replacement is not None:
                     src_text = src_text.replace('\n', newline_replacement)
                     tgt_text = tgt_text.replace('\n', newline_replacement)
-                src_f.write(src_text + '\n')
-                tgt_f.write(tgt_text + '\n')
-                paired += 1
+                yield src_text, tgt_text
                 try:
                     src_ex = next(src_it)
                     tgt_ex = next(tgt_it)
@@ -574,12 +644,20 @@ class OpusFilter:
             pairs = filter_pipe.filter(tqdm(pairs_gen))
         limit = parameters.get('limit')
         outfileobjs = [text_file_open(fname, 'w') for fname in outfiles]
-        for idx, pair in enumerate(pairs):
+        log_progress = not sys.stderr.isatty()
+        log_interval = 100000
+        written = 0
+        for pair in pairs:
             for item, fobj in zip(pair, outfileobjs):
                 fobj.write(item+'\n')
                 fobj.flush()
-            if limit and idx >= limit - 1:
+            written += 1
+            if log_progress and written % log_interval == 0:
+                logger.info("filter: %d accepted pairs written", written)
+            if limit and written >= limit:
                 break
+        if log_progress and (written % log_interval != 0 or written == 0):
+            logger.info("filter: %d accepted pairs written", written)
         self._close_files(*outfileobjs)
 
     def concatenate(self, parameters, overwrite=False):
