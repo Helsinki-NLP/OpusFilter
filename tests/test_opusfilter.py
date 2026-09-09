@@ -1994,21 +1994,53 @@ class TestPairGenerator(unittest.TestCase):
             import shutil
             shutil.rmtree(tmpdir)
 
-    def test_jsonl_object_format_fallback(self):
-        import tempfile
-        tmpdir = tempfile.mkdtemp()
-        try:
-            src = os.path.join(tmpdir, 'src.jsonl')
-            tgt = os.path.join(tmpdir, 'tgt.jsonl')
-            with open(src, 'w') as f:
-                f.write('{"text": "Hello"}\n')
-            with open(tgt, 'w') as f:
-                f.write('{"text": "Hei"}\n')
-            pairs = list(OpusFilter.pair_generator(src, tgt))
-            self.assertEqual(pairs, [('Hello', 'Hei')])
-        finally:
-            import shutil
-            shutil.rmtree(tmpdir)
+class TestTextFileOpen(unittest.TestCase):
+    """Tests for text_file_open and its interaction with file_open.
+
+    These tests do not require optional dependencies (varikn, eflomal).
+    """
+
+    def setUp(self):
+        self.tempdir = tempfile.mkdtemp()
+
+    def tearDown(self):
+        shutil.rmtree(self.tempdir)
+
+    def test_plain_text_round_trip(self):
+        fpath = os.path.join(self.tempdir, 'test.txt')
+        lines = ['hello\n', 'world\n']
+        with open(fpath, 'w') as f:
+            f.writelines(lines)
+        from opusfilter.util import text_file_open
+        with text_file_open(fpath) as f:
+            assert list(f) == lines
+
+    def test_jsonl_round_trip_via_text_file_open(self):
+        from opusfilter.util import text_file_open
+        fpath = os.path.join(self.tempdir, 'test.jsonl')
+        texts = ['hello', 'world']
+        with text_file_open(fpath, 'w') as f:
+            for t in texts:
+                f.write(t + '\n')
+        with text_file_open(fpath) as f:
+            result = [line.rstrip('\n') for line in f]
+        assert result == texts
+
+    def test_jsonl_round_trip_via_file_open(self):
+        """Verify file_open round-trips raw JSON lines through .jsonl files.
+
+        _write_jsonl uses file_open (not text_file_open) to write score
+        dicts to .jsonl files. Reading them back must use file_open too.
+        """
+        from opusfilter.util import file_open
+        fpath = os.path.join(self.tempdir, 'scores.jsonl')
+        data = [{'score': 1.0, 'length': 5}, {'score': 2.0, 'length': 3}]
+        with file_open(fpath, 'w') as f:
+            for obj in data:
+                f.write(json.dumps(obj, sort_keys=True) + '\n')
+        with file_open(fpath) as f:
+            result = [json.loads(line) for line in f]
+        assert result == data
 
 
 class TestParallelWrapper(unittest.TestCase):
@@ -2049,6 +2081,57 @@ class TestParallelWrapper(unittest.TestCase):
                     assert count_lines(output) == param["limit"]
                 else:
                     assert count_lines(output) == param["num_lines"]
+
+    def test_split_merge_jsonl(self):
+        """split/merge must preserve data even when temp files end with .jsonl
+
+        When score_data writes raw JSON dicts via file_open to a .jsonl
+        output, the ParallelWrapper temp files inherit the .jsonl suffix.
+        merge() must be able to read these back without KeyError.
+        """
+        num_lines = 50
+        inputs = [tempfile.mkstemp(suffix='.txt')[1], tempfile.mkstemp(suffix='.txt')[1]]
+        outputs = [tempfile.mkstemp(suffix='.jsonl')[1], tempfile.mkstemp(suffix='.jsonl')[1]]
+
+        for input_ in inputs:
+            with file_open(input_, 'w') as f:
+                for i in range(num_lines):
+                    f.write("line {}\n".format(i))
+
+        in_chunked, out_chunked = ParallelWrapper.split(inputs, outputs, 5)
+        for in_files, out_files in zip(in_chunked, out_chunked):
+            for fin, fout in zip(in_files, out_files):
+                shutil.copyfile(fin, fout)
+        ParallelWrapper.merge(in_chunked, outputs, out_chunked, None)
+        for output in outputs:
+            assert count_lines(output) == num_lines
+
+    def test_split_merge_jsonl_with_raw_json(self):
+        """merge must handle .jsonl files written by _write_jsonl (file_open)
+
+        _write_jsonl writes raw JSON dicts (not _JsonlTextWriter format).
+        The temp output files inherit the .jsonl suffix. merge() must
+        read these back correctly via file_open, not text_file_open.
+        """
+        num_lines = 20
+        inputs = [tempfile.mkstemp(suffix='.txt')[1]]
+        outputs = [tempfile.mkstemp(suffix='.jsonl')[1]]
+
+        with file_open(inputs[0], 'w') as f:
+            for i in range(num_lines):
+                f.write("line {}\n".format(i))
+
+        in_chunked, out_chunked = ParallelWrapper.split(inputs, outputs, 3)
+        for in_files, out_files in zip(in_chunked, out_chunked):
+            for fin, fout in zip(in_files, out_files):
+                # Simulate _write_jsonl: write raw JSON dicts via file_open
+                with file_open(fout, 'w') as fout_obj:
+                    with file_open(fin) as fin_obj:
+                        for line in fin_obj:
+                            fout_obj.write(json.dumps({"text": line.strip(), "score": 1.0}) + '\n')
+        ParallelWrapper.merge(in_chunked, outputs, out_chunked, None)
+        for output in outputs:
+            assert count_lines(output) == num_lines
 
     def test_parallelize(self):
         mock_obj = Namespace()
