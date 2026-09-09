@@ -13,6 +13,21 @@ from . import FilterABC, ConfigurationError, CLEAN_LOW, CLEAN_HIGH
 logger = logging.getLogger(__name__)
 
 
+def get_langid_identifier(languages=None):
+    """Initialize and return a py3langid LanguageIdentifier.
+
+    Compatible with both py3langid <0.4.0 (from_pickled_model) and >=0.4.0 (from_model_file).
+    """
+    from py3langid.langid import LanguageIdentifier, MODEL_FILE
+    if hasattr(LanguageIdentifier, 'from_pickled_model'):
+        identifier = LanguageIdentifier.from_pickled_model(MODEL_FILE, norm_probs=True)
+    else:
+        identifier = LanguageIdentifier.from_model_file(MODEL_FILE, norm_probs=True)
+    if languages:
+        identifier.set_languages(languages)
+    return identifier
+
+
 class LangidFilter(FilterABC):
     """Language identification confidence filter based on langid
 
@@ -29,10 +44,7 @@ class LangidFilter(FilterABC):
         if languages is None:
             raise ConfigurationError("A list of language codes needs to be defined")
         self.identifier = None
-        from py3langid.langid import LanguageIdentifier, MODEL_FILE
-        self.identifier = LanguageIdentifier.from_pickled_model(MODEL_FILE, norm_probs=True)
-        if langid_languages:
-            self.identifier.set_languages(langid_languages)
+        self.identifier = get_langid_identifier(langid_languages)
         # global options
         self.languages = languages
         self.thresholds = [0] * len(self.languages) if thresholds is None else thresholds

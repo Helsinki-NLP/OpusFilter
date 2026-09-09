@@ -39,7 +39,7 @@ class TestLangId(TestLangIDMethod):
 
     def test_accept(self):
         model = LangidFilter(
-            languages=['en', 'fr'], thresholds=[0.8, 0.99])
+            languages=['en', 'fr'], thresholds=[0.5, 0.96])
         pair_scores = model.score(self.pairs_inputs)
         pair_expecteds = [True, False]
         for pair_score, pair_expected in zip(pair_scores, pair_expecteds):

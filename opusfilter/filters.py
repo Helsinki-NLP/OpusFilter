@@ -356,10 +356,8 @@ class LanguageIDFilter(FilterABC):
 
     def init_langid(self, langid_languages):
         """Initialize langid identifier"""
-        from py3langid.langid import LanguageIdentifier, MODEL_FILE
-        self.identifier = LanguageIdentifier.from_pickled_model(MODEL_FILE, norm_probs=True)
-        if langid_languages:
-            self.identifier.set_languages(langid_languages)
+        from opusfilter.lid import get_langid_identifier
+        self.identifier = get_langid_identifier(langid_languages)
 
     def init_fastttext(self, fasttext_model_path):
         """Initialize fasttext identifier"""
