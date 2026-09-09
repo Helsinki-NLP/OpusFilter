@@ -268,10 +268,9 @@ def file_open(filename, mode='r', encoding='utf8'):
 class _JsonlTextReader:
     """Wraps a readable file object to transparently parse JSONL.
 
-    Each line is parsed as JSON; if the result is a string it is used
-    directly, otherwise the *text* key is extracted.  This lets both
-    ``json.dumps(text)`` and ``{"text": text}`` formats round-trip
-    correctly.
+    Each line is parsed as JSON and expected to be a string produced
+    by ``json.dumps``.  The deserialised text is returned with a
+    trailing newline.
     """
 
     def __init__(self, fobj):
@@ -282,8 +281,7 @@ class _JsonlTextReader:
         if not line:
             return line
         obj = json.loads(line.rstrip('\n'))
-        text = obj if isinstance(obj, str) else obj['text']
-        return text + '\n'
+        return obj + '\n'
 
     def __iter__(self):
         return self
@@ -391,8 +389,7 @@ def text_file_open(filename, mode='r', encoding='utf8'):
     compression suffix such as ``.gz``, ``.bz2`` or ``.xz``):
 
     * ``'r'`` — each ``readline()`` / iteration returns the
-      deserialised text (``json.dumps(text)`` or ``{"text": text}``
-      are both accepted).
+      deserialised text from a ``json.dumps``-encoded line.
     * ``'w'`` / ``'a'`` / ``'x'`` — each ``write(text)`` serialises
       *text* via ``json.dumps`` and writes one JSON line.
 

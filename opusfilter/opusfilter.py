@@ -131,8 +131,8 @@ class ParallelWrapper:
     def merge(in_chunked_files, outfiles, out_chunked_files, limit):
         """merge temporary files into final files and delete temporary files"""
         for outfile, parts in zip(outfiles, zip(*out_chunked_files)):
-            with text_file_open(outfile, 'w') as out:
-                finput = chain.from_iterable(text_file_open(part) for part in parts)
+            with file_open(outfile, 'w') as out:
+                finput = chain.from_iterable(file_open(part) for part in parts)
                 for i, line in enumerate(finput):
                     out.write(line)
                     if limit and i >= limit - 1:
