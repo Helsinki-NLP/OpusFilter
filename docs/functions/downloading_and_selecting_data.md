@@ -119,7 +119,7 @@ Parameters:
 * `src_output`: output file for source language
 * `tgt_output`: output file for target language
 * `suppress_prompts`: `false` (default) prompts user to confirm before download, `true` to download without prompting
-* `filters`: an optional list of filter configurations (same format as the `filter` step) to apply before writing — avoids a separate `filter` step after reading. OpusTools output is written to a temporary file, filtered, and then written to the final output.
+* `filters`: an optional list of filter configurations (same format as the `filter` step) to apply before writing — avoids a separate `filter` step after reading
 * `filterfalse`: if `true` and `filters` is set, write only pairs that are *rejected* by the filters (default: `false`)
 
 The `moses` preprocessing type (available with `OpusTools` version

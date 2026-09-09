@@ -350,15 +350,6 @@ class OpusFilter:
                         parameters['corpus_name'])
             parameters['release'] = 'latest'
         filters = parameters.get('filters', [])
-        tmp_files = []
-        write_targets = [src_out, tgt_out]
-        if filters:
-            fd_src, tmp_src = tempfile.mkstemp(dir=self.output_dir, suffix='.opus_tmp')
-            fd_tgt, tmp_tgt = tempfile.mkstemp(dir=self.output_dir, suffix='.opus_tmp')
-            os.close(fd_src)
-            os.close(fd_tgt)
-            tmp_files = [tmp_src, tmp_tgt]
-            write_targets = tmp_files
         opus_reader = OpusRead(
             directory=parameters['corpus_name'],
             source=parameters['source_language'],
@@ -366,24 +357,14 @@ class OpusFilter:
             release=parameters['release'],
             suppress_prompts=parameters['suppress_prompts'],
             preprocess=parameters['preprocessing'], write_mode='moses',
-            write=write_targets,
+            write=None if filters else [src_out, tgt_out],
             leave_non_alignments_out=True,
             download_dir=self.output_dir)
         try:
-            opus_reader.printPairs()
-        except Exception as err:
-            for outfile in [src_out, tgt_out]:
-                if os.path.isfile(outfile):
-                    os.unlink(outfile)
-            for tmpf in tmp_files:
-                if os.path.isfile(tmpf):
-                    os.unlink(tmpf)
-            raise err
-        if filters:
-            try:
+            if filters:
                 from .pipeline import FilterPipeline
                 filter_pipe = FilterPipeline.from_config(filters, workdir=self.output_dir)
-                pair_gen = self.pair_generator(*tmp_files)
+                pair_gen = opus_reader.yieldPairs()
                 if parameters.get('filterfalse', False):
                     pair_gen = filter_pipe.filterfalse(pair_gen)
                 else:
@@ -393,10 +374,13 @@ class OpusFilter:
                     for src_text, tgt_text in pair_gen:
                         src_f.write(src_text + '\n')
                         tgt_f.write(tgt_text + '\n')
-            finally:
-                for tmpf in tmp_files:
-                    if os.path.isfile(tmpf):
-                        os.unlink(tmpf)
+            else:
+                opus_reader.printPairs()
+        except Exception as err:
+            for outfile in [src_out, tgt_out]:
+                if os.path.isfile(outfile):
+                    os.unlink(outfile)
+            raise err
 
     def read_from_hf(self, parameters, overwrite=False):
         """Download and read a corpus from Hugging Face Datasets

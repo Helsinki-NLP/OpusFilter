@@ -357,23 +357,31 @@ class TestExtraKeyErrors(unittest.TestCase):
             opusfilter.execute_steps()
 
 
+class FakeOpusRead:
+    """Fake implementation for OpusRead"""
+
+    def __init__(self, **kwargs):
+        self.write = kwargs.get('write', [])
+        self.directory = kwargs.get('directory')
+        self.test_data_src = 'Hi\nHello world\nA\nShort\n'
+        self.test_data_tgt = 'Hei\nHei maailma\nB\nLyhyt\n'
+
+    def printPairs(self):
+        with open(self.write[0], 'w') as f:
+            f.write(self.test_data_src)
+        with open(self.write[1], 'w') as f:
+            f.write(self.test_data_tgt)
+
+    def yieldPairs(self):
+        for src, tgt in zip(self.test_data_src.rstrip('\n').split('\n'),
+                            self.test_data_tgt.rstrip('\n').split('\n')):
+            yield src, tgt
+
+
 class TestOpusReadWithFilters(unittest.TestCase):
     """Tests for inline filtering in opus_read"""
 
     def test_with_filters(self):
-        test_data_src = 'Hi\nHello world\nA\nShort\n'
-        test_data_tgt = 'Hei\nHei maailma\nB\nLyhyt\n'
-
-        class FakeOpusRead:
-            def __init__(self, **kwargs):
-                self.write = kwargs.get('write', [])
-                self.directory = kwargs.get('directory')
-            def printPairs(self):
-                with open(self.write[0], 'w') as f:
-                    f.write(test_data_src)
-                with open(self.write[1], 'w') as f:
-                    f.write(test_data_tgt)
-
         with tempfile.TemporaryDirectory() as tempdir:
             opusfilter = OpusFilter(
                 {'common': {'output_directory': tempdir}, 'steps': []})
@@ -392,19 +400,6 @@ class TestOpusReadWithFilters(unittest.TestCase):
                     self.assertEqual(f.read(), 'Hei maailma\nLyhyt\n')
 
     def test_with_filters_filterfalse(self):
-        test_data_src = 'Hi\nHello world\nA\nShort\n'
-        test_data_tgt = 'Hei\nHei maailma\nB\nLyhyt\n'
-
-        class FakeOpusRead:
-            def __init__(self, **kwargs):
-                self.write = kwargs.get('write', [])
-                self.directory = kwargs.get('directory')
-            def printPairs(self):
-                with open(self.write[0], 'w') as f:
-                    f.write(test_data_src)
-                with open(self.write[1], 'w') as f:
-                    f.write(test_data_tgt)
-
         with tempfile.TemporaryDirectory() as tempdir:
             opusfilter = OpusFilter(
                 {'common': {'output_directory': tempdir}, 'steps': []})
@@ -424,19 +419,6 @@ class TestOpusReadWithFilters(unittest.TestCase):
                     self.assertEqual(f.read(), 'Hei\nB\n')
 
     def test_without_filters(self):
-        test_data_src = 'Hello\nWorld\n'
-        test_data_tgt = 'Hei\nMaailma\n'
-
-        class FakeOpusRead:
-            def __init__(self, **kwargs):
-                self.write = kwargs.get('write', [])
-                self.directory = kwargs.get('directory')
-            def printPairs(self):
-                with open(self.write[0], 'w') as f:
-                    f.write(test_data_src)
-                with open(self.write[1], 'w') as f:
-                    f.write(test_data_tgt)
-
         with tempfile.TemporaryDirectory() as tempdir:
             opusfilter = OpusFilter(
                 {'common': {'output_directory': tempdir}, 'steps': []})
@@ -449,9 +431,9 @@ class TestOpusReadWithFilters(unittest.TestCase):
                 }
                 opusfilter.read_from_opus(parameters)
                 with open(os.path.join(tempdir, 'out.src')) as f:
-                    self.assertEqual(f.read(), test_data_src)
+                    self.assertEqual(f.read(), FakeOpusRead().test_data_src)
                 with open(os.path.join(tempdir, 'out.tgt')) as f:
-                    self.assertEqual(f.read(), test_data_tgt)
+                    self.assertEqual(f.read(), FakeOpusRead().test_data_tgt)
 
 
 class TestSort(unittest.TestCase):

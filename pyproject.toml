@@ -47,7 +47,7 @@ classifiers = [
 requires-python = ">=3.9"
 dependencies = [
     "setuptools",
-    "opustools>=1.8.3",
+    "opustools>=1.9.0",
     "beautifulsoup4>=4.8.0",
     "graphviz",
     "py3langid>=0.2.2",
