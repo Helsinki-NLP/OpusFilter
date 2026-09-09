@@ -5,6 +5,9 @@ from numpy.testing import assert_almost_equal
 
 from opusfilter.pipeline import FilterPipeline
 
+from py3langid.langid import LanguageIdentifier
+_PY3LANGID_NEW = not hasattr(LanguageIdentifier, 'from_pickled_model')
+
 
 class TestFilterPipelineBase(unittest.TestCase):
 
@@ -84,7 +87,7 @@ class TestFilterPipeline(TestFilterPipelineBase):
              'AverageWordLengthFilter': [6, 19 / 3],
              'HtmlTagFilter': [False, False],
              'CharacterScoreFilter': [1.0, 1.0],
-             'LangidFilter': [1.0, 1.0],
+             'LangidFilter': [0.81, 0.99] if _PY3LANGID_NEW else [1.0, 1.0],
              'TerminalPunctuationFilter': -0.0,
              'NonZeroNumeralsFilter': [1.0]})
         self.assert_scores_equal(
@@ -95,7 +98,7 @@ class TestFilterPipeline(TestFilterPipelineBase):
              'AverageWordLengthFilter': [6, 10],
              'HtmlTagFilter': [False, False],
              'CharacterScoreFilter': [1.0, 1.0],
-             'LangidFilter': [0.17, 0.0],
+             'LangidFilter': [0.0, 0.0] if _PY3LANGID_NEW else [0.17, 0.0],
              'TerminalPunctuationFilter': -2.1972245773362196,
              'NonZeroNumeralsFilter': [0.8888888888888888]})
         self.assert_scores_equal(
@@ -126,7 +129,7 @@ class TestFilterPipeline(TestFilterPipelineBase):
              'AverageWordLengthFilter': {'scores': [6, 19 / 3], 'accept': True},
              'HtmlTagFilter': {'scores': [False, False], 'accept': True},
              'CharacterScoreFilter': {'scores': [1.0, 1.0], 'accept': True},
-             'LangidFilter': {'scores': [1.0, 1.0], 'accept': True},
+             'LangidFilter': {'scores': [0.81, 0.99] if _PY3LANGID_NEW else [1.0, 1.0], 'accept': True},
              'TerminalPunctuationFilter': {'scores': -0.0, 'accept': True},
              'NonZeroNumeralsFilter': {'scores': [1.0], 'accept': True}})
         self.assert_scores_and_decisions_equal(
@@ -137,7 +140,7 @@ class TestFilterPipeline(TestFilterPipelineBase):
              'AverageWordLengthFilter': {'scores': [6, 10], 'accept': True},
              'HtmlTagFilter': {'scores': [False, False], 'accept': True},
              'CharacterScoreFilter': {'scores': [1.0, 1.0], 'accept': True},
-             'LangidFilter': {'scores': [0.17, 0.0], 'accept': False},
+             'LangidFilter': {'scores': [0.0, 0.0] if _PY3LANGID_NEW else [0.17, 0.0], 'accept': False},
              'TerminalPunctuationFilter': {'scores': -2.1972245773362196, 'accept': False},
              'NonZeroNumeralsFilter': {'scores': [0.8888888888888888], 'accept': True}})
         self.assert_scores_and_decisions_equal(
