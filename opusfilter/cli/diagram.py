@@ -44,7 +44,7 @@ def main(args=None):
         params = get_other_params(step)
         if params and not args.exclude_params:
             paramstr = yaml_dumps(params)
-            label += '\n\n' + paramstr.replace('\n', '\l')
+            label += '\n\n' + paramstr.replace('\n', r'\l')
         graph.node(name, label=label)
         for fname in get_inputs(step):
             if fname in node_outputs:
