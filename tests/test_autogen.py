@@ -161,7 +161,8 @@ class TestPercentileAdjuster(unittest.TestCase):
 
     # These have arguments without defaults
     expected_failures = {'CharacterScoreFilter', 'CrossEntropyFilter', 'CrossEntropyDifferenceFilter',
-                         'LMClassifierFilter', 'LanguageIDFilter', 'RegExpFilter', 'SentenceEmbeddingFilter'}
+                         'LMClassifierFilter', 'LanguageIDFilter', 'RegExpFilter', 'SentenceEmbeddingFilter',
+                         'WDSFilter'}
     # All language identification filters
     expected_failures.update(name for name in dir(lid_filters) if name.endswith('Filter'))
 

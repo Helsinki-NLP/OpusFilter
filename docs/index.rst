@@ -58,6 +58,7 @@ OpusFilter has been presented in `ACL 2020 system demonstrations <https://www.ac
    filters/language_model_filters.md
    filters/alignment_model_filters.md
    filters/sentence_embedding_filters.md
+   filters/document_scoring_filters.md
    filters/custom_filters.md
 
 .. toctree::
