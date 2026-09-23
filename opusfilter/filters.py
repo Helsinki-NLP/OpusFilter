@@ -18,6 +18,7 @@ from .lm import CrossEntropyFilter, CrossEntropyDifferenceFilter, LMClassifierFi
 from .util import check_args_compability
 from .word_alignment import WordAlignFilter      # pylint: disable=W0611 # noqa: F401
 from .embeddings import SentenceEmbeddingFilter  # pylint: disable=W0611 # noqa: F401
+from .wds import WDSFilter                       # pylint: disable=W0611 # noqa: F401
 
 
 logger = logging.getLogger(__name__)
