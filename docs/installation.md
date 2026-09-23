@@ -63,6 +63,30 @@ The support for `heliport` can be installed automatically with pip by
 including the extras `[heliport]` (e.g. `pip install
 opusfilter[heliport]`).
 
+### Web Docs Scorer
+
+For using the document scoring filters, you need to install
+`docscorer` (<https://github.com/pablop16n/web-docs-scorer>). It can
+be installed automatically with pip by including the extras `[wds]` or
+`[all]` (e.g. `pip install opusfilter[wds]`). Please note that
+`docscorer` has GPL-3.0 license, requires Python 3.10 or later, and
+has no PyPI distribution (the extra installs it directly from
+GitHub). The package pins `numpy>=2` and `scipy>=1.14`, which may
+conflict with older versions of the other OpusFilter dependencies.
+
+Note that `docscorer` actually works also with older `numpy` versions,
+but its requirement `numpy>=2` prevents installing it with
+`fasttext`, which does not support `numpy>=2`, using the normal `[wds]`
+extra. To use the fasttext language identification method of
+`WDSFilter` together with `docscorer`, install `docscorer` manually
+without its dependencies while keeping `numpy` below 2:
+
+```bash
+pip install docscorer @ git+https://github.com/pablop16n/web-docs-scorer.git --no-deps
+pip install docopt zstandard
+pip install "opusfilter[fasttext]"
+```
+
 ### Jieba and MeCab word segmentation
 
 For Chinese tokenization (word segmentation), you can use the

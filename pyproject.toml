@@ -97,6 +97,9 @@ varikn = [
 heliport = [
     'heliport>=0.10.0'
 ]
+wds = [
+    "docscorer @ git+https://github.com/pablop16n/web-docs-scorer.git ; python_version >= '3.10'"
+]
 huggingface = [
     'datasets>=2.14.0'
 ]
@@ -110,7 +113,7 @@ docs = [
     'sphinxcontrib-bibtex'
 ]
 all = [
-    "opusfilter[pycld2,fasttext,eflomal,jieba,mecab,laser,varikn,heliport,test,docs]"
+    "opusfilter[pycld2,fasttext,eflomal,jieba,mecab,laser,varikn,heliport,wds,test,docs]"
 ]
 dev = [
     "pytest",
