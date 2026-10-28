@@ -374,7 +374,7 @@ class _PlainTextWriter:
         self.close()
 
 
-def _strip_compression_suffix(filename):
+def strip_compression_suffix(filename):
     """Remove a recognised compression suffix from *filename*."""
     for ext in ('.gz', '.bz2', '.xz'):
         if filename.endswith(ext):
@@ -396,7 +396,7 @@ def text_file_open(filename, mode='r', encoding='utf8'):
     For any other extension the behaviour is identical to
     :func:`file_open`.
     """
-    is_jsonl = _strip_compression_suffix(filename).endswith('.jsonl')
+    is_jsonl = strip_compression_suffix(filename).endswith('.jsonl')
     fobj = file_open(filename, mode=mode, encoding=encoding)
     if not is_jsonl:
         if 'w' in mode or 'a' in mode or 'x' in mode:
