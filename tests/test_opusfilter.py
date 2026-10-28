@@ -333,6 +333,50 @@ class TestOpusRead(unittest.TestCase):
                 for outfile in outfiles:
                     self.assertTrue(os.path.isfile(os.path.join(tempdir, outfile)))
 
+    def test_jsonl_output(self):
+        outfiles = ['RF1_sents.en.jsonl', 'RF1_sents.sv.jsonl']
+        with tempfile.TemporaryDirectory() as tempdir:
+            opusfilter = OpusFilter(
+                {'common': {'output_directory': tempdir},
+                 'steps': [
+                     {'type': 'opus_read', 'parameters': {
+                         'corpus_name': 'RF', 'source_language': 'en', 'target_language': 'sv', 'release': 'latest',
+                         'preprocessing': 'raw', 'doc_level': False,
+                         'src_output': outfiles[0], 'tgt_output': outfiles[1],
+                         'suppress_prompts': True}}
+                 ]})
+            opusfilter.execute_steps()
+            lines = []
+            for outfile in outfiles:
+                outpath = os.path.join(tempdir, outfile)
+                self.assertTrue(os.path.isfile(outpath))
+                with open(outpath, 'r', encoding='utf-8') as fobj:
+                    lines.append([json.loads(row) for row in fobj])
+            self.assertEqual(len(lines[0]), len(lines[1]), "Number of lines differs")
+
+    def test_jsonl_doc_output(self):
+        outfiles = ['RF1_sents.en.jsonl', 'RF1_sents.sv.jsonl']
+        with tempfile.TemporaryDirectory() as tempdir:
+            opusfilter = OpusFilter(
+                {'common': {'output_directory': tempdir},
+                 'steps': [
+                     {'type': 'opus_read', 'parameters': {
+                         'corpus_name': 'RF', 'source_language': 'en', 'target_language': 'sv', 'release': 'latest',
+                         'preprocessing': 'raw', 'doc_level': True,
+                         'src_output': outfiles[0], 'tgt_output': outfiles[1],
+                         'suppress_prompts': True}}
+                 ]})
+            opusfilter.execute_steps()
+            docs = []
+            for outfile in outfiles:
+                outpath = os.path.join(tempdir, outfile)
+                self.assertTrue(os.path.isfile(outpath))
+                with open(outpath, 'r', encoding='utf-8') as fobj:
+                    docs.append([json.loads(row) for row in fobj])
+            self.assertEqual(len(docs[0]), len(docs[1]), "Number of docs differs")
+            for doc1, doc2 in zip(docs[0], docs[1]):
+                self.assertEqual(len(doc1.split('\n')), len(doc2.split('\n')), "Number of lines in document differs")
+
 
 class TestExtraKeyErrors(unittest.TestCase):
 

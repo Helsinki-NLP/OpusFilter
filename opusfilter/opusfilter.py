@@ -26,7 +26,7 @@ from . import subwords
 from . import segment_hash
 from . import tokenization
 from . import word_alignment
-from .util import file_open, text_file_open, file_download, Var, VarStr, count_lines
+from .util import file_open, text_file_open, file_download, Var, VarStr, count_lines, strip_compression_suffix
 from .validate import validate_configuration
 
 
@@ -335,7 +335,7 @@ class OpusFilter:
         self._check_extra_parameters(
             {'src_output', 'tgt_output', 'suppress_prompts', 'release', 'corpus_name',
              'source_language', 'target_language', 'preprocessing', 'filters',
-             'filterfalse'}, parameters)
+             'filterfalse', 'doc_level'}, parameters)
         src_out = os.path.join(self.output_dir, parameters['src_output'])
         tgt_out = os.path.join(self.output_dir, parameters['tgt_output'])
         if not overwrite and os.path.isfile(src_out) and os.path.isfile(tgt_out):
@@ -356,9 +356,12 @@ class OpusFilter:
             target=parameters['target_language'],
             release=parameters['release'],
             suppress_prompts=parameters['suppress_prompts'],
-            preprocess=parameters['preprocessing'], write_mode='moses',
+            preprocess=parameters.get('preprocessing', 'raw'),
+            # For printPairs: set write_mode based on the src suffix (expects tgt has the same)
+            write_mode='jsonl' if strip_compression_suffix(src_out).endswith('.jsonl') else 'moses',
             write=None if filters else [src_out, tgt_out],
             leave_non_alignments_out=True,
+            doc_level=parameters.get('doc_level', False),
             download_dir=self.output_dir)
         try:
             if filters:
