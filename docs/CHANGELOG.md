@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `opusfilter-slurm-*` commands for running OpusFilter workflows in SLRUM clusters
 - improved validation for configuration files
 - inline filtering for `hf_read` and `opus_read`
+- inline preprocessing for `hf_read` and `opus_read`
 
 ### Changed
 

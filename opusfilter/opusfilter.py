@@ -319,12 +319,13 @@ class OpusFilter:
     def read_from_opus(self, parameters, overwrite=False):
         """Download and read a corpus from OPUS using OpusTools
 
-        Sentence pairs can be filtered inline with an optional
-        ``filters`` parameter (same filter config format as the
-        ``filter`` step). When filters are present, OpusTools'
-        output is written to a temporary file, read back, filtered,
+        Sentence pairs can be preprocessed and filtered inline with
+        optional ``preprocessors`` and ``filters`` parameters (same
+        config format as the ``preprocess`` and ``filter`` steps,
+        respectively). Preprocessors are applied before filters. When
+        either is present, OpusTools' output is streamed, processed,
         and written to the final output — avoiding the need for
-        a separate ``filter`` step after reading.
+        separate ``preprocess`` or ``filter`` steps after reading.
 
         For details, see:
         * OPUS corpus collection :cite:`tiedemann-2016-parallel`.
@@ -334,8 +335,8 @@ class OpusFilter:
         from opustools import OpusRead
         self._check_extra_parameters(
             {'src_output', 'tgt_output', 'suppress_prompts', 'release', 'corpus_name',
-             'source_language', 'target_language', 'preprocessing', 'filters',
-             'filterfalse', 'doc_level'}, parameters)
+             'source_language', 'target_language', 'preprocessing', 'preprocessors',
+             'filters', 'filterfalse', 'doc_level'}, parameters)
         src_out = os.path.join(self.output_dir, parameters['src_output'])
         tgt_out = os.path.join(self.output_dir, parameters['tgt_output'])
         if not overwrite and os.path.isfile(src_out) and os.path.isfile(tgt_out):
@@ -350,6 +351,7 @@ class OpusFilter:
                         parameters['corpus_name'])
             parameters['release'] = 'latest'
         filters = parameters.get('filters', [])
+        preprocessors = parameters.get('preprocessors', [])
         opus_reader = OpusRead(
             directory=parameters['corpus_name'],
             source=parameters['source_language'],
@@ -359,19 +361,24 @@ class OpusFilter:
             preprocess=parameters.get('preprocessing', 'raw'),
             # For printPairs: set write_mode based on the src suffix (expects tgt has the same)
             write_mode='jsonl' if strip_compression_suffix(src_out).endswith('.jsonl') else 'moses',
-            write=None if filters else [src_out, tgt_out],
+            write=None if (filters or preprocessors) else [src_out, tgt_out],
             leave_non_alignments_out=True,
             doc_level=parameters.get('doc_level', False),
             download_dir=self.output_dir)
         try:
-            if filters:
-                from .pipeline import FilterPipeline
-                filter_pipe = FilterPipeline.from_config(filters, workdir=self.output_dir)
+            if filters or preprocessors:
+                from .pipeline import FilterPipeline, PreprocessorPipeline
                 pair_gen = opus_reader.yieldPairs()
-                if parameters.get('filterfalse', False):
-                    pair_gen = filter_pipe.filterfalse(pair_gen)
-                else:
-                    pair_gen = filter_pipe.filter(pair_gen)
+                if preprocessors:
+                    preprocess_pipe = PreprocessorPipeline.from_config(
+                        preprocessors, workdir=self.output_dir)
+                    pair_gen = preprocess_pipe.process(pair_gen)
+                if filters:
+                    filter_pipe = FilterPipeline.from_config(filters, workdir=self.output_dir)
+                    if parameters.get('filterfalse', False):
+                        pair_gen = filter_pipe.filterfalse(pair_gen)
+                    else:
+                        pair_gen = filter_pipe.filter(pair_gen)
                 with text_file_open(src_out, 'w') as src_f, \
                      text_file_open(tgt_out, 'w') as tgt_f:
                     for src_text, tgt_text in pair_gen:
@@ -390,6 +397,11 @@ class OpusFilter:
 
         Reads sentence pairs from a Hugging Face dataset and writes
         source and target sentences to separate output files.
+
+        Sentence pairs can be preprocessed and filtered inline with
+        optional ``preprocessors`` and ``filters`` parameters (same
+        config format as the ``preprocess`` and ``filter`` steps,
+        respectively). Preprocessors are applied before filters.
 
         Two modes are supported:
 
@@ -412,7 +424,7 @@ class OpusFilter:
             {'dataset', 'config', 'src_config', 'tgt_config', 'id_field',
              'split', 'src_field', 'tgt_field', 'src_lang', 'tgt_lang',
              'src_output', 'tgt_output', 'max_rows', 'newline_replacement',
-             'filters', 'filterfalse'},
+             'preprocessors', 'filters', 'filterfalse'},
             parameters)
         src_out = os.path.join(self.output_dir, parameters['src_output'])
         tgt_out = os.path.join(self.output_dir, parameters['tgt_output'])
@@ -479,17 +491,25 @@ class OpusFilter:
                 src_field, tgt_field, src_lang, tgt_lang,
                 split, newline_replacement)
         filters = parameters.get('filters', [])
+        preprocessors = parameters.get('preprocessors', [])
         if filters:
-            from .pipeline import FilterPipeline
-            filter_pipe = FilterPipeline.from_config(filters, workdir=output_dir)
             counter = _IterCount(raw_gen)
-            if parameters.get('filterfalse', False):
-                pair_gen = filter_pipe.filterfalse(counter)
-            else:
-                pair_gen = filter_pipe.filter(counter)
+            pair_gen = counter
         else:
             counter = None
             pair_gen = raw_gen
+        if preprocessors:
+            from .pipeline import PreprocessorPipeline
+            preprocess_pipe = PreprocessorPipeline.from_config(
+                preprocessors, workdir=output_dir)
+            pair_gen = preprocess_pipe.process(pair_gen)
+        if filters:
+            from .pipeline import FilterPipeline
+            filter_pipe = FilterPipeline.from_config(filters, workdir=output_dir)
+            if parameters.get('filterfalse', False):
+                pair_gen = filter_pipe.filterfalse(pair_gen)
+            else:
+                pair_gen = filter_pipe.filter(pair_gen)
         written = 0
         with text_file_open(src_out, 'w') as src_f:
             with text_file_open(tgt_out, 'w') as tgt_f:
@@ -500,9 +520,13 @@ class OpusFilter:
                     if max_rows and written >= max_rows:
                         break
         if counter is not None:
-            pct = (1 - written / counter.count) * 100 if counter.count else 0
-            logger.info("hf_read: %d read, %d written (%.1f%% rejected)",
-                        counter.count, written, pct)
+            if preprocessors:
+                logger.info("hf_read: %d read, %d written",
+                            counter.count, written)
+            else:
+                pct = (1 - written / counter.count) * 100 if counter.count else 0
+                logger.info("hf_read: %d read, %d written (%.1f%% rejected)",
+                            counter.count, written, pct)
         else:
             logger.info("hf_read: %d pairs written", written)
         os._exit(0)

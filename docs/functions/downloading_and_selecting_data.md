@@ -17,6 +17,7 @@ Parameters:
 * `id_field`: field name for alignment between configs in cross-config mode (required for cross-config)
 * `newline_replacement`: character to replace embedded newlines with in plain-text output (default: space)
 * `split`: which dataset split to use (default: `train`)
+* `preprocessors`: an optional list of preprocessor configurations (same format as the `preprocess` step) to apply before filtering and writing
 * `filters`: an optional list of filter configurations (same format as the `filter` step) to apply before writing — avoids a separate `filter` step after reading
 * `filterfalse`: if `true` and `filters` is set, write only pairs that are *rejected* by the filters (default: `false`)
 * `streaming`: whether to stream the dataset (default: `true`)
@@ -73,7 +74,9 @@ alignment even when language configs have different row counts.
 
 Inline filtering can be added to avoid writing all pairs before
 filtering — data flows from the HF dataset through the filter pipeline
-and only accepted pairs are written to disk:
+and only accepted pairs are written to disk. An optional
+`preprocessors` list (same format as the `preprocess` step) is applied
+before the filters:
 
 ```yaml
 steps:
@@ -119,6 +122,7 @@ Parameters:
 * `src_output`: output file for source language
 * `tgt_output`: output file for target language
 * `suppress_prompts`: `false` (default) prompts user to confirm before download, `true` to download without prompting
+* `preprocessors`: an optional list of preprocessor configurations (same format as the `preprocess` step) to apply before filtering and writing
 * `filters`: an optional list of filter configurations (same format as the `filter` step) to apply before writing — avoids a separate `filter` step after reading
 * `filterfalse`: if `true` and `filters` is set, write only pairs that are *rejected* by the filters (default: `false`)
 

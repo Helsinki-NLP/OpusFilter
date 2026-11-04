@@ -483,6 +483,47 @@ class TestOpusReadWithFilters(unittest.TestCase):
                 with open(os.path.join(tempdir, 'out.tgt')) as f:
                     self.assertEqual(f.read(), FakeOpusRead().test_data_tgt)
 
+    def test_with_preprocessors(self):
+        with tempfile.TemporaryDirectory() as tempdir:
+            opusfilter = OpusFilter(
+                {'common': {'output_directory': tempdir}, 'steps': []})
+            with mock.patch('opustools.OpusRead', FakeOpusRead):
+                parameters = {
+                    'corpus_name': 'test', 'source_language': 'en', 'target_language': 'sv',
+                    'release': 'latest', 'preprocessing': 'xml',
+                    'src_output': 'out.src', 'tgt_output': 'out.tgt',
+                    'suppress_prompts': True,
+                    'preprocessors': [
+                        {'RegExpSub': {'patterns': [[r'Hello', 'HELLO', 0, []]]}},
+                    ],
+                }
+                opusfilter.read_from_opus(parameters)
+                with open(os.path.join(tempdir, 'out.src')) as f:
+                    self.assertEqual(f.read(), 'Hi\nHELLO world\nA\nShort\n')
+                with open(os.path.join(tempdir, 'out.tgt')) as f:
+                    self.assertEqual(f.read(), FakeOpusRead().test_data_tgt)
+
+    def test_with_preprocessors_and_filters(self):
+        with tempfile.TemporaryDirectory() as tempdir:
+            opusfilter = OpusFilter(
+                {'common': {'output_directory': tempdir}, 'steps': []})
+            with mock.patch('opustools.OpusRead', FakeOpusRead):
+                parameters = {
+                    'corpus_name': 'test', 'source_language': 'en', 'target_language': 'sv',
+                    'release': 'latest', 'preprocessing': 'xml',
+                    'src_output': 'out.src', 'tgt_output': 'out.tgt',
+                    'suppress_prompts': True,
+                    'preprocessors': [
+                        {'RegExpSub': {'patterns': [[r'Hello world', 'Hi', 0, []]]}},
+                    ],
+                    'filters': [{'LengthFilter': {'min_length': 3, 'max_length': 100, 'unit': 'char'}}],
+                }
+                opusfilter.read_from_opus(parameters)
+                with open(os.path.join(tempdir, 'out.src')) as f:
+                    self.assertEqual(f.read(), 'Short\n')
+                with open(os.path.join(tempdir, 'out.tgt')) as f:
+                    self.assertEqual(f.read(), 'Lyhyt\n')
+
 
 class TestSort(unittest.TestCase):
 
@@ -1987,6 +2028,40 @@ class TestHFRead(unittest.TestCase):
             self.assertEqual(f.read(), 'Hello\n')
         with open(os.path.join(self.tempdir, 'sents.tgt')) as f:
             self.assertEqual(f.read(), 'Hei\n')
+
+    def test_read_with_preprocessors(self):
+        self.mock_load.return_value = [
+            {'src': '  Hello   world  ', 'tgt': '  Hei   maailma  '},
+        ]
+        parameters = {
+            'dataset': 'test-dataset',
+            'src_output': 'sents.src',
+            'tgt_output': 'sents.tgt',
+            'preprocessors': [{'WhitespaceNormalizer': {}}],
+        }
+        self.opus_filter.read_from_hf(parameters)
+        with open(os.path.join(self.tempdir, 'sents.src')) as f:
+            self.assertEqual(f.read(), 'Hello world\n')
+        with open(os.path.join(self.tempdir, 'sents.tgt')) as f:
+            self.assertEqual(f.read(), 'Hei maailma\n')
+
+    def test_read_with_preprocessors_and_filters(self):
+        self.mock_load.return_value = [
+            {'src': '  Hi  ', 'tgt': '  Hei  '},
+            {'src': 'Hello world', 'tgt': 'Hei maailma'},
+        ]
+        parameters = {
+            'dataset': 'test-dataset',
+            'src_output': 'sents.src',
+            'tgt_output': 'sents.tgt',
+            'preprocessors': [{'WhitespaceNormalizer': {}}],
+            'filters': [{'LengthFilter': {'min_length': 3, 'max_length': 100, 'unit': 'char'}}],
+        }
+        self.opus_filter.read_from_hf(parameters)
+        with open(os.path.join(self.tempdir, 'sents.src')) as f:
+            self.assertEqual(f.read(), 'Hello world\n')
+        with open(os.path.join(self.tempdir, 'sents.tgt')) as f:
+            self.assertEqual(f.read(), 'Hei maailma\n')
 
 
 class TestPairGenerator(unittest.TestCase):
