@@ -336,7 +336,7 @@ class OpusFilter:
         self._check_extra_parameters(
             {'src_output', 'tgt_output', 'suppress_prompts', 'release', 'corpus_name',
              'source_language', 'target_language', 'preprocessing', 'preprocessors',
-             'filters', 'filterfalse', 'doc_level'}, parameters)
+             'filters', 'filterfalse', 'doc_level', 'limit'}, parameters)
         src_out = os.path.join(self.output_dir, parameters['src_output'])
         tgt_out = os.path.join(self.output_dir, parameters['tgt_output'])
         if not overwrite and os.path.isfile(src_out) and os.path.isfile(tgt_out):
@@ -352,6 +352,7 @@ class OpusFilter:
             parameters['release'] = 'latest'
         filters = parameters.get('filters', [])
         preprocessors = parameters.get('preprocessors', [])
+        limit = parameters.get('limit')
         opus_reader = OpusRead(
             directory=parameters['corpus_name'],
             source=parameters['source_language'],
@@ -359,6 +360,7 @@ class OpusFilter:
             release=parameters['release'],
             suppress_prompts=parameters['suppress_prompts'],
             preprocess=parameters.get('preprocessing', 'raw'),
+            maximum=limit if limit is not None else -1,
             # For printPairs: set write_mode based on the src suffix (expects tgt has the same)
             write_mode='jsonl' if strip_compression_suffix(src_out).endswith('.jsonl') else 'moses',
             write=None if (filters or preprocessors) else [src_out, tgt_out],
@@ -379,11 +381,15 @@ class OpusFilter:
                         pair_gen = filter_pipe.filterfalse(pair_gen)
                     else:
                         pair_gen = filter_pipe.filter(pair_gen)
+                written = 0
                 with text_file_open(src_out, 'w') as src_f, \
                      text_file_open(tgt_out, 'w') as tgt_f:
                     for src_text, tgt_text in pair_gen:
                         src_f.write(src_text + '\n')
                         tgt_f.write(tgt_text + '\n')
+                        written += 1
+                        if limit and written >= limit:
+                            break
             else:
                 opus_reader.printPairs()
         except Exception as err:
@@ -423,7 +429,7 @@ class OpusFilter:
         self._check_extra_parameters(
             {'dataset', 'config', 'src_config', 'tgt_config', 'id_field',
              'split', 'src_field', 'tgt_field', 'src_lang', 'tgt_lang',
-             'src_output', 'tgt_output', 'max_rows', 'newline_replacement',
+             'src_output', 'tgt_output', 'limit', 'newline_replacement',
              'preprocessors', 'filters', 'filterfalse'},
             parameters)
         src_out = os.path.join(self.output_dir, parameters['src_output'])
@@ -471,7 +477,7 @@ class OpusFilter:
         tgt_field = parameters.get('tgt_field', 'tgt')
         src_lang = parameters.get('src_lang')
         tgt_lang = parameters.get('tgt_lang')
-        max_rows = parameters.get('max_rows')
+        limit = parameters.get('limit')
         split = parameters.get('split', 'train')
         newline_replacement = parameters.get('newline_replacement', ' ')
         src_out = os.path.join(output_dir, parameters['src_output'])
@@ -517,7 +523,7 @@ class OpusFilter:
                     src_f.write(src_text + '\n')
                     tgt_f.write(tgt_text + '\n')
                     written += 1
-                    if max_rows and written >= max_rows:
+                    if limit and written >= limit:
                         break
         if counter is not None:
             if preprocessors:
