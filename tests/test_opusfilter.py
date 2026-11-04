@@ -411,14 +411,23 @@ class FakeOpusRead:
     def __init__(self, **kwargs):
         self.write = kwargs.get('write', [])
         self.directory = kwargs.get('directory')
+        self.maximum = kwargs.get('maximum', -1)
         self.test_data_src = 'Hi\nHello world\nA\nShort\n'
         self.test_data_tgt = 'Hei\nHei maailma\nB\nLyhyt\n'
 
+    def _limit(self, data):
+        lines = data.rstrip('\n').split('\n')
+        if self.maximum is not None and self.maximum >= 0:
+            lines = lines[:self.maximum]
+        return lines
+
     def printPairs(self):
+        src_lines = self._limit(self.test_data_src)
+        tgt_lines = self._limit(self.test_data_tgt)
         with open(self.write[0], 'w') as f:
-            f.write(self.test_data_src)
+            f.write('\n'.join(src_lines) + '\n')
         with open(self.write[1], 'w') as f:
-            f.write(self.test_data_tgt)
+            f.write('\n'.join(tgt_lines) + '\n')
 
     def yieldPairs(self):
         for src, tgt in zip(self.test_data_src.rstrip('\n').split('\n'),
@@ -482,6 +491,43 @@ class TestOpusReadWithFilters(unittest.TestCase):
                     self.assertEqual(f.read(), FakeOpusRead().test_data_src)
                 with open(os.path.join(tempdir, 'out.tgt')) as f:
                     self.assertEqual(f.read(), FakeOpusRead().test_data_tgt)
+
+    def test_with_limit(self):
+        with tempfile.TemporaryDirectory() as tempdir:
+            opusfilter = OpusFilter(
+                {'common': {'output_directory': tempdir}, 'steps': []})
+            with mock.patch('opustools.OpusRead', FakeOpusRead):
+                parameters = {
+                    'corpus_name': 'test', 'source_language': 'en', 'target_language': 'sv',
+                    'release': 'latest', 'preprocessing': 'xml',
+                    'src_output': 'out.src', 'tgt_output': 'out.tgt',
+                    'suppress_prompts': True,
+                    'limit': 2,
+                }
+                opusfilter.read_from_opus(parameters)
+                with open(os.path.join(tempdir, 'out.src')) as f:
+                    self.assertEqual(f.read(), 'Hi\nHello world\n')
+                with open(os.path.join(tempdir, 'out.tgt')) as f:
+                    self.assertEqual(f.read(), 'Hei\nHei maailma\n')
+
+    def test_with_limit_and_filters(self):
+        with tempfile.TemporaryDirectory() as tempdir:
+            opusfilter = OpusFilter(
+                {'common': {'output_directory': tempdir}, 'steps': []})
+            with mock.patch('opustools.OpusRead', FakeOpusRead):
+                parameters = {
+                    'corpus_name': 'test', 'source_language': 'en', 'target_language': 'sv',
+                    'release': 'latest', 'preprocessing': 'xml',
+                    'src_output': 'out.src', 'tgt_output': 'out.tgt',
+                    'suppress_prompts': True,
+                    'limit': 2,
+                    'filters': [{'LengthFilter': {'min_length': 3, 'max_length': 100, 'unit': 'char'}}],
+                }
+                opusfilter.read_from_opus(parameters)
+                with open(os.path.join(tempdir, 'out.src')) as f:
+                    self.assertEqual(f.read(), 'Hello world\nShort\n')
+                with open(os.path.join(tempdir, 'out.tgt')) as f:
+                    self.assertEqual(f.read(), 'Hei maailma\nLyhyt\n')
 
     def test_with_preprocessors(self):
         with tempfile.TemporaryDirectory() as tempdir:
@@ -1689,7 +1735,7 @@ class TestHFRead(unittest.TestCase):
         with open(os.path.join(self.tempdir, 'sents.fr')) as f:
             self.assertEqual(f.read(), 'Bonjour le monde\nBonjour\n')
 
-    def test_read_max_rows(self):
+    def test_read_limit(self):
         self.mock_load.return_value = [
             {'src': f'Source {i}', 'tgt': f'Target {i}'} for i in range(100)
         ]
@@ -1697,7 +1743,7 @@ class TestHFRead(unittest.TestCase):
             'dataset': 'test-dataset',
             'src_output': 'sents.src',
             'tgt_output': 'sents.tgt',
-            'max_rows': 3,
+            'limit': 3,
         }
         self.opus_filter.read_from_hf(parameters)
         with open(os.path.join(self.tempdir, 'sents.src')) as f:
@@ -1811,7 +1857,7 @@ class TestHFRead(unittest.TestCase):
         with open(os.path.join(self.tempdir, 'sents.tgt')) as f:
             self.assertEqual(f.read(), 'Hei\nMaailma\n')
 
-    def test_read_cross_config_max_rows(self):
+    def test_read_cross_config_limit(self):
         data_a = [{'text': f'Src {i}', 'id': str(i)} for i in range(10)]
         data_b = [{'text': f'Tgt {i}', 'id': str(i)} for i in range(10)]
         self.mock_load.side_effect = [data_a, data_b]
@@ -1824,7 +1870,7 @@ class TestHFRead(unittest.TestCase):
             'id_field': 'id',
             'src_output': 'sents.src',
             'tgt_output': 'sents.tgt',
-            'max_rows': 3,
+            'limit': 3,
         }
         self.opus_filter.read_from_hf(parameters)
         with open(os.path.join(self.tempdir, 'sents.src')) as f:
@@ -1995,7 +2041,7 @@ class TestHFRead(unittest.TestCase):
         with open(os.path.join(self.tempdir, 'sents.tgt')) as f:
             self.assertEqual(f.read(), 'Hei maailma\n')
 
-    def test_read_with_filters_and_max_rows(self):
+    def test_read_with_filters_and_limit(self):
         self.mock_load.return_value = [
             {'src': f'Src {i}', 'tgt': f'Tgt {i}'} for i in range(100)
         ]
@@ -2003,7 +2049,7 @@ class TestHFRead(unittest.TestCase):
             'dataset': 'test-dataset',
             'src_output': 'sents.src',
             'tgt_output': 'sents.tgt',
-            'max_rows': 5,
+            'limit': 5,
             'filters': [{'LengthFilter': {'min_length': 5, 'unit': 'char'}}],
         }
         self.opus_filter.read_from_hf(parameters)

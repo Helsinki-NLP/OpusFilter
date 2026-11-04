@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - improved validation for configuration files
 - inline filtering for `hf_read` and `opus_read`
 - inline preprocessing for `hf_read` and `opus_read`
+- `limit` option for `opus_read`
 
 ### Changed
 

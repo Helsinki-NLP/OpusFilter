@@ -17,6 +17,7 @@ Parameters:
 * `id_field`: field name for alignment between configs in cross-config mode (required for cross-config)
 * `newline_replacement`: character to replace embedded newlines with in plain-text output (default: space)
 * `split`: which dataset split to use (default: `train`)
+* `limit`: maximum number of pairs to write (default: all)
 * `preprocessors`: an optional list of preprocessor configurations (same format as the `preprocess` step) to apply before filtering and writing
 * `filters`: an optional list of filter configurations (same format as the `filter` step) to apply before writing — avoids a separate `filter` step after reading
 * `filterfalse`: if `true` and `filters` is set, write only pairs that are *rejected* by the filters (default: `false`)
@@ -90,7 +91,7 @@ steps:
       tgt_field: text
       src_output: !varstr "filtered.{lang}.jsonl.gz"
       tgt_output: !varstr "filtered.eng.jsonl.gz"
-      max_rows: 50000
+      limit: 50000
       filters:
         - LengthFilter:
             min_length: 3
@@ -122,6 +123,7 @@ Parameters:
 * `src_output`: output file for source language
 * `tgt_output`: output file for target language
 * `suppress_prompts`: `false` (default) prompts user to confirm before download, `true` to download without prompting
+* `limit`: maximum number of pairs to write (default: all)
 * `preprocessors`: an optional list of preprocessor configurations (same format as the `preprocess` step) to apply before filtering and writing
 * `filters`: an optional list of filter configurations (same format as the `filter` step) to apply before writing — avoids a separate `filter` step after reading
 * `filterfalse`: if `true` and `filters` is set, write only pairs that are *rejected* by the filters (default: `false`)
