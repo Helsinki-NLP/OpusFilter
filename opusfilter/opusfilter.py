@@ -855,7 +855,7 @@ class OpusFilter:
             for line in fobj:
                 yield json.loads(line)
 
-    @ParallelWrapper({'inputs', 'output', "filters"})
+    @ParallelWrapper({'inputs', 'output', 'filters', 'with_decision'})
     def score_data(self, parameters, overwrite=False):
         """Score language data based on given filters"""
         # no need to check extra parameters, they are checked in the parallel wrapper
