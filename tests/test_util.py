@@ -156,3 +156,15 @@ class TestGetInputsOutputs(unittest.TestCase):
         }
         outputs = get_outputs(step)
         self.assertEqual(outputs, ['model.arpa.gz'])
+
+    def test_get_outputs_score_output(self):
+        for step_type in ['filter', 'opus_read', 'hf_read']:
+            step = {
+                'type': step_type,
+                'parameters': {
+                    'outputs': ['out.txt'],
+                    'score_output': 'scores.jsonl'
+                }
+            }
+            outputs = get_outputs(step)
+            self.assertEqual(outputs, ['out.txt', 'scores.jsonl'])

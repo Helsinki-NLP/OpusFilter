@@ -58,6 +58,7 @@ Parameters:
 * `n_jobs`: number of sub processes to parallel run jobs. If not set, the default value is `default_n_jobs` in `common` section.
 * `filters`: a list of filters to apply; see below
 * `filterfalse`: yield segment pairs that do not pass at least one of the filters (optional; default `false`)
+* `score_output`: file for writing filter scores of the output pairs in JSON Lines format (optional; default `null`)
 
 The filters parameter is a list of dictionaries, each representing one
 filter. The top level should typically include a single key that
@@ -76,6 +77,13 @@ The output of the step is only those segment pairs that are accepted
 by all the filters, unless `filterfalse` is set true, in which case
 the output is the opposite (i.e., those segment pairs that are
 rejected by at least one filter).
+
+If `score_output` is set, the filter scores for the output pairs are
+written to a separate JSON Lines file. Each score line corresponds to
+the same line in the output files and uses the same format as the
+`score` function. Pairs rejected by a filter are not passed to the
+following filters. Therefore, with `filterfalse`, a rejected pair gets
+scores only from the filters that were evaluated before rejection.
 
 ## score
 

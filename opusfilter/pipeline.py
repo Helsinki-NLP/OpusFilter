@@ -61,19 +61,25 @@ class FilterPipeline:
             renamed.append(newtuple)
         return renamed
 
+    @staticmethod
+    def _update_score_dict(scored, namet, score, decision=None):
+        for key in namet[:-1]:
+            if key not in scored:
+                scored[key] = {}
+            scored = scored[key]
+        if decision is not None:
+            scored[namet[-1]] = {'scores': score, 'accept': decision}
+        else:
+            scored[namet[-1]] = score
+
+    def _make_score_dict(self, fnames, scores):
+        output = {}
+        for namet, score in zip(fnames, scores):
+            self._update_score_dict(output, namet, score)
+        return output
+
     def score(self, pairs, with_decision=False):
         """Yield dictionaries of filter scores for sentence pairs"""
-
-        def _update_score_dict(scored, namet, score, decision=None):
-            for key in namet[:-1]:
-                if key not in scored:
-                    scored[key] = {}
-                scored = scored[key]
-            if decision is not None:
-                scored[namet[-1]] = {'scores': score, 'accept': decision}
-            else:
-                scored[namet[-1]] = score
-
         fnames = self.get_score_tuples()
         for num, chunk in enumerate(grouper(pairs, self._chunksize)):
             chunk_scores = []
@@ -85,7 +91,7 @@ class FilterPipeline:
                 output = {}
                 for idx, score in enumerate(scores):
                     decision = self.filters[idx].accept(score) if with_decision else None
-                    _update_score_dict(output, fnames[idx], score, decision=decision)
+                    self._update_score_dict(output, fnames[idx], score, decision=decision)
                 yield output
 
     def filter(self, pairs):
@@ -93,6 +99,37 @@ class FilterPipeline:
         for filt in self.filters:
             pairs = filt.filter(pairs)
         return pairs
+
+    def filter_with_scores(self, pairs, filterfalse=False):
+        """Yield accepted pairs together with their filter scores
+
+        Filters are applied in order and pairs rejected by a filter are
+        not passed to the following filters. The score dictionaries are
+        built only for pairs that are yielded. With ``filterfalse``,
+        rejected pairs contain scores only from the filters that were
+        evaluated before rejection.
+        """
+        fnames = self.get_score_tuples()
+        for num, chunk in enumerate(grouper(pairs, self._chunksize)):
+            current = [(pair, []) for pair in chunk]
+            for idx, (namet, filt) in enumerate(zip(fnames, self.filters)):
+                logger.info("Processing chunk %s with %s (%s to check)",
+                            num, '.'.join(namet), len(current))
+                chunk_pairs = [pair for pair, _ in current]
+                scorelist = list(tqdm(filt.score(chunk_pairs)))
+                remaining = []
+                for (pair, pair_scores), score in zip(current, scorelist):
+                    pair_scores.append(score)
+                    if filt.accept(score):
+                        remaining.append((pair, pair_scores))
+                    elif filterfalse:
+                        yield pair, self._make_score_dict(fnames[:idx + 1], pair_scores)
+                current = remaining
+                if not current:
+                    break
+            if not filterfalse:
+                for pair, pair_scores in current:
+                    yield pair, self._make_score_dict(fnames, pair_scores)
 
     def filterfalse(self, pairs):
         """Yield sentence pairs rejected by any of the filters

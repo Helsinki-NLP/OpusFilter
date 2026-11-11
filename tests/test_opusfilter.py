@@ -456,6 +456,29 @@ class TestOpusReadWithFilters(unittest.TestCase):
                 with open(os.path.join(tempdir, 'out.tgt')) as f:
                     self.assertEqual(f.read(), 'Hei maailma\nLyhyt\n')
 
+    def test_with_filters_and_score_output(self):
+        with tempfile.TemporaryDirectory() as tempdir:
+            opusfilter = OpusFilter(
+                {'common': {'output_directory': tempdir}, 'steps': []})
+            with mock.patch('opustools.OpusRead', FakeOpusRead):
+                parameters = {
+                    'corpus_name': 'test', 'source_language': 'en', 'target_language': 'sv',
+                    'release': 'latest', 'preprocessing': 'xml',
+                    'src_output': 'out.src', 'tgt_output': 'out.tgt',
+                    'suppress_prompts': True,
+                    'filters': [{'LengthFilter': {'min_length': 3, 'max_length': 100, 'unit': 'char'}}],
+                    'score_output': 'scores.jsonl',
+                }
+                opusfilter.read_from_opus(parameters)
+                with open(os.path.join(tempdir, 'out.src')) as f:
+                    self.assertEqual(f.read(), 'Hello world\nShort\n')
+                with open(os.path.join(tempdir, 'scores.jsonl')) as f:
+                    scores = [json.loads(line) for line in f]
+                self.assertEqual(scores, [
+                    {'LengthFilter': [11, 11]},
+                    {'LengthFilter': [5, 5]},
+                ])
+
     def test_with_filters_filterfalse(self):
         with tempfile.TemporaryDirectory() as tempdir:
             opusfilter = OpusFilter(
@@ -569,6 +592,80 @@ class TestOpusReadWithFilters(unittest.TestCase):
                     self.assertEqual(f.read(), 'Short\n')
                 with open(os.path.join(tempdir, 'out.tgt')) as f:
                     self.assertEqual(f.read(), 'Lyhyt\n')
+
+
+class TestFilterData(unittest.TestCase):
+    """Tests for the filter step and score_output"""
+
+    def setUp(self):
+        self.tempdir = tempfile.mkdtemp()
+        self.opus_filter = OpusFilter(
+            {'common': {'output_directory': self.tempdir}, 'steps': []})
+        self.src = os.path.join(self.tempdir, 'input.src')
+        self.tgt = os.path.join(self.tempdir, 'input.tgt')
+        with open(self.src, 'w') as src_f, open(self.tgt, 'w') as tgt_f:
+            src_f.write('Hi\nHello world\nA\nShort\n')
+            tgt_f.write('Hei\nHei maailma\nB\nLyhyt\n')
+
+    def tearDown(self):
+        shutil.rmtree(self.tempdir)
+
+    def _parameters(self, **kwargs):
+        parameters = {
+            'inputs': ['input.src', 'input.tgt'],
+            'outputs': ['filtered.src', 'filtered.tgt'],
+            'filters': [{'LengthFilter': {
+                'min_length': 3, 'max_length': 100, 'unit': 'char'}}],
+        }
+        parameters.update(kwargs)
+        return parameters
+
+    def _read_scores(self, fname='scores.jsonl'):
+        with open(os.path.join(self.tempdir, fname)) as score_f:
+            return [json.loads(line) for line in score_f]
+
+    def test_score_output(self):
+        self.opus_filter.filter_data(
+            self._parameters(score_output='scores.jsonl'))
+        with open(os.path.join(self.tempdir, 'filtered.src')) as f:
+            self.assertEqual(f.read(), 'Hello world\nShort\n')
+        with open(os.path.join(self.tempdir, 'filtered.tgt')) as f:
+            self.assertEqual(f.read(), 'Hei maailma\nLyhyt\n')
+        scores = self._read_scores()
+        self.assertEqual(len(scores), 2)
+        self.assertEqual(scores[0], {'LengthFilter': [11, 11]})
+        self.assertEqual(scores[1], {'LengthFilter': [5, 5]})
+
+    def test_score_output_filterfalse(self):
+        self.opus_filter.filter_data(
+            self._parameters(score_output='scores.jsonl', filterfalse=True))
+        with open(os.path.join(self.tempdir, 'filtered.src')) as f:
+            self.assertEqual(f.read(), 'Hi\nA\n')
+        scores = self._read_scores()
+        self.assertEqual(len(scores), 2)
+        self.assertEqual(scores[0], {'LengthFilter': [2, 3]})
+        self.assertEqual(scores[1], {'LengthFilter': [1, 1]})
+
+    def test_score_output_with_limit(self):
+        self.opus_filter.filter_data(
+            self._parameters(score_output='scores.jsonl', limit=1))
+        with open(os.path.join(self.tempdir, 'filtered.src')) as f:
+            self.assertEqual(f.read(), 'Hello world\n')
+        self.assertEqual(len(self._read_scores()), 1)
+
+    def test_score_output_parallel(self):
+        with open(self.src, 'w') as src_f, open(self.tgt, 'w') as tgt_f:
+            for idx in range(20):
+                src_f.write(f'Sentence {idx}\n')
+                tgt_f.write(f'Lause {idx}\n')
+        self.opus_filter.filter_data(
+            self._parameters(score_output='scores.jsonl', n_jobs=2))
+        self.assertEqual(
+            count_lines(os.path.join(self.tempdir, 'filtered.src')), 20)
+        scores = self._read_scores()
+        self.assertEqual(len(scores), 20)
+        self.assertEqual(scores[0], {'LengthFilter': [10, 7]})
+        self.assertEqual(scores[-1], {'LengthFilter': [11, 8]})
 
 
 class TestSort(unittest.TestCase):
@@ -1999,6 +2096,30 @@ class TestHFRead(unittest.TestCase):
             self.assertEqual(f.read(), 'Hello world\nShort\n')
         with open(os.path.join(self.tempdir, 'sents.tgt')) as f:
             self.assertEqual(f.read(), 'Hei maailma\nLyhyt\n')
+
+    def test_read_with_filters_and_score_output(self):
+        self.mock_load.return_value = [
+            {'src': 'Hi', 'tgt': 'Hei'},
+            {'src': 'Hello world', 'tgt': 'Hei maailma'},
+            {'src': 'A', 'tgt': 'B'},
+            {'src': 'Short', 'tgt': 'Lyhyt'},
+        ]
+        parameters = {
+            'dataset': 'test-dataset',
+            'src_output': 'sents.src',
+            'tgt_output': 'sents.tgt',
+            'filters': [{'LengthFilter': {'min_length': 3, 'max_length': 100, 'unit': 'char'}}],
+            'score_output': 'scores.jsonl',
+        }
+        self.opus_filter.read_from_hf(parameters)
+        with open(os.path.join(self.tempdir, 'sents.src')) as f:
+            self.assertEqual(f.read(), 'Hello world\nShort\n')
+        with open(os.path.join(self.tempdir, 'scores.jsonl')) as f:
+            scores = [json.loads(line) for line in f]
+        self.assertEqual(scores, [
+            {'LengthFilter': [11, 11]},
+            {'LengthFilter': [5, 5]},
+        ])
 
     def test_read_with_filters_filterfalse(self):
         self.mock_load.return_value = [

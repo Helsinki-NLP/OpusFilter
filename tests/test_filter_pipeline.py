@@ -192,6 +192,43 @@ class TestFilterPipeline(TestFilterPipelineBase):
         filtered = list(fp.filterfalse(pairs))
         self.assertEqual(filtered, pairs[:-1])
 
+    def test_filter_with_scores(self):
+        fp = FilterPipeline.from_config([
+            {'LengthFilter': {'min_length': 1, 'max_length': 10, 'unit': 'word'}},
+            {'LongWordFilter': {'threshold': 5}},
+            {'TerminalPunctuationFilter': {'threshold': -2}},
+        ])
+        pairs = [
+            ('a', 'b'),
+            ('hello world', 'hei there'),
+            ('hello', 'supercalifragilistic'),
+            ('This is fine.', 'This is fine.'),
+        ]
+        scored = list(fp.filter_with_scores(pairs))
+        filtered = list(fp.filter(pairs))
+        self.assertEqual([pair for pair, _ in scored], filtered)
+        expected = list(fp.score(filtered))
+        for (_, scores), exp_scores in zip(scored, expected):
+            self.assert_scores_equal(scores, exp_scores)
+
+    def test_filter_with_scores_filterfalse(self):
+        fp = FilterPipeline.from_config([
+            {'LengthFilter': {'min_length': 1, 'max_length': 10, 'unit': 'word'}},
+            {'LongWordFilter': {'threshold': 5}},
+            {'TerminalPunctuationFilter': {'threshold': -2}},
+        ])
+        pairs = [
+            ('', 'b'),
+            ('hello world', 'hei there'),
+            ('hello', 'supercalifragilistic'),
+            ('This is fine.', 'This is fine.'),
+        ]
+        scored = list(fp.filter_with_scores(pairs, filterfalse=True))
+        filtered = list(fp.filterfalse(pairs))
+        self.assertEqual([pair for pair, _ in scored], filtered)
+        self.assertEqual(set(scored[0][1]), {'LengthFilter'})
+        self.assertEqual(set(scored[1][1]), {'LengthFilter', 'LongWordFilter'})
+
     def test_filter_empty(self):
         fp = FilterPipeline.from_config(self.config)
         pairs = [('', ''), ('this is English', 'det är Svenska'), ('', '')]

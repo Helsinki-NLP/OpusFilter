@@ -21,6 +21,7 @@ Parameters:
 * `preprocessors`: an optional list of preprocessor configurations (same format as the `preprocess` step) to apply before filtering and writing
 * `filters`: an optional list of filter configurations (same format as the `filter` step) to apply before writing — avoids a separate `filter` step after reading
 * `filterfalse`: if `true` and `filters` is set, write only pairs that are *rejected* by the filters (default: `false`)
+* `score_output`: optional JSON Lines file for writing the filter scores of the written pairs (requires `filters`)
 * `streaming`: whether to stream the dataset (default: `true`)
 * `trust_remote_code`: whether to trust remote code in dataset loading (default: `false`)
 * `kwargs`: additional keyword arguments passed to `datasets.load_dataset`
@@ -127,6 +128,7 @@ Parameters:
 * `preprocessors`: an optional list of preprocessor configurations (same format as the `preprocess` step) to apply before filtering and writing
 * `filters`: an optional list of filter configurations (same format as the `filter` step) to apply before writing — avoids a separate `filter` step after reading
 * `filterfalse`: if `true` and `filters` is set, write only pairs that are *rejected* by the filters (default: `false`)
+* `score_output`: optional JSON Lines file for writing the filter scores of the written pairs (requires `filters`)
 
 The `moses` preprocessing type (available with `OpusTools` version
 1.6.2 and above) is recommended for those corpora for which it
