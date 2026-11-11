@@ -84,6 +84,42 @@ newlines do not inflate line counts. All file operations (`read`,
 `write`, `filter`, `split`, `concatenate`, etc.) support JSONL files
 transparently.
 
+JSONL output is especially useful for document level output, supported
+by `opus_read` with the option `doc_level: true` for corpora that have
+a document structure. The following example takes documents from the
+QED corpus, and shows how to limit the output to certain number of
+loaded documents (`limit`) and filter them in-line with selected
+filters (`filters`), keeping the scores of the filters for later study
+(`score_output`).
+
+```yaml
+steps:
+  - type: opus_read
+    parameters:
+      corpus_name: QED
+      source_language: en
+      target_language: ko
+      release: latest
+      preprocessing: raw
+      doc_level: true
+      limit: 2000
+      src_output: "en-ko.prefiltered.en.jsonl.gz"
+      tgt_output: "en-ko.prefiltered.ko.jsonl.gz"
+      score_output: "en-ko.prefiltered.scores.jsonl.gz"
+      filters:
+        - LengthRatioFilter:
+            unit: char
+            threshold: 5
+        - CharacterScoreFilter:
+            scripts: [Latin, Hangul]
+            thresholds: [0.8, 0.8]
+        - WDSFilter:
+            threshold: 0.3
+            ref_language: [eng_latn, kor_hang]
+            lid_method: lingua
+            lid_options: {lingua_mode: high}
+```
+
 A bit more complex example that downloads both ParaCrawl and WMT-News
 sets from OPUS, concatenates the output files, and filters them so
 that only the segment pairs for which both languages have segment
