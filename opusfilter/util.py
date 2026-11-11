@@ -71,6 +71,8 @@ def get_outputs(step):
         if single_output in params:
             outputs.append(params[single_output])
     step_type = step.get('type', '')
+    if step_type in {'filter', 'opus_read', 'hf_read'} and 'score_output' in params:
+        outputs.append(params['score_output'])
     if step_type in TRAINING_STEP_TYPES and 'model' in params:
         outputs.append(params['model'])
     return outputs
@@ -79,7 +81,7 @@ def get_outputs(step):
 def get_other_params(step):
     """Return parameters of the step excluding i/o."""
     params = copy.copy(step.get('parameters', {}))
-    for to_remove in ['input', 'inputs', 'output', 'outputs', 'src_output', 'tgt_output']:
+    for to_remove in ['input', 'inputs', 'output', 'outputs', 'src_output', 'tgt_output', 'score_output']:
         if to_remove in params:
             del params[to_remove]
     step_type = step.get('type', '')

@@ -90,12 +90,13 @@ class ParallelWrapper:
 
     """
 
-    def __init__(self, extra_parameters):
+    def __init__(self, extra_parameters, extra_outputs=None):
         if "inputs" not in extra_parameters:
             raise ConfigurationError("'inputs' is required in extra_parameters to parallelize.")
         if "outputs" not in extra_parameters and "output" not in extra_parameters:
             raise ConfigurationError("'outputs' or 'output' is required in extra_parameters to parallelize.")
         self.extra_parameters = extra_parameters
+        self.extra_outputs = list(extra_outputs or [])
         self.func = None
 
     def __call__(self, func):
@@ -157,12 +158,17 @@ class ParallelWrapper:
             outfiles = [os.path.join(obj.output_dir, fname) for fname in parameters['outputs']]
         elif "output" in parameters:  # function `score` use `output` instead of `outputs`
             outfiles = [os.path.join(obj.output_dir, parameters['output'])]
+        extra_outfiles = [
+            os.path.join(obj.output_dir, parameters[name])
+            for name in self.extra_outputs if parameters.get(name)
+        ]
+        all_outfiles = outfiles + extra_outfiles
         if len(outfiles) != len(infiles) and "outputs" in parameters:
             raise ConfigurationError("Number of input and output files should match in sort")
-        if not overwrite and all(os.path.isfile(outfile) for outfile in outfiles):
+        if not overwrite and all(os.path.isfile(outfile) for outfile in all_outfiles):
             logger.info("Output files exists, skipping step")
             return
-        in_chunked_files, out_chunked_files = self.split(infiles, outfiles, n_jobs)
+        in_chunked_files, out_chunked_files = self.split(infiles, all_outfiles, n_jobs)
         # run jobs in parallel
         sub_processes = []
         # Python>=3.14 restricts passing internal functions in multiprocessing, so pass its name instead
@@ -171,9 +177,14 @@ class ParallelWrapper:
             parameters_i = copy.deepcopy(parameters)
             parameters_i["inputs"] = intmpfiles
             if "outputs" in parameters:
-                parameters_i["outputs"] = [os.path.relpath(path, obj.output_dir) for path in outtmpfiles]
+                parameters_i["outputs"] = [
+                    os.path.relpath(path, obj.output_dir)
+                    for path in outtmpfiles[:len(outfiles)]
+                ]
             elif "output" in parameters:  # function `score` use `output` instead of `outputs`
                 parameters_i["output"] = os.path.relpath(outtmpfiles[0], obj.output_dir)
+            for name, outtmpfile in zip(self.extra_outputs, outtmpfiles[len(outfiles):]):
+                parameters_i[name] = os.path.relpath(outtmpfile, obj.output_dir)
             process = multiprocessing.Process(
                 target=_run_parallel_task,
                 args=(func_name, obj, parameters_i, overwrite)
@@ -184,7 +195,7 @@ class ParallelWrapper:
         for process in sub_processes:
             process.join()
         limit = parameters.get('limit', None)
-        self.merge(in_chunked_files, outfiles, out_chunked_files, limit)
+        self.merge(in_chunked_files, all_outfiles, out_chunked_files, limit)
 
 
 # pylint: disable=R0904
@@ -336,10 +347,13 @@ class OpusFilter:
         self._check_extra_parameters(
             {'src_output', 'tgt_output', 'suppress_prompts', 'release', 'corpus_name',
              'source_language', 'target_language', 'preprocessing', 'preprocessors',
-             'filters', 'filterfalse', 'doc_level', 'limit'}, parameters)
+             'filters', 'filterfalse', 'doc_level', 'limit', 'score_output'}, parameters)
         src_out = os.path.join(self.output_dir, parameters['src_output'])
         tgt_out = os.path.join(self.output_dir, parameters['tgt_output'])
-        if not overwrite and os.path.isfile(src_out) and os.path.isfile(tgt_out):
+        filters = parameters.get('filters', [])
+        preprocessors = parameters.get('preprocessors', [])
+        score_out = self._get_score_output(parameters, self.output_dir, 'opus_read')
+        if self._outputs_exist([src_out, tgt_out, score_out], overwrite):
             logger.info("Output files exists, skipping step")
             return
         if 'suppress_prompts' not in parameters:
@@ -350,8 +364,6 @@ class OpusFilter:
             logger.info("No release version provided for corpus %s, using 'latest'",
                         parameters['corpus_name'])
             parameters['release'] = 'latest'
-        filters = parameters.get('filters', [])
-        preprocessors = parameters.get('preprocessors', [])
         limit = parameters.get('limit')
         opus_reader = OpusRead(
             directory=parameters['corpus_name'],
@@ -369,31 +381,26 @@ class OpusFilter:
             download_dir=self.output_dir)
         try:
             if filters or preprocessors:
-                from .pipeline import FilterPipeline, PreprocessorPipeline
+                from .pipeline import PreprocessorPipeline
                 pair_gen = opus_reader.yieldPairs()
                 if preprocessors:
                     preprocess_pipe = PreprocessorPipeline.from_config(
                         preprocessors, workdir=self.output_dir)
                     pair_gen = preprocess_pipe.process(pair_gen)
                 if filters:
-                    filter_pipe = FilterPipeline.from_config(filters, workdir=self.output_dir)
-                    if parameters.get('filterfalse', False):
-                        pair_gen = filter_pipe.filterfalse(pair_gen)
-                    else:
-                        pair_gen = filter_pipe.filter(pair_gen)
-                written = 0
-                with text_file_open(src_out, 'w') as src_f, \
-                     text_file_open(tgt_out, 'w') as tgt_f:
-                    for src_text, tgt_text in pair_gen:
-                        src_f.write(src_text + '\n')
-                        tgt_f.write(tgt_text + '\n')
-                        written += 1
-                        if limit and written >= limit:
-                            break
+                    pair_gen = self._apply_filters(
+                        pair_gen, filters, self.output_dir,
+                        filterfalse=parameters.get('filterfalse', False),
+                        with_scores=bool(score_out))
+                self._write_pairs(pair_gen, [src_out, tgt_out],
+                                  score_output=score_out, limit=limit)
             else:
                 opus_reader.printPairs()
         except Exception as err:
-            for outfile in [src_out, tgt_out]:
+            cleanup = [src_out, tgt_out]
+            if score_out:
+                cleanup.append(score_out)
+            for outfile in cleanup:
                 if os.path.isfile(outfile):
                     os.unlink(outfile)
             raise err
@@ -430,11 +437,12 @@ class OpusFilter:
             {'dataset', 'config', 'src_config', 'tgt_config', 'id_field',
              'split', 'src_field', 'tgt_field', 'src_lang', 'tgt_lang',
              'src_output', 'tgt_output', 'limit', 'newline_replacement',
-             'preprocessors', 'filters', 'filterfalse'},
+             'preprocessors', 'filters', 'filterfalse', 'score_output'},
             parameters)
         src_out = os.path.join(self.output_dir, parameters['src_output'])
         tgt_out = os.path.join(self.output_dir, parameters['tgt_output'])
-        if not overwrite and os.path.isfile(src_out) and os.path.isfile(tgt_out):
+        score_out = self._get_score_output(parameters, self.output_dir, 'hf_read')
+        if self._outputs_exist([src_out, tgt_out, score_out], overwrite):
             logger.info("Output files exists, skipping step")
             return
         # Run in a subprocess to isolate datasets' background threads
@@ -482,6 +490,7 @@ class OpusFilter:
         newline_replacement = parameters.get('newline_replacement', ' ')
         src_out = os.path.join(output_dir, parameters['src_output'])
         tgt_out = os.path.join(output_dir, parameters['tgt_output'])
+        score_out = OpusFilter._get_score_output(parameters, output_dir)
         if src_out.endswith('.jsonl') or tgt_out.endswith('.jsonl'):
             newline_replacement = None
         src_config = parameters.get('src_config')
@@ -510,21 +519,12 @@ class OpusFilter:
                 preprocessors, workdir=output_dir)
             pair_gen = preprocess_pipe.process(pair_gen)
         if filters:
-            from .pipeline import FilterPipeline
-            filter_pipe = FilterPipeline.from_config(filters, workdir=output_dir)
-            if parameters.get('filterfalse', False):
-                pair_gen = filter_pipe.filterfalse(pair_gen)
-            else:
-                pair_gen = filter_pipe.filter(pair_gen)
-        written = 0
-        with text_file_open(src_out, 'w') as src_f:
-            with text_file_open(tgt_out, 'w') as tgt_f:
-                for src_text, tgt_text in pair_gen:
-                    src_f.write(src_text + '\n')
-                    tgt_f.write(tgt_text + '\n')
-                    written += 1
-                    if limit and written >= limit:
-                        break
+            pair_gen = OpusFilter._apply_filters(
+                pair_gen, filters, output_dir,
+                filterfalse=parameters.get('filterfalse', False),
+                with_scores=bool(score_out))
+        written = OpusFilter._write_pairs(
+            pair_gen, [src_out, tgt_out], score_output=score_out, limit=limit)
         if counter is not None:
             if preprocessors:
                 logger.info("hf_read: %d read, %d written",
@@ -641,41 +641,102 @@ class OpusFilter:
         for fobj in files:
             fobj.close()
 
-    @ParallelWrapper({'inputs', 'outputs', 'filters', 'filterfalse', 'limit'})
+    @staticmethod
+    def _get_score_output(parameters, output_dir, step=None):
+        """Return the score output path, validating the filters parameter"""
+        score_output = parameters.get('score_output')
+        if score_output and step and not parameters.get('filters'):
+            raise ConfigurationError(f"score_output requires filters in {step}")
+        return os.path.join(output_dir, score_output) if score_output else None
+
+    @staticmethod
+    def _outputs_exist(outfiles, overwrite):
+        """Return True if all existing output files can be skipped"""
+        return not overwrite and all(
+            os.path.isfile(fname) for fname in outfiles if fname is not None)
+
+    @staticmethod
+    def _apply_filters(pairs, filters, workdir, filterfalse=False,
+                       with_scores=False, chunksize=None, progress=False):
+        """Apply a filter pipeline to a pair generator"""
+        filter_pipe = pipeline.FilterPipeline.from_config(filters, workdir=workdir)
+        if chunksize is not None:
+            filter_pipe.chunksize = chunksize
+        if with_scores:
+            return filter_pipe.filter_with_scores(pairs, filterfalse=filterfalse)
+        if filterfalse:
+            return filter_pipe.filterfalse(pairs)
+        if progress:
+            pairs = tqdm(pairs)
+        return filter_pipe.filter(pairs)
+
+    @classmethod
+    def _write_pairs(cls, pairs, outfiles, score_output=None, limit=None,
+                     flush=False, progress=None):
+        """Write text pairs and optional filter scores to files
+
+        ``pairs`` yields either text pairs or ``(pair, scores)`` tuples
+        if ``score_output`` is set. Returns the number of written pairs.
+        """
+        outfobjs = [text_file_open(fname, 'w') for fname in outfiles]
+        score_fobj = file_open(score_output, 'w') if score_output else None
+        written = 0
+        try:
+            for item in pairs:
+                if score_fobj is not None:
+                    pair, scores = item
+                else:
+                    pair = item
+                for text, fobj in zip(pair, outfobjs):
+                    fobj.write(text + '\n')
+                    if flush:
+                        fobj.flush()
+                if score_fobj is not None:
+                    cls._write_jsonl_line(score_fobj, scores)
+                    score_fobj.flush()
+                written += 1
+                if progress is not None:
+                    progress(written)
+                if limit and written >= limit:
+                    break
+        finally:
+            if score_fobj is not None:
+                score_fobj.close()
+            cls._close_files(*outfobjs)
+        return written
+
+    @ParallelWrapper({'inputs', 'outputs', 'filters', 'filterfalse', 'limit', 'score_output'},
+                     extra_outputs={'score_output'})
     def filter_data(self, parameters, overwrite=False):
         """Write sentences to file if they pass given filters"""
         # no need to check extra parameters, they are checked in the parallel wrapper
         outfiles = [os.path.join(self.output_dir, fname) for fname in parameters['outputs']]
         infiles = [os.path.join(self.output_dir, fname) for fname in parameters['inputs']]
+        score_out = self._get_score_output(parameters, self.output_dir)
         if len(outfiles) != len(infiles):
             raise ConfigurationError("Number of input and output files should match in sort")
-        if not overwrite and all(os.path.isfile(outfile) for outfile in outfiles):
+        if self._outputs_exist(outfiles + [score_out], overwrite):
             logger.info("Output files exists, skipping step")
             return
-        filter_pipe = pipeline.FilterPipeline.from_config(parameters['filters'], workdir=self.output_dir)
-        filter_pipe.chunksize = self.chunksize
         pairs_gen = self.pair_generator(*infiles)
-        if parameters.get('filterfalse', False):
-            pairs = filter_pipe.filterfalse(pairs_gen)
-        else:
-            pairs = filter_pipe.filter(tqdm(pairs_gen))
+        filterfalse = parameters.get('filterfalse', False)
+        pairs = self._apply_filters(
+            pairs_gen, parameters['filters'], self.output_dir,
+            filterfalse=filterfalse, with_scores=bool(score_out),
+            chunksize=self.chunksize, progress=True)
         limit = parameters.get('limit')
-        outfileobjs = [text_file_open(fname, 'w') for fname in outfiles]
         log_progress = not sys.stderr.isatty()
         log_interval = 100000
-        written = 0
-        for pair in pairs:
-            for item, fobj in zip(pair, outfileobjs):
-                fobj.write(item+'\n')
-                fobj.flush()
-            written += 1
+
+        def _log_progress(written):
             if log_progress and written % log_interval == 0:
                 logger.info("filter: %d accepted pairs written", written)
-            if limit and written >= limit:
-                break
+
+        written = self._write_pairs(
+            pairs, outfiles, score_output=score_out, limit=limit,
+            flush=True, progress=_log_progress)
         if log_progress and (written % log_interval != 0 or written == 0):
             logger.info("filter: %d accepted pairs written", written)
-        self._close_files(*outfileobjs)
 
     def concatenate(self, parameters, overwrite=False):
         """Concatenate files"""
@@ -844,15 +905,20 @@ class OpusFilter:
             pickle.dump(model, model_file)
 
     @staticmethod
-    def _write_jsonl(objects, fname):
+    def _write_jsonl_line(fobj, obj):
+        """Write one object to an open file as a JSON line"""
+        try:
+            fobj.write(json.dumps(obj, sort_keys=True)+'\n')
+        except TypeError as err:
+            logger.error("Could not convert to JSON: %s", obj)
+            raise err
+
+    @classmethod
+    def _write_jsonl(cls, objects, fname):
         """Write objects to file as JSON lines"""
         with file_open(fname, 'w') as fobj:
             for obj in objects:
-                try:
-                    fobj.write(json.dumps(obj, sort_keys=True)+'\n')
-                except TypeError as err:
-                    logger.error("Could not convert to JSON: %s", obj)
-                    raise err
+                cls._write_jsonl_line(fobj, obj)
 
     @staticmethod
     def _read_jsonl(fname):

@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - inline filtering for `hf_read` and `opus_read`
 - inline preprocessing for `hf_read` and `opus_read`
 - `limit` option for `opus_read`
+- `score_output` option for saving filter scores from `filter`, `opus_read`, and `hf_read`
 
 ### Changed
 
