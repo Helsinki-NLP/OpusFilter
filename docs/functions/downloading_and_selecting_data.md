@@ -124,6 +124,7 @@ Parameters:
 * `src_output`: output file for source language
 * `tgt_output`: output file for target language
 * `suppress_prompts`: `false` (default) prompts user to confirm before download, `true` to download without prompting
+* `doc_level`: request document-level data from OPUS
 * `limit`: maximum number of pairs to write (default: all)
 * `preprocessors`: an optional list of preprocessor configurations (same format as the `preprocess` step) to apply before filtering and writing
 * `filters`: an optional list of filter configurations (same format as the `filter` step) to apply before writing — avoids a separate `filter` step after reading
@@ -134,6 +135,16 @@ The `moses` preprocessing type (available with `OpusTools` version
 1.6.2 and above) is recommended for those corpora for which it
 exists. The output is equivalent to `raw`, but in some cases it can
 significantly reduce the amount of data downloaded in the process.
+
+JSONL output files (`.jsonl`, `.jsonl.gz` etc.) are recommmended for
+the output with `doc_level: true` - with JSON encoding the original
+newlines can be preserved. Please note that most of the filters are
+not designed for document-level data.
+
+Similarly to `hf_read`, inline filtering can be added to avoid writing
+all pairs before filtering via the `filters` list. The optional
+`preprocessors` list (same format as the `preprocess` step) is applied
+before the filters.
 
 ## concatenate
 
