@@ -21,8 +21,12 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
         requirements-file: ["requirements.txt"]
+        include:
+          - os: ubuntu-22.04
+            python-version: "3.9"
+            requirements-file: "requirements.txt"
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v6
