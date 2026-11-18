@@ -13,9 +13,8 @@ embedded newlines, e.g. when using the JSONL format for the input
 files.
 
 **Requires installing optional libraries**: `docscorer` (GPL-3.0
-license), see {doc}`../installation`. The Web Docs Scorer package has
-no PyPI distribution, so the `[wds]` extra installs it directly from
-GitHub.
+license), which must be installed separately from GitHub; see
+{doc}`../installation`.
 
 Parameters:
 
@@ -94,7 +93,7 @@ the overall score may thus reject most of the data. The individual
 subscores may be more useful in this case.
 
 The `docscorer` package is distributed under the GPL-3.0 license and
-pins `numpy>=2` and `scipy>=1.14`. Installing the `[wds]` extra can
+pins `numpy>=2` and `scipy>=1.14`. Installing `docscorer` can
 therefore conflict with older versions of the other OpusFilter
 dependencies (e.g. `pandas` or `scikit-learn`), and prevents combining
 with the `[fasttext]` extra, as `fasttext` does not support
