@@ -132,6 +132,8 @@
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">opusfilter[all]</span></code></p></li>
 </ul>
+<p>The <code class="docutils literal notranslate"><span class="pre">docscorer</span></code> dependency of <code class="docutils literal notranslate"><span class="pre">WDSFilter</span></code> is not included in <code class="docutils literal notranslate"><span class="pre">[all]</span></code>;
+see <a class="reference internal" href="#web-docs-scorer"><span class="xref myst">Web Docs Scorer</span></a> below.</p>
 <p>Install from source:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">.</span></code> or</p></li>
@@ -187,19 +189,24 @@ including the extras <code class="docutils literal notranslate"><span class="pre
 <section id="web-docs-scorer">
 <h3>Web Docs Scorer<a class="headerlink" href="#web-docs-scorer" title="Link to this heading"></a></h3>
 <p>For using the document scoring filters, you need to install
-<code class="docutils literal notranslate"><span class="pre">docscorer</span></code> (<a class="reference external" href="https://github.com/pablop16n/web-docs-scorer">https://github.com/pablop16n/web-docs-scorer</a>). It can
-be installed automatically with pip by including the extras <code class="docutils literal notranslate"><span class="pre">[wds]</span></code> or
-<code class="docutils literal notranslate"><span class="pre">[all]</span></code> (e.g. <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">opusfilter[wds]</span></code>). Please note that
-<code class="docutils literal notranslate"><span class="pre">docscorer</span></code> has GPL-3.0 license, requires Python 3.10 or later, and
-has no PyPI distribution (the extra installs it directly from
-GitHub). The package pins <code class="docutils literal notranslate"><span class="pre">numpy&gt;=2</span></code> and <code class="docutils literal notranslate"><span class="pre">scipy&gt;=1.14</span></code>, which may
-conflict with older versions of the other OpusFilter dependencies.</p>
+<code class="docutils literal notranslate"><span class="pre">docscorer</span></code> (<a class="reference external" href="https://github.com/pablop16n/web-docs-scorer">https://github.com/pablop16n/web-docs-scorer</a>)
+separately. It has no PyPI distribution, and PyPI does not allow
+packages to declare direct Git dependencies, so <code class="docutils literal notranslate"><span class="pre">docscorer</span></code> cannot be
+installed automatically through an OpusFilter extra.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>opusfilter
+pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"docscorer @ git+https://github.com/pablop16n/web-docs-scorer.git"</span>
+</pre></div>
+</div>
+<p>Please note that <code class="docutils literal notranslate"><span class="pre">docscorer</span></code> is distributed under the GPL-3.0 license
+and requires Python 3.10 or later. The package pins <code class="docutils literal notranslate"><span class="pre">numpy&gt;=2</span></code> and
+<code class="docutils literal notranslate"><span class="pre">scipy&gt;=1.14</span></code>, which may conflict with older versions of the other
+OpusFilter dependencies.</p>
 <p>Note that <code class="docutils literal notranslate"><span class="pre">docscorer</span></code> actually works also with older <code class="docutils literal notranslate"><span class="pre">numpy</span></code> versions,
-but its requirement <code class="docutils literal notranslate"><span class="pre">numpy&gt;=2</span></code> prevents installing it with
-<code class="docutils literal notranslate"><span class="pre">fasttext</span></code>, which does not support <code class="docutils literal notranslate"><span class="pre">numpy&gt;=2</span></code>, using the normal <code class="docutils literal notranslate"><span class="pre">[wds]</span></code>
-extra. To use the fasttext language identification method of
-<code class="docutils literal notranslate"><span class="pre">WDSFilter</span></code> together with <code class="docutils literal notranslate"><span class="pre">docscorer</span></code>, install <code class="docutils literal notranslate"><span class="pre">docscorer</span></code> manually
-without its dependencies while keeping <code class="docutils literal notranslate"><span class="pre">numpy</span></code> below 2:</p>
+but its requirement <code class="docutils literal notranslate"><span class="pre">numpy&gt;=2</span></code> prevents installing it together with
+<code class="docutils literal notranslate"><span class="pre">fasttext</span></code>, which does not support <code class="docutils literal notranslate"><span class="pre">numpy&gt;=2</span></code>. To use the fasttext
+language identification method of <code class="docutils literal notranslate"><span class="pre">WDSFilter</span></code> together with
+<code class="docutils literal notranslate"><span class="pre">docscorer</span></code>, install <code class="docutils literal notranslate"><span class="pre">docscorer</span></code> without its dependencies while
+keeping <code class="docutils literal notranslate"><span class="pre">numpy</span></code> below 2:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>docscorer<span class="w"> </span>@<span class="w"> </span>git+https://github.com/pablop16n/web-docs-scorer.git<span class="w"> </span>--no-deps
 pip<span class="w"> </span>install<span class="w"> </span>docopt<span class="w"> </span>zstandard
 pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"opusfilter[fasttext]"</span>

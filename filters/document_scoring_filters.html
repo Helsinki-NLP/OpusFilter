@@ -127,9 +127,8 @@ useful with document-level data, where the segments may contain
 embedded newlines, e.g. when using the JSONL format for the input
 files.</p>
 <p><strong>Requires installing optional libraries</strong>: <code class="docutils literal notranslate"><span class="pre">docscorer</span></code> (GPL-3.0
-license), see <a class="reference internal" href="../installation.html"><span class="doc">Installation</span></a>. The Web Docs Scorer package has
-no PyPI distribution, so the <code class="docutils literal notranslate"><span class="pre">[wds]</span></code> extra installs it directly from
-GitHub.</p>
+license), which must be installed separately from GitHub; see
+<a class="reference internal" href="../installation.html"><span class="doc">Installation</span></a>.</p>
 <p>Parameters:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">ref_language</span></code>: reference language and script codes for the segments
@@ -204,7 +203,7 @@ segment, the overall score tends to get low values, and filtering on
 the overall score may thus reject most of the data. The individual
 subscores may be more useful in this case.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">docscorer</span></code> package is distributed under the GPL-3.0 license and
-pins <code class="docutils literal notranslate"><span class="pre">numpy&gt;=2</span></code> and <code class="docutils literal notranslate"><span class="pre">scipy&gt;=1.14</span></code>. Installing the <code class="docutils literal notranslate"><span class="pre">[wds]</span></code> extra can
+pins <code class="docutils literal notranslate"><span class="pre">numpy&gt;=2</span></code> and <code class="docutils literal notranslate"><span class="pre">scipy&gt;=1.14</span></code>. Installing <code class="docutils literal notranslate"><span class="pre">docscorer</span></code> can
 therefore conflict with older versions of the other OpusFilter
 dependencies (e.g. <code class="docutils literal notranslate"><span class="pre">pandas</span></code> or <code class="docutils literal notranslate"><span class="pre">scikit-learn</span></code>), and prevents combining
 with the <code class="docutils literal notranslate"><span class="pre">[fasttext]</span></code> extra, as <code class="docutils literal notranslate"><span class="pre">fasttext</span></code> does not support

@@ -6,6 +6,9 @@ Install the latest release from PyPI:
 Include optional Python libraries:
 * `pip install opusfilter[all]`
 
+The `docscorer` dependency of `WDSFilter` is not included in `[all]`;
+see [Web Docs Scorer](#web-docs-scorer) below.
+
 Install from source:
 * `pip install .` or
 * `pip install -e .`
@@ -66,20 +69,27 @@ opusfilter[heliport]`).
 ### Web Docs Scorer
 
 For using the document scoring filters, you need to install
-`docscorer` (<https://github.com/pablop16n/web-docs-scorer>). It can
-be installed automatically with pip by including the extras `[wds]` or
-`[all]` (e.g. `pip install opusfilter[wds]`). Please note that
-`docscorer` has GPL-3.0 license, requires Python 3.10 or later, and
-has no PyPI distribution (the extra installs it directly from
-GitHub). The package pins `numpy>=2` and `scipy>=1.14`, which may
-conflict with older versions of the other OpusFilter dependencies.
+`docscorer` (<https://github.com/pablop16n/web-docs-scorer>)
+separately. It has no PyPI distribution, and PyPI does not allow
+packages to declare direct Git dependencies, so `docscorer` cannot be
+installed automatically through an OpusFilter extra.
+
+```bash
+pip install opusfilter
+pip install "docscorer @ git+https://github.com/pablop16n/web-docs-scorer.git"
+```
+
+Please note that `docscorer` is distributed under the GPL-3.0 license
+and requires Python 3.10 or later. The package pins `numpy>=2` and
+`scipy>=1.14`, which may conflict with older versions of the other
+OpusFilter dependencies.
 
 Note that `docscorer` actually works also with older `numpy` versions,
-but its requirement `numpy>=2` prevents installing it with
-`fasttext`, which does not support `numpy>=2`, using the normal `[wds]`
-extra. To use the fasttext language identification method of
-`WDSFilter` together with `docscorer`, install `docscorer` manually
-without its dependencies while keeping `numpy` below 2:
+but its requirement `numpy>=2` prevents installing it together with
+`fasttext`, which does not support `numpy>=2`. To use the fasttext
+language identification method of `WDSFilter` together with
+`docscorer`, install `docscorer` without its dependencies while
+keeping `numpy` below 2:
 
 ```bash
 pip install docscorer @ git+https://github.com/pablop16n/web-docs-scorer.git --no-deps
