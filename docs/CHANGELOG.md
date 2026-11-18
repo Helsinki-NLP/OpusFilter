@@ -7,24 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.4.0] - 2026-11-18
+
 ### Added
 
-- `with_decision` option for the score function
-- `columns` option for the unzip function
 - support for Python 3.14
-- `hf_read` function for reading data from Hugging Face datasets
-- support for encoding text in JSONL files to preserve newlines
-- `opusfilter-slurm-*` commands for running OpusFilter workflows in SLRUM clusters
+- `opusfilter-slurm-*` commands for running OpusFilter workflows in SLURM clusters
 - improved validation for configuration files
+- support for encoding text in JSONL files to preserve newlines
+- `with_decision` option for the `score` function
+- `columns` option for the `unzip` function
+- `hf_read` function for reading data from Hugging Face datasets
 - inline filtering for `hf_read` and `opus_read`
 - inline preprocessing for `hf_read` and `opus_read`
 - `doc_level` and `limit` options for `opus_read`
-- `score_output` option for saving filter scores from `filter`, `opus_read`, and `hf_read`
 - `WDSFilter` based on Web Docs Scorer
+- `score_output` option for saving filter scores from `filter`, `opus_read`, and `hf_read`
 
 ### Changed
 
-- modernize packaging and CLI scripts
+- modernized packaging and CLI scripts
 
 ### Removed
 
@@ -268,7 +270,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 First tagged version.
 
 
-[Unreleased]: https://github.com/Helsinki-NLP/OpusFilter/compare/3.3.1...develop
+[Unreleased]: https://github.com/Helsinki-NLP/OpusFilter/compare/3.4.0...develop
+[3.4.0]: https://github.com/Helsinki-NLP/OpusFilter/compare/3.3.1...3.4.0
 [3.3.1]: https://github.com/Helsinki-NLP/OpusFilter/compare/3.3.0...3.3.1
 [3.3.0]: https://github.com/Helsinki-NLP/OpusFilter/compare/3.2.0...3.3.0
 [3.2.0]: https://github.com/Helsinki-NLP/OpusFilter/compare/3.1.0...3.2.0
