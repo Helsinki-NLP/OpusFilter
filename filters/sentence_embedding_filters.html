@@ -1,25 +1,25 @@
 
 
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../">
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sentence embedding filters &mdash; OpusFilter 3.3.1 documentation</title>
+  <title>Sentence embedding filters &mdash; OpusFilter 3.4.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=b8bac34f"></script>
-      <script src="../_static/doctools.js?v=888ff710"></script>
-      <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+      <script src="../_static/documentation_options.js?v=b0e360d0"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Custom filters" href="custom_filters.html" />
+    <link rel="next" title="Document scoring filters" href="document_scoring_filters.html" />
     <link rel="prev" title="Alignment model filters" href="alignment_model_filters.html" /> 
 </head>
 
@@ -69,6 +69,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#sentenceembeddingfilter">SentenceEmbeddingFilter</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="document_scoring_filters.html">Document scoring filters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="custom_filters.html">Custom filters</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Available preprocessors</span></p>
@@ -113,9 +114,9 @@
            <div itemprop="articleBody">
              
   <section id="sentence-embedding-filters">
-<h1>Sentence embedding filters<a class="headerlink" href="#sentence-embedding-filters" title="Permalink to this heading"></a></h1>
+<h1>Sentence embedding filters<a class="headerlink" href="#sentence-embedding-filters" title="Link to this heading"></a></h1>
 <section id="sentenceembeddingfilter">
-<h2>SentenceEmbeddingFilter<a class="headerlink" href="#sentenceembeddingfilter" title="Permalink to this heading"></a></h2>
+<h2>SentenceEmbeddingFilter<a class="headerlink" href="#sentenceembeddingfilter" title="Link to this heading"></a></h2>
 <p>Filter segments using sentence embeddings.</p>
 <p>Parameters:</p>
 <ul class="simple">
@@ -125,8 +126,8 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">chunksize</span></code>: the number of segment pairs to process at the same time (optional: default 200)</p></li>
 </ul>
 <p>The current implementation supports the multilingual LASER embeddings
-as proposed by <span id="id1">Artetxe and Schwenk [<a class="reference internal" href="../references.html#cite-artetxe-schwenk-2018-margin" title="Mikel Artetxe and Holger Schwenk. Margin-based parallel corpus mining with multilingual sentence embeddings. CoRR, 2018. URL: http://arxiv.org/abs/1811.01136, arXiv:1811.01136.">2018</a>]</span> and
-<span id="id2">Chaudhary <em>et al.</em> [<a class="reference internal" href="../references.html#cite-chaudhary-etal-2019-low" title="Vishrav Chaudhary, Yuqing Tang, Francisco Guzmán, Holger Schwenk, and Philipp Koehn. Low-resource corpus filtering using multilingual sentence embeddings. In Proceedings of the Fourth Conference on Machine Translation (Volume 3: Shared Task Papers, Day 2), 261–266. Florence, Italy, August 2019. Association for Computational Linguistics. URL: https://aclanthology.org/W19-5435, doi:10.18653/v1/W19-5435.">2019</a>]</span>. Cosine similarity is used to
+as proposed by <span class="bibtex-citation" id="id1">Artetxe and Schwenk [<a class="reference internal" href="../references.html#cite-artetxe-schwenk-2018-margin" title="Mikel Artetxe and Holger Schwenk. Margin-based parallel corpus mining with multilingual sentence embeddings. CoRR, 2018. URL: http://arxiv.org/abs/1811.01136, arXiv:1811.01136.">2018</a>]</span> and
+<span class="bibtex-citation" id="id2">Chaudhary <em>et al.</em> [<a class="reference internal" href="../references.html#cite-chaudhary-etal-2019-low" title="Vishrav Chaudhary, Yuqing Tang, Francisco Guzmán, Holger Schwenk, and Philipp Koehn. Low-resource corpus filtering using multilingual sentence embeddings. In Proceedings of the Fourth Conference on Machine Translation (Volume 3: Shared Task Papers, Day 2), 261–266. Florence, Italy, August 2019. Association for Computational Linguistics. URL: https://aclanthology.org/W19-5435, doi:10.18653/v1/W19-5435.">2019</a>]</span>. Cosine similarity is used to
 calculate the similarity of the embeddings.  If <code class="docutils literal notranslate"><span class="pre">nn_model</span></code> is
 provided, the similarities are normalized by the average similarity to
 K nearest neighbors in a reference corpus; see
@@ -145,7 +146,7 @@ testing different values for <code class="docutils literal notranslate"><span cl
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="alignment_model_filters.html" class="btn btn-neutral float-left" title="Alignment model filters" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="custom_filters.html" class="btn btn-neutral float-right" title="Custom filters" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="document_scoring_filters.html" class="btn btn-neutral float-right" title="Document scoring filters" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

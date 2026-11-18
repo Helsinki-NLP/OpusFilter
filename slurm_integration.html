@@ -1,0 +1,550 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OpusFilter SLURM Integration &mdash; OpusFilter 3.4.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=b0e360d0"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            OpusFilter
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Get started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Basic usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="automatic_configuration.html">Automatic configuration generation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="command_line_tools.html">Command line tools for analysis</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Available functions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="functions/downloading_and_selecting_data.html">Downloading and selecting data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/preprocessing_text.html">Preprocessing text</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/filtering_and_scoring.html">Filtering and scoring</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/using_score_files.html">Using score files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/training_language_and_alignment_models.html">Training language and alignment models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/training_and_using_classifiers.html">Training and using classifiers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Available filters</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="filters/length_filters.html">Length filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filters/script_and_language_identification_filters.html">Script and language identification filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filters/special_character_and_similarity_filters.html">Special character and similarity filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filters/language_model_filters.html">Language model filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filters/alignment_model_filters.html">Alignment model filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filters/sentence_embedding_filters.html">Sentence embedding filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filters/document_scoring_filters.html">Document scoring filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filters/custom_filters.html">Custom filters</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Available preprocessors</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="preprocessors/tokenizer.html">Tokenizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preprocessors/detokenizer.html">Detokenizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preprocessors/whitespaceNormalizer.html">WhitespaceNormalizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preprocessors/reg_exp_sub.html">RegExpSub</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preprocessors/monolingual_sentence_splitter.html">MonolingualSentenceSplitter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preprocessors/bpe_segmentation.html">BPESegmentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preprocessors/morfessor_segmentation.html">MorfessorSegmentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preprocessors/custom_preprocessors.html">Custom preprocessors</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Other information</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="references.html">Citing and references</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CONTRIBUTING.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CHANGELOG.html">Changelog</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">OpusFilter</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">OpusFilter SLURM Integration</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="opusfilter-slurm-integration">
+<h1>OpusFilter SLURM Integration<a class="headerlink" href="#opusfilter-slurm-integration" title="Link to this heading"></a></h1>
+<p>OpusFilter supports running workflows on SLURM clusters with resource-optimized job scheduling.</p>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<p>The SLURM integration provides three commands:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">opusfilter-slurm-run</span></code>: Run with polling and monitoring</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">opusfilter-slurm-submit</span></code>: Pre-submit all jobs and exit immediately</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">opusfilter-slurm-status</span></code>: Check workflow status from a manifest</p></li>
+</ul>
+</section>
+<section id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h2>
+<p>The SLURM integration is part of the standard OpusFilter installation. No additional dependencies are required.</p>
+</section>
+<section id="quick-start">
+<h2>Quick Start<a class="headerlink" href="#quick-start" title="Link to this heading"></a></h2>
+<ol class="arabic simple">
+<li><p>Create a configuration with SLURM settings:</p></li>
+</ol>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">common</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">output_directory</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/scratch/myproject/output</span>
+<span class="w">  </span><span class="nt">slurm</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">account</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">myaccount</span>
+<span class="w">    </span><span class="nt">partition</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cpu</span>
+<span class="w">    </span><span class="nt">mail_user</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">user@institution.edu</span>
+<span class="w">    </span><span class="nt">resources</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">filter</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">04:00:00</span>
+<span class="w">        </span><span class="nt">mem</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8G</span>
+<span class="w">        </span><span class="nt">array_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8</span>
+<span class="w">      </span><span class="nt">score</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">partition</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gpu</span>
+<span class="w">        </span><span class="nt">time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">08:00:00</span>
+<span class="w">        </span><span class="nt">mem</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">32G</span>
+<span class="w">        </span><span class="nt">gres</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gpu:1</span>
+<span class="w">        </span><span class="nt">n_jobs</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4</span>
+
+<span class="nt">steps</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">opus_read</span>
+<span class="w">    </span><span class="nt">parameters</span><span class="p">:</span>
+<span class="w">      </span><span class="c1"># ...</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">filter</span>
+<span class="w">    </span><span class="nt">parameters</span><span class="p">:</span>
+<span class="w">      </span><span class="c1"># ...</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="2">
+<li><p>Choose a mode:</p></li>
+</ol>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Option 1: Pre-submit and monitor separately (recommended for long workflows)</span>
+opusfilter-slurm-submit<span class="w"> </span>config.yaml<span class="w"> </span>--workdir<span class="w"> </span>/scratch/myproject-work
+opusfilter-slurm-status<span class="w"> </span>/scratch/myproject-work<span class="w"> </span>--watch
+
+<span class="c1"># Option 2: Run with built-in monitoring</span>
+opusfilter-slurm-run<span class="w"> </span>config.yaml<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--resume<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--max-concurrent<span class="w"> </span><span class="m">10</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--workdir<span class="w"> </span>/scratch/myproject-work
+</pre></div>
+</div>
+</section>
+<section id="commands">
+<h2>Commands<a class="headerlink" href="#commands" title="Link to this heading"></a></h2>
+<section id="opusfilter-slurm-run">
+<h3>opusfilter-slurm-run<a class="headerlink" href="#opusfilter-slurm-run" title="Link to this heading"></a></h3>
+<p>Run the workflow with polling and monitoring. This keeps a persistent process that monitors job completion and submits new jobs as dependencies are satisfied.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>opusfilter-slurm-run<span class="w"> </span>CONFIG<span class="w"> </span><span class="o">[</span>--workdir<span class="w"> </span>DIR<span class="o">]</span><span class="w"> </span><span class="o">[</span>--resume<span class="o">]</span><span class="w"> </span><span class="o">[</span>--dry-run<span class="o">]</span><span class="w"> </span><span class="o">[</span>--overwrite<span class="o">]</span>
+<span class="w">                           </span><span class="o">[</span>--max-concurrent<span class="w"> </span>N<span class="o">]</span><span class="w"> </span><span class="o">[</span>--email<span class="w"> </span>ADDRESS<span class="o">]</span>
+</pre></div>
+</div>
+<p>Options:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--workdir</span> <span class="pre">DIR</span></code>: Working directory for scripts and logs</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--resume</span></code>: Skip completed steps based on output files</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--dry-run</span></code>: Show what would be done without submitting</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--overwrite</span></code>: Overwrite existing output files</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--max-concurrent</span> <span class="pre">N</span></code>: Maximum concurrent jobs (default: 4)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--email</span> <span class="pre">ADDRESS</span></code>: Override email for notifications</p></li>
+</ul>
+</section>
+<section id="opusfilter-slurm-submit">
+<h3>opusfilter-slurm-submit<a class="headerlink" href="#opusfilter-slurm-submit" title="Link to this heading"></a></h3>
+<p>Pre-submit all SLURM jobs and exit immediately. Jobs run via SLURM dependencies without a persistent process.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>opusfilter-slurm-submit<span class="w"> </span>CONFIG<span class="w"> </span><span class="o">[</span>--workdir<span class="w"> </span>DIR<span class="o">]</span><span class="w"> </span><span class="o">[</span>--resume<span class="o">]</span><span class="w"> </span><span class="o">[</span>--dry-run<span class="o">]</span><span class="w"> </span><span class="o">[</span>--overwrite<span class="o">]</span>
+</pre></div>
+</div>
+<p>Options:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--workdir</span> <span class="pre">DIR</span></code>: Working directory for scripts and logs</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--resume</span></code>: Skip completed steps based on output files</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--dry-run</span></code>: Show what would be submitted without submitting</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--overwrite</span></code>: Overwrite existing manifest</p></li>
+</ul>
+<p>After submission, a <code class="docutils literal notranslate"><span class="pre">manifest.json</span></code> file is created in the workdir. Use <code class="docutils literal notranslate"><span class="pre">opusfilter-slurm-status</span></code> to monitor progress.</p>
+</section>
+<section id="opusfilter-slurm-status">
+<h3>opusfilter-slurm-status<a class="headerlink" href="#opusfilter-slurm-status" title="Link to this heading"></a></h3>
+<p>Check status of a pre-submitted workflow.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>opusfilter-slurm-status<span class="w"> </span>PATH<span class="w"> </span><span class="o">[</span>--json<span class="o">]</span><span class="w"> </span><span class="o">[</span>--cancel<span class="o">]</span><span class="w"> </span><span class="o">[</span>--watch<span class="o">]</span><span class="w"> </span><span class="o">[</span>--watch-interval<span class="w"> </span>SECONDS<span class="o">]</span>
+</pre></div>
+</div>
+<p>Options:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--json</span></code>: Output status as JSONLines</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--cancel</span></code>: Cancel remaining jobs if any have failed</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--watch</span></code>: Watch mode: refresh status periodically</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--watch-interval</span> <span class="pre">SECONDS</span></code>: Seconds between refresh (default: 30)</p></li>
+</ul>
+<p>Example output:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">JobID</span>      <span class="n">Step</span>                    <span class="n">Status</span>       <span class="n">Runtime</span>    <span class="n">Node</span>
+<span class="o">--------</span>   <span class="o">---------------------</span>   <span class="o">---------</span>    <span class="o">--------</span>   <span class="o">------</span>
+<span class="mi">123456</span>     <span class="mi">1</span><span class="n">_opus_read</span>            <span class="n">COMPLETED</span>    <span class="mi">00</span><span class="p">:</span><span class="mi">02</span><span class="p">:</span><span class="mi">30</span>   <span class="o">-</span>
+<span class="mi">123457</span>     <span class="mi">2</span><span class="n">_filter_1</span>             <span class="n">RUNNING</span>      <span class="mi">00</span><span class="p">:</span><span class="mi">15</span><span class="p">:</span><span class="mi">42</span>   <span class="n">node07</span>
+<span class="mi">123458</span>     <span class="mi">2</span><span class="n">_filter_2</span>             <span class="n">RUNNING</span>      <span class="mi">00</span><span class="p">:</span><span class="mi">01</span><span class="p">:</span><span class="mi">23</span>   <span class="n">node12</span>
+<span class="mi">123459</span>     <span class="mi">3</span><span class="n">_score</span>                <span class="n">PENDING</span>      <span class="o">-</span>          <span class="o">-</span>
+
+<span class="mi">3</span><span class="o">/</span><span class="mi">4</span> <span class="n">completed</span><span class="p">,</span> <span class="mi">2</span> <span class="n">running</span><span class="p">,</span> <span class="mi">0</span> <span class="n">failed</span>
+<span class="n">Status</span><span class="p">:</span> <span class="n">Running</span> <span class="o">-</span> <span class="mi">3</span><span class="o">/</span><span class="mi">4</span> <span class="n">completed</span><span class="p">,</span> <span class="mi">2</span> <span class="n">running</span><span class="p">,</span> <span class="mi">0</span> <span class="n">failed</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="configuration">
+<h2>Configuration<a class="headerlink" href="#configuration" title="Link to this heading"></a></h2>
+<section id="slurm-section">
+<h3>SLURM Section<a class="headerlink" href="#slurm-section" title="Link to this heading"></a></h3>
+<p>Add a <code class="docutils literal notranslate"><span class="pre">slurm</span></code> section under <code class="docutils literal notranslate"><span class="pre">common</span></code> in your YAML configuration:</p>
+<section id="global-settings">
+<h4>Global Settings<a class="headerlink" href="#global-settings" title="Link to this heading"></a></h4>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">account</span></code>: SLURM account name</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">partition</span></code>: Default partition</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">qos</span></code>: Quality of Service</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mail_type</span></code>: Email notification types</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mail_user</span></code>: Email for notifications</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">workdir</span></code>: Directory for SLURM scripts and logs</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">modules</span></code>: Modules to load for all jobs</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">default</span></code>: Default resource specifications</p></li>
+</ul>
+</section>
+<section id="per-step-resources">
+<h4>Per-Step Resources<a class="headerlink" href="#per-step-resources" title="Link to this heading"></a></h4>
+<p>Under <code class="docutils literal notranslate"><span class="pre">slurm.resources</span></code>, specify resources per step type:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">resources</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">filter</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">04:00:00</span><span class="w">    </span><span class="c1"># Wall time limit</span>
+<span class="w">    </span><span class="nt">mem</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8G</span><span class="w">              </span><span class="c1"># Memory requirement</span>
+<span class="w">    </span><span class="nt">cpus-per-task</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4</span><span class="w">      </span><span class="c1"># CPU cores</span>
+<span class="w">    </span><span class="nt">partition</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gpu</span><span class="w">           </span><span class="c1"># Override default partition</span>
+<span class="w">    </span><span class="nt">gres</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gpu:1</span><span class="w">            </span><span class="c1"># GPU resources</span>
+<span class="w">    </span><span class="nt">array_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8</span><span class="w">          </span><span class="c1"># For parallel steps</span>
+<span class="w">    </span><span class="nt">modules</span><span class="p">:</span><span class="w">               </span><span class="c1"># Additional modules</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cuda/11.8</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+<section id="features">
+<h2>Features<a class="headerlink" href="#features" title="Link to this heading"></a></h2>
+<section id="dependency-management">
+<h3>Dependency Management<a class="headerlink" href="#dependency-management" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Automatic detection based on input/output file matching</p></li>
+<li><p>Support for complex workflows with branch dependencies</p></li>
+<li><p>No manual job ID tracking required</p></li>
+</ul>
+</section>
+<section id="concurrent-execution">
+<h3>Concurrent Execution<a class="headerlink" href="#concurrent-execution" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Independent steps run simultaneously (up to <code class="docutils literal notranslate"><span class="pre">--max-concurrent</span></code> with <code class="docutils literal notranslate"><span class="pre">opusfilter-slurm-run</span></code>)</p></li>
+<li><p>Efficient resource utilization</p></li>
+<li><p>Reduced queue wait times</p></li>
+</ul>
+</section>
+<section id="resource-optimization">
+<h3>Resource Optimization<a class="headerlink" href="#resource-optimization" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Per-step resource allocation</p></li>
+<li><p>Array job support for parallelizable steps</p></li>
+<li><p>GPU allocation for GPU-intensive tasks</p></li>
+</ul>
+</section>
+<section id="monitoring-and-resumption">
+<h3>Monitoring and Resumption<a class="headerlink" href="#monitoring-and-resumption" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--resume</span></code>: Skip completed steps, continue from failures</p></li>
+<li><p>Automatic cleanup of failed outputs</p></li>
+</ul>
+</section>
+</section>
+<section id="best-practices">
+<h2>Best Practices<a class="headerlink" href="#best-practices" title="Link to this heading"></a></h2>
+<ol class="arabic simple">
+<li><p><strong>For Long Workflows</strong>: Use <code class="docutils literal notranslate"><span class="pre">opusfilter-slurm-submit</span></code> + <code class="docutils literal notranslate"><span class="pre">opusfilter-slurm-status</span></code></p>
+<ul class="simple">
+<li><p>No persistent process needed</p></li>
+<li><p>Run status checker in tmux or as a separate job</p></li>
+<li><p>Can disconnect from login node while jobs run</p></li>
+</ul>
+</li>
+<li><p><strong>Estimate Resources</strong></p>
+<ul class="simple">
+<li><p>Start with conservative time/memory limits</p></li>
+<li><p>Check actual usage with <code class="docutils literal notranslate"><span class="pre">seff</span></code> after completion</p></li>
+<li><p>Adjust based on historical data</p></li>
+</ul>
+</li>
+<li><p><strong>Organize Workflows</strong></p>
+<ul class="simple">
+<li><p>Place I/O-intensive steps early (opus_read, concatenate)</p></li>
+<li><p>Group similar resource requirements</p></li>
+<li><p>Avoid unnecessary dependencies</p></li>
+</ul>
+</li>
+<li><p><strong>Use Arrays</strong></p>
+<ul class="simple">
+<li><p>Enable array_size for filter/score steps</p></li>
+<li><p>Parallelizes within step, not just between steps</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="example-workflow">
+<h2>Example Workflow<a class="headerlink" href="#example-workflow" title="Link to this heading"></a></h2>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="c1"># Complete example with all features</span>
+<span class="nt">common</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">output_directory</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">corpus/processed</span>
+<span class="w">  </span><span class="nt">slurm</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">account</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nlp_project</span>
+<span class="w">    </span><span class="nt">partition</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gpu</span>
+<span class="w">    </span><span class="nt">mail_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">END,FAIL,TIME_LIMIT_90</span>
+<span class="w">    </span><span class="nt">mail_user</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">researcher@university.edu</span>
+<span class="w">    </span><span class="nt">workdir</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${SLURM_TMP}/opusfilter</span>
+<span class="w">    </span><span class="nt">modules</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python/3.10</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cuda/11.8</span>
+<span class="w">    </span><span class="nt">default</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">02:00:00</span>
+<span class="w">      </span><span class="nt">mem</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4G</span>
+<span class="w">      </span><span class="nt">cpus-per-task</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
+<span class="w">    </span><span class="nt">resources</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">opus_read</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">01:00:00</span>
+<span class="w">        </span><span class="nt">mem</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2G</span>
+<span class="w">      </span><span class="nt">train_ngram</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">24:00:00</span>
+<span class="w">        </span><span class="nt">mem</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">32G</span>
+<span class="w">        </span><span class="nt">cpus-per-task</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">16</span>
+<span class="w">      </span><span class="nt">filter</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">12:00:00</span>
+<span class="w">        </span><span class="nt">mem</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">16G</span>
+<span class="w">        </span><span class="nt">array_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">16</span>
+<span class="w">      </span><span class="nt">score</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">06:00:00</span>
+<span class="w">        </span><span class="nt">mem</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">64G</span>
+<span class="w">        </span><span class="nt">partition</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gpu</span>
+<span class="w">        </span><span class="nt">gres</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gpu:2</span>
+<span class="w">        </span><span class="nt">n_jobs</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8</span>
+
+<span class="nt">steps</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">opus_read</span>
+<span class="w">    </span><span class="nt">parameters</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">corpus_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">OpenSubtitles</span>
+<span class="w">      </span><span class="nt">source_language</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">en</span>
+<span class="w">      </span><span class="nt">target_language</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">es</span>
+<span class="w">      </span><span class="nt">src_output</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">raw.en.gz</span>
+<span class="w">      </span><span class="nt">tgt_output</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">raw.es.gz</span>
+
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">train_ngram</span>
+<span class="w">    </span><span class="nt">parameters</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">data</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">raw.en.gz</span>
+<span class="w">      </span><span class="nt">parameters</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">norder</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5</span>
+<span class="w">      </span><span class="nt">model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">en.arpa.gz</span>
+
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">filter</span>
+<span class="w">    </span><span class="nt">parameters</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">inputs</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">raw.en.gz</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">raw.es.gz</span><span class="p p-Indicator">]</span>
+<span class="w">      </span><span class="nt">outputs</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">filtered.en.gz</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">filtered.es.gz</span><span class="p p-Indicator">]</span>
+<span class="w">      </span><span class="nt">filters</span><span class="p">:</span><span class="w"> </span><span class="nl">&amp;common_filters</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">LengthFilter</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">unit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">word</span>
+<span class="w">            </span><span class="nt">min_length</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="w">            </span><span class="nt">max_length</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">LanguageIDFilter</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">languages</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">en</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">es</span><span class="p p-Indicator">]</span>
+
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">score</span>
+<span class="w">    </span><span class="nt">parameters</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">inputs</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">filtered.en.gz</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">filtered.es.gz</span><span class="p p-Indicator">]</span>
+<span class="w">      </span><span class="nt">output</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">scores.jsonl.gz</span>
+<span class="w">      </span><span class="nt">filters</span><span class="p">:</span><span class="w"> </span><span class="nv">*common_filters</span>
+</pre></div>
+</div>
+</section>
+<section id="troubleshooting">
+<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading"></a></h2>
+<section id="jobs-not-submitting">
+<h3>Jobs Not Submitting<a class="headerlink" href="#jobs-not-submitting" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Check account name and partition availability</p></li>
+<li><p>Verify module names</p></li>
+<li><p>Ensure workdir is writable</p></li>
+<li><p>Check with <code class="docutils literal notranslate"><span class="pre">--dry-run</span></code> first</p></li>
+</ul>
+</section>
+<section id="jobs-failing">
+<h3>Jobs Failing<a class="headerlink" href="#jobs-failing" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Check logs in <code class="docutils literal notranslate"><span class="pre">${workdir}/logs/</span></code></p></li>
+<li><p>Verify input/output paths</p></li>
+<li><p>Use <code class="docutils literal notranslate"><span class="pre">scontrol</span> <span class="pre">show</span> <span class="pre">job</span> <span class="pre">&lt;id&gt;</span></code> for details</p></li>
+<li><p>Ensure requested resources are available</p></li>
+</ul>
+</section>
+<section id="performance-issues">
+<h3>Performance Issues<a class="headerlink" href="#performance-issues" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Reduce <code class="docutils literal notranslate"><span class="pre">array_size</span></code> if jobs are too small</p></li>
+<li><p>Increase memory if OOM errors occur</p></li>
+<li><p>Use appropriate partition (cpu/gpu)</p></li>
+</ul>
+</section>
+<section id="status-check-shows-failures">
+<h3>Status Check Shows Failures<a class="headerlink" href="#status-check-shows-failures" title="Link to this heading"></a></h3>
+<p>If <code class="docutils literal notranslate"><span class="pre">opusfilter-slurm-status</span></code> shows failed jobs:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># View failed job details</span>
+opusfilter-slurm-status<span class="w"> </span>/scratch/work<span class="w"> </span>--json<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>FAILED
+
+<span class="c1"># Cancel remaining jobs</span>
+opusfilter-slurm-status<span class="w"> </span>/scratch/work<span class="w"> </span>--cancel
+</pre></div>
+</div>
+</section>
+</section>
+<section id="integration-with-other-tools">
+<h2>Integration with Other Tools<a class="headerlink" href="#integration-with-other-tools" title="Link to this heading"></a></h2>
+<p>The SLURM integration outputs standard OpusFilter files that can be used with:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">opusfilter-diagram</span></code>: Visualize workflow</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">opusfilter-scores</span></code>: Analyze job scores</p></li>
+<li><p>Custom monitoring scripts</p></li>
+</ul>
+</section>
+<section id="advanced-usage">
+<h2>Advanced Usage<a class="headerlink" href="#advanced-usage" title="Link to this heading"></a></h2>
+<section id="explicit-dependencies-depends-on">
+<h3>Explicit Dependencies (depends_on)<a class="headerlink" href="#explicit-dependencies-depends-on" title="Link to this heading"></a></h3>
+<p>Some steps have implicit file dependencies that are not tracked through standard input/output fields. For example, <code class="docutils literal notranslate"><span class="pre">LMClassifierFilter</span></code> loads model files specified in <code class="docutils literal notranslate"><span class="pre">lm_params.*.filename</span></code>, but these are not automatically detected as dependencies.</p>
+<p>Use the <code class="docutils literal notranslate"><span class="pre">depends_on</span></code> field to explicitly declare these dependencies:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">steps</span><span class="p">:</span>
+<span class="w">  </span><span class="c1"># Step that produces model files</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">train_ngram</span>
+<span class="w">    </span><span class="nt">parameters</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">data</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">data.txt.gz</span>
+<span class="w">      </span><span class="nt">model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">model.arpa.gz</span>
+
+<span class="w">  </span><span class="c1"># Step that uses the model (implicit dependency via lm_params)</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">filter</span>
+<span class="w">    </span><span class="nt">parameters</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">inputs</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">data.txt.gz</span><span class="p p-Indicator">]</span>
+<span class="w">      </span><span class="nt">outputs</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">filtered.txt.gz</span><span class="p p-Indicator">]</span>
+<span class="w">      </span><span class="nt">filters</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">LMClassifierFilter</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">lm_params</span><span class="p">:</span>
+<span class="w">              </span><span class="nt">en</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">filename</span><span class="p">:</span><span class="w"> </span><span class="nv">model.arpa.gz</span><span class="p p-Indicator">}</span>
+<span class="w">    </span><span class="nt">depends_on</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">model.arpa.gz</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">depends_on</span></code> field supports:</p>
+<ul class="simple">
+<li><p>Single file (string): <code class="docutils literal notranslate"><span class="pre">depends_on:</span> <span class="pre">model.arpa.gz</span></code></p></li>
+<li><p>Multiple files (list): <code class="docutils literal notranslate"><span class="pre">depends_on:</span> <span class="pre">[file1.gz,</span> <span class="pre">file2.gz]</span></code></p></li>
+<li><p>Variable expansion: <code class="docutils literal notranslate"><span class="pre">depends_on:</span> <span class="pre">['!varstr</span> <span class="pre">&quot;{lang}.arpa.gz&quot;']</span></code></p></li>
+</ul>
+<p>This ensures the filter step waits for the train_ngram step to complete before starting.</p>
+</section>
+<section id="running-as-a-slurm-job">
+<h3>Running as a SLURM Job<a class="headerlink" href="#running-as-a-slurm-job" title="Link to this heading"></a></h3>
+<p>For very long workflows, you can submit the submit/status commands themselves as SLURM jobs:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># submit_wrapper.sh</span>
+<span class="c1">#!/bin/bash</span>
+<span class="c1">#SBATCH --job-name=opusfilter</span>
+<span class="c1">#SBATCH --time=7-00:00:00</span>
+<span class="c1">#SBATCH --cpus-per-task=2</span>
+<span class="c1">#SBATCH --mem=4G</span>
+
+<span class="nb">source</span><span class="w"> </span>~/.bashrc
+conda<span class="w"> </span>activate<span class="w"> </span>opusfilter
+opusfilter-slurm-submit<span class="w"> </span>config.yaml<span class="w"> </span>--workdir<span class="w"> </span>/scratch/work
+opusfilter-slurm-status<span class="w"> </span>/scratch/work<span class="w"> </span>--watch
+</pre></div>
+</div>
+<p>Submit with: <code class="docutils literal notranslate"><span class="pre">sbatch</span> <span class="pre">submit_wrapper.sh</span></code></p>
+</section>
+<section id="resource-usage-collection">
+<h3>Resource Usage Collection<a class="headerlink" href="#resource-usage-collection" title="Link to this heading"></a></h3>
+<p>Track actual resource usage:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># After jobs complete</span>
+<span class="k">for</span><span class="w"> </span>jobid<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="k">$(</span>squeue<span class="w"> </span>-u<span class="w"> </span><span class="nv">$USER</span><span class="w"> </span>-h<span class="w"> </span><span class="p">|</span><span class="w"> </span>awk<span class="w"> </span><span class="s1">'/JobId=/ {print $2}'</span><span class="k">)</span><span class="p">;</span><span class="w"> </span><span class="k">do</span>
+<span class="w">    </span>seff<span class="w"> </span><span class="nv">$jobid</span>
+<span class="k">done</span>
+</pre></div>
+</div>
+<p>This enables better resource estimation for future runs.</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p></p>
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

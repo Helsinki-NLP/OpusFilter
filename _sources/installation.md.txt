@@ -8,11 +8,11 @@ Include optional Python libraries:
 
 Install from source:
 * `pip install .` or
-* `python setup.py install`
+* `pip install -e .`
 
 Note that all required libraries are not available to install via PyPI
 on Windows OS. On Linux and MacOS, it should work directly for Python
-versions from 3.8 to 3.13.
+versions from 3.9 to 3.14.
 
 ## Required libraries
 
@@ -35,7 +35,7 @@ versions from 3.8 to 3.13.
 * xxhash
 * lingua-language-detector
 
-See `setup.py` for possible version requirements.
+See `pyproject.toml` for possible version requirements.
 
 ## Optional libraries and tools
 
@@ -62,6 +62,30 @@ opusfilter[fasttext]`).
 The support for `heliport` can be installed automatically with pip by
 including the extras `[heliport]` (e.g. `pip install
 opusfilter[heliport]`).
+
+### Web Docs Scorer
+
+For using the document scoring filters, you need to install
+`docscorer` (<https://github.com/pablop16n/web-docs-scorer>). It can
+be installed automatically with pip by including the extras `[wds]` or
+`[all]` (e.g. `pip install opusfilter[wds]`). Please note that
+`docscorer` has GPL-3.0 license, requires Python 3.10 or later, and
+has no PyPI distribution (the extra installs it directly from
+GitHub). The package pins `numpy>=2` and `scipy>=1.14`, which may
+conflict with older versions of the other OpusFilter dependencies.
+
+Note that `docscorer` actually works also with older `numpy` versions,
+but its requirement `numpy>=2` prevents installing it with
+`fasttext`, which does not support `numpy>=2`, using the normal `[wds]`
+extra. To use the fasttext language identification method of
+`WDSFilter` together with `docscorer`, install `docscorer` manually
+without its dependencies while keeping `numpy` below 2:
+
+```bash
+pip install docscorer @ git+https://github.com/pablop16n/web-docs-scorer.git --no-deps
+pip install docopt zstandard
+pip install "opusfilter[fasttext]"
+```
 
 ### Jieba and MeCab word segmentation
 

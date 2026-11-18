@@ -1,0 +1,246 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Document scoring filters &mdash; OpusFilter 3.4.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=b0e360d0"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Custom filters" href="custom_filters.html" />
+    <link rel="prev" title="Sentence embedding filters" href="sentence_embedding_filters.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            OpusFilter
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Get started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Basic usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../automatic_configuration.html">Automatic configuration generation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../command_line_tools.html">Command line tools for analysis</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Available functions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../functions/downloading_and_selecting_data.html">Downloading and selecting data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../functions/preprocessing_text.html">Preprocessing text</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../functions/filtering_and_scoring.html">Filtering and scoring</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../functions/using_score_files.html">Using score files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../functions/training_language_and_alignment_models.html">Training language and alignment models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../functions/training_and_using_classifiers.html">Training and using classifiers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Available filters</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="length_filters.html">Length filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="script_and_language_identification_filters.html">Script and language identification filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="special_character_and_similarity_filters.html">Special character and similarity filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="language_model_filters.html">Language model filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="alignment_model_filters.html">Alignment model filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sentence_embedding_filters.html">Sentence embedding filters</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Document scoring filters</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#wdsfilter">WDSFilter</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="custom_filters.html">Custom filters</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Available preprocessors</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../preprocessors/tokenizer.html">Tokenizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../preprocessors/detokenizer.html">Detokenizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../preprocessors/whitespaceNormalizer.html">WhitespaceNormalizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../preprocessors/reg_exp_sub.html">RegExpSub</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../preprocessors/monolingual_sentence_splitter.html">MonolingualSentenceSplitter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../preprocessors/bpe_segmentation.html">BPESegmentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../preprocessors/morfessor_segmentation.html">MorfessorSegmentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../preprocessors/custom_preprocessors.html">Custom preprocessors</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Other information</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">Citing and references</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CONTRIBUTING.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CHANGELOG.html">Changelog</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">OpusFilter</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Document scoring filters</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="document-scoring-filters">
+<h1>Document scoring filters<a class="headerlink" href="#document-scoring-filters" title="Link to this heading"></a></h1>
+<section id="wdsfilter">
+<h2>WDSFilter<a class="headerlink" href="#wdsfilter" title="Link to this heading"></a></h2>
+<p>Filter segments by their Web Docs Scorer
+(<a class="reference external" href="https://github.com/pablop16n/web-docs-scorer">https://github.com/pablop16n/web-docs-scorer</a>) score. The Web Docs
+Scorer was developed for scoring whole web documents consisting of
+several newline-separated segments. In OpusFilter, each segment of an
+input pair is treated as a document, and the newline-separated lines
+of the segment are scored as the segments of the document. This is
+useful with document-level data, where the segments may contain
+embedded newlines, e.g. when using the JSONL format for the input
+files.</p>
+<p><strong>Requires installing optional libraries</strong>: <code class="docutils literal notranslate"><span class="pre">docscorer</span></code> (GPL-3.0
+license), see <a class="reference internal" href="../installation.html"><span class="doc">Installation</span></a>. The Web Docs Scorer package has
+no PyPI distribution, so the <code class="docutils literal notranslate"><span class="pre">[wds]</span></code> extra installs it directly from
+GitHub.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">ref_language</span></code>: reference language and script codes for the segments
+of each input pair, e.g. <code class="docutils literal notranslate"><span class="pre">['spa_latn']</span></code> for monolingual or
+<code class="docutils literal notranslate"><span class="pre">['fin_latn',</span> <span class="pre">'spa_latn']</span></code> for bilingual pairs. The codes should be
+in the format <code class="docutils literal notranslate"><span class="pre">&lt;ISO</span> <span class="pre">639-3</span> <span class="pre">language</span> <span class="pre">code&gt;_&lt;ISO</span> <span class="pre">15924</span> <span class="pre">script</span> <span class="pre">code&gt;</span></code>
+(e.g. <code class="docutils literal notranslate"><span class="pre">spa_latn</span></code>). The language subscore of the Web Docs Scorer and
+its language-specific parameters are based on these codes.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">threshold</span></code>: score threshold (default 0). A segment is accepted if
+its score is higher than the threshold. Can be either a scalar value
+applied to all segments or a list with one value per segment.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">subscore</span></code>: score subscore to use instead of the overall Web Docs
+Scorer score (optional; default <code class="docutils literal notranslate"><span class="pre">null</span></code>). The available subscores are
+<code class="docutils literal notranslate"><span class="pre">language_score</span></code>, <code class="docutils literal notranslate"><span class="pre">url_score</span></code>, <code class="docutils literal notranslate"><span class="pre">punctuation_score</span></code>,
+<code class="docutils literal notranslate"><span class="pre">singular_chars_score</span></code>, <code class="docutils literal notranslate"><span class="pre">numbers_score</span></code>, <code class="docutils literal notranslate"><span class="pre">repeated_score</span></code>,
+<code class="docutils literal notranslate"><span class="pre">n_long_segments_score</span></code>, <code class="docutils literal notranslate"><span class="pre">great_segment_score</span></code>,
+<code class="docutils literal notranslate"><span class="pre">informativeness_score</span></code>, and <code class="docutils literal notranslate"><span class="pre">short_segments_score</span></code>. All scores are
+on the scale 0–1, and the higher the score, the better. Some of the
+subscores (e.g. <code class="docutils literal notranslate"><span class="pre">punctuation_score</span></code>) may be more informative than
+the overall score when the documents consist of only one or a few
+short segments.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lid_method</span></code>: language identification method used internally to
+generate the segment-level language codes for the Web Docs Scorer.
+Supported values: <code class="docutils literal notranslate"><span class="pre">fasttext</span></code> and <code class="docutils literal notranslate"><span class="pre">lingua</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lid_options</span></code>: options for the language identification method
+(optional; default <code class="docutils literal notranslate"><span class="pre">{}</span></code>):</p>
+<ul>
+<li><p>For <code class="docutils literal notranslate"><span class="pre">fasttext</span></code>: <code class="docutils literal notranslate"><span class="pre">model_path</span></code> pointing to a fasttext model that
+outputs labels in the <code class="docutils literal notranslate"><span class="pre">&lt;language&gt;_&lt;script&gt;</span></code> format, e.g. the
+OpenLID-v2 model for HPLT
+(<a class="reference external" href="https://huggingface.co/laurievb/OpenLID-v2">https://huggingface.co/laurievb/OpenLID-v2</a>).</p></li>
+<li><p>For <code class="docutils literal notranslate"><span class="pre">lingua</span></code>: <code class="docutils literal notranslate"><span class="pre">lingua_mode</span></code> (<code class="docutils literal notranslate"><span class="pre">low</span></code> or <code class="docutils literal notranslate"><span class="pre">high</span></code>) and
+<code class="docutils literal notranslate"><span class="pre">langid_languages</span></code> for restricting the set of possible languages.</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">score_for_empty</span></code>: score for empty documents (default 1.0).</p></li>
+</ul>
+<p>Example configurations:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">WDSFilter</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">threshold</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.8</span>
+<span class="w">    </span><span class="nt">ref_language</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">spa_latn</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">lid_method</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fasttext</span>
+<span class="w">    </span><span class="nt">lid_options</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">model_path</span><span class="p">:</span><span class="w"> </span><span class="nv">lid201-model.bin</span><span class="p p-Indicator">}</span>
+</pre></div>
+</div>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">WDSFilter</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">subscore</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">punctuation_score</span>
+<span class="w">    </span><span class="nt">threshold</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0.5</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.3</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">ref_language</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">fin_latn</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">spa_latn</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">lid_method</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">lingua</span>
+<span class="w">    </span><span class="nt">lid_options</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">lingua_mode</span><span class="p">:</span><span class="w"> </span><span class="nv">high</span><span class="p p-Indicator">}</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">ref_language</span></code> codes give the expected language for each segment.
+The segment-level language codes produced by the language
+identification are compared against these reference codes to obtain
+the <code class="docutils literal notranslate"><span class="pre">language_score</span></code> subscore. The language identification methods do
+not necessarily output the <code class="docutils literal notranslate"><span class="pre">&lt;language&gt;_&lt;script&gt;</span></code> format directly. With
+<code class="docutils literal notranslate"><span class="pre">fasttext</span></code>, labels that consist of only a language code are mapped to
+the <code class="docutils literal notranslate"><span class="pre">&lt;language&gt;_&lt;script&gt;</span></code> format using the script information in the
+Web Docs Scorer language family data. With <code class="docutils literal notranslate"><span class="pre">lingua</span></code>, the detected
+language is mapped to an ISO 639-3 code and the script is looked up
+from the same data. If a language has several possible scripts in the
+language family data (e.g. Serbian can be written with both Latin and
+Cyrillic scripts), the script in the <code class="docutils literal notranslate"><span class="pre">ref_language</span></code> code is assumed.</p>
+<p><strong>Caveats:</strong></p>
+<p>The Web Docs Scorer is meant for whole web documents, and several of
+its subscores (e.g. <code class="docutils literal notranslate"><span class="pre">informativeness_score</span></code>, <code class="docutils literal notranslate"><span class="pre">repeated_score</span></code>, and the
+two <code class="docutils literal notranslate"><span class="pre">long_segment</span></code> subscores) assume connections between the segments
+of a document. When the documents consist of only a single short
+segment, the overall score tends to get low values, and filtering on
+the overall score may thus reject most of the data. The individual
+subscores may be more useful in this case.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">docscorer</span></code> package is distributed under the GPL-3.0 license and
+pins <code class="docutils literal notranslate"><span class="pre">numpy&gt;=2</span></code> and <code class="docutils literal notranslate"><span class="pre">scipy&gt;=1.14</span></code>. Installing the <code class="docutils literal notranslate"><span class="pre">[wds]</span></code> extra can
+therefore conflict with older versions of the other OpusFilter
+dependencies (e.g. <code class="docutils literal notranslate"><span class="pre">pandas</span></code> or <code class="docutils literal notranslate"><span class="pre">scikit-learn</span></code>), and prevents combining
+with the <code class="docutils literal notranslate"><span class="pre">[fasttext]</span></code> extra, as <code class="docutils literal notranslate"><span class="pre">fasttext</span></code> does not support
+<code class="docutils literal notranslate"><span class="pre">numpy&gt;=2</span></code>. The <code class="docutils literal notranslate"><span class="pre">docscorer</span></code> package actually works also with older
+<code class="docutils literal notranslate"><span class="pre">numpy</span></code> versions; see <a class="reference internal" href="../installation.html"><span class="doc">Installation</span></a> for installing it without
+its dependencies when the fasttext language identification method is
+needed.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="sentence_embedding_filters.html" class="btn btn-neutral float-left" title="Sentence embedding filters" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="custom_filters.html" class="btn btn-neutral float-right" title="Custom filters" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p></p>
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

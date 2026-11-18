@@ -1,21 +1,21 @@
 
 
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../">
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Downloading and selecting data &mdash; OpusFilter 3.3.1 documentation</title>
+  <title>Downloading and selecting data &mdash; OpusFilter 3.4.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=b8bac34f"></script>
-      <script src="../_static/doctools.js?v=888ff710"></script>
-      <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+      <script src="../_static/documentation_options.js?v=b0e360d0"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -52,6 +52,7 @@
 <p class="caption" role="heading"><span class="caption-text">Available functions</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Downloading and selecting data</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#hf-read">hf_read</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#opus-read">opus_read</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#concatenate">concatenate</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#download">download</a></li>
@@ -79,6 +80,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../filters/language_model_filters.html">Language model filters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../filters/alignment_model_filters.html">Alignment model filters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../filters/sentence_embedding_filters.html">Sentence embedding filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../filters/document_scoring_filters.html">Document scoring filters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../filters/custom_filters.html">Custom filters</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Available preprocessors</span></p>
@@ -123,11 +125,110 @@
            <div itemprop="articleBody">
              
   <section id="downloading-and-selecting-data">
-<h1>Downloading and selecting data<a class="headerlink" href="#downloading-and-selecting-data" title="Permalink to this heading"></a></h1>
+<h1>Downloading and selecting data<a class="headerlink" href="#downloading-and-selecting-data" title="Link to this heading"></a></h1>
+<section id="hf-read">
+<span id="hf_read"></span><h2>hf_read<a class="headerlink" href="#hf-read" title="Link to this heading"></a></h2>
+<p>Read a parallel corpus from the <a class="reference external" href="https://huggingface.co/datasets">Hugging Face Datasets</a>
+library.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">path</span></code>: dataset path on Hugging Face (e.g. <code class="docutils literal notranslate"><span class="pre">Helsinki-NLP/nemotron-cc-translated</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">src_config</span></code> / <code class="docutils literal notranslate"><span class="pre">tgt_config</span></code>: source and target language configs (cross-config mode)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">src_field</span></code> / <code class="docutils literal notranslate"><span class="pre">tgt_field</span></code>: field names for source and target text (single-config mode)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">src_lang</span></code> / <code class="docutils literal notranslate"><span class="pre">tgt_lang</span></code>: language codes for the <code class="docutils literal notranslate"><span class="pre">translation</span></code> column (alternative to <code class="docutils literal notranslate"><span class="pre">src_field</span></code>/<code class="docutils literal notranslate"><span class="pre">tgt_field</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">src_output</span></code>: output file for source language</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tgt_output</span></code>: output file for target language</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">config</span></code>: dataset config/name (optional)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">id_field</span></code>: field name for alignment between configs in cross-config mode (required for cross-config)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">newline_replacement</span></code>: character to replace embedded newlines with in plain-text output (default: space)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">split</span></code>: which dataset split to use (default: <code class="docutils literal notranslate"><span class="pre">train</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">limit</span></code>: maximum number of pairs to write (default: all)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">preprocessors</span></code>: an optional list of preprocessor configurations (same format as the <code class="docutils literal notranslate"><span class="pre">preprocess</span></code> step) to apply before filtering and writing</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">filters</span></code>: an optional list of filter configurations (same format as the <code class="docutils literal notranslate"><span class="pre">filter</span></code> step) to apply before writing — avoids a separate <code class="docutils literal notranslate"><span class="pre">filter</span></code> step after reading</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">filterfalse</span></code>: if <code class="docutils literal notranslate"><span class="pre">true</span></code> and <code class="docutils literal notranslate"><span class="pre">filters</span></code> is set, write only pairs that are <em>rejected</em> by the filters (default: <code class="docutils literal notranslate"><span class="pre">false</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">score_output</span></code>: optional JSON Lines file for writing the filter scores of the written pairs (requires <code class="docutils literal notranslate"><span class="pre">filters</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">streaming</span></code>: whether to stream the dataset (default: <code class="docutils literal notranslate"><span class="pre">true</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">trust_remote_code</span></code>: whether to trust remote code in dataset loading (default: <code class="docutils literal notranslate"><span class="pre">false</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">kwargs</span></code>: additional keyword arguments passed to <code class="docutils literal notranslate"><span class="pre">datasets.load_dataset</span></code></p></li>
+</ul>
+<p>Two modes are available:</p>
+<p><strong>Single-config mode</strong> (<code class="docutils literal notranslate"><span class="pre">config</span></code> + <code class="docutils literal notranslate"><span class="pre">src_field</span></code>/<code class="docutils literal notranslate"><span class="pre">tgt_field</span></code> or <code class="docutils literal notranslate"><span class="pre">src_lang</span></code>/<code class="docutils literal notranslate"><span class="pre">tgt_lang</span></code>):
+Both source and target are read from the same dataset config. Use
+<code class="docutils literal notranslate"><span class="pre">src_field</span></code> and <code class="docutils literal notranslate"><span class="pre">tgt_field</span></code> to specify the column names, or
+<code class="docutils literal notranslate"><span class="pre">src_lang</span></code>/<code class="docutils literal notranslate"><span class="pre">tgt_lang</span></code> for datasets with a <code class="docutils literal notranslate"><span class="pre">translation</span></code> column.</p>
+<p><strong>Cross-config mode</strong> (<code class="docutils literal notranslate"><span class="pre">src_config</span></code> + <code class="docutils literal notranslate"><span class="pre">tgt_config</span></code> + <code class="docutils literal notranslate"><span class="pre">id_field</span></code>):
+Source and target are in different dataset configs, aligned by a
+common identifier. The <code class="docutils literal notranslate"><span class="pre">id_field</span></code> parameter specifies which field
+holds the shared identifier. Both configs are read in sorted order
+and merged by this ID in a memory-efficient streaming fashion.</p>
+<p>Requires the <code class="docutils literal notranslate"><span class="pre">huggingface</span></code> extra:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">opusfilter</span><span class="p">[</span><span class="n">huggingface</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>For datasets with multi-line text (e.g. web-crawled data), use the
+<code class="docutils literal notranslate"><span class="pre">.jsonl</span></code> file extension in <code class="docutils literal notranslate"><span class="pre">src_output</span></code> and <code class="docutils literal notranslate"><span class="pre">tgt_output</span></code> to produce
+JSONL output, which preserves embedded newlines within each segment.</p>
+<p>Example: loading a selection of language pairs from
+<code class="docutils literal notranslate"><span class="pre">Helsinki-NLP/nemotron-cc-translated</span></code> using cross-config mode:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">steps</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">hf_read</span>
+<span class="w">    </span><span class="nt">parameters</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">dataset</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Helsinki-NLP/nemotron-cc-translated</span>
+<span class="w">      </span><span class="nt">src_config</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">eng</span>
+<span class="w">      </span><span class="nt">tgt_config</span><span class="p">:</span><span class="w"> </span><span class="kt">!var</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">lang</span>
+<span class="w">      </span><span class="nt">id_field</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">warc_record_id</span>
+<span class="w">      </span><span class="nt">src_field</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">text</span>
+<span class="w">      </span><span class="nt">tgt_field</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">text</span>
+<span class="w">      </span><span class="nt">src_output</span><span class="p">:</span><span class="w"> </span><span class="kt">!varstr</span><span class="w"> </span><span class="s">"nemotron/{lang}.en.jsonl.gz"</span>
+<span class="w">      </span><span class="nt">tgt_output</span><span class="p">:</span><span class="w"> </span><span class="kt">!varstr</span><span class="w"> </span><span class="s">"nemotron/en.{lang}.jsonl.gz"</span>
+<span class="w">    </span><span class="nt">variables</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">lang</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">eus</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">gle</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">glg</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">isl</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">mkd</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">swe</span><span class="p p-Indicator">]</span>
+</pre></div>
+</div>
+<p>The dataset uses per-language configs named with
+<a class="reference external" href="https://en.wikipedia.org/wiki/ISO_639-3">ISO 639-3</a> three-letter codes
+(e.g. <code class="docutils literal notranslate"><span class="pre">eus</span></code> for Basque, <code class="docutils literal notranslate"><span class="pre">isl</span></code> for Icelandic). Each config has a <code class="docutils literal notranslate"><span class="pre">text</span></code>
+field and a <code class="docutils literal notranslate"><span class="pre">warc_record_id</span></code> field that aligns sentences across
+languages. The <code class="docutils literal notranslate"><span class="pre">id_field:</span> <span class="pre">warc_record_id</span></code> parameter ensures correct
+alignment even when language configs have different row counts.</p>
+<p>Inline filtering can be added to avoid writing all pairs before
+filtering — data flows from the HF dataset through the filter pipeline
+and only accepted pairs are written to disk. An optional
+<code class="docutils literal notranslate"><span class="pre">preprocessors</span></code> list (same format as the <code class="docutils literal notranslate"><span class="pre">preprocess</span></code> step) is applied
+before the filters:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">steps</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">hf_read</span>
+<span class="w">    </span><span class="nt">parameters</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">dataset</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Helsinki-NLP/nemotron-cc-translated</span>
+<span class="w">      </span><span class="nt">src_config</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">eng</span>
+<span class="w">      </span><span class="nt">tgt_config</span><span class="p">:</span><span class="w"> </span><span class="kt">!var</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">lang</span>
+<span class="w">      </span><span class="nt">id_field</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">warc_record_id</span>
+<span class="w">      </span><span class="nt">src_field</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">text</span>
+<span class="w">      </span><span class="nt">tgt_field</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">text</span>
+<span class="w">      </span><span class="nt">src_output</span><span class="p">:</span><span class="w"> </span><span class="kt">!varstr</span><span class="w"> </span><span class="s">"filtered.{lang}.jsonl.gz"</span>
+<span class="w">      </span><span class="nt">tgt_output</span><span class="p">:</span><span class="w"> </span><span class="kt">!varstr</span><span class="w"> </span><span class="s">"filtered.eng.jsonl.gz"</span>
+<span class="w">      </span><span class="nt">limit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">50000</span>
+<span class="w">      </span><span class="nt">filters</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">LengthFilter</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">min_length</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
+<span class="w">            </span><span class="nt">max_length</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">250</span>
+<span class="w">            </span><span class="nt">unit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">word</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">LengthRatioFilter</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">threshold</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
+<span class="w">            </span><span class="nt">unit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">char</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">AlphabetRatioFilter</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">threshold</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.5</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">LongWordFilter</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">threshold</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">40</span>
+<span class="w">    </span><span class="nt">variables</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">lang</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">eus</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">gle</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">glg</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">isl</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">mkd</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">swe</span><span class="p p-Indicator">]</span>
+</pre></div>
+</div>
+</section>
 <section id="opus-read">
-<h2>opus_read<a class="headerlink" href="#opus-read" title="Permalink to this heading"></a></h2>
-<p>Read a corpus from the OPUS corpus collection <span id="id1">[<a class="reference internal" href="../references.html#cite-tiedemann-2012-parallel" title="Jörg Tiedemann. Parallel data, tools and interfaces in OPUS. In Proceedings of the Eighth International Conference on Language Resources and Evaluation (LREC'12), 2214–2218. Istanbul, Turkey, May 2012. European Language Resources Association (ELRA). URL: http://www.lrec-conf.org/proceedings/lrec2012/pdf/463_Paper.pdf.">Tiedemann, 2012</a>]</span> using
-the OpusTools <span id="id2">[<a class="reference internal" href="../references.html#cite-aulamo-etal-2020-opustools" title="Mikko Aulamo, Umut Sulubacak, Sami Virpioja, and Jörg Tiedemann. OpusTools and parallel corpus diagnostics. In Proceedings of the 12th Language Resources and Evaluation Conference, 3782–3789. Marseille, France, May 2020. European Language Resources Association. URL: https://aclanthology.org/2020.lrec-1.467.">Aulamo <em>et al.</em>, 2020</a>]</span> interface.</p>
+<span id="opus_read"></span><h2>opus_read<a class="headerlink" href="#opus-read" title="Link to this heading"></a></h2>
+<p>Read a corpus from the OPUS corpus collection <span class="bibtex-citation" id="id1">[<a class="reference internal" href="../references.html#cite-tiedemann-2012-parallel" title="Jörg Tiedemann. Parallel data, tools and interfaces in OPUS. In Proceedings of the Eighth International Conference on Language Resources and Evaluation (LREC'12), 2214–2218. Istanbul, Turkey, May 2012. European Language Resources Association (ELRA). URL: http://www.lrec-conf.org/proceedings/lrec2012/pdf/463_Paper.pdf.">Tiedemann, 2012</a>]</span> using
+the OpusTools <span class="bibtex-citation" id="id2">[<a class="reference internal" href="../references.html#cite-aulamo-etal-2020-opustools" title="Mikko Aulamo, Umut Sulubacak, Sami Virpioja, and Jörg Tiedemann. OpusTools and parallel corpus diagnostics. In Proceedings of the 12th Language Resources and Evaluation Conference, 3782–3789. Marseille, France, May 2020. European Language Resources Association. URL: https://aclanthology.org/2020.lrec-1.467.">Aulamo <em>et al.</em>, 2020</a>]</span> interface.</p>
 <p>Parameters:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">corpus_name</span></code>: name of the corpus in OPUS</p></li>
@@ -138,14 +239,28 @@ the OpusTools <span id="id2">[<a class="reference internal" href="../references.
 <li><p><code class="docutils literal notranslate"><span class="pre">src_output</span></code>: output file for source language</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">tgt_output</span></code>: output file for target language</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">suppress_prompts</span></code>: <code class="docutils literal notranslate"><span class="pre">false</span></code> (default) prompts user to confirm before download, <code class="docutils literal notranslate"><span class="pre">true</span></code> to download without prompting</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">doc_level</span></code>: request document-level data from OPUS</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">limit</span></code>: maximum number of pairs to write (default: all)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">preprocessors</span></code>: an optional list of preprocessor configurations (same format as the <code class="docutils literal notranslate"><span class="pre">preprocess</span></code> step) to apply before filtering and writing</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">filters</span></code>: an optional list of filter configurations (same format as the <code class="docutils literal notranslate"><span class="pre">filter</span></code> step) to apply before writing — avoids a separate <code class="docutils literal notranslate"><span class="pre">filter</span></code> step after reading</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">filterfalse</span></code>: if <code class="docutils literal notranslate"><span class="pre">true</span></code> and <code class="docutils literal notranslate"><span class="pre">filters</span></code> is set, write only pairs that are <em>rejected</em> by the filters (default: <code class="docutils literal notranslate"><span class="pre">false</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">score_output</span></code>: optional JSON Lines file for writing the filter scores of the written pairs (requires <code class="docutils literal notranslate"><span class="pre">filters</span></code>)</p></li>
 </ul>
 <p>The <code class="docutils literal notranslate"><span class="pre">moses</span></code> preprocessing type (available with <code class="docutils literal notranslate"><span class="pre">OpusTools</span></code> version
 1.6.2 and above) is recommended for those corpora for which it
 exists. The output is equivalent to <code class="docutils literal notranslate"><span class="pre">raw</span></code>, but in some cases it can
 significantly reduce the amount of data downloaded in the process.</p>
+<p>JSONL output files (<code class="docutils literal notranslate"><span class="pre">.jsonl</span></code>, <code class="docutils literal notranslate"><span class="pre">.jsonl.gz</span></code> etc.) are recommmended for
+the output with <code class="docutils literal notranslate"><span class="pre">doc_level:</span> <span class="pre">true</span></code> - with JSON encoding the original
+newlines can be preserved. Please note that most of the filters are
+not designed for document-level data.</p>
+<p>Similarly to <code class="docutils literal notranslate"><span class="pre">hf_read</span></code>, inline filtering can be added to avoid writing
+all pairs before filtering via the <code class="docutils literal notranslate"><span class="pre">filters</span></code> list. The optional
+<code class="docutils literal notranslate"><span class="pre">preprocessors</span></code> list (same format as the <code class="docutils literal notranslate"><span class="pre">preprocess</span></code> step) is applied
+before the filters.</p>
 </section>
 <section id="concatenate">
-<h2>concatenate<a class="headerlink" href="#concatenate" title="Permalink to this heading"></a></h2>
+<h2>concatenate<a class="headerlink" href="#concatenate" title="Link to this heading"></a></h2>
 <p>Concatenate two or more text files.</p>
 <p>Parameters:</p>
 <ul class="simple">
@@ -154,7 +269,7 @@ significantly reduce the amount of data downloaded in the process.</p>
 </ul>
 </section>
 <section id="download">
-<h2>download<a class="headerlink" href="#download" title="Permalink to this heading"></a></h2>
+<h2>download<a class="headerlink" href="#download" title="Link to this heading"></a></h2>
 <p>Download a file from URL.</p>
 <p>Parameters:</p>
 <ul class="simple">
@@ -163,7 +278,7 @@ significantly reduce the amount of data downloaded in the process.</p>
 </ul>
 </section>
 <section id="head">
-<h2>head<a class="headerlink" href="#head" title="Permalink to this heading"></a></h2>
+<h2>head<a class="headerlink" href="#head" title="Link to this heading"></a></h2>
 <p>Take the first n lines from files.</p>
 <p>Parameters:</p>
 <ul class="simple">
@@ -173,7 +288,7 @@ significantly reduce the amount of data downloaded in the process.</p>
 </ul>
 </section>
 <section id="tail">
-<h2>tail<a class="headerlink" href="#tail" title="Permalink to this heading"></a></h2>
+<h2>tail<a class="headerlink" href="#tail" title="Link to this heading"></a></h2>
 <p>Take the last n lines from files.</p>
 <p>Parameters:</p>
 <ul class="simple">
@@ -185,7 +300,7 @@ significantly reduce the amount of data downloaded in the process.</p>
 <code class="docutils literal notranslate"><span class="pre">slice</span></code> if you need all except the first n lines.</p>
 </section>
 <section id="slice">
-<h2>slice<a class="headerlink" href="#slice" title="Permalink to this heading"></a></h2>
+<h2>slice<a class="headerlink" href="#slice" title="Link to this heading"></a></h2>
 <p>Take slice of lines from files.</p>
 <p>Parameters:</p>
 <ul class="simple">
@@ -199,7 +314,7 @@ significantly reduce the amount of data downloaded in the process.</p>
 not given, reads until the end of the file.</p>
 </section>
 <section id="split">
-<h2>split<a class="headerlink" href="#split" title="Permalink to this heading"></a></h2>
+<h2>split<a class="headerlink" href="#split" title="Link to this heading"></a></h2>
 <p>Split files to two parts giving the approximative proportions as
 fractions.</p>
 <p>Parameters:</p>
@@ -240,7 +355,7 @@ depends only on the source or target sentence, set <code class="docutils literal
 or <code class="docutils literal notranslate"><span class="pre">[1]</span></code>, respectively.</p>
 </section>
 <section id="subset">
-<h2>subset<a class="headerlink" href="#subset" title="Permalink to this heading"></a></h2>
+<h2>subset<a class="headerlink" href="#subset" title="Link to this heading"></a></h2>
 <p>Take a random subset from parallel corpus files.</p>
 <p>Parameters:</p>
 <ul class="simple">
@@ -252,7 +367,7 @@ or <code class="docutils literal notranslate"><span class="pre">[1]</span></code
 </ul>
 </section>
 <section id="product">
-<h2>product<a class="headerlink" href="#product" title="Permalink to this heading"></a></h2>
+<h2>product<a class="headerlink" href="#product" title="Link to this heading"></a></h2>
 <p>Create a Cartesian product of parallel segments and optionally sample from them.</p>
 <p>Parameters:</p>
 <ul class="simple">
@@ -271,18 +386,20 @@ language B by M translators, you can combine the N + M files into two
 files having N x M lines for each original line.</p>
 </section>
 <section id="unzip">
-<h2>unzip<a class="headerlink" href="#unzip" title="Permalink to this heading"></a></h2>
+<h2>unzip<a class="headerlink" href="#unzip" title="Link to this heading"></a></h2>
 <p>Unzip parallel segments joined in a single file into multiple files.</p>
 <p>Parameters:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">input</span></code>: input file</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">outputs</span></code>: a list of output files</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">separator</span></code>: a string separator in the input file</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">columns</span></code>: a list of column indices to extract; the number of indices must match the number of output files (optional)</p></li>
 </ul>
 <p>Can be used to split e.g. Moses-style (<code class="docutils literal notranslate"><span class="pre">|||</span></code>) or tab-separated parallel text files into parts.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">columns</span></code> is specified, only those columns from the input file will be extracted and written to the corresponding output files. Columns not listed will be ignored. If not specified, all columns will be used in order.</p>
 </section>
 <section id="write">
-<h2>write<a class="headerlink" href="#write" title="Permalink to this heading"></a></h2>
+<h2>write<a class="headerlink" href="#write" title="Link to this heading"></a></h2>
 <p>Write a specified string into a file.</p>
 <p>Parameters:</p>
 <ul class="simple">
@@ -290,6 +407,15 @@ files having N x M lines for each original line.</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">data</span></code>: input data to write to the output (converted to a string if not already)</p></li>
 </ul>
 <p>Useful mostly for testing.</p>
+<hr class="docutils" />
+<p>Note on file formats: All functions transparently support <strong>JSONL</strong>
+files (<code class="docutils literal notranslate"><span class="pre">.jsonl</span></code> extension, optionally followed by a compression suffix
+like <code class="docutils literal notranslate"><span class="pre">.jsonl.gz</span></code>, <code class="docutils literal notranslate"><span class="pre">.jsonl.bz2</span></code>, or <code class="docutils literal notranslate"><span class="pre">.jsonl.xz</span></code>) in addition to
+plain text (<code class="docutils literal notranslate"><span class="pre">.txt</span></code>/<code class="docutils literal notranslate"><span class="pre">.gz</span></code>/<code class="docutils literal notranslate"><span class="pre">.bz2</span></code>).
+In JSONL mode, each segment is stored as a single JSON-encoded line,
+which correctly handles text with embedded newlines (common in
+web-crawled data). Simply use the <code class="docutils literal notranslate"><span class="pre">.jsonl</span></code> extension in input/output
+file names to enable this format.</p>
 </section>
 </section>
 

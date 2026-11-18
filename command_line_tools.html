@@ -1,21 +1,21 @@
 
 
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Command line tools for analysis &mdash; OpusFilter 3.3.1 documentation</title>
+  <title>Command line tools for analysis &mdash; OpusFilter 3.4.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=b8bac34f"></script>
-      <script src="_static/doctools.js?v=888ff710"></script>
-      <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+      <script src="_static/documentation_options.js?v=b0e360d0"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -72,6 +72,7 @@
 <li class="toctree-l1"><a class="reference internal" href="filters/language_model_filters.html">Language model filters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="filters/alignment_model_filters.html">Alignment model filters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="filters/sentence_embedding_filters.html">Sentence embedding filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filters/document_scoring_filters.html">Document scoring filters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="filters/custom_filters.html">Custom filters</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Available preprocessors</span></p>
@@ -116,14 +117,14 @@
            <div itemprop="articleBody">
              
   <section id="command-line-tools-for-analysis">
-<h1>Command line tools for analysis<a class="headerlink" href="#command-line-tools-for-analysis" title="Permalink to this heading"></a></h1>
+<h1>Command line tools for analysis<a class="headerlink" href="#command-line-tools-for-analysis" title="Link to this heading"></a></h1>
 <p>Apart from the main scripts (<a class="reference internal" href="usage.html#opusfilter-script"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">opusfilter</span></code></span></a> and
 <a class="reference internal" href="usage.html#running-a-single-command"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">opusfilter-cmd</span></code></span></a>) and configuration
 generation (<a class="reference internal" href="automatic_configuration.html"><span class="std std-doc"><code class="docutils literal notranslate"><span class="pre">opusfilter-autogen</span></code></span></a>),
 the package also provides command line tools for testing and analyzing
 the configurations and filters.</p>
 <section id="opusfilter-diagram">
-<h2>opusfilter-diagram<a class="headerlink" href="#opusfilter-diagram" title="Permalink to this heading"></a></h2>
+<h2>opusfilter-diagram<a class="headerlink" href="#opusfilter-diagram" title="Link to this heading"></a></h2>
 <p>Draws a diagram (a directed acyclic graph) from OpusFilter
 configuration file using the <code class="docutils literal notranslate"><span class="pre">graphviz</span></code> library.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">opusfilter</span><span class="o">-</span><span class="n">diagram</span> <span class="p">[</span><span class="o">--</span><span class="n">rankdir</span> <span class="p">{</span><span class="n">TB</span><span class="p">,</span><span class="n">LR</span><span class="p">}]</span> <span class="n">FILE</span> <span class="n">FILE</span>
@@ -135,7 +136,7 @@ with <code class="docutils literal notranslate"><span class="pre">.dot</span></c
 rendered to the format indicated by the extension (e.g. PDF or PNG).</p>
 </section>
 <section id="opusfilter-duplicates">
-<h2>opusfilter-duplicates<a class="headerlink" href="#opusfilter-duplicates" title="Permalink to this heading"></a></h2>
+<h2>opusfilter-duplicates<a class="headerlink" href="#opusfilter-duplicates" title="Link to this heading"></a></h2>
 <p>This is a simple script based on the <a class="reference internal" href="functions/filtering_and_scoring.html#remove-duplicates"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">remove_duplicates</span></code></span></a>
 function, that instead of filtering the data, prints out statistics of
 the duplicate entries. You can either provide a single corpus (as one
@@ -149,7 +150,7 @@ between them. The syntax for the <code class="docutils literal notranslate"><spa
 <p>The options are essentially the same as for <a class="reference internal" href="functions/filtering_and_scoring.html#remove-duplicates"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">remove_duplicates</span></code></span></a>.</p>
 </section>
 <section id="opusfilter-scores">
-<h2>opusfilter-scores<a class="headerlink" href="#opusfilter-scores" title="Permalink to this heading"></a></h2>
+<h2>opusfilter-scores<a class="headerlink" href="#opusfilter-scores" title="Link to this heading"></a></h2>
 <p>This is a tool that can be used to calculate and plot statistics from
 scores produced by the <a class="reference internal" href="functions/filtering_and_scoring.html#score"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">score</span></code></span></a> function. The tool has
 several subcommands that all take the JSON Lines score file as the
@@ -164,7 +165,7 @@ input, and either print or plot the output:</p>
 </ul>
 </section>
 <section id="opusfilter-test">
-<h2>opusfilter-test<a class="headerlink" href="#opusfilter-test" title="Permalink to this heading"></a></h2>
+<h2>opusfilter-test<a class="headerlink" href="#opusfilter-test" title="Link to this heading"></a></h2>
 <p>This is a simple script based on the <a class="reference internal" href="functions/filtering_and_scoring.html#filter"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">filter</span></code></span></a> function that
 can be used to calculate the amount of segments that the given
 filter(s) would remove from the parallel data, and optionally output

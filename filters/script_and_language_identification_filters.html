@@ -1,21 +1,21 @@
 
 
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../">
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Script and language identification filters &mdash; OpusFilter 3.3.1 documentation</title>
+  <title>Script and language identification filters &mdash; OpusFilter 3.4.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=b8bac34f"></script>
-      <script src="../_static/doctools.js?v=888ff710"></script>
-      <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+      <script src="../_static/documentation_options.js?v=b0e360d0"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -79,6 +79,7 @@
 <li class="toctree-l1"><a class="reference internal" href="language_model_filters.html">Language model filters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="alignment_model_filters.html">Alignment model filters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sentence_embedding_filters.html">Sentence embedding filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="document_scoring_filters.html">Document scoring filters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="custom_filters.html">Custom filters</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Available preprocessors</span></p>
@@ -123,9 +124,9 @@
            <div itemprop="articleBody">
              
   <section id="script-and-language-identification-filters">
-<h1>Script and language identification filters<a class="headerlink" href="#script-and-language-identification-filters" title="Permalink to this heading"></a></h1>
+<h1>Script and language identification filters<a class="headerlink" href="#script-and-language-identification-filters" title="Link to this heading"></a></h1>
 <section id="alphabetratiofilter">
-<h2>AlphabetRatioFilter<a class="headerlink" href="#alphabetratiofilter" title="Permalink to this heading"></a></h2>
+<h2>AlphabetRatioFilter<a class="headerlink" href="#alphabetratiofilter" title="Link to this heading"></a></h2>
 <p>Filter segments based on what proportion of the characters are alphabetic characters.</p>
 <p>Parameters:</p>
 <ul class="simple">
@@ -140,7 +141,7 @@ the minimum threshold.</p>
 threshold parameter can also be given as a list.</p>
 </section>
 <section id="characterscorefilter">
-<h2>CharacterScoreFilter<a class="headerlink" href="#characterscorefilter" title="Permalink to this heading"></a></h2>
+<h2>CharacterScoreFilter<a class="headerlink" href="#characterscorefilter" title="Link to this heading"></a></h2>
 <p>Filter segments based on what proportion of their alphabetic characters are in a given script. For a list of valid scripts, see e.g. <a class="reference external" href="https://www.regular-expressions.info/unicode.html">www.regular-expressions.info/unicode.html</a>.</p>
 <p>Parameters:</p>
 <ul class="simple">
@@ -150,7 +151,7 @@ threshold parameter can also be given as a list.</p>
 <p>Returned scores are proportions of valid characters in the segments. In filtering, all values have to be equal to or greater than the minimum thresholds.</p>
 </section>
 <section id="languageidfilter-deprecated">
-<h2>LanguageIDFilter (deprecated)<a class="headerlink" href="#languageidfilter-deprecated" title="Permalink to this heading"></a></h2>
+<h2>LanguageIDFilter (deprecated)<a class="headerlink" href="#languageidfilter-deprecated" title="Link to this heading"></a></h2>
 <p><em>Note: The common LanguageIDFilter is now deprecated. Please see the method-specific language identification filters below.</em></p>
 <p>Filter segments based on their language identification confidence scores.</p>
 <p>Parameters:</p>
@@ -166,7 +167,7 @@ threshold parameter can also be given as a list.</p>
 <p>Returned scores are the language identification confidence scores from a given identification method for the segments. The scores range from 0 to 1. In filtering, all values have to be greater than the minimum thresholds. A negative threshold can be used to skip filtering for a language.</p>
 <p>Currently the following identification methods are supported:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">langid</span></code> (default) <span id="id1">[<a class="reference internal" href="../references.html#cite-lui-baldwin-2012-langid" title="Marco Lui and Timothy Baldwin. Langid.py: an off-the-shelf language identification tool. In Proceedings of the ACL 2012 System Demonstrations, 25–30. Jeju Island, Korea, July 2012. Association for Computational Linguistics. URL: https://aclanthology.org/P12-3005.">Lui and Baldwin, 2012</a>]</span></p>
+<li><p><code class="docutils literal notranslate"><span class="pre">langid</span></code> (default) <span class="bibtex-citation" id="id1">[<a class="reference internal" href="../references.html#cite-lui-baldwin-2012-langid" title="Marco Lui and Timothy Baldwin. Langid.py: an off-the-shelf language identification tool. In Proceedings of the ACL 2012 System Demonstrations, 25–30. Jeju Island, Korea, July 2012. Association for Computational Linguistics. URL: https://aclanthology.org/P12-3005.">Lui and Baldwin, 2012</a>]</span></p>
 <ul>
 <li><p>See <a class="reference external" href="https://github.com/adbar/py3langid">https://github.com/adbar/py3langid</a></p></li>
 </ul>
@@ -182,7 +183,7 @@ threshold parameter can also be given as a list.</p>
 <li><p>Requires <a class="reference internal" href="../installation.html"><span class="std std-doc">installing optional libraries</span></a>.</p></li>
 </ul>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">fasttext</span></code> <span id="id2">[<a class="reference internal" href="../references.html#cite-joulin-etal-2016-fasttext" title="Armand Joulin, Edouard Grave, Piotr Bojanowski, Matthijs Douze, Hervé Jégou, and Tomás Mikolov. Fasttext.zip: compressing text classification models. CoRR, 2016. URL: http://arxiv.org/abs/1612.03651, arXiv:1612.03651.">Joulin <em>et al.</em>, 2016</a>]</span> and <span id="id3">[<a class="reference internal" href="../references.html#cite-joulin-etal-2017-bag" title="Armand Joulin, Edouard Grave, Piotr Bojanowski, and Tomas Mikolov. Bag of tricks for efficient text classification. In Proceedings of the 15th Conference of the European Chapter of the Association for Computational Linguistics: Volume 2, Short Papers, 427–431. Valencia, Spain, April 2017. Association for Computational Linguistics. URL: https://aclanthology.org/E17-2068.">Joulin <em>et al.</em>, 2017</a>]</span></p>
+<li><p><code class="docutils literal notranslate"><span class="pre">fasttext</span></code> <span class="bibtex-citation" id="id2">[<a class="reference internal" href="../references.html#cite-joulin-etal-2016-fasttext" title="Armand Joulin, Edouard Grave, Piotr Bojanowski, Matthijs Douze, Hervé Jégou, and Tomás Mikolov. Fasttext.zip: compressing text classification models. CoRR, 2016. URL: http://arxiv.org/abs/1612.03651, arXiv:1612.03651.">Joulin <em>et al.</em>, 2016</a>]</span> and <span class="bibtex-citation" id="id3">[<a class="reference internal" href="../references.html#cite-joulin-etal-2017-bag" title="Armand Joulin, Edouard Grave, Piotr Bojanowski, and Tomas Mikolov. Bag of tricks for efficient text classification. In Proceedings of the 15th Conference of the European Chapter of the Association for Computational Linguistics: Volume 2, Short Papers, 427–431. Valencia, Spain, April 2017. Association for Computational Linguistics. URL: https://aclanthology.org/E17-2068.">Joulin <em>et al.</em>, 2017</a>]</span></p>
 <ul>
 <li><p>A pretrained model can be downloaded from <a class="reference external" href="https://fasttext.cc/docs/en/language-identification.html">fasttext.cc/docs/en/language-identification.html</a>.</p></li>
 <li><p>Requires <a class="reference internal" href="../installation.html"><span class="std std-doc">installing optional libraries</span></a>.</p></li>
@@ -191,8 +192,8 @@ threshold parameter can also be given as a list.</p>
 </ul>
 </section>
 <section id="langidfilter">
-<h2>LangidFilter<a class="headerlink" href="#langidfilter" title="Permalink to this heading"></a></h2>
-<p>Filter segments based on the langid method <span id="id4">[<a class="reference internal" href="../references.html#cite-lui-baldwin-2012-langid" title="Marco Lui and Timothy Baldwin. Langid.py: an off-the-shelf language identification tool. In Proceedings of the ACL 2012 System Demonstrations, 25–30. Jeju Island, Korea, July 2012. Association for Computational Linguistics. URL: https://aclanthology.org/P12-3005.">Lui and Baldwin, 2012</a>]</span>; see
+<h2>LangidFilter<a class="headerlink" href="#langidfilter" title="Link to this heading"></a></h2>
+<p>Filter segments based on the langid method <span class="bibtex-citation" id="id4">[<a class="reference internal" href="../references.html#cite-lui-baldwin-2012-langid" title="Marco Lui and Timothy Baldwin. Langid.py: an off-the-shelf language identification tool. In Proceedings of the ACL 2012 System Demonstrations, 25–30. Jeju Island, Korea, July 2012. Association for Computational Linguistics. URL: https://aclanthology.org/P12-3005.">Lui and Baldwin, 2012</a>]</span>; see
 <a class="reference external" href="https://github.com/adbar/py3langid">https://github.com/adbar/py3langid</a>.</p>
 <p>Parameters:</p>
 <ul class="simple">
@@ -206,7 +207,7 @@ have to be greater than the minimum thresholds. A negative threshold
 can be used to skip filtering for a language.</p>
 </section>
 <section id="cld2filter">
-<h2>Cld2Filter<a class="headerlink" href="#cld2filter" title="Permalink to this heading"></a></h2>
+<h2>Cld2Filter<a class="headerlink" href="#cld2filter" title="Link to this heading"></a></h2>
 <p>Filter segments based on the CLD2 method; see <a class="reference external" href="https://github.com/CLD2Owners/cld2">https://github.com/CLD2Owners/cld2</a>.</p>
 <p>Requires <a class="reference internal" href="../installation.html"><span class="std std-doc">installing optional libraries</span></a>.</p>
 <p>Parameters:</p>
@@ -222,9 +223,9 @@ thresholds. A negative threshold can be used to skip filtering for a
 language.</p>
 </section>
 <section id="fasttextfilter">
-<h2>FastTextFilter<a class="headerlink" href="#fasttextfilter" title="Permalink to this heading"></a></h2>
+<h2>FastTextFilter<a class="headerlink" href="#fasttextfilter" title="Link to this heading"></a></h2>
 <p>Filter segments based on the Fasttext language identification models
-(<span id="id5">Joulin <em>et al.</em> [<a class="reference internal" href="../references.html#cite-joulin-etal-2016-fasttext" title="Armand Joulin, Edouard Grave, Piotr Bojanowski, Matthijs Douze, Hervé Jégou, and Tomás Mikolov. Fasttext.zip: compressing text classification models. CoRR, 2016. URL: http://arxiv.org/abs/1612.03651, arXiv:1612.03651.">2016</a>]</span>, <span id="id6">Joulin <em>et al.</em> [<a class="reference internal" href="../references.html#cite-joulin-etal-2017-bag" title="Armand Joulin, Edouard Grave, Piotr Bojanowski, and Tomas Mikolov. Bag of tricks for efficient text classification. In Proceedings of the 15th Conference of the European Chapter of the Association for Computational Linguistics: Volume 2, Short Papers, 427–431. Valencia, Spain, April 2017. Association for Computational Linguistics. URL: https://aclanthology.org/E17-2068.">2017</a>]</span>), see
+(<span class="bibtex-citation" id="id5">Joulin <em>et al.</em> [<a class="reference internal" href="../references.html#cite-joulin-etal-2016-fasttext" title="Armand Joulin, Edouard Grave, Piotr Bojanowski, Matthijs Douze, Hervé Jégou, and Tomás Mikolov. Fasttext.zip: compressing text classification models. CoRR, 2016. URL: http://arxiv.org/abs/1612.03651, arXiv:1612.03651.">2016</a>]</span>, <span class="bibtex-citation" id="id6">Joulin <em>et al.</em> [<a class="reference internal" href="../references.html#cite-joulin-etal-2017-bag" title="Armand Joulin, Edouard Grave, Piotr Bojanowski, and Tomas Mikolov. Bag of tricks for efficient text classification. In Proceedings of the 15th Conference of the European Chapter of the Association for Computational Linguistics: Volume 2, Short Papers, 427–431. Valencia, Spain, April 2017. Association for Computational Linguistics. URL: https://aclanthology.org/E17-2068.">2017</a>]</span>), see
 <a class="reference external" href="https://github.com/CLD2Owners/cld2">https://github.com/CLD2Owners/cld2</a>.</p>
 <p>Requires <a class="reference internal" href="../installation.html"><span class="std std-doc">installing optional libraries</span></a>.</p>
 <p>Parameters:</p>
@@ -240,7 +241,7 @@ thresholds. A negative threshold can be used to skip filtering for a
 language.</p>
 </section>
 <section id="linguafilter">
-<h2>LinguaFilter<a class="headerlink" href="#linguafilter" title="Permalink to this heading"></a></h2>
+<h2>LinguaFilter<a class="headerlink" href="#linguafilter" title="Link to this heading"></a></h2>
 <p>Filter segments based on the Lingua method; see <a class="reference external" href="https://github.com/pemistahl/lingua-py">https://github.com/pemistahl/lingua-py</a>.</p>
 <p>Parameters:</p>
 <ul class="simple">
@@ -256,8 +257,8 @@ thresholds. A negative threshold can be used to skip filtering for a
 language.</p>
 </section>
 <section id="heliportsimplefilter">
-<h2>HeliportSimpleFilter<a class="headerlink" href="#heliportsimplefilter" title="Permalink to this heading"></a></h2>
-<p>Filter segments based on the HeLI-OTS method <span id="id7">[<a class="reference internal" href="../references.html#cite-jauhiainen-etal-2022-heli" title="Tommi Jauhiainen, Heidi Jauhiainen, and Krister Lindén. HeLI-OTS, off-the-shelf language identifier for text. In Proceedings of the Thirteenth Language Resources and Evaluation Conference, 3912–3922. Marseille, France, June 2022. European Language Resources Association. URL: https://aclanthology.org/2022.lrec-1.416/.">Jauhiainen <em>et al.</em>, 2022</a>]</span>; see
+<h2>HeliportSimpleFilter<a class="headerlink" href="#heliportsimplefilter" title="Link to this heading"></a></h2>
+<p>Filter segments based on the HeLI-OTS method <span class="bibtex-citation" id="id7">[<a class="reference internal" href="../references.html#cite-jauhiainen-etal-2022-heli" title="Tommi Jauhiainen, Heidi Jauhiainen, and Krister Lindén. HeLI-OTS, off-the-shelf language identifier for text. In Proceedings of the Thirteenth Language Resources and Evaluation Conference, 3912–3922. Marseille, France, June 2022. European Language Resources Association. URL: https://aclanthology.org/2022.lrec-1.416/.">Jauhiainen <em>et al.</em>, 2022</a>]</span>; see
 <a class="reference external" href="https://github.com/ZJaume/heliport">https://github.com/ZJaume/heliport</a>.</p>
 <p>Requires <a class="reference internal" href="../installation.html"><span class="std std-doc">installing optional libraries</span></a>.</p>
 <p>Parameters:</p>
@@ -272,8 +273,8 @@ the method predicts the correct language. If the low-confidence label
 0.0. A negative threshold can be used to skip filtering for a language.</p>
 </section>
 <section id="heliportconfidencefilter">
-<h2>HeliportConfidenceFilter<a class="headerlink" href="#heliportconfidencefilter" title="Permalink to this heading"></a></h2>
-<p>Filter segments based on the HeLI-OTS method <span id="id8">[<a class="reference internal" href="../references.html#cite-jauhiainen-etal-2022-heli" title="Tommi Jauhiainen, Heidi Jauhiainen, and Krister Lindén. HeLI-OTS, off-the-shelf language identifier for text. In Proceedings of the Thirteenth Language Resources and Evaluation Conference, 3912–3922. Marseille, France, June 2022. European Language Resources Association. URL: https://aclanthology.org/2022.lrec-1.416/.">Jauhiainen <em>et al.</em>, 2022</a>]</span>; see
+<h2>HeliportConfidenceFilter<a class="headerlink" href="#heliportconfidencefilter" title="Link to this heading"></a></h2>
+<p>Filter segments based on the HeLI-OTS method <span class="bibtex-citation" id="id8">[<a class="reference internal" href="../references.html#cite-jauhiainen-etal-2022-heli" title="Tommi Jauhiainen, Heidi Jauhiainen, and Krister Lindén. HeLI-OTS, off-the-shelf language identifier for text. In Proceedings of the Thirteenth Language Resources and Evaluation Conference, 3912–3922. Marseille, France, June 2022. European Language Resources Association. URL: https://aclanthology.org/2022.lrec-1.416/.">Jauhiainen <em>et al.</em>, 2022</a>]</span>; see
 <a class="reference external" href="https://github.com/ZJaume/heliport">https://github.com/ZJaume/heliport</a>.</p>
 <p>Requires <a class="reference internal" href="../installation.html"><span class="std std-doc">installing optional libraries</span></a>.</p>
 <p>Parameters:</p>
@@ -290,8 +291,8 @@ considered as a match. A negative threshold can be used to skip
 filtering for a language.</p>
 </section>
 <section id="heliportrawscorefilter">
-<h2>HeliportRawScoreFilter<a class="headerlink" href="#heliportrawscorefilter" title="Permalink to this heading"></a></h2>
-<p>Filter segments based on the HeLI-OTS method <span id="id9">[<a class="reference internal" href="../references.html#cite-jauhiainen-etal-2022-heli" title="Tommi Jauhiainen, Heidi Jauhiainen, and Krister Lindén. HeLI-OTS, off-the-shelf language identifier for text. In Proceedings of the Thirteenth Language Resources and Evaluation Conference, 3912–3922. Marseille, France, June 2022. European Language Resources Association. URL: https://aclanthology.org/2022.lrec-1.416/.">Jauhiainen <em>et al.</em>, 2022</a>]</span>; see
+<h2>HeliportRawScoreFilter<a class="headerlink" href="#heliportrawscorefilter" title="Link to this heading"></a></h2>
+<p>Filter segments based on the HeLI-OTS method <span class="bibtex-citation" id="id9">[<a class="reference internal" href="../references.html#cite-jauhiainen-etal-2022-heli" title="Tommi Jauhiainen, Heidi Jauhiainen, and Krister Lindén. HeLI-OTS, off-the-shelf language identifier for text. In Proceedings of the Thirteenth Language Resources and Evaluation Conference, 3912–3922. Marseille, France, June 2022. European Language Resources Association. URL: https://aclanthology.org/2022.lrec-1.416/.">Jauhiainen <em>et al.</em>, 2022</a>]</span>; see
 <a class="reference external" href="https://github.com/ZJaume/heliport">https://github.com/ZJaume/heliport</a>.</p>
 <p>Requires <a class="reference internal" href="../installation.html"><span class="std std-doc">installing optional libraries</span></a>.</p>
 <p>Parameters:</p>
@@ -307,8 +308,8 @@ returned. A threshold over the penalty value can be used to skip
 filtering for a language.</p>
 </section>
 <section id="heliportprobabilityfilter">
-<h2>HeliportProbabilityFilter<a class="headerlink" href="#heliportprobabilityfilter" title="Permalink to this heading"></a></h2>
-<p>Filter segments based on the HeLI-OTS method <span id="id10">[<a class="reference internal" href="../references.html#cite-jauhiainen-etal-2022-heli" title="Tommi Jauhiainen, Heidi Jauhiainen, and Krister Lindén. HeLI-OTS, off-the-shelf language identifier for text. In Proceedings of the Thirteenth Language Resources and Evaluation Conference, 3912–3922. Marseille, France, June 2022. European Language Resources Association. URL: https://aclanthology.org/2022.lrec-1.416/.">Jauhiainen <em>et al.</em>, 2022</a>]</span>; see
+<h2>HeliportProbabilityFilter<a class="headerlink" href="#heliportprobabilityfilter" title="Link to this heading"></a></h2>
+<p>Filter segments based on the HeLI-OTS method <span class="bibtex-citation" id="id10">[<a class="reference internal" href="../references.html#cite-jauhiainen-etal-2022-heli" title="Tommi Jauhiainen, Heidi Jauhiainen, and Krister Lindén. HeLI-OTS, off-the-shelf language identifier for text. In Proceedings of the Thirteenth Language Resources and Evaluation Conference, 3912–3922. Marseille, France, June 2022. European Language Resources Association. URL: https://aclanthology.org/2022.lrec-1.416/.">Jauhiainen <em>et al.</em>, 2022</a>]</span>; see
 <a class="reference external" href="https://github.com/ZJaume/heliport">https://github.com/ZJaume/heliport</a>.</p>
 <p>Requires <a class="reference internal" href="../installation.html"><span class="std std-doc">installing optional libraries</span></a>.</p>
 <ul class="simple">

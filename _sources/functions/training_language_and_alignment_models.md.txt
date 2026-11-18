@@ -89,7 +89,7 @@ Parameters:
 * `languages`: a list of language codes corresponding to the input files
 * `n_neighbors`: the default number neightbors to return from query (optional; default 4)
 * `algorithm`: algorithm used to compute the nearest neighbors (optional; default `brute`)
-* `metric`: distance or similarity metric used by the object (optional; default `cosine`) 
+* `metric`: distance or similarity metric used by the object (optional; default `cosine`)
 * `output`: output file name for the model
 
 This is a wrapper for scikit-learn's `NearestNeighbors` class; see more information in it's

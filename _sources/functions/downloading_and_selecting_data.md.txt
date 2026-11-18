@@ -1,5 +1,114 @@
 # Downloading and selecting data
 
+## hf_read
+
+Read a parallel corpus from the [Hugging Face Datasets](https://huggingface.co/datasets)
+library.
+
+Parameters:
+
+* `path`: dataset path on Hugging Face (e.g. `Helsinki-NLP/nemotron-cc-translated`)
+* `src_config` / `tgt_config`: source and target language configs (cross-config mode)
+* `src_field` / `tgt_field`: field names for source and target text (single-config mode)
+* `src_lang` / `tgt_lang`: language codes for the `translation` column (alternative to `src_field`/`tgt_field`)
+* `src_output`: output file for source language
+* `tgt_output`: output file for target language
+* `config`: dataset config/name (optional)
+* `id_field`: field name for alignment between configs in cross-config mode (required for cross-config)
+* `newline_replacement`: character to replace embedded newlines with in plain-text output (default: space)
+* `split`: which dataset split to use (default: `train`)
+* `limit`: maximum number of pairs to write (default: all)
+* `preprocessors`: an optional list of preprocessor configurations (same format as the `preprocess` step) to apply before filtering and writing
+* `filters`: an optional list of filter configurations (same format as the `filter` step) to apply before writing — avoids a separate `filter` step after reading
+* `filterfalse`: if `true` and `filters` is set, write only pairs that are *rejected* by the filters (default: `false`)
+* `score_output`: optional JSON Lines file for writing the filter scores of the written pairs (requires `filters`)
+* `streaming`: whether to stream the dataset (default: `true`)
+* `trust_remote_code`: whether to trust remote code in dataset loading (default: `false`)
+* `kwargs`: additional keyword arguments passed to `datasets.load_dataset`
+
+Two modes are available:
+
+**Single-config mode** (`config` + `src_field`/`tgt_field` or `src_lang`/`tgt_lang`):
+Both source and target are read from the same dataset config. Use
+`src_field` and `tgt_field` to specify the column names, or
+`src_lang`/`tgt_lang` for datasets with a `translation` column.
+
+**Cross-config mode** (`src_config` + `tgt_config` + `id_field`):
+Source and target are in different dataset configs, aligned by a
+common identifier. The `id_field` parameter specifies which field
+holds the shared identifier. Both configs are read in sorted order
+and merged by this ID in a memory-efficient streaming fashion.
+
+Requires the `huggingface` extra:
+```
+pip install opusfilter[huggingface]
+```
+
+For datasets with multi-line text (e.g. web-crawled data), use the
+`.jsonl` file extension in `src_output` and `tgt_output` to produce
+JSONL output, which preserves embedded newlines within each segment.
+
+Example: loading a selection of language pairs from
+`Helsinki-NLP/nemotron-cc-translated` using cross-config mode:
+
+```yaml
+steps:
+  - type: hf_read
+    parameters:
+      dataset: Helsinki-NLP/nemotron-cc-translated
+      src_config: eng
+      tgt_config: !var lang
+      id_field: warc_record_id
+      src_field: text
+      tgt_field: text
+      src_output: !varstr "nemotron/{lang}.en.jsonl.gz"
+      tgt_output: !varstr "nemotron/en.{lang}.jsonl.gz"
+    variables:
+      lang: [eus, gle, glg, isl, mkd, swe]
+```
+
+The dataset uses per-language configs named with
+[ISO 639-3](https://en.wikipedia.org/wiki/ISO_639-3) three-letter codes
+(e.g. `eus` for Basque, `isl` for Icelandic). Each config has a `text`
+field and a `warc_record_id` field that aligns sentences across
+languages. The `id_field: warc_record_id` parameter ensures correct
+alignment even when language configs have different row counts.
+
+Inline filtering can be added to avoid writing all pairs before
+filtering — data flows from the HF dataset through the filter pipeline
+and only accepted pairs are written to disk. An optional
+`preprocessors` list (same format as the `preprocess` step) is applied
+before the filters:
+
+```yaml
+steps:
+  - type: hf_read
+    parameters:
+      dataset: Helsinki-NLP/nemotron-cc-translated
+      src_config: eng
+      tgt_config: !var lang
+      id_field: warc_record_id
+      src_field: text
+      tgt_field: text
+      src_output: !varstr "filtered.{lang}.jsonl.gz"
+      tgt_output: !varstr "filtered.eng.jsonl.gz"
+      limit: 50000
+      filters:
+        - LengthFilter:
+            min_length: 3
+            max_length: 250
+            unit: word
+        - LengthRatioFilter:
+            threshold: 3
+            unit: char
+        - AlphabetRatioFilter:
+            threshold: 0.5
+        - LongWordFilter:
+            threshold: 40
+    variables:
+      lang: [eus, gle, glg, isl, mkd, swe]
+```
+
 ## opus_read
 
 Read a corpus from the OPUS corpus collection {cite:p}`tiedemann-2012-parallel` using
@@ -15,11 +124,27 @@ Parameters:
 * `src_output`: output file for source language
 * `tgt_output`: output file for target language
 * `suppress_prompts`: `false` (default) prompts user to confirm before download, `true` to download without prompting
+* `doc_level`: request document-level data from OPUS
+* `limit`: maximum number of pairs to write (default: all)
+* `preprocessors`: an optional list of preprocessor configurations (same format as the `preprocess` step) to apply before filtering and writing
+* `filters`: an optional list of filter configurations (same format as the `filter` step) to apply before writing — avoids a separate `filter` step after reading
+* `filterfalse`: if `true` and `filters` is set, write only pairs that are *rejected* by the filters (default: `false`)
+* `score_output`: optional JSON Lines file for writing the filter scores of the written pairs (requires `filters`)
 
 The `moses` preprocessing type (available with `OpusTools` version
 1.6.2 and above) is recommended for those corpora for which it
 exists. The output is equivalent to `raw`, but in some cases it can
 significantly reduce the amount of data downloaded in the process.
+
+JSONL output files (`.jsonl`, `.jsonl.gz` etc.) are recommmended for
+the output with `doc_level: true` - with JSON encoding the original
+newlines can be preserved. Please note that most of the filters are
+not designed for document-level data.
+
+Similarly to `hf_read`, inline filtering can be added to avoid writing
+all pairs before filtering via the `filters` list. The optional
+`preprocessors` list (same format as the `preprocess` step) is applied
+before the filters.
 
 ## concatenate
 
@@ -163,8 +288,11 @@ Parameters:
 * `input`: input file
 * `outputs`: a list of output files
 * `separator`: a string separator in the input file
+* `columns`: a list of column indices to extract; the number of indices must match the number of output files (optional)
 
 Can be used to split e.g. Moses-style (` ||| `) or tab-separated parallel text files into parts.
+
+If `columns` is specified, only those columns from the input file will be extracted and written to the corresponding output files. Columns not listed will be ignored. If not specified, all columns will be used in order.
 
 ## write
 
@@ -176,3 +304,14 @@ Parameters:
 * `data`: input data to write to the output (converted to a string if not already)
 
 Useful mostly for testing.
+
+---
+
+Note on file formats: All functions transparently support **JSONL**
+files (`.jsonl` extension, optionally followed by a compression suffix
+like ``.jsonl.gz``, ``.jsonl.bz2``, or ``.jsonl.xz``) in addition to
+plain text (`.txt`/`.gz`/`.bz2`).
+In JSONL mode, each segment is stored as a single JSON-encoded line,
+which correctly handles text with embedded newlines (common in
+web-crawled data). Simply use the `.jsonl` extension in input/output
+file names to enable this format.

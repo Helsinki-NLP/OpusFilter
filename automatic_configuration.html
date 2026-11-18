@@ -1,21 +1,21 @@
 
 
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Automatic configuration generation &mdash; OpusFilter 3.3.1 documentation</title>
+  <title>Automatic configuration generation &mdash; OpusFilter 3.4.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=b8bac34f"></script>
-      <script src="_static/doctools.js?v=888ff710"></script>
-      <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+      <script src="_static/documentation_options.js?v=b0e360d0"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -69,6 +69,7 @@
 <li class="toctree-l1"><a class="reference internal" href="filters/language_model_filters.html">Language model filters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="filters/alignment_model_filters.html">Alignment model filters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="filters/sentence_embedding_filters.html">Sentence embedding filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filters/document_scoring_filters.html">Document scoring filters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="filters/custom_filters.html">Custom filters</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Available preprocessors</span></p>
@@ -113,7 +114,7 @@
            <div itemprop="articleBody">
              
   <section id="automatic-configuration-generation">
-<h1>Automatic configuration generation<a class="headerlink" href="#automatic-configuration-generation" title="Permalink to this heading"></a></h1>
+<h1>Automatic configuration generation<a class="headerlink" href="#automatic-configuration-generation" title="Link to this heading"></a></h1>
 <p>You can generate OpusFilter config files with the <code class="docutils literal notranslate"><span class="pre">opusfilter-autogen</span></code>
 script. Currently the script supports only adding a single filter
 step, with a few options for determining the filter parameters.</p>
@@ -165,11 +166,11 @@ options:
                         quit
   --add-filter CLASS JSON
                         Instead of using default filters, add a filter of
-                        CLASS with JSON parameters object (&quot;{}&quot; for default
+                        CLASS with JSON parameters object ("{}" for default
                         parameters). The class name may be followed by a dot
                         and a unique filter identifier in order to allow
                         multiple filters of the same class. Example: --add-
-                        filter LanguageIDFilter.cld2 &#39;{&quot;id_method&quot;: &quot;cld2&quot;}&#39;
+                        filter LanguageIDFilter.cld2 '{"id_method": "cld2"}'
   --overwrite           Overwrite existing intermediate files
   -o CONFIGFILE, --output CONFIGFILE
                         Output configuration file (default -)
@@ -184,8 +185,8 @@ for each filter independently based on the percentile. The
 in more detail below. However, it is applicable to a more limited set
 of filters.</p>
 <section id="unsupervised-threshold-selection-for-filters">
-<h2>Unsupervised threshold selection for filters<a class="headerlink" href="#unsupervised-threshold-selection-for-filters" title="Permalink to this heading"></a></h2>
-<p>This implements the method introduced by <span id="id1">Aulamo <em>et al.</em> [<a class="reference internal" href="references.html#cite-aulamo-etal-2023-unsupervised" title="Mikko Aulamo, Ona de Gibert, Sami Virpioja, and Jörg Tiedemann. Unsupervised feature selection for effective parallel corpus filtering. In Proceedings of the 24th Annual Conference of the European Association for Machine Translation, 31–38. Tampere, Finland, June 2023. European Association for Machine Translation. URL: https://aclanthology.org/2023.eamt-1.4.">2023</a>]</span>.
+<h2>Unsupervised threshold selection for filters<a class="headerlink" href="#unsupervised-threshold-selection-for-filters" title="Link to this heading"></a></h2>
+<p>This implements the method introduced by <span class="bibtex-citation" id="id1">Aulamo <em>et al.</em> [<a class="reference internal" href="references.html#cite-aulamo-etal-2023-unsupervised" title="Mikko Aulamo, Ona de Gibert, Sami Virpioja, and Jörg Tiedemann. Unsupervised feature selection for effective parallel corpus filtering. In Proceedings of the 24th Annual Conference of the European Association for Machine Translation, 31–38. Tampere, Finland, June 2023. European Association for Machine Translation. URL: https://aclanthology.org/2023.eamt-1.4.">2023</a>]</span>.
 It takes a parallel corpus as an input and tries to separate the clean
 and noisy samples to generate threshold parameters for filters. The
 currently supported filters are <code class="docutils literal notranslate"><span class="pre">AlphabetRatioFilter</span></code>,

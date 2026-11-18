@@ -1,21 +1,21 @@
 
 
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Installation &mdash; OpusFilter 3.3.1 documentation</title>
+  <title>Installation &mdash; OpusFilter 3.4.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=b8bac34f"></script>
-      <script src="_static/doctools.js?v=888ff710"></script>
-      <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+      <script src="_static/documentation_options.js?v=b0e360d0"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -48,6 +48,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#required-libraries">Required libraries</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#optional-libraries-and-tools">Optional libraries and tools</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#fasttext-pycld2-and-heliport-language-identification">FastText, PyCLD2, and heliport language identification</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#web-docs-scorer">Web Docs Scorer</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#jieba-and-mecab-word-segmentation">Jieba and MeCab word segmentation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#laser-sentence-embeddings">LASER sentence embeddings</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#varikn-n-gram-models">VariKN n-gram models</a></li>
@@ -77,6 +78,7 @@
 <li class="toctree-l1"><a class="reference internal" href="filters/language_model_filters.html">Language model filters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="filters/alignment_model_filters.html">Alignment model filters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="filters/sentence_embedding_filters.html">Sentence embedding filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filters/document_scoring_filters.html">Document scoring filters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="filters/custom_filters.html">Custom filters</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Available preprocessors</span></p>
@@ -121,7 +123,7 @@
            <div itemprop="articleBody">
              
   <section id="installation">
-<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this heading"></a></h1>
+<h1>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h1>
 <p>Install the latest release from PyPI:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">opusfilter</span></code></p></li>
@@ -133,13 +135,13 @@
 <p>Install from source:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">.</span></code> or</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">setup.py</span> <span class="pre">install</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">-e</span> <span class="pre">.</span></code></p></li>
 </ul>
 <p>Note that all required libraries are not available to install via PyPI
 on Windows OS. On Linux and MacOS, it should work directly for Python
-versions from 3.8 to 3.13.</p>
+versions from 3.9 to 3.14.</p>
 <section id="required-libraries">
-<h2>Required libraries<a class="headerlink" href="#required-libraries" title="Permalink to this heading"></a></h2>
+<h2>Required libraries<a class="headerlink" href="#required-libraries" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p>beautifulsoup4</p></li>
 <li><p>opus-fast-mosestokenizer</p></li>
@@ -160,12 +162,12 @@ versions from 3.8 to 3.13.</p>
 <li><p>xxhash</p></li>
 <li><p>lingua-language-detector</p></li>
 </ul>
-<p>See <code class="docutils literal notranslate"><span class="pre">setup.py</span></code> for possible version requirements.</p>
+<p>See <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> for possible version requirements.</p>
 </section>
 <section id="optional-libraries-and-tools">
-<h2>Optional libraries and tools<a class="headerlink" href="#optional-libraries-and-tools" title="Permalink to this heading"></a></h2>
+<h2>Optional libraries and tools<a class="headerlink" href="#optional-libraries-and-tools" title="Link to this heading"></a></h2>
 <section id="fasttext-pycld2-and-heliport-language-identification">
-<h3>FastText, PyCLD2, and heliport language identification<a class="headerlink" href="#fasttext-pycld2-and-heliport-language-identification" title="Permalink to this heading"></a></h3>
+<h3>FastText, PyCLD2, and heliport language identification<a class="headerlink" href="#fasttext-pycld2-and-heliport-language-identification" title="Link to this heading"></a></h3>
 <p>The language identification libraries currently supported out-of-the-box
 are <a class="reference external" href="https://github.com/adbar/py3langid">py3langid</a> and
 <a class="reference external" href="https://github.com/pemistahl/lingua-py">lingua</a>. The support for
@@ -182,8 +184,30 @@ pip by including the extras <code class="docutils literal notranslate"><span cla
 <p>The support for <code class="docutils literal notranslate"><span class="pre">heliport</span></code> can be installed automatically with pip by
 including the extras <code class="docutils literal notranslate"><span class="pre">[heliport]</span></code> (e.g. <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">opusfilter[heliport]</span></code>).</p>
 </section>
+<section id="web-docs-scorer">
+<h3>Web Docs Scorer<a class="headerlink" href="#web-docs-scorer" title="Link to this heading"></a></h3>
+<p>For using the document scoring filters, you need to install
+<code class="docutils literal notranslate"><span class="pre">docscorer</span></code> (<a class="reference external" href="https://github.com/pablop16n/web-docs-scorer">https://github.com/pablop16n/web-docs-scorer</a>). It can
+be installed automatically with pip by including the extras <code class="docutils literal notranslate"><span class="pre">[wds]</span></code> or
+<code class="docutils literal notranslate"><span class="pre">[all]</span></code> (e.g. <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">opusfilter[wds]</span></code>). Please note that
+<code class="docutils literal notranslate"><span class="pre">docscorer</span></code> has GPL-3.0 license, requires Python 3.10 or later, and
+has no PyPI distribution (the extra installs it directly from
+GitHub). The package pins <code class="docutils literal notranslate"><span class="pre">numpy&gt;=2</span></code> and <code class="docutils literal notranslate"><span class="pre">scipy&gt;=1.14</span></code>, which may
+conflict with older versions of the other OpusFilter dependencies.</p>
+<p>Note that <code class="docutils literal notranslate"><span class="pre">docscorer</span></code> actually works also with older <code class="docutils literal notranslate"><span class="pre">numpy</span></code> versions,
+but its requirement <code class="docutils literal notranslate"><span class="pre">numpy&gt;=2</span></code> prevents installing it with
+<code class="docutils literal notranslate"><span class="pre">fasttext</span></code>, which does not support <code class="docutils literal notranslate"><span class="pre">numpy&gt;=2</span></code>, using the normal <code class="docutils literal notranslate"><span class="pre">[wds]</span></code>
+extra. To use the fasttext language identification method of
+<code class="docutils literal notranslate"><span class="pre">WDSFilter</span></code> together with <code class="docutils literal notranslate"><span class="pre">docscorer</span></code>, install <code class="docutils literal notranslate"><span class="pre">docscorer</span></code> manually
+without its dependencies while keeping <code class="docutils literal notranslate"><span class="pre">numpy</span></code> below 2:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>docscorer<span class="w"> </span>@<span class="w"> </span>git+https://github.com/pablop16n/web-docs-scorer.git<span class="w"> </span>--no-deps
+pip<span class="w"> </span>install<span class="w"> </span>docopt<span class="w"> </span>zstandard
+pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"opusfilter[fasttext]"</span>
+</pre></div>
+</div>
+</section>
 <section id="jieba-and-mecab-word-segmentation">
-<h3>Jieba and MeCab word segmentation<a class="headerlink" href="#jieba-and-mecab-word-segmentation" title="Permalink to this heading"></a></h3>
+<h3>Jieba and MeCab word segmentation<a class="headerlink" href="#jieba-and-mecab-word-segmentation" title="Link to this heading"></a></h3>
 <p>For Chinese tokenization (word segmentation), you can use the
 <a class="reference external" href="https://github.com/fxsjy/jieba">jieba</a> library. It can be installed
 automatically with pip by including the extras <code class="docutils literal notranslate"><span class="pre">[jieba]</span></code> or <code class="docutils literal notranslate"><span class="pre">[all]</span></code>
@@ -194,7 +218,7 @@ automatically with pip by including the extras <code class="docutils literal not
 (e.g. <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">opusfilter[mecab]</span></code>).</p>
 </section>
 <section id="laser-sentence-embeddings">
-<h3>LASER sentence embeddings<a class="headerlink" href="#laser-sentence-embeddings" title="Permalink to this heading"></a></h3>
+<h3>LASER sentence embeddings<a class="headerlink" href="#laser-sentence-embeddings" title="Link to this heading"></a></h3>
 <p>For using sentence embeddings filters, you need to install
 <code class="docutils literal notranslate"><span class="pre">laserembeddings</span></code> (<a class="reference external" href="https://github.com/yannvgn/laserembeddings">https://github.com/yannvgn/laserembeddings</a>). It can
 be installed automatically with pip by including the extras <code class="docutils literal notranslate"><span class="pre">[laser]</span></code>
@@ -209,14 +233,14 @@ code itself works on Python 3.12 and 3.13, but you need to fix
 manually.</p>
 </section>
 <section id="varikn-n-gram-models">
-<h3>VariKN n-gram models<a class="headerlink" href="#varikn-n-gram-models" title="Permalink to this heading"></a></h3>
+<h3>VariKN n-gram models<a class="headerlink" href="#varikn-n-gram-models" title="Link to this heading"></a></h3>
 <p>For using n-gram language model filters, you need to install the
 Python wrapper for VariKN (<a class="reference external" href="https://github.com/vsiivola/variKN">https://github.com/vsiivola/variKN</a>). It can
 be installed automatically with pip by including the extras <code class="docutils literal notranslate"><span class="pre">[varikn]</span></code>
 or <code class="docutils literal notranslate"><span class="pre">[all]</span></code> (e.g. <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">opusfilter[varikn]</span></code>).</p>
 </section>
 <section id="eflomal-word-alignment">
-<h3>Eflomal word alignment<a class="headerlink" href="#eflomal-word-alignment" title="Permalink to this heading"></a></h3>
+<h3>Eflomal word alignment<a class="headerlink" href="#eflomal-word-alignment" title="Link to this heading"></a></h3>
 <p>For using word alignment filters, you need to install elfomal
 (<a class="reference external" href="https://github.com/robertostling/eflomal">https://github.com/robertostling/eflomal</a>). It can be installed
 automatically with pip by including the extras <code class="docutils literal notranslate"><span class="pre">[eflomal]</span></code> or <code class="docutils literal notranslate"><span class="pre">[all]</span></code>

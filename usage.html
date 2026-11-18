@@ -1,21 +1,21 @@
 
 
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Basic usage &mdash; OpusFilter 3.3.1 documentation</title>
+  <title>Basic usage &mdash; OpusFilter 3.4.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=b8bac34f"></script>
-      <script src="_static/doctools.js?v=888ff710"></script>
-      <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+      <script src="_static/documentation_options.js?v=b0e360d0"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -49,6 +49,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#opusfilter-script">opusfilter script</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#configuration-examples">Configuration examples</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#variables-and-constants">Variables and constants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step-dependencies">Step Dependencies</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#running-a-single-command">Running a single command</a></li>
 </ul>
 </li>
@@ -72,6 +73,7 @@
 <li class="toctree-l1"><a class="reference internal" href="filters/language_model_filters.html">Language model filters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="filters/alignment_model_filters.html">Alignment model filters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="filters/sentence_embedding_filters.html">Sentence embedding filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filters/document_scoring_filters.html">Document scoring filters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="filters/custom_filters.html">Custom filters</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Available preprocessors</span></p>
@@ -116,9 +118,9 @@
            <div itemprop="articleBody">
              
   <section id="basic-usage">
-<h1>Basic usage<a class="headerlink" href="#basic-usage" title="Permalink to this heading"></a></h1>
+<h1>Basic usage<a class="headerlink" href="#basic-usage" title="Link to this heading"></a></h1>
 <section id="opusfilter-script">
-<h2>opusfilter script<a class="headerlink" href="#opusfilter-script" title="Permalink to this heading"></a></h2>
+<h2>opusfilter script<a class="headerlink" href="#opusfilter-script" title="Link to this heading"></a></h2>
 <p>The main script provided by the package is <code class="docutils literal notranslate"><span class="pre">opusfilter</span></code>, which takes
 a configuration file as an input. The configuration files are in
 <a class="reference external" href="https://yaml.org/">YAML</a> format. At the top level, they have to
@@ -128,19 +130,23 @@ sections:</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">steps</span></code>, which is a list of the corpus processing steps.</p></li>
 </ul>
 <p>The syntax for the <code class="docutils literal notranslate"><span class="pre">opusfilter</span></code> command is</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">opusfilter</span> <span class="p">[</span><span class="o">--</span><span class="n">overwrite</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">last</span> <span class="n">LAST</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">single</span> <span class="n">SINGLE</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">n</span><span class="o">-</span><span class="n">jobs</span> <span class="n">N_JOBS</span><span class="p">]</span> <span class="n">CONFIG</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">opusfilter</span> <span class="p">[</span><span class="o">--</span><span class="n">overwrite</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">last</span> <span class="n">LAST</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">single</span> <span class="n">SINGLE</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">substep</span> <span class="n">SUBSTEP</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">n</span><span class="o">-</span><span class="n">jobs</span> <span class="n">N_JOBS</span><span class="p">]</span> <span class="n">CONFIG</span>
 </pre></div>
 </div>
 <p>where <code class="docutils literal notranslate"><span class="pre">CONFIG</span></code> is path to the configuration file.
 The script will run the steps one by one and stops when the final step
 has been processed (if no exceptions were raised). The script has
 options for setting the last step to run (<code class="docutils literal notranslate"><span class="pre">--last</span></code>) and running
-only a single step (<code class="docutils literal notranslate"><span class="pre">--single</span></code>). It the latter, the user has to
+only a single step (<code class="docutils literal notranslate"><span class="pre">--single</span></code>). In the latter case, the user has to
 make sure that all input files for the step already exist. The first
 step has number 1, and -1 points to the last step, -2 to the second to
 last, and so on. The <code class="docutils literal notranslate"><span class="pre">--n-jobs</span></code> option indicate number of processes to
 use when running <code class="docutils literal notranslate"><span class="pre">score</span></code>, <code class="docutils literal notranslate"><span class="pre">filter</span></code> and <code class="docutils literal notranslate"><span class="pre">preprocess</span></code> steps. This value will
 overwrite <code class="docutils literal notranslate"><span class="pre">default_n_jobs</span></code> in the <code class="docutils literal notranslate"><span class="pre">common</span></code> section.</p>
+<p>When using <code class="docutils literal notranslate"><span class="pre">--single</span></code> with a step that has <a class="reference internal" href="#variables-and-constants">variables</a>,
+use <code class="docutils literal notranslate"><span class="pre">--substep</span></code> to run a specific variant. For example, if a step has
+<code class="docutils literal notranslate"><span class="pre">variables:</span> <span class="pre">{lang:</span> <span class="pre">[de,</span> <span class="pre">en,</span> <span class="pre">fr]}</span></code>, then <code class="docutils literal notranslate"><span class="pre">--substep</span> <span class="pre">2</span></code> runs the English
+variant (1 for the first, 2 for the second, etc.).</p>
 <p>By default, existing output files will be re-used, and the steps
 producing them skipped. The <code class="docutils literal notranslate"><span class="pre">--overwrite</span></code> option will force overwrite
 for all the steps.</p>
@@ -163,7 +169,7 @@ should be run, and parameters is a dictionary with keys that depend on
 the function; at minimum the output files are defined there.</p>
 </section>
 <section id="configuration-examples">
-<h2>Configuration examples<a class="headerlink" href="#configuration-examples" title="Permalink to this heading"></a></h2>
+<h2>Configuration examples<a class="headerlink" href="#configuration-examples" title="Link to this heading"></a></h2>
 <p>A very simple configuration file that downloads a parallel corpus
 (here Finnish-English ParaCrawl v4) from OPUS and stores its segments
 to the files <code class="docutils literal notranslate"><span class="pre">paracrawl.fi.gz</span></code> and <code class="docutils literal notranslate"><span class="pre">paracrawl.en.gz</span></code> looks like this:</p>
@@ -182,6 +188,48 @@ to the files <code class="docutils literal notranslate"><span class="pre">paracr
 <p>The corpus files processed by OpusFilter are UTF-8 text files that
 contain one segment per line. Compressed files are read and written if
 the file ends with <code class="docutils literal notranslate"><span class="pre">.gz</span></code> (gzip) or <code class="docutils literal notranslate"><span class="pre">.bz2</span></code> (bzip2).</p>
+<p>Segments that contain embedded newlines (common in web-crawled data)
+can be handled safely using <strong>JSONL</strong> format (file extension <code class="docutils literal notranslate"><span class="pre">.jsonl</span></code>,
+optionally with a compression suffix like <code class="docutils literal notranslate"><span class="pre">.jsonl.gz</span></code>).
+When a file has the <code class="docutils literal notranslate"><span class="pre">.jsonl</span></code> extension, OpusFilter automatically
+encodes each segment as a single JSON-encoded line, so embedded
+newlines do not inflate line counts. All file operations (<code class="docutils literal notranslate"><span class="pre">read</span></code>,
+<code class="docutils literal notranslate"><span class="pre">write</span></code>, <code class="docutils literal notranslate"><span class="pre">filter</span></code>, <code class="docutils literal notranslate"><span class="pre">split</span></code>, <code class="docutils literal notranslate"><span class="pre">concatenate</span></code>, etc.) support JSONL files
+transparently.</p>
+<p>JSONL output is especially useful for document level output, supported
+by <code class="docutils literal notranslate"><span class="pre">opus_read</span></code> with the option <code class="docutils literal notranslate"><span class="pre">doc_level:</span> <span class="pre">true</span></code> for corpora that have
+a document structure. The following example takes documents from the
+QED corpus, and shows how to limit the output to certain number of
+loaded documents (<code class="docutils literal notranslate"><span class="pre">limit</span></code>) and filter them in-line with selected
+filters (<code class="docutils literal notranslate"><span class="pre">filters</span></code>), keeping the scores of the filters for later study
+(<code class="docutils literal notranslate"><span class="pre">score_output</span></code>).</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">steps</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">opus_read</span>
+<span class="w">    </span><span class="nt">parameters</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">corpus_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">QED</span>
+<span class="w">      </span><span class="nt">source_language</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">en</span>
+<span class="w">      </span><span class="nt">target_language</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ko</span>
+<span class="w">      </span><span class="nt">release</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">latest</span>
+<span class="w">      </span><span class="nt">preprocessing</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">raw</span>
+<span class="w">      </span><span class="nt">doc_level</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">      </span><span class="nt">limit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2000</span>
+<span class="w">      </span><span class="nt">src_output</span><span class="p">:</span><span class="w"> </span><span class="s">"en-ko.prefiltered.en.jsonl.gz"</span>
+<span class="w">      </span><span class="nt">tgt_output</span><span class="p">:</span><span class="w"> </span><span class="s">"en-ko.prefiltered.ko.jsonl.gz"</span>
+<span class="w">      </span><span class="nt">score_output</span><span class="p">:</span><span class="w"> </span><span class="s">"en-ko.prefiltered.scores.jsonl.gz"</span>
+<span class="w">      </span><span class="nt">filters</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">LengthRatioFilter</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">unit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">char</span>
+<span class="w">            </span><span class="nt">threshold</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">CharacterScoreFilter</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">scripts</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">Latin</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">Hangul</span><span class="p p-Indicator">]</span>
+<span class="w">            </span><span class="nt">thresholds</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0.8</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.8</span><span class="p p-Indicator">]</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">WDSFilter</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">threshold</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.3</span>
+<span class="w">            </span><span class="nt">ref_language</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">eng_latn</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">kor_hang</span><span class="p p-Indicator">]</span>
+<span class="w">            </span><span class="nt">lid_method</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">lingua</span>
+<span class="w">            </span><span class="nt">lid_options</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">lingua_mode</span><span class="p">:</span><span class="w"> </span><span class="nv">high</span><span class="p p-Indicator">}</span>
+</pre></div>
+</div>
 <p>A bit more complex example that downloads both ParaCrawl and WMT-News
 sets from OPUS, concatenates the output files, and filters them so
 that only the segment pairs for which both languages have segment
@@ -277,7 +325,7 @@ WMT-News data, you can have:</p>
 </div>
 </section>
 <section id="variables-and-constants">
-<h2>Variables and constants<a class="headerlink" href="#variables-and-constants" title="Permalink to this heading"></a></h2>
+<h2>Variables and constants<a class="headerlink" href="#variables-and-constants" title="Link to this heading"></a></h2>
 <p>If you have for example multiple bitexts, for which you want to use
 the same preprocessing steps, writing separate steps for each of them
 requires a lot of manually written configuration. While generating the
@@ -310,9 +358,9 @@ key, with variable names as keys. For example,</p>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">concatenate</span>
 <span class="w">    </span><span class="nt">parameters</span><span class="p">:</span>
 <span class="w">      </span><span class="nt">inputs</span><span class="p">:</span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="kt">!varstr</span><span class="w"> </span><span class="s">&quot;file1.{source}-{target}.gz&quot;</span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="kt">!varstr</span><span class="w"> </span><span class="s">&quot;file2.{source}-{target}.gz&quot;</span>
-<span class="w">      </span><span class="nt">output</span><span class="p">:</span><span class="w"> </span><span class="kt">!varstr</span><span class="w"> </span><span class="s">&quot;all.{source}-{target}.gz&quot;</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="kt">!varstr</span><span class="w"> </span><span class="s">"file1.{source}-{target}.gz"</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="kt">!varstr</span><span class="w"> </span><span class="s">"file2.{source}-{target}.gz"</span>
+<span class="w">      </span><span class="nt">output</span><span class="p">:</span><span class="w"> </span><span class="kt">!varstr</span><span class="w"> </span><span class="s">"all.{source}-{target}.gz"</span>
 <span class="w">    </span><span class="nt">constants</span><span class="p">:</span>
 <span class="w">      </span><span class="nt">target</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fi</span>
 </pre></div>
@@ -331,9 +379,9 @@ intended variable values as values. For example,</p>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">concatenate</span>
 <span class="w">    </span><span class="nt">parameters</span><span class="p">:</span>
 <span class="w">      </span><span class="nt">inputs</span><span class="p">:</span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="kt">!varstr</span><span class="w"> </span><span class="s">&quot;file1.{source}-{target}.gz&quot;</span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="kt">!varstr</span><span class="w"> </span><span class="s">&quot;file2.{source}-{target}.gz&quot;</span>
-<span class="w">      </span><span class="nt">output</span><span class="p">:</span><span class="w"> </span><span class="kt">!varstr</span><span class="w"> </span><span class="s">&quot;all.{source}-{target}.gz&quot;</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="kt">!varstr</span><span class="w"> </span><span class="s">"file1.{source}-{target}.gz"</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="kt">!varstr</span><span class="w"> </span><span class="s">"file2.{source}-{target}.gz"</span>
+<span class="w">      </span><span class="nt">output</span><span class="p">:</span><span class="w"> </span><span class="kt">!varstr</span><span class="w"> </span><span class="s">"all.{source}-{target}.gz"</span>
 <span class="w">    </span><span class="nt">variables</span><span class="p">:</span>
 <span class="w">      </span><span class="nt">target</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">fi</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">sv</span><span class="p p-Indicator">]</span>
 </pre></div>
@@ -344,9 +392,54 @@ have the same length. The step is expanded into as many substeps as
 there are values in the lists. Note that if you need to use the
 same lists of variable values in multiple steps, you can exploit
 the standard YAML node anchors and references.</p>
+<p>When running steps with the <code class="docutils literal notranslate"><span class="pre">opusfilter</span></code> command, all variants are
+executed sequentially. Use the <code class="docutils literal notranslate"><span class="pre">--single</span></code> and <code class="docutils literal notranslate"><span class="pre">--substep</span></code> options
+to run a specific variant. For example, <code class="docutils literal notranslate"><span class="pre">opusfilter</span> <span class="pre">config.yaml</span> <span class="pre">--single</span> <span class="pre">3</span> <span class="pre">--substep</span> <span class="pre">2</span></code>
+runs the second variant of step 3.</p>
+</section>
+<section id="step-dependencies">
+<h2>Step Dependencies<a class="headerlink" href="#step-dependencies" title="Link to this heading"></a></h2>
+<p>By default, OpusFilter detects dependencies between steps automatically
+by matching input files to output files. However, some steps have
+implicit file dependencies that are not captured through standard
+input/output parameters.</p>
+<p>For example, <code class="docutils literal notranslate"><span class="pre">LMClassifierFilter</span></code> loads model files specified in
+<code class="docutils literal notranslate"><span class="pre">lm_params.*.filename</span></code>, but these are not automatically detected as
+dependencies because they are nested in filter configurations.</p>
+<p>Use the <code class="docutils literal notranslate"><span class="pre">depends_on</span></code> field to explicitly declare these dependencies:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">steps</span><span class="p">:</span>
+<span class="w">  </span><span class="c1"># Step that produces model files</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">train_ngram</span>
+<span class="w">    </span><span class="nt">parameters</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">data</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">data.txt.gz</span>
+<span class="w">      </span><span class="nt">model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">model.arpa.gz</span>
+
+<span class="w">  </span><span class="c1"># Step that uses the model (implicit dependency via lm_params)</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">filter</span>
+<span class="w">    </span><span class="nt">parameters</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">inputs</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">data.txt.gz</span><span class="p p-Indicator">]</span>
+<span class="w">      </span><span class="nt">outputs</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">filtered.txt.gz</span><span class="p p-Indicator">]</span>
+<span class="w">      </span><span class="nt">filters</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">LMClassifierFilter</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">lm_params</span><span class="p">:</span>
+<span class="w">              </span><span class="nt">en</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">filename</span><span class="p">:</span><span class="w"> </span><span class="nv">model.arpa.gz</span><span class="p p-Indicator">}</span>
+<span class="w">    </span><span class="nt">depends_on</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">model.arpa.gz</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">depends_on</span></code> field supports:</p>
+<ul class="simple">
+<li><p>Single file: <code class="docutils literal notranslate"><span class="pre">depends_on:</span> <span class="pre">model.arpa.gz</span></code></p></li>
+<li><p>Multiple files: <code class="docutils literal notranslate"><span class="pre">depends_on:</span> <span class="pre">[file1.gz,</span> <span class="pre">file2.gz]</span></code></p></li>
+<li><p>Variable expansion: <code class="docutils literal notranslate"><span class="pre">depends_on:</span> <span class="pre">['!varstr</span> <span class="pre">&quot;{lang}.arpa.gz&quot;']</span></code></p></li>
+</ul>
+<p>Note: The <code class="docutils literal notranslate"><span class="pre">depends_on</span></code> field is primarily used by <code class="docutils literal notranslate"><span class="pre">opusfilter-slurm</span></code>
+for SLURM job scheduling and <code class="docutils literal notranslate"><span class="pre">opusfilter-diagram</span></code> for visualization.
+The standard <code class="docutils literal notranslate"><span class="pre">opusfilter</span></code> command runs steps sequentially and does
+not require explicit dependency declaration.</p>
 </section>
 <section id="running-a-single-command">
-<h2>Running a single command<a class="headerlink" href="#running-a-single-command" title="Permalink to this heading"></a></h2>
+<h2>Running a single command<a class="headerlink" href="#running-a-single-command" title="Link to this heading"></a></h2>
 <p>If you need to run a single OpusFilter function wihtout the need of
 writing a complete configuration, the script <code class="docutils literal notranslate"><span class="pre">opusfilter-cmd</span></code> is
 provided for convenience. With the command, you can define a
@@ -364,7 +457,7 @@ object (as a string) that corresponds to the parameter definition in
 YAML configuration, or setting the parameters with custom options.</p>
 <p>For the former, use the <code class="docutils literal notranslate"><span class="pre">--parameters</span></code> option. For example, the
 following performs filtering with a single word length filter:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">opusfilter</span><span class="o">-</span><span class="n">cmd</span> <span class="nb">filter</span> <span class="o">--</span><span class="n">parameters</span> <span class="p">{</span><span class="s2">&quot;inputs&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;wmt.fi.gz&quot;</span><span class="p">,</span> <span class="s2">&quot;wmt.en.gz&quot;</span><span class="p">],</span> <span class="s2">&quot;outputs&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;wmt_filtered.fi.gz&quot;</span><span class="p">,</span> <span class="s2">&quot;wmt_filtered.en.gz&quot;</span><span class="p">],</span> <span class="s2">&quot;filters&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;LengthFilter&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;unit&quot;</span><span class="p">:</span> <span class="s2">&quot;word&quot;</span><span class="p">,</span> <span class="s2">&quot;min_length&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;max_length&quot;</span><span class="p">:</span> <span class="mi">100</span><span class="p">}}]}</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">opusfilter</span><span class="o">-</span><span class="n">cmd</span> <span class="nb">filter</span> <span class="o">--</span><span class="n">parameters</span> <span class="p">{</span><span class="s2">"inputs"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"wmt.fi.gz"</span><span class="p">,</span> <span class="s2">"wmt.en.gz"</span><span class="p">],</span> <span class="s2">"outputs"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"wmt_filtered.fi.gz"</span><span class="p">,</span> <span class="s2">"wmt_filtered.en.gz"</span><span class="p">],</span> <span class="s2">"filters"</span><span class="p">:</span> <span class="p">[{</span><span class="s2">"LengthFilter"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"unit"</span><span class="p">:</span> <span class="s2">"word"</span><span class="p">,</span> <span class="s2">"min_length"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">"max_length"</span><span class="p">:</span> <span class="mi">100</span><span class="p">}}]}</span>
 </pre></div>
 </div>
 <p>Writing a valid complex JSON object may be difficult, and the custom
@@ -379,7 +472,7 @@ notation (e.g. <code class="docutils literal notranslate"><span class="pre">'[&q
 replaced by underscores (e.g. <code class="docutils literal notranslate"><span class="pre">--corpus-name</span></code> can be used to produce
 the <code class="docutils literal notranslate"><span class="pre">corpus_name</span></code> parameter).</p>
 <p>In this manner, the above example can be written also as:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">opusfilter</span><span class="o">-</span><span class="n">cmd</span> <span class="nb">filter</span> <span class="o">--</span><span class="n">inputs</span> <span class="n">wmt</span><span class="o">.</span><span class="n">fi</span><span class="o">.</span><span class="n">gz</span> <span class="n">wmt</span><span class="o">.</span><span class="n">en</span><span class="o">.</span><span class="n">gz</span> <span class="o">--</span><span class="n">outputs</span> <span class="n">wmt_filtered</span><span class="o">.</span><span class="n">fi</span><span class="o">.</span><span class="n">gz</span> <span class="n">wmt_filtered</span><span class="o">.</span><span class="n">en</span><span class="o">.</span><span class="n">gz</span> <span class="o">--</span><span class="n">filters</span> <span class="s1">&#39;[{&quot;LengthFilter&quot;: {&quot;unit&quot;: &quot;word&quot;, &quot;min_length&quot;: 1, &quot;max_length&quot;: 100}}]&#39;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">opusfilter</span><span class="o">-</span><span class="n">cmd</span> <span class="nb">filter</span> <span class="o">--</span><span class="n">inputs</span> <span class="n">wmt</span><span class="o">.</span><span class="n">fi</span><span class="o">.</span><span class="n">gz</span> <span class="n">wmt</span><span class="o">.</span><span class="n">en</span><span class="o">.</span><span class="n">gz</span> <span class="o">--</span><span class="n">outputs</span> <span class="n">wmt_filtered</span><span class="o">.</span><span class="n">fi</span><span class="o">.</span><span class="n">gz</span> <span class="n">wmt_filtered</span><span class="o">.</span><span class="n">en</span><span class="o">.</span><span class="n">gz</span> <span class="o">--</span><span class="n">filters</span> <span class="s1">'[{"LengthFilter": {"unit": "word", "min_length": 1, "max_length": 100}}]'</span>
 </pre></div>
 </div>
 <p>Note that the filters still need to be defined as a complex JSON
